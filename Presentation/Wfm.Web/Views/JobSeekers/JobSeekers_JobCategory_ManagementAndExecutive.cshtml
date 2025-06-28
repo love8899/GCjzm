@@ -1,0 +1,43 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Management and Executive";
+    //var description = siteTitle + " has successfully placed well qualified leaders from department heads and general managers to senior managers and executives across a variety of industries.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower() + " jobs";
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Management and Executive</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            If you’re an exceptional leader with a proven track record seeking a new managerial
+            or executive position, we can help. @siteTitle has successfully placed well
+            qualified leaders from department heads and general managers to senior managers
+            and executives across a variety of industries.
+        </p>
+        <p>
+            With @siteTitle you’ll benefit from the deep relationships we have made with
+            leading employers in a growing number of sectors. Our client companies are always
+            on the lookout for top managerial candidates and experienced executives who can
+            help take their businesses to the next level. We’ll introduce you to the best roles
+            with industry leading companies and enterprising local firms.
+        </p>
+    </div>
+</div>

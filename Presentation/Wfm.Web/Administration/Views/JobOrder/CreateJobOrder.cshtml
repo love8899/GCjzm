@@ -1,0 +1,231 @@
+﻿@using Wfm.Core;
+@model JobOrderModel
+@{
+    int startIndex = ViewBag.StartIndex != null ? ViewBag.StartIndex : 0;
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var currentAccountId = workContext.CurrentAccount.Id;
+}
+<style>
+    tbody .k-datepicker, tbody .k-datetimepicker, tbody .k-timepicker {
+        width: 300px !important;
+    }
+</style>
+
+<div class="section-header">
+    <div class="title">
+        @T("Common.JobOrder") @Html.ActionLink("(" + T("Admin.JobOrder.JobOrder.BackToList") + ")", "Index")
+    </div>
+    <div class="options">
+    </div>
+</div>
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "jobordercreate-form" }))
+{
+    Html.EnableClientValidation(true);
+    @Html.Hidden("currentIndex", 0)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.JobOrderGuid)
+    @Html.HiddenFor(model => model.JobPostingId)
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+    @Html.HiddenFor(model => model.UpdatedOnUtc)
+    @Html.HiddenFor(model => model.EnteredBy)
+    @Html.HiddenFor(model => model.IsDeleted)
+
+    <h4>@T("Common.CompanyInformation")</h4>
+    <section>
+        @Html.EditorFor(x => x, "_CreateCompanyInformation")
+    </section>
+    <h4>@T("Common.Shift")</h4>
+    <section>
+        @Html.EditorFor(x => x, "_CreateShiftInformation")
+    </section>
+    <h4>@T("Common.JobInformation")</h4>
+    <section>
+        <div id="step3">Loading..</div>
+        @if (Model.CompanyId > 0)
+        {
+            <div id="tempData">
+                @Html.HiddenFor(model => model.JobDescription)
+                @Html.HiddenFor(model => model.PositionId)
+                @Html.HiddenFor(model => model.JobTitle)
+                @Html.HiddenFor(model => model.LabourType)
+                @Html.HiddenFor(model => model.IsPublished)
+            </div>
+        }
+
+    </section>
+    @*<h4>@T("Common.BasicInformation")</h4>*@
+    <h4>Misc Information</h4>
+    <section>
+        @Html.EditorFor(x => x, "_CreateBasicJobOrderInformation")
+    </section>
+    <h4>@T("Admin.JobOrder.JobOrder.JobOrderPaymentInformation")</h4>
+    <section>
+        @Html.EditorFor(x => x, "_CreatePaymentInformation")
+    </section>
+    <h4>@T("Common.WorkingDays")</h4>
+    <section>
+        <table class="adminContent" id="tblWorkingDays">
+            <tr>
+                <td colspan="2">
+                    @Html.ValidationMessageFor(model => model.SundaySwitch)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">@Html.LabelFor(model => model.SundaySwitch)</td>
+                <td class="adminData">@Html.CheckBoxFor(model => model.SundaySwitch)</td>
+            </tr>
+            <tr>
+                <td class="adminTitle">@Html.LabelFor(model => model.MondaySwitch)</td>
+                <td class="adminData">@Html.CheckBoxFor(model => model.MondaySwitch)</td>
+            </tr>
+            <tr>
+                <td class="adminTitle">@Html.LabelFor(model => model.TuesdaySwitch)</td>
+                <td class="adminData">@Html.CheckBoxFor(model => model.TuesdaySwitch)</td>
+            </tr>
+            <tr>
+                <td class="adminTitle">@Html.LabelFor(model => model.WednesdaySwitch)</td>
+                <td class="adminData">@Html.CheckBoxFor(model => model.WednesdaySwitch)</td>
+            </tr>
+            <tr>
+                <td class="adminTitle">@Html.LabelFor(model => model.ThursdaySwitch)</td>
+                <td class="adminData">@Html.CheckBoxFor(model => model.ThursdaySwitch)</td>
+            </tr>
+            <tr>
+                <td class="adminTitle">@Html.LabelFor(model => model.FridaySwitch)</td>
+                <td class="adminData">@Html.CheckBoxFor(model => model.FridaySwitch)</td>
+            </tr>
+            <tr>
+                <td class="adminTitle">@Html.LabelFor(model => model.SaturdaySwitch)</td>
+                <td class="adminData">@Html.CheckBoxFor(model => model.SaturdaySwitch)</td>
+            </tr>
+
+            <tr>
+                <td class="adminTitle">@Html.LabelFor(model => model.IncludeHolidays)</td>
+                <td class="adminData">@Html.CheckBoxFor(model => model.IncludeHolidays)</td>
+            </tr>
+        </table>
+
+    </section>
+
+    <h4>@T("Common.OtherInformation")</h4>
+    <section>
+        @Html.EditorFor(x => x, "_CreateOtherInformation")
+    </section>
+}
+<script type="text/javascript">
+
+    var newPage = @Html.Raw(Json.Encode(ViewBag.NewPage));
+    var accountDone = @Html.Raw(Json.Encode(Model.Id > 0));
+    var startIndex = @startIndex;
+
+    var form = $("#jobordercreate-form").show();
+    form.steps({
+        headerTag: "h4",
+        bodyTag: "section",
+        enableAllSteps: !newPage,
+        autoFocus: true,
+        showFinishButtonAlways: !newPage,
+        transitionEffect: "slideLeft",
+        stepsOrientation: "vertical",
+        startIndex: startIndex,
+
+        onStepChanging: function (event, currentIndex, newIndex) {
+
+            // Allways allow previous action even if the current form is not valid!
+            var isValid = true;
+
+            if (currentIndex > newIndex) {
+                isValid= true;
+            }
+            // Needed in some cases if the user went back (clean up)
+            if (currentIndex < newIndex) {
+                // To remove error styles
+                form.find(".body:eq(" + newIndex + ") label.error").remove();
+                form.find(".body:eq(" + newIndex + ") .error").removeClass("error");
+                if(currentIndex === 2)
+                    tinyMCE.triggerSave();
+
+                var visibleForm = form.find(".current[aria-hidden='false'] input");
+                if (visibleForm.length > 0) {
+                    visibleForm.validate().settings.ignore = ":disabled";
+                    addCustomRules();
+                    isValid = visibleForm.valid();
+                }
+            }
+
+            if(isValid)
+            {
+                if( newIndex==1)
+                {
+                    if($("#step3").html().length<100)
+                    {
+                        $.ajax({
+                            url: '@Url.Action("_CreateJobOrderInformation", "JobOrder")',
+                            type: 'POST',
+                            data: form.serialize(),
+                            success:function(result){
+                                $("#tempData").html('');
+                                $("#step3").html(result);
+                            }
+                        });
+                    }
+                }
+                else if( newIndex==2)
+                {
+                    if($("#RecruiterId").val()=='')
+                        $("#RecruiterId").data("kendoDropDownList").value('@currentAccountId');
+                    if($("#OwnerId").val()=='')
+                        $("#OwnerId").data("kendoDropDownList").value('@currentAccountId');
+                }
+            }
+            return isValid;
+
+        },
+
+        onStepChanged: function (event, currentIndex, priorIndex) {
+        },
+
+        onFinishing: function (event, currentIndex) {
+            form.validate().settings.ignore = ":disabled";
+            //  removeOptionalRules();
+            return form.valid();
+        },
+
+        onFinished: function (event, currentIndex) {
+            $("#currentIndex").val(currentIndex);
+            form.submit();
+        }
+    });
+
+    // add class to recover style
+    if (!newPage) {
+        //$('.steps ul li').not(':eq(0)').each(function () {
+        $('.steps ul li').each(function () {
+            if ($(this).index() != startIndex)
+                $(this).addClass('done');
+        });
+    }
+
+    function addCustomRules() {
+        $("#SundaySwitch").rules("add", {
+            atLeastOneWorkingday: true
+        });
+
+    }
+
+    $.validator.addMethod('atLeastOneWorkingday', function (value, element, param) {
+        var isValid=true;
+        if ($("#tblWorkingDays input[type=checkbox]:checked").length === 0) {
+            isValid= false;
+        }
+        return isValid; // return bool here if valid or not.
+    }, 'Please select at least one working day!');
+
+    function reloadPositions() {
+        var positionDdl = $('#PositionId').data("kendoDropDownList");
+        if (positionDdl)
+            positionDdl.dataSource.read();
+    }
+
+</script>

@@ -1,0 +1,41 @@
+﻿@using Wfm.Core.Domain.TimeSheet
+@model ClientTimeSheetDocumentModel
+@Html.HiddenFor(model => model.Id)
+
+<script src="@Url.Content("~/Scripts/fileUploadHelper.js")" type="text/javascript"></script>
+<script type="text/javascript">
+    function onSuccessOverride(e) {
+        refreshList();
+    }
+
+    function onErrorOverride(e) {
+        refreshList();
+        var files = e.files; // Array with information about the uploaded files
+        if (e.operation == "upload") {
+            alert("Failed to upload " + files.length + " files");
+        }
+    }
+</script>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Upload()
+                .Name("clientDocuments")
+                .HtmlAttributes(new { style = "height:200px" })
+                .Multiple(true)
+                .Async(async => async
+                            .Save("SaveClientDocuments", "JobOrder", Model)
+                            .Remove("RemoveClientDocuments", "JobOrder")
+                    .AutoUpload(false)
+                )
+                .Events(events => events
+                    .Complete("onComplete")
+                    .Error("onErrorOverride")
+                    .Success("onSuccessOverride")
+                    .Upload("onUpload")
+                )
+            )
+        </td>
+    </tr>
+</table>
+

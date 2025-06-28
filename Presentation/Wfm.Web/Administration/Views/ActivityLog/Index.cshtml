@@ -1,0 +1,87 @@
+﻿@using Wfm.Services.Logging;
+
+@model IEnumerable<ActivityLogModel>
+
+@{
+    ViewBag.Title = T("Admin.Logging.ActivityLog").Text;
+
+    var activityLogService = EngineContext.Current.Resolve<IActivityLogService>();
+    var activityLogTypes = activityLogService.GetAllActivityLogTypes().Where(a => !a.ActivityLogTypeName.StartsWith("Candidate"));
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Logging.ActivityLog")
+    </div>
+    <div class="options">
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<ActivityLogModel>()
+                .Name("activitylog-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .Width(70).Hidden();
+
+                    columns.ForeignKey(x => x.ActivityLogTypeId, activityLogTypes, "Id", "Description").Width(350);
+
+                    columns.Bound(x => x.AccountId).Width(150);
+                    columns.Bound(x => x.AccountName)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Width(180);
+
+                    columns.Bound(x => x.FranchiseId).Hidden();
+                    columns.Bound(x => x.FranchiseName)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden();
+
+                    columns.Bound(x => x.ActivityLogDetail)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+
+                    columns.Bound(x => x.UpdatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120).Hidden();
+                    columns.Bound(x => x.CreatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120);
+
+                    columns.Bound(x => x.Id).Sortable(false).Filterable(false).Width(90)
+                            .Template(x => Html.ActionLink("Details", "Details", new { x.Id }))
+                            .ClientTemplate("<a href=\"" + @Url.Content("~/Admin/ActivityLog/Details/") + "#= Id #\">" + T("Admin.Common.Details").Text + "</a>")
+                            .Title(T("Admin.Common.Details").Text);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(true))
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("Index", "ActivityLog"))
+                )
+                //.Filterable(filterable => filterable
+                //    .Extra(false)
+                //    .Operators(operators => operators
+                //        .ForString(str => str.Clear()
+                //            .Contains("Contains")
+                //            .IsEqualTo("Is equal to")
+                //            .IsNotEqualTo("Is not equal to")
+                //        )
+                //    )
+                //)
+            )
+        </td>
+    </tr>
+</table>

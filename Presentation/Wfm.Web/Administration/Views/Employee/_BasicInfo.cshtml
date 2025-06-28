@@ -1,0 +1,225 @@
+﻿@model Wfm.Admin.Models.Employee.EmployeeModel
+@{
+    Layout = null;
+}
+
+@using (Html.BeginForm("_UpdateEmployee", "Employee", FormMethod.Post, new { id = "basic-info-form" }))
+{
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.CandidateGuid)
+    @Html.HiddenFor(model => model.Username)
+    @Html.HiddenFor(model => model.InactiveReason)
+    @Html.HiddenFor(model => model.IsBanned)
+    @Html.HiddenFor(model => model.BannedReason)
+    @Html.HiddenFor(model => model.Note)
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+
+    <table class="adminContent">
+        <tr>
+            <td width="10%"></td>
+            <td width="40%">
+                <table>
+                    <tr>
+                        <td class="adminTitle" width="30%">
+                            @T("Common.Id")
+                        </td>
+                        <td class="adminData" width="70%">
+                            @Html.Kendo().TextBoxFor(model => model.Id).Enable(false)
+                            @Html.HiddenFor(model => model.Id)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            @T("Common.EmployeeNumber")
+                        </td>
+                        <td class="adminData">
+                            @Html.Kendo().TextBoxFor(model => model.EmployeeId)
+                            @Html.WfmValidationMessageFor(model => model.EmployeeId)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            @Html.LabelFor(model => model.SalutationId)
+                        </td>
+                        <td class="adminData required">
+                            @Html.EditorFor(model => model.SalutationId)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            @Html.LabelFor(model => model.FirstName)
+                        </td>
+                        <td class="adminData">
+                            @Html.EditorFor(model => model.FirstName)
+                            @Html.WfmValidationMessageFor(model => model.FirstName)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            @Html.LabelFor(model => model.LastName)
+                        </td>
+                        <td class="adminData required">
+                            @Html.EditorFor(model => model.LastName)
+                            @Html.WfmValidationMessageFor(model => model.LastName)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            @Html.LabelFor(model => model.MiddleName)
+                        </td>
+                        <td class="adminData">
+                            @Html.EditorFor(model => model.MiddleName)
+                            @Html.WfmValidationMessageFor(model => model.MiddleName)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            @Html.LabelFor(model => model.GenderId)
+                        </td>
+                        <td class="adminData required">
+                            @Html.EditorFor(model => model.GenderId)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            @Html.LabelFor(model => model.LanguageId)
+                        </td>
+                        <td class="adminData required">
+                            @Html.EditorFor(model => model.LanguageId)
+                            @Html.WfmValidationMessageFor(model => model.LanguageId)
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td width="40%">
+                <table>
+                    <tr>
+                        <td class="adminTitle" width="30%">
+                            @Html.LabelFor(model => model.FranchiseId)
+                        </td>
+                        <td class="adminData" width="70%">
+                            @Html.EditorFor(model => model.FranchiseId, new { isEnabled = false })
+                            @Html.HiddenFor(model => model.FranchiseId)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            @Html.LabelFor(model => model.BirthDate)
+                        </td>
+                        <td class="adminData required">
+                            @Html.EditorFor(model => model.BirthDate)
+                            @Html.WfmValidationMessageFor(model => model.BirthDate)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            @Html.LabelFor(model => model.SocialInsuranceNumber)
+                        </td>
+                        <td class="adminData required">
+                            @Html.Kendo().MaskedTextBoxFor(model => model.SocialInsuranceNumber).Mask("999 999 999").Events(e => e.Change("toggleSinExpiryDate"))
+                            @Html.WfmValidationMessageFor(model => model.SocialInsuranceNumber)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            @Html.LabelFor(model => model.SINExpiryDate)
+                        </td>
+                        <td class="adminData">
+                            @Html.EditorFor(model => model.SINExpiryDate)
+                            @Html.WfmValidationMessageFor(model => model.SINExpiryDate)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            @*@Html.LabelFor(model => model.SINExtensionSubmissionDate)*@
+                            Extension Submission date
+                        </td>
+                        <td class="adminData">
+                            @Html.EditorFor(model => model.SINExtensionSubmissionDate)
+                            @Html.WfmValidationMessageFor(model => model.SINExtensionSubmissionDate)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            @*@Html.LabelFor(model => model.WorkPermit)*@
+                            Work Permit #
+                        </td>
+                        <td class="adminData">
+                            @Html.EditorFor(model => model.WorkPermit)
+                            @Html.WfmValidationMessageFor(model => model.WorkPermit)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            @*@Html.LabelFor(model => model.WorkPermitExpiry)*@
+                            Work Permit Expiry
+                        </td>
+                        <td class="adminData">
+                            @Html.EditorFor(model => model.WorkPermitExpiry)
+                            @Html.WfmValidationMessageFor(model => model.WorkPermitExpiry)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            @Html.LabelFor(model => model.IsActive)
+                        </td>
+                        <td class="adminData required">
+                            @Html.EditorFor(model => model.IsActive)
+                            @Html.WfmValidationMessageFor(model => model.IsActive)
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td width="10%"></td>
+        </tr>
+        <tr>
+            <td wdith="10%"></td>
+            <td colspan="2">
+                <table width="100%">
+                    <tr>
+                        <td class="adminTitle" width="15%">@Html.LabelFor(model => model.PayrollReminder, "Payroll Reminder")</td>
+                        <td class="adminData" width="85%">
+                            @Html.TextAreaFor(model => model.PayrollReminder, new { @class = "k-input", rows = "2", maxlength = "255", style = "width:90%;resize:none" })
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td wdith="10%"></td>
+        </tr>
+    </table>
+    <br />
+}
+
+<script>
+
+    $(function () {
+        toggleSinExpiryDate();
+    });
+
+    function toggleSinExpiryDate() {
+        var sin = $('#SocialInsuranceNumber').val();
+        sin = sin.replace(/ /g, '').replace(/-/g, '');
+        if (sin.length == 9 && !isNaN(sin) && sin[0] == "9") {
+            $("#SINExpiryDate").data('kendoDatePicker').enable(true);
+            $("#SINExtensionSubmissionDate").data('kendoDatePicker').enable(true);
+        }
+        else {
+            $("#SINExpiryDate").data('kendoDatePicker').enable(false);
+            $("#SINExpiryDate").data('kendoDatePicker').val = new Date();
+            $("#SINExpiryDate").val(null);
+            clearFieldError('SINExpiryDate');
+            $("#SINExtensionSubmissionDate").data('kendoDatePicker').enable(false);
+            $("#SINExtensionSubmissionDate").data('kendoDatePicker').val = new Date();
+            $("#SINExtensionSubmissionDate").val(null);
+            clearFieldError('SINExtensionSubmissionDate');
+        }
+    }
+
+    function clearFieldError(name) {
+        $('input[name="' + name + '"]').removeClass('input-validation-error');
+        $('span[data-valmsg-for="' + name + '"]').empty();
+        $('span[data-valmsg-for="' + name + '"]').removeClass('field-validation-error');
+        $('span[data-valmsg-for="' + name + '"]').addClass('field-validation-valid');
+    }
+
+</script>

@@ -1,0 +1,66 @@
+﻿<div class="section-header">
+    <div class="title">
+        Search (only first 100 displayed)
+    </div>
+    <div class="options">
+        @Html.TextBox("searchKey", null, new { style = "width:240px", placeholder = "Name, SIN, Phone Number ..." })
+        @(Html.Kendo().Button().Name("Search").HtmlAttributes(new { type = "submit" }).Content("Search"))
+        <button id="btnAddToBlacklist" class="k-button">Add to DNR List</button>
+    </div>
+</div>
+
+@Html.Partial("_SearchCandidates")
+
+<script type="text/javascript">
+    $('#btnAddToBlacklist').click(function (e) {
+        e.preventDefault();
+
+        var ids = selectedIds.join(",");
+        if (!ids) {
+            alert("Please search and select candidates!");
+            return;
+        }
+
+        $(document.body).append('<div id="add-to-blacklist"></div>');
+        $("#add-to-blacklist").kendoWindow({
+            title: 'Add candidate to "Do Not Return" list',
+            modal: true,
+            resizable: false,
+            width: 540,
+            height: 480,
+            content: '@Url.Action("_AddCandidateToBlacklist", "Candidate")',
+            close: function () {
+                setTimeout(function () {
+                    $('#add-to-blacklist').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#submit-addtoblacklist').click(function () {
+                    if (validateInput()) {
+                        var link = '@Url.Action("_AddSelectedCandidatesToBlacklist", "Candidate")';
+                        $.ajax({
+                            type: "POST",
+                            url: link,
+                            data: { selectedIds: ids, startDate: $("#startDate").val(), clientId: $("#clientId").val(), reason: $("#reason").val(), note: $("#note").val(), clientName: $("#clientName").val(), jobOrderId: $("#jobOrderId").val() },
+                            success: function (response) {
+                                if (response.Result) {
+                                    var startDate = $("#startDate").data("kendoDatePicker").value();
+                                    var companyName = $("#clientId").val() ? $("#clientId").data("kendoDropDownList").text() : 'all companies';
+                                    alert("Candidate(s) banned since " + startDate.toISOString().split('T')[0] + ", for " + companyName + ".");
+                                    win.close();
+                                    reloadGrid();
+                                }
+                                else {
+                                    alert(response.ErrorMessage);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }).data('kendoWindow').center();
+
+        return false;
+    });
+</script>

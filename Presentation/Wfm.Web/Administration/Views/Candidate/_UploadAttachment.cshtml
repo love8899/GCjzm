@@ -1,0 +1,194 @@
+﻿@model CandidateAttachmentModel
+@{
+    var documentTypeService = EngineContext.Current.Resolve<Wfm.Services.Media.IDocumentTypeService>();
+    var companyService = EngineContext.Current.Resolve<Wfm.Services.Companies.ICompanyService>();
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    var documentTypes = documentTypeService.GetAllDocumentTypes().OrderBy(x => x.DisplayOrder);
+    var companyList = companyService.GetAllCompaniesAsQueryable(workContext.CurrentAccount).OrderBy(x => x.CompanyName)
+        .Select(x => new SelectListItem()
+        {
+            Text = x.CompanyName,
+            Value = x.Id.ToString()
+        });
+}
+@Html.HiddenFor(model => model.CandidateId)
+@Html.HiddenFor(model => model.CandidateGuid)
+
+<script src="@Url.Content("~/Scripts/fileUploadHelper.js")" type="text/javascript"></script>
+<script type="text/javascript">   
+    function validateFileName(_file, documenttypeId) {
+        var filename = _file.name.toString();
+        var isValid = true;
+        $.ajax({
+            url: '@Url.Action("GetFileStartNameByDocumentId")',
+            data: { documentTypeId: documenttypeId },
+            type: 'GET',
+            async: false,
+            success: function (result) {
+                if (result.FileName != "") {
+                    if (typeof String.prototype.startsWith != 'function') {
+                        String.prototype.startsWith = function (str) {
+                            return this.substring(0, str.length) === str;
+                        }
+                    };
+                    if (!filename.toUpperCase().startsWith(result.FileName)) {
+                        isValid = false;
+                        alert("Filename: " + filename + " must start with " + result.FileName);
+                    }
+                    else isValid = true;
+                }
+            }
+        });
+        return isValid;
+    }
+    function onUploadOverride(e) {
+        var companyID = null;
+        var CandidateGuid = '@Model.CandidateGuid';
+        var documenttypeId = $("#DocumentTypeId").val();
+        var documenttypies = $('#DocumentTypeId').data('kendoDropDownList').dataSource.data();
+        var forkliftLicenseTypeId = $.grep(documenttypies, function (item, index) { return item.InternalCode == 'FORKLIFTLICENSE'; })[0].Id;
+        var expirydate = $("#ExpiryDate").val();
+        var isValid = true;
+        if ($("#companyrow").is(":visible")) {
+            companyID = $("#AttachmentCompanyId").val();
+            if (companyID == "" || companyID==null) {
+                alert("Company is required.");
+                isValid = false;
+            }
+        }
+        if (documenttypeId == "") {
+            alert("Document type is required.");
+            isValid = false;
+        } else if (documenttypeId == forkliftLicenseTypeId) {
+            if (!expirydate) {
+                alert('Expiry Date is required for Forklift License.');
+                isValid = false;
+            }
+        }
+        if (isValid) {
+            var files = e.files;
+            $.each(files, function () {
+                var isFileNameValid = validateFileName(this, documenttypeId);
+                var isFileSizeValid = validateFileSize(this);
+                if (!isFileNameValid || !isFileSizeValid) {
+                    e.preventDefault(); // This cancels the upload for the file
+                }
+            });         
+            e.data = { candidateGuid: CandidateGuid, documentTypeId: documenttypeId, expiryDate: expirydate, companyId: companyID };
+        }
+        else
+            e.preventDefault();
+    }
+
+    function onSelect() {
+        var documenttypeId = $("#DocumentTypeId").val();
+        if (documenttypeId == "") {
+            alert("Document type is required.");
+        }
+        if ($("#companyrow").is(":visible")) {
+            companyID = $("#AttachmentCompanyId").val();
+            if (companyID == "" || companyID == null) {
+                alert("Company is required.");
+                e.preventDefault();
+                isValid = false;
+            }
+        }
+    }
+
+    function onCompleteOverride() {
+        onComplete();
+        $("#attachment-window").data("kendoWindow").close();
+    }
+    function onChangeDocumentType() {       
+        var documenttypeId = $("#DocumentTypeId").val();
+        if (parseInt(documenttypeId) > 0) {
+           
+            $.ajax({
+                url: '@Url.Action("GetFileStartNameByDocumentId")',
+                data: { documentTypeId: documenttypeId },
+                type: 'GET',
+                async: false,
+                success: function (result) {
+                    if (result.FileName != "") {                        
+                        if (result.FileName.toUpperCase() == "CMP_") {
+                            $("#companyrow").show();
+                        }
+                        else $("#companyrow").hide();
+                    }
+                }
+            });
+        }
+        else {
+            $("#companyrow").hide();
+        }
+    }
+</script>
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.DocumentTypeId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList()
+                .Name("DocumentTypeId")
+                .OptionLabel("--Select--")
+                .DataTextField("TypeName")
+                .DataValueField("Id")
+                .BindTo(documentTypes)
+                 .Events(e => e.Change("onChangeDocumentType"))
+                
+            )
+            @Html.WfmValidationMessageFor(model => model.DocumentTypeId)
+        </td>
+
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.ExpiryDate)
+        </td>
+        <td class="adminData">
+            @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("ExpiryDate").Min(DateTime.Today)
+        </td>
+    </tr>
+    <tr id="companyrow" style="display:none">
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList()
+                .Name("AttachmentCompanyId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                 .BindTo(companyList)
+            )
+          
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            @(Html.Kendo().Upload()
+                .Name("attachments")
+                .HtmlAttributes(new { style = "height:200px" })
+                .Multiple(true)
+                .Async(async => async
+                    .Save("SaveAttachments", "Candidate")
+                    .Remove("RemoveAttachments", "Candidate")
+                    .AutoUpload(false)
+                )
+                .Events(events => events
+                    //.Cancel("onCancel")
+                    .Complete("onCompleteOverride")
+                    .Error("onError")
+                    //.Progress("onProgress")
+                    //.Remove("onRemove")
+                    .Select("onSelect")
+                    .Success("onSuccess")
+                    .Upload("onUploadOverride")
+                )
+            )
+        </td>
+    </tr>
+</table>
+

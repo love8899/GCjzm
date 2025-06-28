@@ -1,0 +1,21 @@
+﻿@using System.Drawing
+@using MvcReportViewer
+@{
+    object parameters = ViewBag.ReportParameters;
+    object htmlAttr = ViewBag.ReportHtmlAttr ?? new { style = "border: none ; height: 100%; width: 100%; min-height: 600px" };
+    var settings = ViewBag.ReportSettings ?? new ControlSettings
+    {
+        SizeToReportContent = true,
+        ShowParameterPrompts = false,
+        ShowFindControls = true,
+        BackColor = Color.AliceBlue,
+        KeepSessionAlive = false,   //KeepSessionAlive = true,
+        AsyncRendering = false
+        //Width = new Unit("100%"),
+        //Height = new Unit("800px"),
+    };
+}
+
+@Html.MvcReportViewer(String.Concat("/WFMReports/", (string)ViewBag.ReportFile), parameters, htmlAttr).ControlSettings(settings)
+
+@RenderBody()   @*just a place holder*@

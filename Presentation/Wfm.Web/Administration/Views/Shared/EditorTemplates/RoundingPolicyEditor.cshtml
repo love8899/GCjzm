@@ -1,0 +1,16 @@
+﻿@model int
+
+@(Html.Kendo().DropDownListFor(m => m)
+        .AutoBind(false)
+        .OptionLabel("None")
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .DataSource(dataSource =>
+        {
+            dataSource.Read(read => read.Action("GetCascadeRoundingPolicies", "Common").Data("filterPolicy"))
+                    .ServerFiltering(true);
+        })
+        .CascadeFrom("CompanyId")
+)
+
+

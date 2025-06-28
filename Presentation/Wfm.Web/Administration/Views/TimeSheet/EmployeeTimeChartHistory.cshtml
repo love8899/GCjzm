@@ -1,0 +1,360 @@
+﻿@using System.Linq
+@using Wfm.Core.Domain.Candidates
+@using Wfm.Core.Domain.TimeSheet
+@using Wfm.Core
+@using Wfm.Core.Domain.Accounts
+@using Wfm.Services.Franchises
+
+@model  IEnumerable<Wfm.Core.Domain.TimeSheet.CandidateWorkTimeStatusClass>
+
+@{
+    ViewBag.Title = T("Admin.TimeSheet.EmployeeTimeSheetHistory").Text;
+    
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var today = DateTime.Today;
+    var delta = DayOfWeek.Sunday - today.DayOfWeek;
+    var startDate = today.AddDays(delta - 14);
+    var endDate = startDate.AddDays(20);
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var franchiseList = franchiseService.GetAllFranchisesAsSelectList(workContext.CurrentAccount);
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+
+@*@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "company-form" }))
+    {*@
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Menu.WeeklyTimeSheets")
+    </div>
+
+
+    <div class="options">
+
+        @Html.Label("startDate", T("Admin.Common.From").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("startDate").Value(startDate)
+        @Html.Label("endDate", T("Admin.Common.To").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("endDate").Value(endDate)
+        @Html.Kendo().MultiSelect().Name("Status").BindTo(Model).DataTextField("Name").DataValueField("Value").Value(Model.Where(x=>x.Name=="Approved" || x.Name=="Submitted"))
+        @Html.Kendo().DropDownList().Name("weeklyStatus").Items(item =>
+           {
+               item.Add().Text("All Employees").Value("1,0").Selected(true);
+               item.Add().Text("All Employees With Unapproved Records").Value("0");
+               item.Add().Text("All Employees With Approved Records").Value("1");
+           }).HtmlAttributes(new { style = "width:300px" })
+        @Html.Kendo().Button().Name("loadTimeSheetHistory").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text)
+        <a id="importexcel" class="k-button">@T("Admin.Common.ImportFromExcel").Text</a>
+        <a id="printtopdf-selected" class="k-button">@T("Admin.Common.PrintToPdf.Selected").Text</a>
+        <a id="exportexcel-selected" class="k-button">@T("Admin.Common.ExportToExcel.Selected").Text</a>
+        @*<a id="exportexcel-withoutrate-selected" class="k-button">Remind</a>*@
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+                @(Html.Kendo().Grid<EmployeeTimeChartHistory>()
+                    .Name("payperiodtimechart-grid")
+                    //.BindTo(Model)
+                    .Events(events => events.DataBound("onDataBound"))
+                    .Columns(columns =>
+                    {
+                        columns.Bound(x => x).Filterable(false).Sortable(false)
+                            .ClientTemplate("<input type='checkbox' name='checkedRecords' value='#= Id #' class='checkboxGroups'/>")
+                            .Title("<input id='mastercheckbox' type='checkbox'/>")
+                            .Width(25);
+
+                        columns.Bound(x => x.EmployeeNumber).Width(80)
+                            .ClientTemplate(@Html.ActionLink("#=EmployeeNumber#", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString());
+
+                        columns.Bound(x => x.Id).Width(60).Hidden(true);
+                        columns.Bound(x => x.EmployeeLastName).Width(100).ClientTemplate("#if (RegularHours <= 0){# <span class='worktime-warning'>#=EmployeeLastName#</span> #}else{# #=EmployeeLastName# #}#").Title(T("Common.LastName").Text);
+                        columns.Bound(x => x.EmployeeFirstName).Width(100).ClientTemplate("#if (RegularHours <= 0){# <span class='worktime-warning'>#=EmployeeFirstName#</span> #}else{# #=EmployeeFirstName# #}#").Title(T("Common.FirstName").Text);
+                        
+                        if (!workContext.CurrentAccount.IsVendor()&&commonSettings.DisplayVendor)
+                        {
+                            columns.ForeignKey("FranchiseId", franchiseList, "Value", "Text").Title(T("Common.Vendor").Text);
+                       
+                            
+                        }
+                        columns.Bound(x => x.CompanyId).Hidden(true);
+                        columns.Bound(x => x.CompanyName).Hidden(false)
+                            .Template(x => Html.ActionLink(x.CompanyName, "Details", "Company", new { guid = x.CompanyGuid }, new { }))
+                            .ClientTemplate(@Html.ActionLink("#=CompanyName#", "Details", "Company", new { guid = "#=CompanyGuid#" }, new { target = "_blank" }).ToHtmlString());
+
+                        columns.Bound(x => x.LocationName).Hidden(true);
+                        columns.Bound(x => x.DepartmentName).Hidden(true);
+                        columns.Bound(x => x.CompanyContactId).Hidden(true);
+                        columns.Bound(x => x.ContactName).Hidden(true);
+                        columns.Bound(x => x.JobOrderId).Width(60).Hidden(true);
+                        columns.Bound(x => x.JobTitle)
+                            .ClientTemplate(@Html.ActionLink("#=JobTitle#", "Details", "JobOrder", new { guid = "#=JobOrderGuid#" }, new { target = "_blank" }).ToHtmlString());
+                        //columns.Bound(x => x.BillingRateCode).Width(40);
+                        columns.Bound(x => x.PositionCode).Hidden(true);
+                        columns.Bound(x => x.ShiftCode).Hidden(true);
+                        columns.Bound(x => x.Year).Width(40).Hidden(true);
+                        columns.Bound(x => x.FullWeekName)
+                            .Hidden(true)
+                            .IncludeInMenu(false)
+                            .ClientGroupHeaderTemplate("Week Of Year: #=value#");
+                        columns.Bound(x => x.Sunday).Width(60).HtmlAttributes(new { align = "right" }).Format("{0:n2}").Title("Sun");
+                        columns.Bound(x => x.SundayDate).Format("{0:dd-MMM}").Width(50).Hidden(true);
+                        columns.Bound(x => x.SundayStatus).Hidden(true);
+
+                        columns.Bound(x => x.Monday).Width(60).HtmlAttributes(new { align = "right" }).Format("{0:n2}").Title("Mon");
+                        columns.Bound(x => x.MondayDate).Format("{0:dd-MMM}").Width(50).Hidden(true);
+                        columns.Bound(x => x.MondayStatus).Hidden(true);
+
+                        columns.Bound(x => x.Tuesday).Width(60).HtmlAttributes(new { align = "right" }).Format("{0:n2}").Title("Tue");
+                        columns.Bound(x => x.TuesdayDate).Format("{0:dd-MMM}").Width(50).Hidden(true);
+                        columns.Bound(x => x.TuesdayStatus).Hidden(true);
+
+                        columns.Bound(x => x.Wednesday).Width(60).HtmlAttributes(new { align = "right" }).Format("{0:n2}").Title("Wed");
+                        columns.Bound(x => x.WednesdayDate).Format("{0:dd-MMM}").Width(50).Hidden(true);
+                        columns.Bound(x => x.WednesdayStatus).Hidden(true);
+
+                        columns.Bound(x => x.Thursday).Width(60).HtmlAttributes(new { align = "right" }).Format("{0:n2}").Title("Thu");
+                        columns.Bound(x => x.ThursdayDate).Format("{0:dd-MMM}").Width(50).Hidden(true);
+                        columns.Bound(x => x.ThursdayStatus).Hidden(true);
+
+                        columns.Bound(x => x.Friday).Width(60).HtmlAttributes(new { align = "right" }).Format("{0:n2}").Title("Fri");
+                        columns.Bound(x => x.FridayDate).Format("{0:dd-MMM}").Width(50).Hidden(true);
+                        columns.Bound(x => x.FridayStatus).Hidden(true);
+
+                        columns.Bound(x => x.Saturday).Width(60).HtmlAttributes(new { align = "right" }).Format("{0:n2}").Title("Sat");
+                        columns.Bound(x => x.SaturdayDate).Format("{0:dd-MMM}").Width(50).Hidden(true);
+                        columns.Bound(x => x.SaturdayStatus).Hidden(true);
+
+
+                        columns.Bound(x => x.RegularHours).HtmlAttributes(new { style = "text-align:right", @class = "boldColumn" }).Width(70)
+                         .ClientTemplate("#if (RegularHours <= 0){# <span class='worktime-warning'>#=kendo.format('{0:n2}',RegularHours)#</span> #}else{# #=kendo.format('{0:n2}',RegularHours)# #}#");
+
+                        columns.Bound(x => x.OTHours).HtmlAttributes(new { style = "text-align:right", @class = "boldColumn" }).Width(60).Format("{0:n2}");
+                        columns.Bound(x => x.SubTotalHours).Width(70).Title(T("Common.TotalHours").Text).Hidden(false)
+                            .HtmlAttributes(new { style = "text-align:right", @class = "boldColumn" }).Format("{0:n2}");
+                        
+                        columns.Bound(x => x.WeeklyStatus).Hidden(true);
+                    })
+                    .EnableCustomBinding(true)
+                    .Reorderable(reorder => reorder.Columns(true))
+                    .Resizable(resize => resize.Columns(true))
+                    .Filterable()
+                    .Sortable()
+                    .ColumnMenu()
+                    .Selectable()
+                    .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                    .DataSource(ds => ds
+                        .Ajax()
+                        .ServerOperation(true)
+                        .PageSize(30)
+                        .Read(read => read.Action("EmployeeTimeChartHistory", "TimeSheet").Data("onRead"))
+                        .Group(group => group.AddDescending(e => e.FullWeekName))
+                    )
+                    .Filterable(filterable => filterable
+                        .Extra(false)
+                        .Operators(operators => operators
+                            .ForString(str => str.Clear()
+                                .Contains("Contains")
+                                .IsEqualTo("Is equal to")
+                                .IsNotEqualTo("Is not equal to")
+                            )
+                        )
+                    )
+                        )
+        </td>
+    </tr>
+</table>
+
+@*import products form*@
+<div id="importexcel-window" style="display:none;">
+    @using (Html.BeginForm("ImportExcel", "TimeSheet", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        <table style="text-align:left;">
+            <tr>
+                <td>
+                    @T("Admin.Common.ExcelFile"):
+                </td>
+                <td>
+                    <input type="file" id="importexcelfile" name="importexcelfile" />
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <input type="submit" class="k-button" value="@T("Admin.Common.ImportFromExcel")" />
+                </td>
+            </tr>
+        </table>
+    }
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#importexcel").click(function (e) {
+            e.preventDefault();
+            var window = $("#importexcel-window");
+            if (!window.data("kendoWindow")) {
+                window.kendoWindow({
+                    modal: true,
+                    width: "500px",
+                    title: "@T("Admin.Common.ImportFromExcel")",
+                    actions: ["Close"]
+                });
+            }
+            window.data('kendoWindow').center().open();
+        });
+    });
+</script>
+
+<script type="text/javascript">
+
+        var selectedIds = [];
+
+        $(document).ready(function () {
+            $('#mastercheckbox').click(function () {
+                $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+            });
+
+            //wire up checkboxes.
+            $('#payperiodtimechart-grid').on('change', 'input[type=checkbox][id!=mastercheckbox]', function (e) {
+                var $check = $(this);
+                if ($check.is(":checked") == true) {
+                    var checked = jQuery.inArray($check.val(), selectedIds);
+                    if (checked == -1) {
+                        //add id to selectedIds.
+                        selectedIds.push($check.val());
+                    }
+                }
+                else {
+                    var checked = jQuery.inArray($check.val(), selectedIds);
+                    if (checked > -1) {
+                        //remove id from selectedIds.
+                        selectedIds = $.grep(selectedIds, function (item, index) {
+                            return item != $check.val();
+                        });
+                    }
+                }
+                updateMasterCheckbox();
+            });
+
+        });
+
+        function onDataBound(e) {
+            $('#payperiodtimechart-grid input[type=checkbox][id!=mastercheckbox]').each(function () {
+                var currentId = $(this).val();
+                var checked = jQuery.inArray(currentId, selectedIds);
+                //set checked based on if current checkbox's value is in selectedIds.
+                $(this).attr('checked', checked > -1);
+            });
+
+            updateMasterCheckbox();
+        }
+
+        function updateMasterCheckbox() {
+            var numChkBoxes = $('#payperiodtimechart-grid input[type=checkbox][id!=mastercheckbox]').length;
+            var numChkBoxesChecked = $('#payperiodtimechart-grid input[type=checkbox][checked][id!=mastercheckbox]').length;
+            $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+        }
+
+</script>
+
+
+
+
+@*export selected (Pdf). We don't use GET approach because it's limited to 2K-4K chars and won't work for large number of entities*@
+@using (Html.BeginForm("PrintEmployeeTimeChartsToPdf", "TimeSheet", FormMethod.Post, new { id = "printtopdf-selected-form" }))
+{
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+    <input type="hidden" id="hidenStartDate" name="hidenStartDate" value="" />
+    <input type="hidden" id="hidenEndDate" name="hidenEndDate" value="" />
+    <input type="hidden" id="hidenStatus" name="hidenStatus" value="" />
+    <input type="hidden" id="hidenWeeklyStatus" name="hidenWeeklyStatus" value="" />
+}
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#printtopdf-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds.join(",");
+            $('#printtopdf-selected-form #selectedIds').val(ids);
+            $('#printtopdf-selected-form #hidenStartDate').val($("#startDate").val());
+            $('#printtopdf-selected-form #hidenEndDate').val($("#endDate").val());
+            if ($("#Status").val() == null) {
+                $('#printtopdf-selected-form #hidenStatus').val("");
+            }
+            else
+            {
+                $('#printtopdf-selected-form #hidenStatus').val($("#Status").val().join());
+            }
+            $("#printtopdf-selected-form #hidenWeeklyStatus").val($("#weeklyStatus").val());
+            $('#printtopdf-selected-form').submit();
+            return false;
+        });
+    });
+
+</script>
+
+@*export selected (Pdf). We don't use GET approach because it's limited to 2K-4K chars and won't work for large number of entities*@
+@using (Html.BeginForm("ExportEmployeeTimeChartsToXlsx", "TimeSheet", FormMethod.Post, new { id = "exporttoxlsx-selected-form" }))
+{
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+    <input type="hidden" id="hidenStartDate" name="hidenStartDate" value="" />
+    <input type="hidden" id="hidenEndDate" name="hidenEndDate" value="" />
+    <input type="hidden" id="hidenStatus" name="hidenStatus" value="" />
+    <input type="hidden" id="hidenWeeklyStatus" name="hidenWeeklyStatus" value="" />
+}
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#exportexcel-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds.join(",");
+            $('#exporttoxlsx-selected-form #selectedIds').val(ids);
+            $('#exporttoxlsx-selected-form #hidenStartDate').val($("#startDate").val());
+            $('#exporttoxlsx-selected-form #hidenEndDate').val($("#endDate").val());
+            if ($("#Status").val() == null) {
+                $('#exporttoxlsx-selected-form #hidenStatus').val("");
+            }
+            else {
+                $('#exporttoxlsx-selected-form #hidenStatus').val($("#Status").val().join());
+            }
+            $("#exporttoxlsx-selected-form #hidenWeeklyStatus").val($("#weeklyStatus").val());
+            $('#exporttoxlsx-selected-form').submit();
+            return false;
+        });
+    });
+    $("#loadTimeSheetHistory").click(function () {
+        selectedIds = [];
+        var grid = $("#payperiodtimechart-grid").data("kendoGrid");
+        grid.dataSource.page(1);
+       // grid.dataSource.read();
+    });
+    function onRead(e) {
+        //alert($("#Status").val());
+        var status = $("#Status").val();
+        if (status == null) {
+            return {
+                startDate: $("#startDate").val(),
+                endDate: $("#endDate").val(),
+                status: "",
+                weeklyStatus:$("#weeklyStatus").val()
+            };
+        }
+        else
+        {
+            return {
+                startDate: $("#startDate").val(),
+                endDate: $("#endDate").val(),
+                status: $("#Status").val().join(),
+                weeklyStatus: $("#weeklyStatus").val()
+            };
+        }
+    }
+
+
+</script>
+
+
+
+
+
+

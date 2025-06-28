@@ -1,0 +1,38 @@
+﻿using System.Web.Mvc;
+using Wfm.Web.Framework;
+using Wfm.Web.Framework.Mvc;
+
+namespace Wfm.Client.Models.Settings
+{
+
+    public partial class SettingModel : BaseWfmEntityModel
+    {
+        public SettingModel() { }
+
+        public SettingModel(string name, string value)
+        {
+            this.Name = name;
+            this.Value = value;
+        }
+
+        [WfmResourceDisplayName("Common.Name")]
+        [AllowHtml]
+        public virtual string Name { get; set; }
+
+        [WfmResourceDisplayName("Common.Value")]
+        [AllowHtml]
+        public virtual string Value { get; set; }
+
+        [WfmResourceDisplayName("Common.EnteredBy")]
+        public int EnteredBy { get; set; }
+
+        [WfmResourceDisplayName("Common.Franchise")]
+        public int FranchiseId { get; set; }
+
+
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
+}

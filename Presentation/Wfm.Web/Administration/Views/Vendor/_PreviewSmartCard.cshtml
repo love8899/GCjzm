@@ -1,0 +1,65 @@
+﻿<div id="smartcard-container">
+
+    @Html.Partial("_SmartCard")
+
+</div>
+
+
+<script>
+
+    $(function () {
+        setSmartCard();
+    });
+
+    function setSmartCard() {
+        initCard();
+        loadStyle();
+    }
+
+    function initCard() {
+        if (!$('#logo img').attr("src")) {
+            var logoStr = '@(Model.LogoStr)';
+            if (logoStr)
+                $('#logo img').attr('src', "data:image/bmp;base64," + logoStr);
+        }
+
+        if (!$('#photo img').attr("src"))
+            $('#photo img').attr('src', '@Url.Content("~/Uploads/CandidatePictures/default-avatar.jpg")');
+
+        $('#fullname').html('@(Model.NamePrefix)' + 'FirstName LastName');
+        $('#employeeid').html('@(Model.IdPrefix)' + '1234567890');
+        $('#barcode').html('@Html.GenerateQrCode((string)String.Format("{0};{1}", 1234567890, new Guid()), 1000, 1000, 0)');
+        if ('@Html.Raw(Model.NoteText)')
+            $('#note').html('@Html.Raw(Model.NoteText)');
+    }
+
+    function loadStyle() {
+        var cssFile = "@Url.Content("~/Administration/Content/smartcard.css")";
+        var style = '@(ViewBag.Style)';
+        if (!style)
+            $('head').append('<link rel="stylesheet" href="' + cssFile + '" type="text/css" />');
+        else
+            $('head').append('<style>\r\n' + style + '\r\n</style>');
+
+    }
+
+    function addStyle(style) {
+        newStyleSheet().insertRule(style, 0);
+    }
+
+    function newStyleSheet() {
+        var style = document.createElement("style");
+
+        // Add a media (and/or media query)
+        // style.setAttribute("media", "screen")
+        // style.setAttribute("media", "only screen and (max-width : 1024px)")
+
+        // WebKit hack :(
+        style.appendChild(document.createTextNode(""));
+
+        document.head.appendChild(style);
+
+        return style.sheet;
+    }
+
+</script>

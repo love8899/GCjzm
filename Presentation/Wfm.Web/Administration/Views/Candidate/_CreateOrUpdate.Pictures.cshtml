@@ -1,0 +1,56 @@
+﻿@model CandidateModel
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidatePictureModel>()
+                .Name("candidatepictures-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.PictureUrl).Locked()
+                        .ClientTemplate("<a href='#= PictureUrl #' target='_blank'><img alt='#= Id #' src='#= PictureUrl #' height='200' /><a/>");
+                    
+                    columns.Bound(x => x.DisplayOrder).HtmlAttributes(new { style = "vertical-align:middle" }).Width(110);
+                    columns.Bound(x => x.Note).HtmlAttributes(new { style = "vertical-align:middle" });
+                    
+                    columns.Command(commands =>
+                        {
+                            commands.Edit().Text(" ").HtmlAttributes(new { title=T("Common.Edit").Text});
+                            commands.Destroy().Text(" ").HtmlAttributes(new {title=T("Common.Delete").Text });
+                        })
+                        .HtmlAttributes(new { style = "vertical-align:middle" })
+                        .Width(180);
+                })
+                .EnableCustomBinding(false)
+                .Editable(editable => editable.Mode(GridEditMode.InLine))
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(20)
+                    .Model(model =>
+                    {
+                        model.Id(p => p.CandidateId);
+                        model.Field(field => field.PictureUrl).Editable(false);
+                    })
+                    .Read(read => read.Action("CandidatePictureList", "Candidate", new { candidateGuid = Model.CandidateGuid }))
+                    .Update(update => update.Action("CandidatePictureUpdate", "Candidate"))
+                    .Destroy(update => update.Action("CandidatePictureDelete", "Candidate"))
+                )
+            )
+        </td>
+    </tr>
+</table>
+<p>
+    <strong>@T("Admin.Candidate.Candidate.Pictures.AddButton")</strong>
+</p>
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.CandidateGuid, "PictureCandidate")
+            @Html.WfmValidationMessageFor(model => model.CandidateGuid)
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,80 @@
+﻿@model IEnumerable<ForumGroupModel>
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.ContentManagement.Forums.Manage").Text;
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.ContentManagement.Forums.Manage")
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @{ Html.Kendo().Grid(Model)
+                .Name("forumgroup-grid")
+                .ToolBar(commands =>
+                {
+                    commands.Custom().Text(T("Admin.ContentManagement.Forums.ForumGroup.CreateForumGroup").Text).Action("CreateForumGroup", "Forum").HtmlAttributes(new { style = "margin:0 0.2em;" });
+                    commands.Custom().Text(T("Admin.ContentManagement.Forums.Forum.CreateForum").Text).Action("CreateForum", "Forum");
+                })
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Name);
+                    columns.Bound(x => x.DisplayOrder).Width(150);
+                    columns.Bound(x => x.CreatedOn).Width(200);
+                    columns.Bound(x => x.Id)
+                            .Width(70)
+                            .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "EditForumGroup", new { id = x.Id }))
+                            .ClientTemplate("<a href=\"EditForumGroup/<#= Id #>\">" + T("Admin.Common.Edit").Text + "</a>")
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                            .Title(T("Admin.Common.Edit").Text);
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Sortable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Server()
+                    .PageSize(20)
+                )
+                .DetailTemplate(
+                    @<text>
+                        @(Html.Kendo().Grid(item.ForumModels)
+                            .Name("forums_" + item.Id)
+                            .Columns(columns =>
+                            {
+                                columns.Bound(x => x.Name);
+                                columns.Bound(x => x.DisplayOrder).Width(150);
+                                columns.Bound(x => x.CreatedOn).Width(200);
+                                columns.Bound(x => x.Id)
+                                    .Width(70)
+                                    .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "EditForum", new { id = x.Id }))
+                                    .ClientTemplate("<a href=\"EditForum/<#= Id #>\">" + T("Admin.Common.Edit").Text + "</a>")
+                                    .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                                    .Title(T("Admin.Common.Edit").Text);
+                            })
+                            .Reorderable(reorder => reorder.Columns(true))
+                            .Resizable(resize => resize.Columns(true))
+                            .ColumnMenu(d => d.Sortable(false))
+                            .Filterable()
+                            .Sortable()
+                            .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                            .DataSource(ds => ds
+                                .Server()
+                                .PageSize(20)
+                            )
+                        )
+                    </text>
+                )
+                .Render();
+            }
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,96 @@
+﻿@using Wfm.Core
+@using Wfm.Services.TimeSheet
+@model Wfm.Admin.Models.TimeSheet.CandidateMissingHourModel
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "adjust-form" } ))
+{
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.CandidateMissingHourStatusId)
+    @Html.HiddenFor(model => model.PayrollNote)
+
+    <div class="section-header" style="padding:10px;">
+        <div class="title">
+        </div>
+        <div class="options">
+            <input type="button" id="btn-save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" id="btn-cancel" class="k-button" value="@T("Admin.Common.Cancel")" />
+        </div>
+    </div>
+
+    <table class="adminContent" style="padding:10px;">
+        <tr>
+            <td class="adminTitle" style="width:25%">
+                @Html.LabelFor(model => model.EmployeeId, "Employee ID")
+            </td>
+            <td class="adminData" style="width:75%">
+                @Html.DisplayFor(mode => Model.EmployeeId)
+                @Html.HiddenFor(mode => Model.CandidateId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Common.EmployeeName")
+            </td>
+            <td class="adminData">
+                 @(Model.EmployeeFirstName + " " + Model.EmployeeLastName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobOrderId, "Job Order")
+            </td>
+            <td class="adminData">
+                @(Model.JobOrderId.ToString() + " - " + Model.JobTitle)
+                @Html.HiddenFor(model => model.JobOrderId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Common.Date")
+            </td>
+            <td class="adminData">
+                @Model.WorkDate.ToString("yyyy-MM-dd")
+                @Html.HiddenFor(model => model.WorkDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                Orig Hours
+            </td>
+            <td class="adminData">
+                @Model.OrigHours
+                @Html.HiddenFor(model => model.OrigHours)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                New Hours
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().NumericTextBoxFor(model => model.NewHours).Format("#.##")
+                    .Decimals(2)
+                    .Step(0.01m)
+                )
+                @Html.WfmValidationMessageFor(model => model.NewHours)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle" style="vertical-align: top">
+                @Html.LabelFor(model => model.Note)
+            </td>
+            <td class="adminData required">
+                @Html.TextAreaFor(model => model.Note, new { style = "height:100px;width:90%;" })
+                @Html.WfmValidationMessageFor(model => model.Note)
+            </td>
+        </tr>
+    </table>
+}
+
+@* for jQUery validation *@
+<script>
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+</script>

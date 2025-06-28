@@ -1,0 +1,79 @@
+﻿@using Wfm.Services.Security
+@using Wfm.Services.Companies
+@{
+    Layout = "";
+    var companyGuid = ViewBag.CompanyGuid;
+    var companyId = ViewBag.CompanyId;
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    List<SelectListItem> locations = ViewBag.CompanyLocations;
+    HtmlHelper.ClientValidationEnabled = false;
+}
+
+<script src="@Url.Content("~/Scripts/admin.common.js?version=1.8")" type="text/javascript"></script>
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Companies.Company.Departments")
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CompanyDepartmentModel>()
+                .Name("companydepartment-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.DepartmentName);
+                    columns.Bound(x => x.CompanyLocationName).ClientGroupHeaderTemplate("#= value #").Hidden(true).IncludeInMenu(false);
+                    columns.ForeignKey(x => x.CompanyLocationId, locations, "Value", "Text").EditorTemplateName("CompanyLocationEditor");
+                    columns.Bound(x => x.PhoneNumber).ClientTemplate("#= prettyPhone(PhoneNumber) #").EditorTemplateName("PhoneEditor");
+                    columns.Bound(x => x.FaxNumber).ClientTemplate("#= prettyPhone(FaxNumber) #").EditorTemplateName("PhoneEditor");
+                    
+                    columns.Bound(x => x.IsActive)
+                            .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                            .Width(80);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    if (permissionService.Authorize("ManageCompanyDepartments"))
+                    {                       
+                        columns.Command(command => { command.Destroy().Text(" "); }).Width(100);
+                    }
+                })
+                .ToolBar(toolBar => {if(permissionService.Authorize("ManageCompanyDepartments")) {toolBar.Save(); toolBar.Create();} })
+                .Editable(editable => {if(permissionService.Authorize("ManageCompanyDepartments")) {editable.Mode(GridEditMode.InCell);}})
+                .EnableCustomBinding(false)
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax().Group(g => g.Add(c => c.CompanyLocationName))
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Batch(true)
+                    .Read(read => read.Action("_CompanyDepartmentList", "Company", new { companyGuid = companyGuid }))
+                    .Events(events => events.Error("error_handler"))
+                    .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                        model.Field(p => p.CompanyId).Editable(false).DefaultValue(ViewBag.CompanyId);
+                        model.Field(p => p.CompanyLocationId).Editable(true).DefaultValue(0);
+                        model.Field(p => p.IsActive).Editable(true).DefaultValue(true);
+                        model.Field(p => p.CreatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        model.Field(p => p.UpdatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        model.Field(p => p.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(p => p.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+
+                    })
+                    .Create(update => update.Action("_CreateNewDepartment", "Company"))
+                    .Update(update => update.Action("_EditDepartment", "Company"))
+                    .Destroy(update => update.Action("_DeleteDepartment", "Company"))
+                )
+            )
+        </td>
+    </tr>
+</table>

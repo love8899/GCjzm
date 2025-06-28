@@ -1,0 +1,27 @@
+﻿@{
+    Layout = null;
+
+    var formName = ViewBag.FormName ?? "reject-worktime-form";
+}
+
+@using (Html.BeginForm("", "", FormMethod.Post, new { id = formName }))
+{
+    @Html.ValidationSummary(true)
+    <input type="hidden" id="reject-worktime-id" value="@(ViewBag.CandidateWorkTimeId)" />
+    <div class="fieldset">
+        <div class="form-fields">
+            <div class="inputs">
+                @Html.Label("Note", T("Common.Reason").Text)
+                @Html.TextArea("RejectReason", new { @id = "reject-reason", placeholder = T("TimeSheet.Reject.Note.PlaceHolder").Text })
+            </div>
+        </div>
+    </div>
+    <div class="buttons">
+        <input type="button" class="k-button btn-save" value="@T("Admin.Common.Save")" />
+        <input type="button" class="k-button btn-cancel" value="@T("Admin.Common.Cancel")" />
+    </div>
+}
+
+<script type="text/javascript">
+    $(function () { enableValidation('@formName'); });
+</script>

@@ -1,0 +1,153 @@
+﻿@using Wfm.Admin.Models.WSIBs
+@using Wfm.Services.Security
+@using Wfm.Services.DirectoryLocation;
+@{
+    //var companyGuid = ViewBag.CompanyGuid;
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+
+
+    var stateProvinceService = EngineContext.Current.Resolve<IStateProvinceService>();
+    var countryService = EngineContext.Current.Resolve<ICountryService>();
+    var stateProvinces = stateProvinceService.GetAllStateProvinces();
+    var countries = countryService.GetAllCountries();
+}
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration.WSIB") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<WSIBModel>()
+              .Name("wsib-grid")
+              .Columns(columns =>
+                {
+                    columns.ForeignKey(x => x.CountryId, countries, "Id", "CountryName")
+                        .Title(T("Common.Country").Text)
+                        .Width(150).HtmlAttributes(new { style = "white-space: normal" });
+                    columns.ForeignKey(x => x.ProvinceId, stateProvinces, "Id", "StateProvinceName")
+                        .Title(T("Common.StateProvince").Text)
+                        .Width(150).EditorTemplateName("StateProvinceEditor").HtmlAttributes(new { style = "white-space: normal" });
+                    
+                    columns.Bound(x => x.Code).Width(100);
+                    columns.Bound(x => x.Description).Width(150);
+                    columns.Bound(x => x.Rate).EditorTemplateName("PositiveDecimal").Width(100);
+                    columns.Bound(x => x.StartDate).Format("{0:MM/dd/yyyy}").Width(120);
+                    columns.Bound(x => x.EndDate).Format("{0:MM/dd/yyyy}").Width(120);
+                    columns.Command(x => { x.Destroy().Text(" "); x.Custom("Copy").Text(" ").Click("CopyWSIB").HtmlAttributes(new { @class = "fa fa-clone",title="Copy" }); }).Width(120);
+                })
+            .ToolBar(tool => { tool.Create(); tool.Save(); })
+            .Editable(edit => edit.Mode(GridEditMode.InCell))
+            .EnableCustomBinding(true)
+            .Reorderable(reorder => reorder.Columns(true))
+            .Resizable(resize => resize.Columns(true))
+            .Filterable()
+            .Sortable()
+            .ColumnMenu()
+            .Selectable()
+
+            .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+            .DataSource(dataBinding => dataBinding
+                       .Ajax()
+                        .Events(events => events.Error("error_handler").Sync(@"function(e){setTimeout(function(){refreshGrid('#wsib-grid',1)})}"))
+                       .Batch(true)
+                       .ServerOperation(true)
+                       .PageSize(20)
+                       .Read(read => read.Action("Index", "WSIB"))
+                        .Create(create => create.Action("Create", "WSIB"))
+                        .Update(update => update.Action("Edit", "WSIB"))
+                        .Destroy(delete => delete.Action("Delete","WSIB"))
+
+                       .Model(model =>
+                                    {
+                                        model.Id(x => x.Id);
+                                        model.Field(x => x.CountryId).Editable(true).DefaultValue(2);
+                                        model.Field(x => x.ProvinceId).Editable(true).DefaultValue(0);
+                                        model.Field(x => x.Code).Editable(true);
+                                        model.Field(x => x.Description).Editable(true);
+                                        model.Field(x => x.Rate).Editable(true).DefaultValue(0);
+                                        model.Field(x => x.StartDate).Editable(true).DefaultValue(DateTime.Today);
+                                        model.Field(x => x.EndDate).Editable(true).DefaultValue(null);
+
+                                    })
+            )
+            .Filterable(filterable => filterable
+                .Extra(false)
+                .Operators(operators => operators
+                    .ForString(str => str.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        .IsNotEqualTo("Is not equal to")
+                    )
+                )
+            )
+            )
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+    function getCurrentEditedModel(gridName) {
+        var grid = $(gridName).data("kendoGrid");
+        var editRow = grid.tbody.find("tr:has(.k-edit-cell)");
+        return grid.dataItem(editRow);
+    }
+
+    function filterStateProvince() {
+        var model = getCurrentEditedModel("#wsib-grid");
+        return {
+            countryId: model.CountryId
+        };
+    }
+
+    function CopyWSIB(e)
+    {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        $(document.body).append('<div id="copyWSIB"></div>');
+        $("#copyWSIB").kendoWindow({
+            title: "Copy WSIB",
+            modal: true,
+            resizable: false,
+            width: 480,
+            height: 480,
+            content: '@Url.Action("_CopyWSIB", "WSIB")' + '/'+dataItem.Id,
+            close: function () {
+                setTimeout(function () {
+                    $('#copyWSIB').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-cancel').click(function () {
+                    win.close();
+                })
+                $('#btn-save').click(function () {
+                    var form = $('#copy-wsib-form');
+                    if (form.valid()) {
+                        var link = '@Url.Action("_SaveCopiedWSIB", "WSIB")';
+                        $.ajax({
+                            type: "POST",
+                            url: link,
+                            data: form.serialize(),
+                            success: function (response) {
+                                if (response.Result) {
+                                    $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+                                    $(".messageBox").text("The record is saved sucessfully!");
+                                    win.close();
+                                    refreshGird('#wsib-grid',1);
+                                }
+                                else {
+                                    alert(response.Message);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }).data('kendoWindow').center();
+    }
+
+</script>

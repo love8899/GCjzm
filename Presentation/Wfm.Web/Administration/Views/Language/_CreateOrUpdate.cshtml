@@ -1,0 +1,78 @@
+﻿@model LanguageModel
+
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+@Html.HiddenFor(model => model.EnteredBy)
+
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Name)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.Name)
+            @Html.WfmValidationMessageFor(model => model.Name)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.UniqueSeoCode)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.UniqueSeoCode)
+            @Html.WfmValidationMessageFor(model => model.UniqueSeoCode)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.LanguageCulture)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.LanguageCulture)
+            @Html.WfmValidationMessageFor(model => model.LanguageCulture)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.FlagImageFileName)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.FlagImageFileName)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsActive)
+        </td>
+        <td class="adminData">
+            @Html.CheckBoxFor(model => model.IsActive)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.DisplayOrder)
+        </td>
+        <td class="adminData">
+            @Html.Kendo().IntegerTextBoxFor(model => model.DisplayOrder)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CreatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.CreatedOn)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.UpdatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.UpdatedOn)
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,105 @@
+﻿@using Wfm.Services.Security
+@using Wfm.Admin.Models.CompanyContact
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts
+
+@model IEnumerable<CompanyContactViewModel>
+@{
+    //page title
+    ViewBag.Title = T("Admin.CompanyContacts").Text;
+
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.CompanyContacts")
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CompanyContactViewModel>()
+              .Name("account-grid")
+              .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Hidden();
+                    
+                    columns.Bound(x => x.LastName).Width(120);
+                    columns.Bound(x => x.FirstName).Width(120);
+                    
+
+                    columns.Bound(x => x.Email);
+                  
+                    if (!workContext.CurrentAccount.IsClientAdministrator())
+                    {
+                        columns.Bound(x => x.CompanyId).Hidden();
+                        columns.Bound(x => x.CompanyName);
+                    }
+
+                    columns.Bound(x => x.CompanyLocationName).Width(80);
+                    columns.Bound(x => x.CompanyDepartmentName).Width(80);
+
+                    columns.Bound(x => x.AccountRoleSystemName).Width(180);
+                    columns.Bound(x => x.ShiftName).HeaderTemplate(T("Common.Shift").Text).Hidden(true);
+                    
+                    columns.Bound(x => x.WorkPhone).ClientTemplate("#= prettyPhone(WorkPhone) #").Width(100);
+                    //columns.Bound(x => x.MobilePhone).ClientTemplate("#= prettyPhone(MobilePhone) #").Width(100).Hidden();
+                    //columns.Bound(x => x.HomePhone).ClientTemplate("#= prettyPhone(HomePhone) #").Width(100).Hidden();
+                    
+                    columns.Bound(x => x.IsActive).Width(80)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsActive #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" });
+
+                    if (permissionService.Authorize("ManageContacts"))
+                    {
+                        columns.Bound(x => x.Id)
+                            .Template(x => Html.ActionLink(T("Admin.Common.Details").Text, "CompanyContactDetails", "Company", new { guid=x.AccountGuid }))
+                            .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/Company/CompanyContactDetails?guid=") + "#= AccountGuid #\">" + "<span class='k-icon k-i-search'></span>" + "</a>")
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                            .Width(80)
+                            .Title(T("Admin.Common.Details").Text).Sortable(false);
+
+                        columns.Bound(x => x.Id)
+                           .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "EditContact", "Company", new { guid=x.AccountGuid }))
+                           .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/Company/EditContact?guid=") + "#= AccountGuid #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                           .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                           .Width(80)
+                           .Title(T("Admin.Common.Edit").Text).Sortable(false);
+                    }
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("Index", "CompanyContact"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

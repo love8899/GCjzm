@@ -1,0 +1,104 @@
+﻿@using Wfm.Core
+@using Wfm.Client.Models.Employees
+
+@model EmployeeAvailabilityModel
+
+
+@{
+    //required in order to render validation attributes
+    ViewContext.FormContext = new FormContext();
+}
+
+@functions{
+    public Dictionary<string, object> generateDatePickerAttributes(
+           string elementId,
+           string fieldName,
+           string dataBindAttribute,
+           bool required,
+           Dictionary<string, object> additionalAttributes = null)
+    {
+
+        Dictionary<string, object> datePickerAttributes = additionalAttributes != null ? new Dictionary<string, object>(additionalAttributes) : new Dictionary<string, object>();
+
+        datePickerAttributes["id"] = elementId;
+        datePickerAttributes["name"] = fieldName;
+        datePickerAttributes["data-bind"] = dataBindAttribute;
+        if (required)
+            datePickerAttributes["required"] = "required";
+        datePickerAttributes["style"] = "z-index: inherit;";
+
+        return datePickerAttributes;
+    }
+}
+
+<div class="k-edit-label" style="width:25%;">
+    @(Html.LabelFor(model => model.EmployeeAvailabilityType))
+</div>
+<div class="k-edit-field" style="width:70%;">
+    @(Html.Kendo().ComboBoxFor(model => model.EmployeeAvailabilityType)
+        .HtmlAttributes(new { data_bind = "value:EmployeeAvailabilityType", style = "width: 250px" })
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .BindTo(Model.EmployeeAvailabilityTypeList)
+        )
+</div>
+
+<div class="k-edit-label" style="width:25%;">
+    @Html.LabelFor(model => model.IsAllDay)
+</div>
+<div data-container-for="IsAllDay" class="k-edit-field" style="width:70%;">
+    @*<input type="checkbox" name="isAllDay" data-type="boolean" data-bind="checked:isAllDay">*@
+    @Html.CheckBoxFor(model => model.IsAllDay, new { data_type = "boolean", data_bind = "checked:isAllDay" })
+</div>
+
+@*<div class="k-edit-label">
+    @(Html.LabelFor(model => model.Start))
+</div>
+<div data-container-for="start" class="k-edit-field">
+    @(Html.Kendo().DateTimePickerFor(model => model.Start)
+        .Format("dddd")
+        .HtmlAttributes(generateDatePickerAttributes("startDateTime", "start", "value:start,invisible:isAllDay", true)))
+</div>
+
+
+<div class="k-edit-label">
+    @(Html.LabelFor(model => model.End))
+</div>
+<div data-container-for="end" class="k-edit-field">
+    @(Html.Kendo().DateTimePickerFor(model => model.End)
+        .Format("dddd")
+        .HtmlAttributes(generateDatePickerAttributes(
+            "endDateTime",
+            "end",
+            "value:end,invisible:isAllDay",
+            false,
+            new Dictionary<string, object>() { { "data-dateCompare-msg", "End date should be greater than or equal to the start date" } })))
+</div>w*@
+<div class="k-edit-label" style="width:25%;">
+    @(Html.LabelFor(model => model.StartTimeOfDay))
+</div>
+<div data-container-for="StartTimeOfDay" class="k-edit-field" style="width:70%;">
+    @(Html.Kendo().DropDownListFor(model => model.StartTimeOfDay)
+        .HtmlAttributes(new { style = "width: 250px", invisible = "isAllDay" })
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .BindTo(Model.StartTimeOfDayList)
+    )
+</div>
+
+<div class="k-edit-label" style="width:25%;">
+    @(Html.LabelFor(model => model.EndTimeOfDay))
+</div>
+<div data-container-for="EndTimeOfDay" class="k-edit-field" style="width:70%;">
+    @(Html.Kendo().DropDownListFor(model => model.EndTimeOfDay)
+        .HtmlAttributes(new { style = "width: 250px", invisible = "isAllDay" })
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .BindTo(Model.EndTimeOfDayList)
+    )
+</div>
+@{
+    ViewContext.FormContext = null;
+}
+
+

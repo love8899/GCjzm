@@ -1,0 +1,44 @@
+﻿@using Wfm.Core
+@using Wfm.Core.Domain.Accounts
+@model AdminHeaderLinksModel
+@{
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var currentVersion = WfmVersion.CurrentVersion;
+}
+@if (Model.IsAuthenticated)
+{
+    @*<span class="login-info">
+        Logged in as: @workContext.CurrentAccount.Username (@workContext.CurrentAccountRole.AccountRoleName)
+        @if (workContext.OriginalAccountIfImpersonate != null)
+        {
+            <text>by: @workContext.OriginalAccountIfImpersonate.Username</text>
+        }
+    </span>*@
+    <div class="links">
+        <a class="click2popup" href="javascript:void(0);"><div class="user-icon"><i class="fa fa-user"></i></div></a>
+        @if (!workContext.CurrentAccount.IsClientAdministrator())
+        {
+            <a href='@Url.Action("News", "Home")'><span class="msg-counter-badge" id="unread-alerts">@{ Html.RenderAction("GetNumOfUnReadMsg", "Home"); }</span></a>
+        }
+        <div class="logout-popup">
+            <div class="top-row">
+                <div class="user-photo"><i class="fa fa-user"></i></div>
+                <div class="user-info">
+                    <div class="user-name">@workContext.CurrentAccount.Username</div>
+                    <div class="user-role">@workContext.CurrentAccountRole.AccountRoleName</div>
+                    <div class="user-role">@workContext.CurrentAccount.Franchise.FranchiseName</div>
+                    <div class="tempus-version">Tempus Workforce Management<br />Version @currentVersion</div>
+                </div>
+            </div>
+            <div class="user-action">
+                <a class="k-button" href='@Url.Action("Details", "Account")'><i class="fa fa-pencil"></i> @T("Admin.Profile").Text</a>
+                <a class="k-button" href='@Url.Action("SignOut", "Account")'><i class="fa fa-sign-out"></i> @T("Admin.Accounts.Account.Logout").Text</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(".click2popup").click(function () {
+            $(".logout-popup").toggleClass("showNhide");
+        })
+    </script>
+}

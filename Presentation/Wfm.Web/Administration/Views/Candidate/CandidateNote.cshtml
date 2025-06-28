@@ -1,0 +1,13 @@
+﻿
+@model string
+
+<div class="content">
+    <div class="notification-wrapper">
+        @Html.Partial("Notifications")
+    </div>
+    <div class="clearer"></div>
+</div>
+@if (Model != null)
+{
+    @Model
+}

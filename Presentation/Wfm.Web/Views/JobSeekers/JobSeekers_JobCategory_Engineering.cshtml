@@ -1,0 +1,57 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Engineering";
+    //var description = siteTitle + " helps you put your best foot forward and introduce you to leading employers in your field.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower() + " jobs";
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Engineering</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            Looking for your next challenge? Finding the right position that best meets your
+            interests, abilities and skillset should not be left to chance. Let @siteTitle
+            help you put your best foot forward and introduce you to leading employers in your
+            field.
+        </p>
+        <p>
+            Benefit from the expertise of our consultants who make a living out of placing top
+            technical talent. Contact us today to connect with the best employers in the following
+            fields:
+        </p>
+        <ul>
+            <li>CAD engineering /design</li>
+            <li>Chemical engineering</li>
+            <li>Continuous improvement manager</li>
+            <li>Electrical engineering</li>
+            <li>Electro-chemical engineering</li>
+            <li>Electro-mechanical engineering</li>
+            <li>Lean operational excellence engineer</li>
+            <li>Manufacturing engineering</li>
+            <li>Mechanical engineering</li>
+            <li>Product engineering</li>
+            <li>Process engineering</li>
+            <li>Project management</li>
+            <li>Program manager</li>
+            <li>Quality engineer</li>
+        </ul>
+    </div>
+</div>

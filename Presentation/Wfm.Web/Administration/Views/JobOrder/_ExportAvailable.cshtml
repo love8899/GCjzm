@@ -1,0 +1,25 @@
+﻿@{
+    Layout = "";
+}
+
+
+@using (Html.BeginForm("ExportAvailable", "JobOrder", new { companyGuid = ViewBag.CompanyGuid }, FormMethod.Post, new { id = "export-available-form" }))
+{
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">@T("Common.Date")</td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                    .Name("refDate").Format("yyyy-MM-dd")
+                    .Value(ViewBag.RefDate)
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle"></td>
+            <td class="adminData">
+                <input type="submit" id="submit-export-available" value="Export" name="submit" class="k-button" />
+            </td>
+        </tr>
+    </table>
+}

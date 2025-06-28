@@ -1,0 +1,22 @@
+﻿@using (Html.BeginForm("ExportExcelAllForJobOrders", "JobOrder", new { ids = ViewBag.Ids, companyId = ViewBag.CompanyId }, FormMethod.Post, new { id = "export-form" }))
+{
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">Week of date: </td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                    .Name("refDate")
+                    .Format("yyyy-MM-dd")
+                    .Value(DateTime.Today)
+                    .HtmlAttributes(new{onkeydown="javascript:return false;" })                    
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle"></td>
+            <td class="adminData">
+                <input type="submit" id="submit-export" value="Export" name="submit" class="k-button" />
+            </td>
+        </tr>
+    </table>
+}

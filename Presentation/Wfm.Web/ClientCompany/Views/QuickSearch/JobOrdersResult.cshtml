@@ -1,0 +1,83 @@
+﻿@using Wfm.Services.Common
+@using Wfm.Services.DirectoryLocation
+@using Wfm.Services.Companies;
+
+@model IEnumerable<JobOrderModel>
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.QuickSearch.JobOrderResult").Text;
+
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var shifts = shiftService.GetAllShifts(companyId: null);
+
+    var companyDivisionService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    var companylocations = companyDivisionService.GetAllCompanyLocationsByAccount(workContext.CurrentAccount);
+
+    var cityService = EngineContext.Current.Resolve<ICityService>();
+    var cities = cityService.GetAllCities();
+    
+    ViewBag.SearchArea = "JobOrder";
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Common.JobOrders") search result for "@ViewBag.SearchKey"
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<JobOrderModel>()
+                .Name("joborder-grid")
+                .BindTo(Model)
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(70);
+
+                    columns.Bound(x => x.JobTitle);
+                    columns.Bound(x => x.CompanyModel.CompanyName).Filterable(false).Sortable(false).Hidden();
+                    columns.Bound(x => x.CompanyDepartmentName).Filterable(false).Sortable(false).Width(150);
+
+                    columns.ForeignKey(x => x.CompanyLocationId, companylocations, "Id", "AddressLine1").Title(T("Common.AddressLine1").Text);
+                    columns.ForeignKey(x => x.CompanyLocationModel.CityId, cities, "Id", "CityName").Title(T("Common.City").Text).Hidden();
+
+                    columns.ForeignKey(x => x.ShiftId, shifts, "Id", "ShiftName").Width(100);
+
+                    columns.Bound(x => x.StartDate).Width(90).Format("{0:yyyy-MM-dd}");
+                    columns.Bound(x => x.StartTime).Width(90).Format("{0:HH:mm}");
+                    columns.Bound(x => x.EndDate).Width(90).Format("{0:yyyy-MM-dd}");
+                    columns.Bound(x => x.EndTime).Width(90).Format("{0:HH:mm}");
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    //columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(20)
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

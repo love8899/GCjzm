@@ -1,0 +1,164 @@
+﻿@using Wfm.Services.JobOrders;
+
+@model JobOrderModel
+@{
+    var jobOrderTypeService = EngineContext.Current.Resolve<IJobOrderTypeService>();
+    var jobOrderCategoryService = EngineContext.Current.Resolve<IJobOrderCategoryService>();
+    var jobOrderStatusService = EngineContext.Current.Resolve<IJobOrderStatusService>();
+
+    var joborderCategories = jobOrderCategoryService.GetAllJobOrderCategories();
+    var joborderCategoriesDropDownList = new List<SelectListItem>();
+    foreach (var f in joborderCategories)
+    {
+        var item = new SelectListItem()
+        {
+            Text = f.CategoryName,
+            Value = f.Id.ToString()
+        };
+        joborderCategoriesDropDownList.Add(item);
+    }
+
+    
+    var joborderTypes = jobOrderTypeService.GetAllJobOrderTypes().Where(jt => !jt.IsDirectHire);
+    var joborderTypesDropDownList = new List<SelectListItem>();
+    foreach (var f in joborderTypes)
+    {
+        var item = new SelectListItem()
+        {
+            Text = f.JobOrderTypeName,
+            Value = f.Id.ToString()
+        };
+        joborderTypesDropDownList.Add(item);
+    }
+    var joborderStatus = jobOrderStatusService.GetAllJobOrderStatus();
+    var joborderStatusDropDownList = new List<SelectListItem>();
+    foreach (var f in joborderStatus)
+    {
+        var item = new SelectListItem()
+        {
+            Text = f.JobOrderStatusName,
+            Value = f.Id.ToString()
+        };
+        joborderStatusDropDownList.Add(item);
+    }    
+}
+
+<script type="text/javascript">
+    function filterRecruiters() { return { companyGuid: $("#CompanyGuid").val(), vendorGuid: $("#FranchiseGuid").val()}; }
+    function filterOwners() { return { companyGuid: $("#CompanyGuid").val(), vendorGuid: $("#FranchiseGuid").val(), includeAdmin: true }; }
+    function filterPositions() { return { companyId: $("#CompanyData").attr("datauid") }; }
+</script>
+
+<table class="adminContent">      
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyJobNumber)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.CompanyJobNumber)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.JobOrderCategoryId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList().Name("JobOrderCategoryId")
+                .OptionLabel("--Select--")
+                .BindTo(joborderCategoriesDropDownList)
+            )
+            @Html.WfmValidationMessageFor(model => model.JobOrderCategoryId)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.JobOrderTypeId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList().Name("JobOrderTypeId")
+                .OptionLabel("--Select--")
+                .BindTo(joborderTypesDropDownList)
+            )
+            @Html.WfmValidationMessageFor(model => model.JobOrderTypeId)
+        </td>
+    </tr>  
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsHot)
+        </td>
+        <td class="adminData">
+            @Html.CheckBoxFor(model => model.IsHot)
+        </td>
+    </tr>   
+    @*<tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsInternalPosting)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.IsInternalPosting)
+        </td>
+    </tr>*@
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.AllowSuperVisorModifyWorkTime)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.AllowSuperVisorModifyWorkTime)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.AllowTimeEntry)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.AllowTimeEntry)
+        </td>
+    </tr>
+
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.RecruiterId)
+        </td>
+        <td class="adminData required">          
+            @(Html.Kendo().DropDownList().Name("RecruiterId")
+                .OptionLabel("--Select--").DataTextField("Text")
+                .DataValueField("Value").CascadeFrom("CompanyGuid")
+                .DataSource(ds => ds.Read(r => r.Action("GetCascadeRecruiters", "JobOrder").Data("filterRecruiters")).ServerFiltering(true))
+            )
+            @Html.WfmValidationMessageFor(model => model.RecruiterId)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.OwnerId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList().Name("OwnerId")
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .DataSource(ds => ds.Read(r => r.Action("GetCascadeRecruiters", "JobOrder").Data("filterOwners")).ServerFiltering(true))
+                .CascadeFrom("CompanyGuid")
+            )
+            @Html.WfmValidationMessageFor(model => model.OwnerId)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.JobOrderStatusId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList().Name("JobOrderStatusId")
+                .OptionLabel("--Select--")
+                .BindTo(joborderStatusDropDownList)
+            )
+            @Html.WfmValidationMessageFor(model => model.JobOrderStatusId)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Note)
+        </td>
+        <td class="adminData">
+            @Html.TextAreaFor(model => model.Note, new { style = "height:40px;width:100%;" })
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,171 @@
+﻿@using Wfm.Core.Domain.TimeSheet
+@model CandidateMissingHourModel
+@{
+    var accountService = EngineContext.Current.Resolve<Wfm.Services.Accounts.IAccountService>();
+    var accounts = accountService.GetAllAccountsAsQueryable(showInactive: true);
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "process-form" }))
+{
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+
+    <div class="section-header" style="padding:10px;">
+        <div class="title">
+        </div>
+        <div class="options">
+            <input type="button" id="btn-edit" class="k-button" value="Edit" onclick="btnEditClikced()" />
+            <input type="button" id="btn-save" class="k-button" value="Save" onclick="btnSaveClikced()" style="display: none;" />
+            <input type="button" id="btn-process" class="k-button" value="Process" />
+            <input type="button" id="btn-void" class="k-button" value="Void" />
+            <input type="button" id="btn-cancel" class="k-button" value="@T("Admin.Common.Cancel")" />
+        </div>
+    </div>
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle" style="width:25%">
+                @Html.LabelFor(model => model.EmployeeId, "Employee ID")
+            </td>
+            <td class="adminData" style="width:75%">
+                @Html.DisplayFor(mode => Model.EmployeeId)
+                @Html.HiddenFor(mode => Model.CandidateId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Common.EmployeeName")
+            </td>
+            <td class="adminData">
+                @(Model.EmployeeFirstName + " " + Model.EmployeeLastName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobOrderId, "Job Order")
+            </td>
+            <td class="adminData">
+                @(Model.JobOrderId.ToString() + " - " + Model.JobTitle)
+                @Html.HiddenFor(model => model.JobOrderId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Common.Date")
+            </td>
+            <td class="adminData">
+                @Model.WorkDate.ToString("yyyy-MM-dd")
+                @Html.HiddenFor(model => model.WorkDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                Orig Hours
+            </td>
+            <td class="adminData">
+                @Model.OrigHours
+                @Html.HiddenFor(model => model.OrigHours)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                New Hours
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().NumericTextBoxFor(model => model.NewHours).Format("#.##")
+                    .Decimals(2)
+                    .Step(0.01m)
+                    .Enable(false)
+                )
+                @Html.WfmValidationMessageFor(model => model.NewHours)
+            </td>
+        </tr>
+        <tr id="payrollNoteRow" style="display: none;">
+            <td class="adminTitle" style="vertical-align: top">
+                Payroll Note
+            </td>
+            <td class="adminData required">
+                @Html.TextAreaFor(model => model.PayrollNote, new { style = "height:60px;width:90%;" })
+                @Html.WfmValidationMessageFor(model => model.PayrollNote)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CandidateMissingHourStatusId)
+            </td>
+            <td class="adminData">
+                @(((CandidateMissingHourStatus)Model.CandidateMissingHourStatusId).ToString())
+                @Html.HiddenFor(model => model.CandidateMissingHourStatusId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle" style="vertical-align: top">
+                @Html.LabelFor(model => model.Note)
+            </td>
+            <td class="adminData">
+                @Html.Raw(Model.Note)
+                @Html.HiddenFor(model => model.Note)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle" style="vertical-align: top">
+                @Html.LabelFor(model => model.ApprovedBy)
+            </td>
+            <td class="adminData">
+                @accounts.Where(x => x.Id == Model.ApprovedBy).FirstOrDefault().FullName
+                @Html.HiddenFor(model => model.ApprovedBy)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle" style="vertical-align: top">
+                Supporting Documents
+            </td>
+            <td class="adminData" id="attachment-list">
+                @Html.Partial("_MissingHourDocuments", Model.MissingHourDocuments)
+            </td>
+        </tr>
+    </table>
+}
+<script>
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+    function btnEditClikced()
+    {
+        $("#btn-process").hide();
+        $("#btn-void").hide();
+        $("#btn-save").show();
+        $("#NewHours").data("kendoNumericTextBox").enable();
+        $("#payrollNoteRow").show();
+        $("#PayrollNote").prop('disabled', false);
+
+    }
+    function btnSaveClikced() {
+        if (!$("#PayrollNote").val()) {
+            alert("Payroll note is required");
+        }
+        else {
+            $("#btn-process").show();
+            $("#btn-void").show();
+            $("#btn-save").hide();
+            $("#NewHours").data("kendoNumericTextBox").enable(false);
+            $("#PayrollNote").prop('disabled', true);
+            var _newHours = $("#NewHours").data("kendoNumericTextBox").value();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("_UpdateMissingHour", "TimeSheet")',
+                data: { missingHourId: @Model.Id, hours: _newHours, note: $("#PayrollNote").val()},
+                success: function (response) {
+                    if (response.Result) {
+                        alert("Missing hour is updated.");
+                    }
+                    else {
+                        alert(response.ErrorMessage);
+                    }
+                }
+            });
+        }
+    }
+</script>

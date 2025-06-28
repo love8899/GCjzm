@@ -1,0 +1,188 @@
+﻿@using Wfm.Core.Domain.TimeSheet
+@using Wfm.Core
+@using Wfm.Core.Domain.Accounts
+@{
+    Layout = null;
+
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var franchiseService = EngineContext.Current.Resolve<Wfm.Services.Franchises.IFranchiseService>();
+    var franchises = franchiseService.GetAllFranchises();
+    var accountService = EngineContext.Current.Resolve<Wfm.Services.Accounts.IAccountService>();
+    var accounts = accountService.GetAllAccountsAsQueryable();
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+    var availableStatus = CandidateMissingHourStatus.PendingApproval.ToSelectList(false).ToList();
+}
+
+<div class="section-header">
+    <div class="title">
+        @*@T("Admin.MissingHour")*@
+    </div>
+    <div class="options">
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateMissingHourModel>()
+                .Name("missinghour-grid")
+                .Columns(columns =>
+                {
+                    if (!workContext.CurrentAccount.IsVendor()&&commonSettings.DisplayVendor)
+                    {
+                        columns.ForeignKey(x => x.FranchiseId, franchises, "Id", "FranchiseName").Title(T("Common.Vendor").Text).Hidden(true);
+                    }
+
+                    columns.Bound(x => x.EmployeeId)
+                        .ClientTemplate(@Html.ActionLink("#=EmployeeId#", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString())
+                        .Width(90);
+
+                    columns.Bound(x => x.EmployeeLastName)
+                        .Width(100);
+                    columns.Bound(x => x.EmployeeFirstName)
+                        .Width(100);
+
+                    columns.Bound(x => x.JobOrderId).Title(T("Common.JobOrder").Text)
+                        .ClientTemplate(@Html.ActionLink("#=JobOrderId#", "Details", "JobOrder", new { guid = "#=JobOrderGuid#" }, new { target = "_blank" }).ToHtmlString())
+                        .Width(60);
+
+                    columns.Bound(x => x.JobTitle).Hidden(true);
+
+                    columns.Bound(x => x.LocationName);
+                    columns.Bound(x => x.DepartmentName);
+                    columns.Bound(x => x.ContactName);
+
+                    columns.Bound(x => x.WorkDate).Title(T("Common.StartDate").Text).Format("{0:yyyy-MM-dd HH:mm}").Width(120).HtmlAttributes(new { id = "joborder-startdate" });
+
+                    columns.Bound(x => x.OrigHours).Format("{0:n}").HtmlAttributes(new { align = "right" }).Width(60);
+                    columns.Bound(x => x.NewHours).Format("{0:n}").HtmlAttributes(new { align = "right" }).Width(60);
+                    columns.Bound(x => x.BillableHours).Format("{0:n}").HtmlAttributes(new { align = "right" }).Width(60);
+
+                    columns.ForeignKey(x => x.CandidateMissingHourStatusId, availableStatus, "Value", "Text")
+                        .Width(105);
+
+                    columns.Bound(x => x.Note).Hidden(true);
+
+                    columns.ForeignKey(x => x.EnteredBy, accounts, "Id", "FullName").Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(false);
+
+                    columns.ForeignKey(x => x.ApprovedBy, accounts, "Id", "FullName").Hidden(true);
+                    columns.Bound(x => x.ApprovedOn)
+                        .ClientTemplate("#if (ApprovedOn) {# #=kendo.toString(ApprovedOn, 'yyyy-MM-dd HH:mm')# #} else {# #}#")
+                        .Width(120).Hidden(true);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    columns.Command(command =>
+                    {
+                        command.Custom("Process").Click("processMissingHour").Text("Process");
+                    }).Title("Action").HtmlAttributes(new { align = "center" }).Width(160);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(
+                    dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(30)
+                    .Read(read => read.Action("_MissingHour", "TimeSheet"))
+                    .Group(g => g.Add(model => model.CompanyName))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+<script>
+    function processMissingHour(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        $(document.body).append('<div id="process-win"></div>');
+        $("#process-win").kendoWindow({
+            title: "Process Missing Hour",
+            modal: true,
+            resizable: false,
+            width: 800,
+            height: 500,
+            content: '@Url.Action("_ReviewMissingHour", "TimeSheet")' + '?missingHourId=' + dataItem.Id,
+            close: function () {
+                setTimeout(function () {
+                    $('#process-win').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-cancel').click(function () {
+                    win.close();
+                })
+                $('#btn-process').click(function () {
+                    var form = $('#process-form');
+                    if (form.valid()) {
+                        if (dataItem.OrigHours > 0) {
+                            var confirmMsg = 'There is a time sheet with ' + dataItem.OrigHours + ' hours for the same candidate/joborder/date.\r\n' +
+                                             'The system will NOT generate a new time sheet for this missing hour record.\r\n' +
+                                             'You need to pay the difference by using Other Payment in Payroll.\r\n\r\n' +
+                                             'Would you like to mark this missing hour as processed now?\r\n';
+                            if (!confirm(confirmMsg))
+                                return;
+                        }
+                        $.ajax({
+                            type: "POST",
+                            url: '@Url.Action("_ProcessMissingHour", "TimeSheet")',
+                            data: { missingHourId: dataItem.Id },
+                            success: function (response) {
+                                if (response.Result) {
+                                    showMsg("Missing hour is processed.");
+                                    if (response.WarningMessage)
+                                        showWarning('Placement cannot be created or updated. Reason: ' + response.WarningMessage);
+                                    win.close();
+                                    refreshGrid("#missinghour-grid");
+                                }
+                                else {
+                                    alert(response.ErrorMessage);
+                                }
+                            }
+                        });
+                    }
+                });
+                $('#btn-void').click(function () {
+                    var reason = '';
+                    while (reason != null && reason == '')
+                        reason = prompt("Please give reason for voiding");
+                    if (reason != null) {
+                        $.ajax({
+                            type: "POST",
+                            url: '@Url.Action("_VoidMissingHour", "TimeSheet")',
+                            data: { missingHourId: dataItem.Id, reason: reason },
+                            success: function (response) {
+                                if (response.Result) {
+                                    showMsg("Missing hour is voided.");
+                                    win.close();
+                                    refreshGrid("#missinghour-grid");
+                                }
+                                else {
+                                    alert(response.ErrorMessage);
+                                }
+                            }
+                        });
+                    }
+                });
+                
+            }
+        }).data('kendoWindow').center();
+    }
+</script>

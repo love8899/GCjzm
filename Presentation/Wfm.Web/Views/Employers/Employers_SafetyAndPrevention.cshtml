@@ -1,0 +1,47 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Safety and Prevention";
+    //var description = siteTitle + " helps ensure that the workplace is a safe environment – for the companies we work with and the employees we place.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Safety and Prevention</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            @siteTitle helps ensure that the workplace is a safe environment – for the
+            companies we work with and the employees we place. For starters, all @siteTitle
+            employees are put through comprehensive health and safety training programs including
+            our WHMIS program (Workplace Hazardous Material Information System), Forklift Orientation,
+            Safe Lifting Training as well as In House Orientation as required, like GMP, SOP.
+            Safety training and testing specific to your industry is also available as part
+            of our service. We ensure that our employees are informed and knowledgeable about
+            your workplace environment before they step onto the worksite. We work closely with
+            the IAPA (Industrial Accident Prevention Association), to keep up to date with current
+            safety issues and to keep our employees informed about prevention.
+        </p>
+        <p>
+            All @siteTitle employees are fully covered by WSIB. Training our employees
+            to understand potential workplace hazards, and testing them to ensure they comply
+            with current Ministry of Labour safety standards is part of our service.
+        </p>
+    </div>
+</div>

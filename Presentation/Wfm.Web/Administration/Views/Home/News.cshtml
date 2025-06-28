@@ -1,0 +1,27 @@
+﻿@using Wfm.Core.Domain.Accounts
+@{
+    ViewBag.Title = T("Common.Home").Text;
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+}
+<style>
+    ul.coloredBullets {list-style-type: square;color: red; }
+    p.coloredBullets { color: black; }
+  .clsMarkAsRead {float:right;margin-top:-25px;}
+  .cardAnnouncement{border: 1px solid gray;box-shadow: 1px 1px 3px #888;border-top: 10px solid #1976D2;padding: 10px;margin-bottom:10px;}
+</style>
+@Html.Kendo().TabStrip().Name("vendor-details-tabstrip").Items(x =>
+{
+    if (!workContext.CurrentAccount.IsClientAdministrator())
+    {
+        x.Add().Text("Messages").Content(Html.Action("_TabMessages").ToHtmlString()).Selected(true).HtmlAttributes(new { id = "tab-messages" });
+    }    
+    x.Add().Text("Announcements").LoadContentFrom("_TabAnnouncements","Home").HtmlAttributes(new { id = "tab-announcements" });
+   
+})
+<script type="text/javascript">
+    $(function () {
+        var tabStrip = $("#vendor-details-tabstrip").data("kendoTabStrip");
+        if (tabStrip)
+            tabStrip.select(0);
+    });
+</script>

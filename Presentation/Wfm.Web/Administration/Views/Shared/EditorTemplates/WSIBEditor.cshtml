@@ -1,0 +1,19 @@
+﻿@model string
+@(Html.Kendo().DropDownListFor(x=>x)
+                .Name("WSIBCode")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                        {
+                            read.Action("GetCascadeWSIBCode", "Common").Data("filterWSIBCode");
+                        })
+                        .ServerFiltering(true);
+                })
+                .SelectedIndex(0)
+                .AutoBind(false)
+                .CascadeFrom("CompanyLocationId")
+)
+@Html.ValidationMessageFor(m => m)

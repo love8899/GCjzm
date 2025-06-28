@@ -1,0 +1,18 @@
+﻿@{
+    Layout = "";
+}
+<div>
+    <p>
+        @T("Common.DeleteConfirmation")
+    </p>
+    <div class="form-actions">
+        <span id="cancel" class="k-button">@T("Admin.Common.NoCancel")</span>
+        <input id="confirm" type="submit" class="k-button" value="@T("Common.Delete")" />
+    </div>
+</div>
+<input id="hidenJobPostId" style="display:none"/>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#hidenJobPostId").val(@ViewBag.Id);
+    });
+</script>

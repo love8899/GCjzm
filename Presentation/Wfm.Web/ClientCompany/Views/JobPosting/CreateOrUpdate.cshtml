@@ -1,0 +1,144 @@
+﻿@model JobPostingEditModel
+@using Wfm.Services.Common;
+@using Wfm.Services.JobOrders;
+@using Wfm.Shared.Models.JobPosting;
+@{
+    ViewBag.UsingForm = true;
+    ViewBag.PageTitle = ViewBag.Title;
+    ViewBag.PanelTitle = T("Common.CompanyInformation").Text;
+    ViewBag.Panel2Title = T("Admin.JobOrder.JobOrder.JobOrderInformation").Text;
+    ViewBag.Panel3Title = T("Common.WorkingDays").Text;
+    ViewBag.Panel4Title = T("Common.OtherInformation").Text;
+
+    var positionService = EngineContext.Current.Resolve<IPositionService>();
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var jobOrderTypeService = EngineContext.Current.Resolve<IJobOrderTypeService>();
+    var jobOrderCategoryService = EngineContext.Current.Resolve<IJobOrderCategoryService>();
+    var jobOrderStatusService = EngineContext.Current.Resolve<IJobOrderStatusService>();
+
+    var joborderCategoriesDropDownList = jobOrderCategoryService.GetAllJobOrderCategories()
+        .Select(x => new SelectListItem() { Text = x.CategoryName, Value = x.Id.ToString() });
+
+    var joborderTypesDropDownList = jobOrderTypeService.GetAllJobOrderTypes()
+        .Select(x => new SelectListItem() { Text = x.JobOrderTypeName, Value = x.Id.ToString() });
+
+    var joborderStatusDropDownList = jobOrderStatusService.GetAllJobOrderStatus()
+        .Select(x => new SelectListItem() { Text = x.JobOrderStatusName, Value = x.Id.ToString() });
+
+    var labourTypes = new List<SelectListItem>() { new SelectListItem() { Text = "Direct Labour", Value = "DL" }, new SelectListItem() { Text = "Indirect Labour", Value = "IL" } };
+}
+
+@section Options {
+    <button type="submit" name="save" class="btn bg-blue">
+        <i class="fa fa-floppy-o"></i>@T("Admin.Common.Save")
+    </button>
+    <button type="submit" name="save-continue" class="btn bg-blue">
+        <i class="fa fa-floppy-o"></i>@T("Admin.Common.SaveContinue")
+    </button>
+    <a class="btn bg-yellow" href="@Url.Action("Index")">
+        <i class="fa fa-ban"></i>@T("Admin.Common.Cancel")
+    </a>
+}
+
+@Html.ValidationSummary(true)
+@Html.AntiForgeryToken()
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.CompanyId)
+@Html.HiddenFor(model => model.JobCategoryId)
+@Html.HiddenFor(model => model.LabourType)
+@Html.HiddenFor(model => model.JobTypeId)
+@Html.HiddenFor(model => model.JobPostingStatusId)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.CreatedOn)
+@Html.HiddenFor(model => model.UpdatedOn)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+@Html.HiddenFor(model => model.FranchiseId)
+@Html.HiddenFor(model => model.EnteredBy)
+@Html.HiddenFor(model => model.IsDeleted)
+@Html.HiddenFor(model => model.IsPublished)
+@Html.HiddenFor(model => model.IsSubmitted)
+@Html.HiddenFor(model => model.PublishedOnUtc)
+@Html.HiddenFor(model => model.SubmittedOnUtc)
+
+@Html.InputFor(x => x.CompanyLocationId, "DropDownListRemote", new { Controller = "Common", Action = "GetCascadeLocations", Option = T("Admin.Common.None").Text })
+@Html.InputFor(x => x.CompanyDepartmentId, "CascadeDropDownList", new { Controller = "Company", Action = "GetCascadeDepartments", OnData = "filterDepartments", From = "CompanyLocationId", Option = T("Admin.Common.None").Text })
+<script>function filterDepartments() { return { locationId: $("#CompanyLocationId").val(), addNone: false }; }</script>
+@Html.InputFor(x => x.CompanyContactId, "CascadeDropDownList", new { Controller = "CompanyContact", Action = "GetCascadeContacts", OnData = "filterContacts", From = "CompanyDepartmentId", Option = T("Admin.Common.None").Text })
+<script>function filterContacts() { return { locationId: $("#CompanyLocationId").val(), departmentId: $("#CompanyDepartmentId").val() }; }</script>
+
+@section Panel2 {
+    @Html.InputFor(x => x.JobTitle)
+    @*@Html.InputFor(x => x.JobCategoryId, "DropDownList", new { Items = joborderCategoriesDropDownList, OptionLabel = T("Admin.Common.None").Text })
+        @Html.InputFor(x => x.LabourType, "DropDownList4Obj", new { Items = labourTypes, OptionLabel = T("Admin.Common.None").Text })
+        @Html.InputFor(x => x.JobTypeId, "DropDownList", new { Items = joborderTypesDropDownList, OptionLabel = T("Admin.Common.None").Text })*@
+    @Html.InputFor(x => x.PositionId, "DropDownListRemote", new { Controller = "Common", Action = "GetCascadePositions", Option = T("Admin.Common.None").Text })
+    @Html.InputFor(x => x.ShiftId, "DropDownListRemote", new { Controller = "Common", Action = "GetCascadeShift", Option = T("Admin.Common.None").Text })
+    @*@Html.InputFor(x => x.JobPostingStatusId, "DropDownList", new { Items = joborderStatusDropDownList, OptionLabel = T("Admin.Common.None").Text })*@
+    @Html.InputFor(x => x.StartDate, "Date", new { OnChange = "startDateChange" })
+    @Html.InputFor(x => x.EndDate, "Date")
+    @Html.InputFor(x => x.StartTime, "Time", new { OnChange = "startTimeChange" })
+    @Html.InputFor(x => x.EndTime, "Time")
+    @Html.InputFor(x => x.NumberOfOpenings, "RangedInteger", new { minValue = 1 })
+    @Html.InputFor(x => x.JobDescription, "RichEditor2Lite")
+    @Html.InputFor(x => x.Note)
+}
+
+@section Panel3 {
+    @Html.InputFor(x => x.IncludeHolidays)
+    @Html.InputFor(x => x.SundaySwitch)
+    @Html.InputFor(x => x.MondaySwitch)
+    @Html.InputFor(x => x.TuesdaySwitch)
+    @Html.InputFor(x => x.WednesdaySwitch)
+    @Html.InputFor(x => x.ThursdaySwitch)
+    @Html.InputFor(x => x.FridaySwitch)
+    @Html.InputFor(x => x.SaturdaySwitch)
+}
+
+@section Panel4 {
+    @Html.InputFor(x => x.RequireSafetyShoe)
+    @Html.InputFor(x => x.RequireSafeEquipment)
+}
+
+@section scripts {<script type="text/javascript">
+    //$('form input[type=submit]').click(function () { tinyMCE.triggerSave(); });
+    // Limit end date
+    function startDateChange() {
+        var startDate = this.value();
+        var endPicker = $("#EndDate").data("kendoDatePicker");
+        if (startDate) {
+            startDate = new Date(startDate);
+            endPicker.min(startDate);
+        }
+    }
+    // Default increase end time
+    function startTimeChange() {
+        var startTime = this.value();
+        var endPicker = $("#EndTime").data("kendoTimePicker");
+        if (startTime) {
+            startTime = new Date(startTime);
+            endPicker.max(startTime);
+            startTime.setMinutes(startTime.getMinutes() + this.options.interval);
+            endPicker.min(startTime);
+            endPicker.value(startTime);
+        }
+    }
+    // Validate against start date
+    function endDateChange() {
+        var endDate = this.value();
+        var startPicker = $("#StartDate").data("kendoDatePicker");
+        var startDate = startPicker.value();
+        if (startDate > endDate) {
+            popupNotification('End date must be greater than Start date!', 'error');
+            this.value('');
+        }
+    }
+    // Validate against start date
+    function dateChange() {
+        var startDatePicker = $("#StartDate").data("kendoDatePicker"), startDate = startDatePicker.value();
+        var endDatePicker = $("#EndDate").data("kendoDatePicker"), endDate = endDatePicker.value();
+        if (startDate > endDate) {
+            popupNotification('End date must be greater than Start date!', 'error');
+            this.value('');
+        }
+    }
+</script>}

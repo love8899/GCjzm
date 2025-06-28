@@ -1,0 +1,49 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Mass Recruitment Services";
+    //var description = "We have the tools and capacity to attract and process a significant number of recruits selected from our own internal database of prequalified candidates and responses to targeted on and offline advertising campaigns.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Mass Recruitment Services</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            Hiring a large number of qualified employees within a short period of time is best
+            left to the mass recruitment professionals at @siteTitle. We have the tools
+            and capacity to attract and process a significant number of recruits selected from
+            our own internal database of prequalified candidates and responses to targeted on
+            and offline advertising campaigns.
+        </p>
+        <p>
+            Our team will work hand-in-hand with your HR and operations team to prepare a meticulous
+            needs assessment. From there we will devise a specific recruitment plan, taking
+            care to maintain an optimal level of cost and time expenditures. After initial screening,
+            our professional recruiters speedily conduct interviews and knowledge and skills
+            tests.
+        </p>
+        <p>
+            Whether you need 20, 80 or 400 or more full time or contingent staff in a timely
+            manner, @siteTitle will fill your vacancies with the best available, qualified
+            candidates fast.
+        </p>
+    </div>
+</div>

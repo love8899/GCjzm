@@ -1,0 +1,62 @@
+﻿@model CandidateChangeSecurityQuestionsModel
+@using Wfm.Core.Infrastructure
+@using Wfm.Services.Common
+@using Wfm.Web.Models.Candidate
+
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    ViewBag.Title = T("Web.Candidate.Candidate.ChangeSecurityQuestions").Text;
+
+    var securityQuestionService = EngineContext.Current.Resolve<ISecurityQuestionService>();
+    var securityquestionsDropDownList = securityQuestionService.GetAllSecurityQuestions()
+        .Select(x => new SelectListItem()
+        {
+            Text = x.Question,
+            Value = x.Id.ToString()
+        });
+}
+
+<div class="page topic-page">
+    @*<div class="page-title">
+            <h1>Change Security Questions</h1>
+        </div>*@
+    <div class="page-body">
+        @using (Html.BeginForm())
+        {
+            @Html.ValidationSummary(true)
+            @Html.AntiForgeryToken()
+            <div class="fieldset">
+                <div class="form-fields">
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.SecurityQuestion1Id, new { }, ":")
+                        @(Html.Kendo().DropDownList().Name("SecurityQuestion1Id")
+                            .OptionLabel("--Select--").BindTo(securityquestionsDropDownList))
+                        @Html.ValidationMessageFor(model => model.SecurityQuestion1Id)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.SecurityQuestion1Answer, new { }, ":")
+                        @Html.EditorFor(model => model.SecurityQuestion1Answer)
+                        @Html.ValidationMessageFor(model => model.SecurityQuestion1Answer)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.SecurityQuestion2Id, new { }, ":")
+                        @(Html.Kendo().DropDownList().Name("SecurityQuestion2Id")
+                            .OptionLabel("--Select--").BindTo(securityquestionsDropDownList))
+                        @Html.ValidationMessageFor(model => model.SecurityQuestion2Id)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.SecurityQuestion2Answer, new { }, ":")
+                        @Html.EditorFor(model => model.SecurityQuestion2Answer)
+                        @Html.ValidationMessageFor(model => model.SecurityQuestion2Answer)
+                    </div>
+                </div>
+            </div>
+            <div class="buttons">
+                <input type="submit" name="save" class="button-1" value="@T("Common.Save")" />
+                <button class="button-1" onclick="window.location.href='@Url.Action("Index", "Candidate")';return false;">@T("Admin.Common.Cancel")</button>
+            </div>
+        }
+    </div>
+</div>

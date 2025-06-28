@@ -1,0 +1,51 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Testimonials";
+    //var description = "What some industry-leading employers have to say about " + siteTitle + ".";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Testimonials</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            <b>What some industry-leading employers have to say about @siteTitle. </b>
+        </p>
+        <br />
+        <p class="testimonial">
+            “Let me say that your assistance with this project and getting us the manpower we required to complete the first phase was invaluable to us. Thanks so much for your diligence and attention to our needs.
+        </p>
+        <p>
+            -J.L.
+            <br />
+            Canada’s largest entertainment facility
+        </p>
+        <br />
+        <p class="testimonial">
+            “I will toss in some hints to --- (who I know very well) about the great success we have had. I also carry your stuff with me as I travel around to various divisions of our company around the GTA so I will keep spreading the word!
+        </p>
+        <p>
+            -T.K.
+            <br />
+            One of Canada’s largest builders
+        </p>
+    </div>
+</div>

@@ -1,0 +1,133 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@using Wfm.Services.Franchises
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-address-list-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "GC Employment Agency Office Locations in Canada";
+    //var description = "Find closest office location and speak to us today.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle;
+
+    var franchiseAddressService = EngineContext.Current.Resolve<IFranciseAddressService>();
+    var addresses = franchiseAddressService.GetAllFranchiseAddressForPublicSite();
+    var addressModels = addresses.Select(x => x.ToModel()).ToList();
+}
+@section left {
+    @Html.Partial("Layout/_ContactSideBar")
+}
+
+<div class="page account-page address-list-page">
+    <div class="page-title">
+        <h1>Office Locations</h1>
+    </div>
+    <div class="page-body">
+        @if (addressModels.Any())
+        {
+            <div class="address-list">
+                @foreach (var address in addressModels)
+                {
+                    <div class="section address-item">
+                        <div class="title">
+                            <strong>@address.LocationName</strong>
+                        </div>
+                        <ul class="info">
+                            <li class="address1">
+                                @address.AddressLine1
+                                @if (!string.IsNullOrWhiteSpace(address.AddressLine2))
+                                {
+                                    <text> </text> @address.AddressLine2
+                                }
+                                @if (!string.IsNullOrWhiteSpace(address.UnitNumber))
+                                {
+                                    <text>, Unit #</text>@address.UnitNumber
+                                }
+                                @{
+                                    var addressUrl = string.Format("http://maps.google.com/maps?q={0}", address.AddressLine1 + " " + address.AddressLine2 + "," + address.City
+                                                                 + "," + address.StateProvince + " " + address.PostalCode + "," + address.Country);
+                                }
+                                <a target="_blank" href="@addressUrl"><img class="google-maps" alt="google icon" src="@Url.Content("~/Content/images/google/google_maps.gif")"> </a>
+                            </li>
+                            <li class="city-state-zip">
+                                @address.City,@address.StateProvince&nbsp;@address.PostalCode
+                            </li>
+                            <li class="country">
+                                @address.Country
+                            </li>
+                            <li class="phone">
+                                @Html.LabelFor(model => address.PrimaryPhone, new { }, ":")
+                                @address.PrimaryPhone.ToPrettyTelephone()
+                            </li>
+                        </ul>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="no-data">
+                No locations.
+            </div>
+        }
+    </div>
+</div>
+
+
+
+
+
+
+@*<style>
+        .office-location-item {
+            margin: 2px 2px 2px 2px;
+            float: left;
+            width: 49%;
+            text-align: left;
+        }
+    </style>
+
+
+    <div class="side-navigation-left">
+        @Html.Partial("_MyBlogSideBarMenu")
+    </div>
+    <div class="content-column-spacer">&nbsp; </div>*@
+
+
+@*<div class="main-content">
+    <h1>Office Locations</h1>
+    <div class="office-location-table">
+        @foreach (var item in addressModels)
+        {
+            <div class="office-location-item">
+                <span>@item.LocationName</span>
+                <div class="grayLine"></div>
+                @item.AddressLine1
+                @if (!string.IsNullOrWhiteSpace(item.AddressLine2))
+                {<text> </text> @item.AddressLine2}
+                @if (!string.IsNullOrWhiteSpace(item.UnitNumber))
+                {<text>, Unit#</text> @item.UnitNumber}
+                @{ var addressUrl = string.Format("http://maps.google.com/maps?q={0}", @item.AddressLine1 + " " + @item.AddressLine2 + "," + @item.City
+                                                + "," + @item.StateProvince + " " + @item.PostalCode + "," + @item.Country);}
+                <a target="_blank" href="@addressUrl"><img class="google-maps" alt="google icon" src="@Url.Content("~/Content/images/google/google_maps.gif")"> </a>
+                <br />
+                @item.City,@item.StateProvince&nbsp;@item.PostalCode
+                <br />
+                @item.Country
+                <br />
+                Phone: @item.PrimaryPhone.ToPrettyTelephone()
+                <br />
+            </div>
+        }
+
+    </div>
+
+</div>*@

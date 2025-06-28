@@ -1,0 +1,110 @@
+﻿@using Wfm.Shared.Models.Accounts
+@model AccountModel
+
+@Html.ValidationSummary(true)
+@{Html.EnableClientValidation(false);}
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.Username)
+@Html.HiddenFor(model => model.AccountRoleSystemName)
+@Html.HiddenFor(model => model.EmployeeId)
+@Html.HiddenFor(model => model.AccountGuid)
+@Html.HiddenFor(model => model.FranchiseId)
+@Html.HiddenFor(model => model.CompanyId)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+@{ Html.EnableClientValidation(true);}
+
+<table class="adminContent">
+    <tr>
+        <td colspan="2">
+            <div class="statisticsTitle">
+                @T("Admin.Accounts.Account.LoginInformation")
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Username)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.Username)
+            @Html.WfmValidationMessageFor(model => model.Username)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.AccountRoleSystemName)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.AccountRoleSystemName)
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <div class="statisticsTitle">
+                @T("Common.BasicInformation")
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.FirstName)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.FirstName)
+            @Html.WfmValidationMessageFor(model => model.FirstName)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.LastName)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.LastName)
+            @Html.WfmValidationMessageFor(model => model.LastName)
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <div class="statisticsTitle">
+                @T("Admin.Accounts.Account.ContactInformation")
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Email)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.Email)
+            @Html.WfmValidationMessageFor(model => model.Email)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.WorkPhone)
+        </td>
+        <td class="adminData required">
+            @Html.Kendo().MaskedTextBoxFor(model => model.WorkPhone).Mask("(999) 000-0000")
+            @Html.WfmValidationMessageFor(model => model.WorkPhone)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.MobilePhone) 
+        </td>
+        <td class="adminData">
+            @Html.Kendo().MaskedTextBoxFor(model => model.MobilePhone).Mask("(999) 000-0000")
+            @Html.WfmValidationMessageFor(model => model.MobilePhone)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.HomePhone)
+        </td>
+        <td class="adminData">
+            @Html.Kendo().MaskedTextBoxFor(model => model.HomePhone).Mask("(999) 000-0000")
+            @Html.WfmValidationMessageFor(model => model.HomePhone)
+        </td>
+    </tr>
+</table>

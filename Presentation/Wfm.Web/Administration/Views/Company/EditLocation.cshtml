@@ -1,0 +1,21 @@
+﻿@model CompanyLocationModel
+
+@{
+    ViewBag.Title = T("Admin.Companies.CompanyLocation.EditCompanyLocationDetails").Text;
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "companylocation-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Companies.CompanyLocation.EditCompanyLocationDetails")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />
+            @Html.ActionLink("Cancel", "Details", new { guid = Model.CompanyGuid }, new { @class = "k-button" })
+        </div>
+    </div>
+
+    @Html.Partial("_CreateOrUpdate.Location", Model)
+}

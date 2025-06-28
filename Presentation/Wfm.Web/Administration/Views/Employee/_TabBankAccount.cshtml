@@ -1,0 +1,94 @@
+﻿@{
+    Layout = null;
+}
+
+<script>
+    function onDataBound() {
+        toggleAddButton();
+    }
+    function onEdit(e) {
+        e.model.CandidateId = '@(ViewBag.EmployeeId)';
+    }
+    function onSync() {
+        refreshGrid("#bankaccount-grid");
+    }
+</script>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<Wfm.Admin.Models.Candidate.CandidateBankAccountModel>()
+                .Name("bankaccount-grid")
+                .Events(e => e.DataBound("onDataBound").Edit("onEdit"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.InstitutionNumber);
+                    columns.Bound(x => x.TransitNumber);
+                    columns.Bound(x => x.AccountNumber);
+                    columns.Bound(x => x.Note);
+
+                    columns.Bound(x => x.IsActive)
+                        .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" });
+                    
+                    //columns.Bound(x => x.IsDeleted)
+                    //    .ClientTemplate("#if (IsDeleted == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                    //    .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" });
+
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#if (CreatedOnUtc) {# #= kendo.toString(CreatedOn, 'yyyy-MM-dd h:mm:ss tt') # #} else {# #}#");
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#if (UpdatedOnUtc) {# #= kendo.toString(UpdatedOn, 'yyyy-MM-dd h:mm:ss tt') # #} else {# #}#");
+
+                    columns.Command(command => { command.Destroy().Text(" "); }).Width(55);
+                })
+                .ToolBar(toolBar => { toolBar.Save(); toolBar.Create(); })
+                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .PageSize(20)
+                    .Batch(true)
+                    .Model(model =>
+                    {
+                        model.Id(x => x.Id);
+                        model.Field(x => x.IsActive).DefaultValue(true);
+                        model.Field(x => x.IsDeleted).DefaultValue(false).Editable(false);
+                        model.Field(x => x.CreatedOnUtc).Editable(false);
+                        model.Field(x => x.UpdatedOnUtc).Editable(false);
+                    })
+                    .Read(read => read.Action("_EmployeeBankAccounts", "Employee", new { candidateGuid = ViewBag.CandidateGuid }))
+                    .Update(update => update.Action("_EditEmployeeBankAccount", "Employee"))
+                    .Create(update => update.Action("_CreateEmployeeBankAccount", "Employee"))
+                    .Destroy(update => update.Action("_DeleteEmployeeBankAccount", "Employee"))
+                    .Events(e => e.Sync("onSync"))
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+
+    $(function () {
+        $("form").kendoValidator();
+        $('.k-grid-save-changes').html('Save');
+        $('.k-grid-cancel-changes').html('Cancel');
+    });
+
+    function toggleAddButton() {
+        var activeData = $.grep($('#bankaccount-grid').data('kendoGrid').dataSource.data(), function (item, index) {
+            return item.IsActive;
+        });
+        var enough = activeData.length >= 1;
+        if (enough)
+            $('.k-grid-add').hide();
+        else
+            $('.k-grid-add').html('Add').show();
+    }
+
+</script>

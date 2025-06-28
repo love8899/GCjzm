@@ -1,0 +1,95 @@
+﻿@using Wfm.Admin.Models
+@using Wfm.Services.Security;
+@using Wfm.Services.Accounts
+@using Wfm.Services.Companies
+@using Wfm.Services.Common
+@{
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    var accountRolesService = EngineContext.Current.Resolve<IAccountRoleService>();
+    var roles = accountRolesService.GetAllAccountRolesForDropDownList(true)
+               .Select(x => new SelectListItem() { Text = x.AccountRoleName, Value = x.SystemName }).ToList();
+
+    var companyLocationService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+    var locations = companyLocationService.GetAllCompanyLocations().Select(x => new SelectListItem() { Text = x.LocationName, Value = x.Id.ToString() });
+
+    var companyDepartmentService = EngineContext.Current.Resolve<ICompanyDepartmentService>();
+    var departments = companyDepartmentService.GetAllCompanyDepartmentsForDropDownList();
+
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var shifts = shiftService.GetAllShiftsForDropDownList();
+}
+<script src="@Url.Content("~/Scripts/admin.common.js?version=1.8")" type="text/javascript"></script>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CompanyContactModel>()
+                  .Name("companycontact-grid")
+                  .Columns(columns =>
+                  {
+                      columns.Bound(x => x.Email).Width(120);
+                    columns.Bound(x => x.FirstName).Width(120);
+                    columns.Bound(x => x.LastName).Width(120);
+
+                    columns.ForeignKey(x => x.AccountRoleSystemName, roles, "Value", "Text").Width(120).HtmlAttributes(new { style = "white-space: normal" });
+                    columns.ForeignKey(x => x.CompanyLocationId, locations, "Value", "Text").EditorTemplateName("CompanyLocationEditor").Width(120)
+                        .HtmlAttributes(new { style = "white-space: normal" });
+                    columns.ForeignKey(x => x.CompanyDepartmentId, departments, "Value", "Text").EditorTemplateName("CompanyDepartmentEditor").Width(120)
+                        .HtmlAttributes(new { style = "white-space: normal" });
+                    columns.ForeignKey(x => x.ShiftId, shifts, "Value", "Text").EditorTemplateName("ShiftEditor")
+                        .HtmlAttributes(new { style = "white-space: normal" })
+                        .HeaderTemplate(T("Common.Shift").Text).Width(120);
+
+                    
+                    columns.Bound(x => x.WorkPhone).EditorTemplateName("PhoneEditor").ClientTemplate("#= prettyPhone(WorkPhone) #").Width(120);
+                    columns.Bound(x => x.MobilePhone).EditorTemplateName("PhoneEditor").ClientTemplate("#= prettyPhone(MobilePhone) #").Width(120).Hidden(true);
+                    columns.Bound(x => x.HomePhone).EditorTemplateName("PhoneEditor").ClientTemplate("#= prettyPhone(HomePhone) #").Width(120).Hidden(true);
+
+                    columns.Bound(x => x.IsActive)
+                            .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                            .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Content/images/") + "active-#= IsActive #.png)'></div>")
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                            .Width(60).Hidden();
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden();
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Command(x => x.Custom("SetPassword").HtmlAttributes(new { @class = "fa fa-key",title="Reset Password" }).Text(" ").Click("ResetPassword")).Width(60);
+                })
+                .ToolBar(toolBar => { toolBar.Save(); toolBar.Create(); })
+                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                .EnableCustomBinding(false)
+                .Filterable()
+                .Sortable()
+                .Resizable(column=>column.Columns(true))
+                .ColumnMenu()
+                .Events(x=>x.Edit("onEdit"))
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Batch(true)
+                    .Read(read => read.Action("_CompanyContactList", "Company").Data("getGuid"))
+                    .Events(events => events.Error("error_handler1"))
+                    .Model(model =>
+                    {
+                        model.Id(x => x.Id);
+                        model.Field(x => x.ShiftId).DefaultValue(1);
+                        model.Field(x => x.AccountGuid).DefaultValue(Guid.Empty);
+                        model.Field(x => x.UpdatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        model.Field(x => x.CreatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        model.Field(x => x.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(x => x.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(x => x.IsActive).Editable(true).DefaultValue(true);
+                    })
+                    .Create(update => update.Action("_AddCompanyContact", "Company"))
+                    .Update(update => update.Action("_EditCompanyContact", "Company"))
+                    .Destroy(update => update.Action("_RemoveCompanyContact", "Company"))
+                    //.Events(events => events.Sync(@"function(e){setTimeout(function(){refreshGrid()})}"))
+                )
+            )
+        </td>
+    </tr>
+</table>
+<div id="reset-password"></div>

@@ -1,0 +1,42 @@
+﻿@{
+    Layout = "_ReportLayout";
+    ViewBag.ReportTitle = "Compliance report";
+
+    ViewBag.Title = "Compliance report";
+    Html.SetActiveMenuItemSystemName("ComplianceReport");
+
+    var startDate = DateTime.Today.Date.AddDays(-7);
+    var endDate = DateTime.Today;
+}
+
+<div class="col-md-6">
+    @Html.InputLine("fromDate", "From", tmplt: "Date", viewData: new { Value = startDate, OnChange = "startDateChange" })
+    @Html.InputLine("toDate", "To", tmplt: "Date", viewData: new { Value = endDate })
+</div>
+<div class="col-md-6"></div>
+
+<script type="text/javascript">
+    var reportParams = {};
+    var reportUrl = '_ComplianceReport';
+    function valParams() {
+        var result = false;
+        var fromDate = $("#fromDate").val();
+        var toDate = $("#toDate").val();
+        if (!fromDate)
+            popupNotification('Please select start date!', 'error');
+        else if (!toDate)
+            popupNotification('Please select end date!', 'error');
+        else {
+            result = true;
+            reportParams = { startDate: fromDate, endDate: toDate };
+        }
+        return result;
+    }
+    function startDateChange() {
+        var startDate = this.value();
+        if (startDate) {
+            startDate = new Date(startDate);
+            $("#toDate").data("kendoDatePicker").min(startDate);
+        }
+    }
+</script>

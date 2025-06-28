@@ -1,0 +1,81 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Permanent Staffing and Temp Agencies for Job Seekers";
+    //var description = siteTitle + " provides the most exciting and desirable vacancies from industry leading companies, including Fortune 500 companies and enterprising local firms.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Job Seekers</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            @siteTitle provides the most exciting and desirable vacancies from industry
+            leading companies, including Fortune 500 companies and enterprising local firms.
+            We can connect you with permanent, contract and temporary appointments across a
+            wide variety of roles and sectors.
+        </p>
+        <p>
+            Our consultants have developed strong business relationships with companies and
+            candidates in each sector providing you with a fast and professional solution to
+            your employment search. Connect with us today to discuss how we can best help you
+            attain the next step in your career path.
+        </p>
+        <div class="product-grid bestsellers">
+            <div class="item-grid">
+                <div class="item-box">
+                    <div class="product-item">
+                        <div class="picture">
+                             <a href="@Url.Action("Index", "JobPost")">
+                                <img alt="Search for positions" src="/Content/images/cms/jobSeeker-SearchPosition.jpg" title="Search for positions" />
+                            </a>
+                        </div>
+                        <div class="details">
+                            <h2 class="product-title">
+                                <a href="@Url.Action("Index", "JobPost")">Search for positions</a>
+                            </h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-box">
+                    <div class="product-item">
+                        <div class="picture">
+                            <a href="@Url.Action("NewRegister", "Candidate")">
+                                <img alt="Candidate registration" src="/Content/images/cms/jobSeeker-Registration.jpg" title="Candidate registration" />
+                            </a>
+                        </div>
+                        <div class="details">
+                            <h2 class="product-title">
+                                <a href="@Url.Action("NewRegister", "Candidate")">Candidate registration</a>
+                            </h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*<div class="main-content">
+    <div class="content-quick-links">
+        <a href="@Url.Action("Index", "JobPost")"><span class="content-quick-link-search">Search for positions</span></a>
+        <a href="@Url.Action("NewRegister", "Candidate")"><span class="content-quick-link-registration">Candidate registration</span></a>
+    </div>
+</div>*@

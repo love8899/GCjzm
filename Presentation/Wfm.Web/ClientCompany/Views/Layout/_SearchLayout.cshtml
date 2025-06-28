@@ -1,0 +1,77 @@
+﻿@{
+    var searchFormName = (string)ViewBag.FormName ?? "search-form";
+    var searchTitle = (string)ViewBag.SearchTitle ?? "Search";
+    var searchTitleClass = (string)ViewBag.SearchTitleClass ?? "hidden-xxs";
+    var fromDate = ViewBag.FromDate;
+    var toDate = ViewBag.ToDate;
+    var period = (int?)ViewData["Period"] ?? 0;
+    var dateRangeStyle = (string)ViewBag.DateRangeStyle ?? string.Empty;
+
+    var gridName = (string)ViewData["GridName"] ?? "candidateworktime-grid";
+    var mapping = (Dictionary<string, string>)ViewData["Mapping"] ?? new Dictionary<string, string>();
+    var dateField = (string)ViewData["DateField"] ?? "JobStartDateTime";
+    var nonNumFields = (List<string>)ViewData["NonNumFields"] ?? new List<string>();
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { @id = searchFormName }))
+{
+    <div class="box box-info">
+        <div class="box-header with-border" data-widget="collapse" id="search-box">
+            <i class="fa fa-minus" style="display: none;"></i>
+            <h3 class="box-title pull-left">
+                <i class="fa fa-search"></i>
+                <span class="@searchTitleClass">@searchTitle</span>
+            </h3>
+            <div class="box-tools pull-right hidden-xs">
+                @RenderSection("Shortcuts", false)
+            </div>
+            <div class="date-range" style="@dateRangeStyle">
+                @RenderSection("DateRange", false)
+            </div>
+        </div>
+        <div class="box-body" style="display: none;">
+            <div class="row">
+                @RenderBody()
+            </div>
+            <div class="row">
+                <div class="col-md-12" style="text-align:center;vertical-align:middle;margin-top:10px;">
+                    <button type="submit" class="btn btn-primary" id="btn-search">
+                        <i class="fa fa-search"></i>
+                        @T("Common.Search")
+                    </button>
+                    <button type="reset" class="btn" onclick="return resetSearchForm('@searchFormName');">
+                        <i class="fa fa-undo"></i>
+                        @T("Common.Reset")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    var period = parseInt('@period');
+    var remoteSearch = { sf_From: '@fromDate', sf_To: '@toDate' };
+    var localSearch = { sf_From: '@fromDate', sf_To: '@toDate' };
+    var nonNumFields = @Html.Raw(Json.Encode(nonNumFields));
+    var mapping = @Html.Raw(Json.Encode(mapping));
+    $("#search-box").on("click", function (e) {
+        if ($(e.target).attr("id") === "search-box" || (!$(e.target).attr("id") && !$(e.target).closest('.k-datepicker').length))
+            return true;
+        e.preventDefault();
+        return false;
+    });
+    $('#search-form').on('submit', function (e) {
+        e.preventDefault();
+        collapseSearchBox("#search-box");
+        if (typeof clearSelection === 'function')
+            clearSelection();
+        if (typeof setHiddenSearchFields === 'function')
+            setHiddenSearchFields();
+        applySearch('@gridName', remoteSearch, localSearch, $(this), nonNumFields, '@dateField');
+        return false;
+    });
+    function getGridOptions() { return { model: remoteSearch }; }
+</script>
+
+@RenderSection("scripts", false)

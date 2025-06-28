@@ -1,0 +1,36 @@
+﻿@using Wfm.Shared.Models.Incident
+@model IncidentReportModel
+@{
+    Layout = null;
+
+    var panelName = ViewBag.PanelName ?? "addIncident";
+    var formName = ViewBag.FormName ?? "incident-report-form";
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = formName }))
+{
+    var validationSummary = Html.ValidationSummary(true);
+    if (!MvcHtmlString.IsNullOrEmpty(validationSummary))
+    {
+        <div class="message-error">@validationSummary</div>
+    }
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.CompanyId)
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+    @Html.HiddenFor(model => model.UpdatedOnUtc)
+
+    <div class="fieldset">
+        <div class="form-fields">
+            @Html.Partial("_IncidentFields", Model, new ViewDataDictionary { { "Popup", true } })
+        </div>
+    </div>
+    
+    <div class="buttons">
+        <input type="button" class="k-button btn-save" value="@T("Admin.Common.Save")" />
+        <input type="button" class="k-button btn-cancel" value="@T("Admin.Common.Cancel")" />
+    </div>
+}
+
+<script>
+    $(function () { enableValidation('@formName'); });
+</script>

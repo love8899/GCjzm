@@ -1,0 +1,54 @@
+﻿@using Wfm.Services.Security
+
+@model SmartCardCustomizationModel
+
+@{
+    Layout = "";
+
+    var vendorGuId = ViewBag.VendorGuid;
+}
+
+
+@using (Html.BeginForm("_SaveSmartCardSetting", "Vendor", new { vendorGuid = vendorGuId }, FormMethod.Post))
+{
+    <div class="section-header">
+        <div class="title">
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+        </div>
+    </div>
+
+    <table class="adminContent">
+        <tr><td width="28%"></td><td width="2%"></td><td width="70%"></td></tr>
+        <tr>
+            <td style="vertical-align:top">
+                @Html.Partial("_CustomizeSmartCard", Model)
+            </td>
+            <td></td>
+            <td>
+                @Html.Partial("_PreviewSmartCard")
+            </td>
+        </tr>
+    </table>
+}
+
+
+<script>
+
+    window.onload = function () {
+        initSetting();
+
+        // scale images
+        scaleImages();
+
+        // disbale submission by Enter key
+        $(window).keydown(function (e) {
+            if (e.keyCode == 13) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    };
+
+</script>

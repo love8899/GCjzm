@@ -1,0 +1,14 @@
+﻿@model CandidateModel
+@{
+    Layout = null;
+    ViewBag.Title = T("Admin.Candidate.Candidate.Pictures").Text;
+}
+@if (ViewBag.DisplayHeader == null || ViewBag.DisplayHeader)
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Candidate.Candidate.Pictures")
+        </div>
+    </div>
+}
+@Html.Partial("_CreateOrUpdate.Pictures", Model)

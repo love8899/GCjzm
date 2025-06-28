@@ -1,0 +1,91 @@
+﻿@using Wfm.Web.Framework.HtmlHelpers
+@{
+    /**/
+
+    var forTopMenu = (string)ViewData["Parent"] == "TopMenu";
+    var l1Class = forTopMenu ? "sublist first-level" : "list";
+    var l2Class = forTopMenu ? "sublist second-level" : "sublist";
+    var l1Toggle = ViewData["L1Toggle"] != null ? (bool)ViewData["L1Toggle"] : false;
+}
+<ul class="@l1Class">
+    <li>
+        <span class="@Html.SideBarMenuLink("Job Categories", "JobSeekers_JobCategory", "JobSeekers")">
+            @Html.ActionLink("Job Categories", "JobSeekers_JobCategory", "JobSeekers")
+        </span>
+        @if (l1Toggle)
+        {
+            <div class="sublist-toggle"></div>
+        }
+        <ul class="@l2Class">
+            <li class="@Html.SideBarMenuLink("Management and Executive", "JobSeekers_JobCategory_ManagementAndExecutive", "JobSeekers")">
+                @Html.ActionLink("Management and Executive", "JobSeekers_JobCategory_ManagementAndExecutive", "JobSeekers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Sales and Marketing", "JobSeekers_JobCategory_SalesAndMarketing", "JobSeekers")">
+                @Html.ActionLink("Sales and Marketing", "JobSeekers_JobCategory_SalesAndMarketing", "JobSeekers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Financial and Accounting", "JobSeekers_JobCategory_FinancialAndAccounting", "JobSeekers")">
+                @Html.ActionLink("Financial and Accounting", "JobSeekers_JobCategory_FinancialAndAccounting", "JobSeekers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Information Technology", "JobSeekers_JobCategory_InformationTechnology", "JobSeekers")">
+                @Html.ActionLink("Information Technology", "JobSeekers_JobCategory_InformationTechnology", "JobSeekers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Life Sciences", "JobSeekers_JobCategory_LifeSciences", "JobSeekers")">
+                @Html.ActionLink("Life Sciences", "JobSeekers_JobCategory_LifeSciences", "JobSeekers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Engineering", "JobSeekers_JobCategory_Engineering", "JobSeekers")">
+                @Html.ActionLink("Engineering", "JobSeekers_JobCategory_Engineering", "JobSeekers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Industrial and Manufacturing", "JobSeekers_JobCategory_IndustrialAndManufacturing", "JobSeekers")">
+                @Html.ActionLink("Industrial and Manufacturing", "JobSeekers_JobCategory_IndustrialAndManufacturing", "JobSeekers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Call Centre and Customer Service", "JobSeekers_JobCategory_CallCentreAndCustomerService", "JobSeekers")">
+                @Html.ActionLink("Call Centre and Customer Service", "JobSeekers_JobCategory_CallCentreAndCustomerService", "JobSeekers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Supply Chain, Logistics and Warehousing", "JobSeekers_JobCategory_SupplyChainLogisticsAndWarehousing", "JobSeekers")">
+                @Html.ActionLink("Supply Chain, Logistics and Warehousing", "JobSeekers_JobCategory_SupplyChainLogisticsAndWarehousing", "JobSeekers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Administrative and Office", "JobSeekers_JobCategory_AdministrativeAndOffice", "JobSeekers")">
+                @Html.ActionLink("Administrative and Office", "JobSeekers_JobCategory_AdministrativeAndOffice", "JobSeekers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Skilled Trades", "JobSeekers_JobCategory_SkilledTrades", "JobSeekers")">
+                @Html.ActionLink("Skilled Trades", "JobSeekers_JobCategory_SkilledTrades", "JobSeekers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Others", "JobSeekers_JobCategory_Others", "JobSeekers")">
+                @Html.ActionLink("Others", "JobSeekers_JobCategory_Others", "JobSeekers")
+            </li>
+        </ul>
+    </li>
+    <li>
+        <span class="@Html.SideBarMenuLink("Job Search Resources", "JobSeekers_JobSearchResource", "JobSeekers")">
+            @Html.ActionLink("Job Search Resources", "JobSeekers_JobSearchResource", "JobSeekers")
+        </span>
+        @if (l1Toggle)
+        {
+            <div class="sublist-toggle"></div>
+        }
+        <ul class="@l2Class">
+            <li class="@Html.SideBarMenuLink("Preparing Your Resume", "JobSeekers_JobSearchResource_PreparingYourResume", "JobSeekers")">
+                @Html.ActionLink("Preparing Your Resume", "JobSeekers_JobSearchResource_PreparingYourResume", "JobSeekers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Writing Effective Job Search Letters", "JobSeekers_JobSearchResource_WritingEffectiveJobSearchLetters", "JobSeekers")">
+                @Html.ActionLink("Writing Effective Job Search Letters", "JobSeekers_JobSearchResource_WritingEffectiveJobSearchLetters", "JobSeekers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Networking Essentials", "JobSeekers_JobSearchResource_NetworkingEssentials", "JobSeekers")">
+                @Html.ActionLink("Networking Essentials", "JobSeekers_JobSearchResource_NetworkingEssentials", "JobSeekers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Interview Preparation", "JobSeekers_JobSearchResource_InterviewPreparation", "JobSeekers")">
+                @Html.ActionLink("Interview Preparation", "JobSeekers_JobSearchResource_InterviewPreparation", "JobSeekers")
+            </li>
+        </ul>
+    </li>
+    <li>
+        <span class="@Html.SideBarMenuLink("Training and Development", "JobSeekers_TrainingAndDevelopment", "JobSeekers")">
+            @Html.ActionLink("Training and Development", "JobSeekers_TrainingAndDevelopment", "JobSeekers")
+        </span>
+    </li>
+    <li>
+        <span class="@Html.SideBarMenuLink("Testimonials", "JobSeekers_Testimonials", "JobSeekers")">
+            @Html.ActionLink("Testimonials", "JobSeekers_Testimonials", "JobSeekers")
+        </span>
+    </li>
+</ul>

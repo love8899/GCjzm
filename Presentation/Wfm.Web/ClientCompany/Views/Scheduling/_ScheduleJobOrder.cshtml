@@ -1,0 +1,80 @@
+﻿@using Wfm.Core
+@using Wfm.Services.Companies
+@using Wfm.Shared.Models.Scheduling
+
+@model ScheduleJobOrderModel
+@{ 
+    var accounts = EngineContext.Current.Resolve<ICompanyContactService>()
+        .GetCompanyContactsByCompanyId(EngineContext.Current.Resolve<IWorkContext>().CurrentAccount.CompanyId)
+        .Select(x => new SelectListItem { Text = x.FullName, Value = x.Id.ToString(), }).ToArray();
+}
+<div class="section-header">
+    <div class="title">
+        <div class="title">
+            @(T("Common.JobOrder.FromSchedule").Text + " - " + Model.JobOrderId.ToString())
+        </div>
+    </div>
+    <div class="options">
+        <input type="button" name="save" id="schedule-job-order-save" class="k-button" value="@T("Admin.Common.Save")" />
+        <input type="button" name="close" id="close-schedule-job-order" class="k-button" value="@T("Common.Close")" />
+    </div>
+</div>
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "schedule-job-order-form" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    @Html.HiddenFor(m => m.JobOrderId)
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobTitle)
+            </td>
+            <td class="adminData required">
+                @Html.TextBoxFor(model => model.JobTitle, new { @class = "k-textbox" })
+                @Html.WfmValidationMessageFor(model => model.JobTitle)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.StartDate)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePickerFor(model => Model.StartDate)
+                .Format("yyyy-MM-dd")
+                .Start(CalendarView.Month))
+                @Html.WfmValidationMessageFor(model => model.StartDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EndDate)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DatePickerFor(model => Model.EndDate)
+                .Format("yyyy-MM-dd")
+                .Start(CalendarView.Month))
+                @Html.WfmValidationMessageFor(model => model.EndDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SupervisorId)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().ComboBox()
+                .Name("SupervisorId")
+                .Placeholder("Select supervisor")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(accounts))
+            </td>
+        </tr>
+    </table>
+}
+<script>
+    function pipelineGridParameters() {
+        return {
+            jobOrderId: $('#JobOrderId').val(),
+        };
+    }
+</script>
+@Html.Partial("_ScheduleJobOrderPipeline")

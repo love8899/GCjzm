@@ -1,0 +1,21 @@
+﻿@model TestCategoryModel
+
+@{
+   // ViewBag.Title = T("Admin.Configuration.TestCategory.AddNew").Text;
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "testcategory-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Common.TestCategory") @Html.ActionLink("(" + T("Admin.Configuration.TestCategory.BackToList") + ")", "TestCategoryIndex")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />
+            @Html.ActionLink(T("Admin.Common.Cancel").Text, "TestCategoryIndex", "Test", null, new { @class = "k-button" })
+        </div>
+    </div>
+
+    @Html.Partial("_CreateOrUpdate.TestCategory", Model)
+}

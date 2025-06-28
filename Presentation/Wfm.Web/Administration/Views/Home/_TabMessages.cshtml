@@ -1,0 +1,49 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Messages;
+
+@{
+    ViewBag.Title = T("Common.Message").Text;
+    var messageCategoryService = EngineContext.Current.Resolve<IMessageCategoryService>();
+    var messageCategories = messageCategoryService.GetAllMessageCategories();
+}
+
+<div id="message-pane">
+    @Html.Partial("_MessageList")
+</div>
+
+<script type="text/javascript">
+
+    // need to keep the criteria when switching to details
+    var currCriteria;
+    var categories = [];
+    var status = [0,];
+    var withCC = true;
+
+    function loadDetails(id) {
+        //window.open("MessageDetails/" + id);
+        loadMsg(id);
+    }
+
+    function loadMsg(id) {
+        if (id == '0')
+            alert('No more messages!');
+        else
+            $('#message-pane').load('_MessageDetails' + '/' + id, { criteria: currCriteria });
+    }
+
+    function back2Grid(e) {
+        $('#message-pane').load('_TabMessages', {viewName: '_MessageList' }, setCheckboxes);
+    }
+
+    function updateUnreadNum(delta) {
+        var unreadNum = parseInt($("#unread-alerts").text());
+        if (!unreadNum)
+            unreadNum = 0;
+        unreadNum += delta;
+        if (unreadNum > 0)
+            $("#unread-alerts").text(unreadNum);
+        else
+            $("#unread-alerts").text("");
+    }
+
+</script>

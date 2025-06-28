@@ -1,0 +1,32 @@
+﻿@model Wfm.Shared.Models.Search.SearchPlacementModel
+@{
+    Layout = "_SearchLayout.cshtml";
+    ViewBag.FromDate = Model.sf_From.ToShortDateString();
+    ViewBag.ToDate = Model.sf_To.ToShortDateString();
+    ViewBag.DateRangeStyle = "display:none";
+}
+
+@section DateRange {
+    @Html.EditorFor(x => x.sf_From, "Date", new { Min = Model.MinDate(), Max = Model.MaxDate(), OnChange = "onFromChange" })
+    <i class="fa fa-angle-right"></i>
+    @Html.EditorFor(x => x.sf_To, "Date", new { Min = Model.MinDate(), Max = Model.MaxDate(), OnChange = "onToChange", HtmlAttr = new { @readonly = "readonly" } })
+    <script type="text/javascript">
+        function onFromChange(e) {
+            var toPicker = $("#sf_To").data("kendoDatePicker");
+            toPicker.value(this.value()); toPicker.trigger('change');   // refresh grid anyway
+        }
+        function onToChange(e) { $('#btn-search').click(); }
+    </script>
+}
+
+<div class="col-md-6">
+    @Html.InputFor(x => x.sf_JobTitle)
+    @Html.InputFor(x => x.sf_Position, "DropDownList4Obj", new { Items = Model.AvailablePositions })
+    @Html.InputFor(x => x.sf_Shift, "DropDownList4Obj", new { Items = Model.AvailableShifts })
+</div>
+<div class="col-md-6">
+    @Html.InputFor(x => x.sf_Location, "DropDownList4Obj", new { Items = Model.AvailableLocations })
+    @Html.InputFor(x => x.sf_Department, "CascadeDropDownList4Obj",
+        new { Controller = "Company", Action = "GetCascadeDeptsByLoc", OnData = "filterDepartments", From = "sf_Location" })
+    <script>function filterDepartments() { return { location: $("#sf_Location").val(), idVal: false }; }</script>
+</div>

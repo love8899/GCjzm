@@ -1,0 +1,21 @@
+﻿@model List<SelectListItem>
+<div class="section-header">
+    <div class="options">
+        <input type="button" id="btn-publish" class="k-button" value="@T("Admin.JobPosting.Publish")" />
+        <input type="button" id="btn-cancel" class="k-button" value="@T("Admin.Common.Cancel")" />
+    </div>
+</div>
+<table>
+    <tr>
+        <td>
+            @Html.Label("JobBoards", "Job Boards")
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().MultiSelect()
+                .Name("JobBoards")
+                .BindTo(Model)
+                
+            )
+        </td>
+    </tr>
+</table>

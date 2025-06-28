@@ -1,0 +1,59 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Permanent Staffing";
+    //var description = "Our permanent staffing team has access to a wide range of qualified candidates, including candidates from our industry network of expertise, extensive database and those sourced from our in-house capability to create and target on and offline advertising campaigns.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Permanent Staffing</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            Finding good quality permanent employees can take significant effort and resource.
+            We take the time to understand your specific requirements. Things such as corporate
+            culture and philosophy, financial priorities, challenges, goals, ambitions and even
+            your day-to-day operations can be useful in finding the right individual. We then
+            gain a thorough understanding of the role and the person you are seeking.
+        </p>
+        <p>
+            Our permanent staffing team has access to a wide range of qualified candidates,
+            including candidates from our industry network of expertise, extensive database
+            and those sourced from our in-house capability to create and target on and offline
+            advertising campaigns. We’ll only introduce you to the best candidates in your industry.
+        </p>
+        <p>
+            <b>We Take the Risk Out of Human Resource Decisions </b>
+        </p>
+        <p>
+            We know that finding and keeping dependable, competent employees is more challenging
+            now than ever before. Employee turnover can lead to major productivity losses, which
+            can cause havoc in the workplace. In response to this universal problem, we have
+            developed new and unique strategies for recruiting the most reliable, proficient
+            employees possible.
+        </p>
+        <p>
+            @siteTitle guarantees results! In fact, every permanent placement is covered
+            by our 90-day guarantee. We will make every possible effort to find the absolute
+            best match for the position or, replace the candidate at no extra cost, if you are
+            in anyway unsatisfied with the placement.
+        </p>
+    </div>
+</div>

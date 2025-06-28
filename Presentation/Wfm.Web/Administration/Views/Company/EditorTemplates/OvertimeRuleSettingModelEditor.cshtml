@@ -1,0 +1,8 @@
+﻿@(Html.Kendo().DropDownList()
+            .Name("OvertimeRuleSettingId") 
+            .DataValueField("Id")
+            .DataTextField("Code")
+            .Template("#:Code#" + " - " + "#: Description #")
+
+        .BindTo((System.Collections.IEnumerable)ViewData["OvertimeRuleSetting"]) 
+)

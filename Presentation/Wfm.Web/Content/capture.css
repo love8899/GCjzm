@@ -1,0 +1,17 @@
+﻿@media all and (max-width: 576px) {
+    .cam-wrapper,
+    .img-wrapper{
+        float: none;
+        width: 100%;
+    }
+
+    .img-wrapper {
+        margin-left: 0;
+    }
+
+    .cam-wrapper video,
+    .img-wrapper canvas {
+        width: 100%;
+        height: auto;
+    }
+}

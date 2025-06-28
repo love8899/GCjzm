@@ -1,0 +1,59 @@
+﻿@using Wfm.Services.Franchises
+@using Wfm.Services.Accounts
+@using Wfm.Core
+
+@{
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var vendors = franchiseService.GetAllFranchises();
+    var accountService = EngineContext.Current.Resolve<IAccountService>();
+    var accounts = accountService.GetAllRecruitersAsQueryable(workContext.CurrentAccount).Select(x=>new SelectListItem(){Value=x.Id.ToString(),Text=x.FirstName+" "+x.LastName});
+}
+<script src="@Url.Content("~/Scripts/admin.common.js?version=1.8")" type="text/javascript"></script>
+<table class="adminContent">
+    <tr>
+        <td>
+
+            @(Html.Kendo().Grid<RecruiterCompanySimpleModel>()
+                .Name("company-recruiter-grid")
+                .Columns(columns =>
+                {
+                    columns.ForeignKey(x => x.FranchiseGuid, vendors, "FranchiseGuid", "FranchiseName").EditorTemplateName("FranchiseGuidEditor").Title("Vendor").Width(500);
+
+                    columns.ForeignKey(x => x.AccountId, accounts, "Value", "Text").EditorTemplateName("AccountEditor").Title(T("Common.Recruiter").Text);
+                    columns.Command(command => { command.Destroy().Text(" "); }).Width(60);
+                })
+                .ToolBar(toolBar => { toolBar.Save(); toolBar.Create(); })
+                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                .EnableCustomBinding(false)
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Events(x => x.Edit("onEdit"))
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Batch(true)
+                    .Read(read => read.Action("_CompanyRecruiterList", "Company").Data("getGuid"))
+                    .Events(events => events.Error("error_handler1"))
+                    .Model(model =>
+                    {
+                        model.Id(x => x.Id);
+                        model.Field(x => x.FranchiseId).Editable(true).DefaultValue(1);
+                    })
+                            .Create(update => update.Action("_AddCompanyRecruiter", "Company"))
+                            .Update(update => update.Action("_EditCompanyRecruiter", "Company"))
+                            .Destroy(update => update.Action("_RemoveCompanyRecruiter", "Company"))
+                            .Events(events => events.Sync(@"function(e){setTimeout(function(){refreshGrid('#company-recruiter-grid')})}"))
+                )
+                    //.Events(ev => ev.Remove(@"function(e){setTimeout(function(){$('#companyvendor-grid').data('kendoGrid').dataSource.sync()})}")
+                    //                //.Save(@"function(e){setTimeout(function(){$('#companyvendor-grid').data('kendoGrid').dataSource.sync()})}")
+                    //        )
+            )
+
+        </td>
+    </tr>
+</table>

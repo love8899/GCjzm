@@ -1,0 +1,39 @@
+﻿@model Wfm.Client.Models.Rescheduling.ReschedulingModel
+@{
+    Layout = null;
+    var bsClass = (string)ViewData["BsClass"] ?? "sm";
+}
+
+<div id="matchingResult" style="font-size:medium;padding-bottom:10px;color:green"></div>
+
+<div id="jobOrderBlock">
+    @Html.InputFor(x => x.JobOrderId, "DropDownListRemote", new {
+        Controller = "JobOrder",
+        Action = "GetCascadeJobOrdersForScheduling",
+        Option = T("Admin.Common.None").Text,
+        OnData = "filterJobOrders",
+        OnChange = "onJobOrderChange"
+    })
+</div>
+
+@Html.InputFor(x => x.CompanyContactId, "CascadeDropDownList", new {
+    Controller = "CompanyContact",
+    Action = "GetCascadeContacts",
+    OnData = "filterSupervisors",
+    From = "DepartmentId",
+    Option = T("Admin.Common.None").Text,
+    OnChange = "onSupervisorChange"
+})
+
+@Html.InputFor(x => x.ShiftId, "DropDownListRemote", new {
+    Controller = "Rescheduling",
+    Action = "GetShiftsForScheduling",
+    Option = T("Admin.Common.None").Text,
+    OnChange = "onShiftChange"
+})
+
+@Html.InputLineFor(x => x.PayRate, @T("Common.OriginalPayRate").Text, tmplt: "StringDisplay",
+    viewData: new { Value = Model.PayRate })
+
+@Html.InputLine("NewPayRate", @T("Common.NewPayRate").Text, tmplt: "StringDisplay",
+    viewData: new { Value = Model.PayRate, Required = true })

@@ -1,0 +1,64 @@
+﻿<script src="@Url.Content("~/Scripts/admin.common.js?version=1.8")" type="text/javascript"></script>
+<script type="text/javascript">
+    function onRequestEnd(e) {
+        if (e.type == "update" && !e.response.Errors) {
+            $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+            $(".messageBox").text("All job orders under selected company have been moved to new account!");
+        }
+    }
+</script>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<RecruiterCompanySimpleModel>()
+              .Name("recruiters-grid")
+              .Columns(columns =>
+              {
+                  columns.ForeignKey(x => x.CompanyId, (IEnumerable<SelectListItem>)ViewBag.Companies, "Value", "Text").Title(T("Common.Company").Text);
+                  columns.Bound(x => x.FranchiseId).Hidden();
+                  columns.ForeignKey(x => x.AccountId, (IEnumerable<SelectListItem>)ViewBag.Accounts, "Value", "Text").Title(T("Common.Recruiter").Text);
+                  //columns.Command(x => { x.Destroy(); x.Custom("Transfer To").Click("TransferJobOrderToOthers"); });
+              })
+              .Editable(x=>x.Mode(GridEditMode.InCell))              
+                .ToolBar(x => x.Save())
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataBinding => dataBinding
+                            .Ajax()
+                            .Batch(true)
+                            .ServerOperation(false)
+                            .Read(read => read.Action("_TabCompanyRecruiterList", "AccountManager", new { guid = ViewBag.AccountGuid }))
+                            .Update(update=>update.Action("_UpdateRecruiterCompany","AccountManager"))
+                                    .Events(events => events.Error("error_handler").RequestEnd("onRequestEnd").Sync(@"function(e){setTimeout(function(){refreshGrid('#recruiters-grid')})}"))
+                            .PageSize(20)
+                            .Model(x =>
+                            {
+                                x.Id(m => m.Id);
+                                x.Field(m => m.CompanyId).Editable(false);
+                                x.Field(m => m.FranchiseId).Editable(false);
+                                x.Field(m => m.AccountId).Editable(true).DefaultValue(ViewBag.AccountId);
+                            })
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+
+            )
+        </td>
+    </tr>
+</table>
+

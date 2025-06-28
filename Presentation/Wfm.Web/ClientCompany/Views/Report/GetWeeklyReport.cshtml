@@ -1,0 +1,53 @@
+﻿@{
+    Layout = "_ReportLayout";
+    ViewBag.ReportTitle = "Weekly cost report";
+
+    ViewBag.Title = "Weekly cost report";
+    Html.SetActiveMenuItemSystemName("WeeklyReport");
+
+    var refDate = DateTime.Today;
+
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+
+<div class="col-md-6">
+    @Html.InputLine("refDate", "Week of:", tmplt: "Date", viewData: new { Value = refDate })
+</div>
+<div class="col-md-6">
+    @if (commonSettings.DisplayVendor)
+    {
+        @Html.InputLine("vendors", "Vendors", tmplt: "MultiSelect", viewData: new { Items = ViewBag.Franchises, PlaceHolder = "Select vendors..." })
+    }
+</div>
+
+<script type="text/javascript">
+    var reportParams = {};
+    var reportUrl = '_WeeklyCostReport';
+    function valParams() {
+        var result = false;
+        var refDate = $("#refDate").val();
+        var vendorIds = $("#vendors").val();
+        if (!refDate) {
+            popupNotification('Please select date!', 'error');
+        }
+        else {
+            if ('@commonSettings.DisplayVendor' == 'True') {
+                if (!vendorIds)
+                    popupNotification('Please select vendors!', 'error');
+                else
+                    result = true;
+                    reportParams = {
+                        refDate: refDate,
+                        vendorIds: vendorIds.join()
+                    };
+            }
+            else
+                result = true;
+                reportParams = {
+                    refDate: refDate,
+                    vendorIds:'0'
+                };
+        }
+        return result;
+    }
+</script>

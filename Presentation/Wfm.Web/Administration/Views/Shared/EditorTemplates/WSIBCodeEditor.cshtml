@@ -1,0 +1,19 @@
+﻿@model string
+@(Html.Kendo().DropDownListFor(x => x)
+                .Name("Code")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                        {
+                            read.Action("GetCascadeWSIBCodeByStateProvinceId", "Common").Data("filterWSIBCode");
+                        })
+                        .ServerFiltering(true);
+                })
+                .AutoBind(false)
+                .CascadeFrom("ProvinceId")
+)
+@Html.ValidationMessageFor(m => m)
+

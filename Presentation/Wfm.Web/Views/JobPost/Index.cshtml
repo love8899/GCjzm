@@ -1,0 +1,87 @@
+﻿@model JobOrderListModel
+@using Wfm.Web.Extensions
+@using Wfm.Web.Models.JobOrder
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    ViewBag.Title = "GC Employment Job Search - Search for Jobs and Apply Today | GC Employment Staffing Agency";
+    ViewBag.Description = "Use GC Employment’s job search to find the job of your dreams. Find jobs in your preferred industry with permanent and temp positions available. Apply now!";
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = "GC Employment Staffing Agency - Permanent Staffing and Temp Agencies for Job";
+    ViewBag.PageDescription = ViewBag.Description;
+
+    var jobOrderCategoryId = ViewBag.JobOrderCategoryId != null ? (int)ViewBag.JobOrderCategoryId : 0;
+    var searchString = ViewBag.SearchString != null ? (string)ViewBag.SearchString : null;
+}
+
+@section left {
+    @Html.Partial("Layout/_JobCategorySideBar", (SelectList)ViewBag.JobOrderCategoryList, new ViewDataDictionary { { "SearchString", searchString }, { "JobCategoryId", jobOrderCategoryId } })
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-body">
+        @if (Model.JobOrders.Any())
+        {
+            <table class="table table-striped table-hover table-sm table-responsive">
+                <thead class="thead-light">
+                    <tr>
+                        @*<th scope="col">Id</th>*@
+                        <th scope="col">Job Title</th>
+                        <th scope="col" class="d-none d-sm-table-cell">Type</th>
+                        <th scope="col">City</th>
+                        <th scope="col" class="d-none d-sm-table-cell">State</th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.JobOrders)
+                    {
+                        <tr>
+                            @*<td>
+                                @Html.DisplayFor(modelItem => item.Id)
+                            </td>*@
+                            <td class="title">
+                                @{ var link = "jobs/" + item.Id + "/" + Html.ToSeoUrl(item.JobTitle); }
+                                @Html.RouteLink(item.JobTitle, "JobPostingSeo", new { jobOrderId = item.Id, seoName = Html.ToSeoUrl(item.JobTitle) }, null)
+                            </td>
+                            <td class="d-none d-sm-table-cell">
+                                @Html.DisplayFor(modelItem => item.JobOrderTypeModel.JobOrderTypeName)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.CompanyLocationModel.CityModel.CityName)
+                            </td>
+                            <td class="d-none d-sm-table-cell">
+                                @Html.DisplayFor(modelItem => item.CompanyLocationModel.StateProvinceModel.Abbreviation)
+                            </td>
+                            <td>
+                                <a href="~/Candidate/ApplyJob?JobOrderId=@Html.DisplayFor(modelitem => item.Id)">
+                                    <img src="@Url.Content("~/Content/images/cms/btn_apply_small.png")" alt="arrow" />
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                    <tr>
+                        <td colspan="5">
+                            <div class="pager">
+                                @(Html.Pager(Model.PagingFilterContext).QueryParam("pagenumber")
+                                    .CustomQueryParam("searchstring", ViewBag.SearchString)
+                                    .ShowTotalSummary(true).IndividualPagesDisplayedCount(3))
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <h4>No records found.</h4>
+        }
+    </div>
+</div>
+<script type="text/javascript">
+    $.ready(function () {
+        var jobOrderCategoryIdInput = $('jobOrderCategoryId');
+        if (jobOrderCategoryIdInput)
+            jobOrderCategoryIdInput.val(@jobOrderCategoryId);
+    });
+</script>

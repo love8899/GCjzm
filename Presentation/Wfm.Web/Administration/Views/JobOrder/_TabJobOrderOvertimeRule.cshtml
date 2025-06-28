@@ -1,0 +1,120 @@
+﻿@using Wfm.Services.Security
+
+
+@model IEnumerable<JobOrderOvertimeRuleModel>
+
+
+@{
+    Layout = "";
+    //ViewBag.Title = T("Admin.JobOrders.JobOrder.OvertimeRule").Text;
+    
+    var jobOrderGuid = ViewBag.JobOrderGuid;
+    var jobOrderId = ViewBag.JobOrderId;
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    var overtimeRuleSettings = ViewBag.OvertimeRuleSettings;
+}
+
+
+<div class="section-header">
+    <div class="title">
+        @T("Common.OvertimeRule")
+    </div>
+    <div class="options">
+        @if (permissionService.Authorize("ManageJobOrders"))
+        {
+            <button id="create-overtimerule" class="k-button">@T("Common.Add").Text</button>
+        }
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<JobOrderOvertimeRuleModel>()
+                  .Name("joborder-overtime-rule-gid")
+                  .Columns(columns =>
+                {
+                    columns.Bound(x => x.JobOrderId).Hidden(true);
+                    columns.Bound(x => x.JobTitle).Hidden(true);
+
+                    columns.Bound(x => x.OvertimeRuleSettingId).Hidden(true);
+                    columns.Bound(x => x.OvertimeRuleSettingModel.Code);
+                    columns.Bound(x => x.OvertimeRuleSettingModel.Description).Width(150);
+                    columns.Bound(x => x.OvertimeRuleSettingModel.OvertimeType.Name).Title("Type").ClientGroupHeaderTemplate("#= value #");
+                    columns.Bound(x => x.OvertimeRuleSettingModel.ApplyAfter);
+                    columns.Bound(x => x.OvertimeRuleSettingModel.Rate);
+
+                    columns.Bound(x => x.IsActive)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Content/images/") + "active-#= IsActive #.png)'></div>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80);
+
+                    columns.Bound(x => x.Note).Width(200);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    if (permissionService.Authorize("ManageJobOrders"))
+                    {
+                        //columns.Bound(x => x.Id)
+                        //    .Template(x => Html.ActionLink(T("Admin.Common.Details").Text, "OvertimeRuleDetails", new { x.Id }))
+                        //    .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/JobOrder/OvertimeRuleDetails/") + "#= Id #\">" + "<span class='k-icon k-i-search'></span>" + "</a>")
+                        //    .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        //    .Width(80)
+                        //    .Title(T("Admin.Common.Details").Text).Sortable(false);
+
+                        columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                           .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "EditOvertimeRule", new { x.Id }))
+                           .ClientTemplate("<a id='contact-edit' class='-k-button' href=\"" + @Url.Content("~/Admin/JobOrder/EditOvertimeRule/") + "#= Id #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                           .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                           .Width(80)
+                           .Title(T("Admin.Common.Edit").Text);
+                    }
+                })
+            .EnableCustomBinding(false)
+            .Reorderable(reorder => reorder.Columns(true))
+            .Resizable(resize => resize.Columns(true))
+            .ColumnMenu(d => d.Sortable(false))
+            .Filterable()
+            .Sortable()
+            .Selectable()
+            .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+            .DataSource(ds => ds
+                .Ajax()
+                .ServerOperation(false)
+                .Group(groups =>
+                {
+                    groups.Add(x => x.OvertimeRuleSettingModel.OvertimeType.Name);
+                })
+                .PageSize(20)
+                .Read(read => read.Action("_TabJobOrderOvertimeRule", "JobOrder", new { guid = jobOrderGuid }))
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+
+@( Html.Kendo().Window()
+    .Name("overtimerule-window")
+    .Title("Overtime Rule")
+    .Content(@<text> @Html.Partial("_CreateOvertimeRule", new JobOrderOvertimeRuleModel {JobOrderId=jobOrderId,JobOrderGuid=jobOrderGuid, IsActive = true, OvertimeRuleSettings = overtimeRuleSettings }) </text>)
+    .Width(600)
+    .Draggable()
+    .Resizable()
+    .Visible(false)
+    .Actions(actions => actions.Minimize().Maximize().Close())
+)
+
+
+<script type="text/javascript">
+
+    $("#create-overtimerule").bind("click", function () { $("#overtimerule-window").data("kendoWindow").center().open(); });
+
+</script>
+
+
+<script>
+    $(function () { $("form").kendoValidator(); });
+</script>

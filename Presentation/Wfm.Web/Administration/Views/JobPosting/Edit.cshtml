@@ -1,0 +1,48 @@
+﻿@using Wfm.Core;
+@using Wfm.Core.Domain.JobOrders
+@using Wfm.Services.Security
+@using Wfm.Shared.Models.JobPosting;
+
+
+@model JobPostingEditModel
+
+@{
+    ViewBag.Title = T("Common.JobPosting").Text;
+
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+}
+
+@using (Html.BeginForm())
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Common.JobPosting") @Html.ActionLink("(" + T("Client.JobPost.BackToList") + ")", "Index")
+        </div>
+        <div class="options">
+            @*@if (workContext.CurrentAccount.IsLimitedToFranchises == false)
+            {
+                <button id="publish-job-posting" class="k-button">Publish</button>
+            }*@
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />
+            @Html.ActionLink(T("Admin.Common.Cancel").Text, "Index", "JobPosting", null, new { @class = "k-button" })
+        </div>
+    </div>
+
+    @Html.Partial("_CreateOrUpdate", Model)
+
+    <div class="section-header">
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+
+    $('form input[type=submit]').click(function () {
+        tinyMCE.triggerSave();
+    });
+
+</script>

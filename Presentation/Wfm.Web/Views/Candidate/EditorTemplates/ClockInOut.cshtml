@@ -1,0 +1,10 @@
+@model DateTime?
+
+@*@(Html.Kendo().DateTimePickerFor(m => m)
+        .Format("MM/dd/yyyy HH:mm")
+        .Min((DateTime)ViewData["minValue"]).Max((DateTime)ViewData["maxValue"]))*@
+
+@(Html.Kendo().TimePickerFor(m => m).Format("HH:mm")
+//.Min((DateTime)ViewData["minValue"])
+//.Max((DateTime)ViewData["maxValue"])
+)

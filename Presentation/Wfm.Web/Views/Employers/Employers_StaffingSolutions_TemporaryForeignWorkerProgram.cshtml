@@ -1,0 +1,49 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Temporary Foreign Worker Program";
+    //var description = siteTitle + "' international recruitment solution can source and screen qualified international talent to meet these challenges head on.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Temporary Foreign Worker Program</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            Canadian labour market shortages can pose significant challenges to staffing your
+            organization with the necessary talent to remain competitive in today’s global economy.
+            Fortunately, @siteTitle’ international recruitment solution can source and
+            screen qualified international talent to meet these challenges head on.
+        </p>
+        <p>
+            The Temporary Foreign Worker Program is designed to help companies that cannot find
+            qualified Canadian workers. The program permits eligible foreign workers to work
+            in Canada for a limited period of time. To access the program, you must obtain a
+            Labour Market Opinion that demonstrates that you cannot find Canadian workers to
+            fill your specific job openings.
+        </p>
+        <p>
+            Our consultants can help you to navigate the difficulties of applying for your Labour
+            Market Opinion and your foreign workers’ work permits (or extensions), regardless
+            of their country of origin. We understand the complexities involved with international
+            recruitment and will take care of the entire process from start to finish.
+        </p>
+    </div>
+</div>

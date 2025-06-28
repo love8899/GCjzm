@@ -1,0 +1,45 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Call Centre and Customer Service";
+    //var description = siteTitle + " offers a wide range of permanent, contract and temporary positions in the call centre and customer service industries.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower() + " jobs";
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Call Centre and Customer Service</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            @siteTitle offers a wide range of permanent, contract and temporary positions
+            in the call centre and customer service industries. From data entry clerks, call
+            centre agents and supervisors to customer service representatives and managers,
+            we’ll help you find the position that’s right for you. We have a great track record
+            of placing candidates with top employers in the following positions:
+        </p>
+        <ul>
+            <li>Inbound and outbound call centre agents</li>
+            <li>Call centre supervisors</li>
+            <li>Call centre or customer service training managers</li>
+            <li>Customer service representatives</li>
+            <li>Customer service managers</li>
+            <li>Data-entry operators</li>
+        </ul>
+    </div>
+</div>

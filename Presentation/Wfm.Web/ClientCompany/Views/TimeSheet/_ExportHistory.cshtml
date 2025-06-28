@@ -1,0 +1,27 @@
+﻿@*export selected (Excel). We don't use GET approach because it's limited to 2K-4K chars and won't work for large number of entities*@
+@using (Html.BeginForm("ExportEmployeeTimeChartsToXlsx", "TimeSheet", FormMethod.Post, new { id = "exporttoxlsx-selected-form" }))
+{
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+    <input type="hidden" id="hidenStartDate" name="hidenStartDate" value="" />
+    <input type="hidden" id="hidenEndDate" name="hidenEndDate" value="" />
+}
+<script type="text/javascript">
+    $(function () {
+        $('#exportexcel-selected').click(function (e) {
+            e.preventDefault();
+            if (checkedIds.length) {
+                $('#exporttoxlsx-selected-form #selectedIds').val(checkedIds.join(','));
+                //$('#exporttoxlsx-selected-form #hidenStartDate').val($("#sf_From").val());
+                //$('#exporttoxlsx-selected-form #hidenEndDate').val($("#sf_To").val());
+                // ensure that date range is the same as the grid options (REMOTE)
+                let gridOptions = getGridOptions();
+                $('#exporttoxlsx-selected-form #hidenStartDate').val(gridOptions.model.sf_From);
+                $('#exporttoxlsx-selected-form #hidenEndDate').val(gridOptions.model.sf_To);
+                $('#exporttoxlsx-selected-form').submit();
+            }
+            else
+                popupNotification('@T("Common.SelectOneOrMoreItems")', 'error');
+            return false;
+        });
+    });
+</script>

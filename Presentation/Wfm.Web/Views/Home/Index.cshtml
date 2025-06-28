@@ -1,0 +1,25 @@
+﻿@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.cshtml";
+    ViewBag.PageClass = "html-home-page";
+
+    ViewBag.Title = "GC Employment Staffing Agency | Full Time Jobs | Temp Jobs | Staffing, Recruitment and Employment Agency";
+    ViewBag.Description = "GC Employment connects employers and job seekers to staff positions in finance, technology and more. Contact a staffing professional today to start your search.";
+    ViewBag.Keywords = "Toronto staffing agencies, Full Time Jobs, Temp Jobs";
+    ViewBag.PageTitle = "GC Employment Staffing Agency | Full Time Jobs | Temp Jobs | Staffing, Recruitment and Employment Agencies";
+    ViewBag.PageDescription = ViewBag.Description;
+}
+
+
+<div class="page home-page">
+    <div class="page-body">
+
+        @Html.Partial("_Carousel")
+
+        @Html.Action("_LatestJobs", "JobPost")
+
+        @Html.Partial("_TopicBlock")
+
+        @Html.Action("_LatestBlogs", "Blog")
+
+    </div>
+</div>

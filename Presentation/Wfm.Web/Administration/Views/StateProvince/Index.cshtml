@@ -1,0 +1,84 @@
+﻿@using Wfm.Services.DirectoryLocation;
+
+@model IEnumerable<StateProvinceModel>
+
+@{
+    //page title
+    ViewBag.Title = T("Common.StateProvinces").Text;
+
+    var countryService = EngineContext.Current.Resolve<ICountryService>();
+    var countries = countryService.GetAllCountries();
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Common.StateProvinces") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+    <div class="options">
+        @Html.ActionLink(T("Common.Add").Text, "Create", null, new { @class = "k-button" })
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<StateProvinceModel>()
+              .Name("stateprovince-grid")
+              .BindTo(Model)
+              .Columns(columns =>
+              {
+                  columns.Bound(x => x.StateProvinceName).Width(250);
+                  columns.Bound(x => x.Abbreviation).Width(200);
+
+                  columns.ForeignKey(x => x.CountryId, countries, "Id", "CountryName").Width(250);
+
+                  columns.Bound(x => x.IsActive)
+                      .Template(
+                          @<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />
+                      )
+                      .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsActive #.png' />")
+                      .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                      .Width(100);
+                  columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                  columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                  //columns.Bound(x => x.Id)
+                  //    .Template(x => Html.ActionLink("Edit", "Edit", new { x.Id }))
+                  //    .ClientTemplate("<a href=\"" + @Url.Content("~/Admin/StateProvince/Edit/") + "#= Id #\">" + T("Edit").Text + "</a>")
+                  //    .Title("Edit").Width(50).Sortable(false);
+
+                  columns.Bound(x => x.Id).Filterable(false)
+                      .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                      .Template(x => Html.ActionLink("Edit", "Edit", new { x.Id }))
+                      .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/StateProvince/Edit/") + "#= Id #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                      .Width(80)
+                      .Title(T("Admin.Common.Edit").Text).Sortable(false);
+              })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(20)
+                    //.Read(read => read.Action("Index", "StateProvince"))
+                )
+               .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

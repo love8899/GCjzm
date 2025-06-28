@@ -1,0 +1,123 @@
+﻿@model FranchiseAddressModel
+@using Wfm.Services.Security
+@using Wfm.Services.Common
+@using Wfm.Services.DirectoryLocation;
+@using Wfm.Web.Extensions
+@{
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    var cityService = EngineContext.Current.Resolve<ICityService>();
+    var stateProvinceService = EngineContext.Current.Resolve<IStateProvinceService>();
+    var countryService = EngineContext.Current.Resolve<ICountryService>();
+    var cities = cityService.GetAllCities();
+    var stateProvinces = stateProvinceService.GetAllStateProvinces();
+    var countries = countryService.GetAllCountries();
+}
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Common.Address")
+    </div>   
+
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<FranchiseAddressModel>()
+                .Name("vendoraddress-grid")
+                .Columns(columns =>
+                {
+
+                    columns.Bound(x => x.LocationName);
+                    columns.Bound(x => x.PrimaryPhone).EditorTemplateName("PhoneEditor").ClientTemplate("#= formatPhone(PrimaryPhone) #");
+                    columns.Bound(x => x.SecondaryPhone).EditorTemplateName("PhoneEditor").ClientTemplate("#= SecondaryPhone!=null? formatPhone(SecondaryPhone):' ' #");
+                    columns.Bound(x => x.FaxNumber).EditorTemplateName("PhoneEditor").ClientTemplate("#= FaxNumber!=null? formatPhone(FaxNumber):' ' #");
+                    columns.Bound(x => x.UnitNumber).Width(70);
+                    columns.Bound(x => x.AddressLine1);
+                    columns.Bound(x => x.AddressLine2);                  
+                    columns.ForeignKey(x => x.CountryId, countries, "Id", "CountryName").Width(150).EditorTemplateName("CountryEditor");
+                    columns.ForeignKey(x => x.StateProvinceId, stateProvinces, "Id", "StateProvinceName").Width(150).EditorTemplateName("StateProvinceEditor");
+                    columns.ForeignKey(x => x.CityId, cities, "Id", "CityName").Width(150).EditorTemplateName("CityEditor");
+                    columns.Bound(x => x.PostalCode).Width(100).EditorTemplateName("PostalCodeEditor").ClientTemplate("#= formatPostalcode(PostalCode) #");
+                    columns.Bound(x => x.IsHeadOffice)
+                        .ClientTemplate("#if (IsHeadOffice == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" });
+                    columns.Bound(x => x.IsActive)
+                        .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" });
+                    
+                    
+                })
+                .ToolBar(toolBar => { toolBar.Save(); toolBar.Create(); })
+                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataBinding => dataBinding
+                                    .Ajax()
+                                    .PageSize(10)
+                                    .Batch(true)
+                                    .Events(events => events.Error("error_handler").Sync("onSave").Change("onChange"))
+                                    .Model(model =>
+                                    {
+                                        model.Id(p => p.Id);
+                                        model.Field(p => p.FranchiseGuid).Editable(false).DefaultValue(ViewBag.FranchiseGuid);                                      
+                                        model.Field(p => p.Id).Editable(false);
+                                        model.Field(p => p.CityId).Editable(true); 
+                                        model.Field(p => p.StateProvinceId).Editable(true); 
+                                        model.Field(p => p.CountryId).Editable(true).DefaultValue(2);
+                                        model.Field(p => p.IsActive).Editable(true).DefaultValue(true);                                     
+                                    })
+                                            .Create(update => update.Action("_CreateNewAddress", "Vendor", new { vendorGuid = ViewBag.FranchiseGuid }))
+                                    .Read(read => read.Action("_AddressList", "Vendor", new { vendorGuid = ViewBag.FranchiseGuid }))
+                                                    .Update(update => update.Action("_EditAddress", "Vendor", new { vendorGuid = ViewBag.FranchiseGuid }))
+                                   
+                )
+            )
+        </td>
+    </tr>
+</table>
+<script type="text/javascript">
+    function onChange(e) {
+        if (e.action == "itemchange") {
+            if (e.field == "CountryId") {
+                var model = e.items[0];
+                model.set("StateProvinceId", 0);
+            }
+
+            if (e.field == "StateProvinceId") {
+                var model = e.items[0];
+                model.set("CityId", 0);
+            }
+        }
+    }
+    function getCurrentEditedModel() {
+        var grid = $("#vendoraddress-grid").data("kendoGrid");
+        var editRow = grid.tbody.find("tr:has(.k-edit-cell)");
+        return grid.dataItem(editRow);
+    }
+
+    function filterStateProvince() {
+        var model = getCurrentEditedModel();
+        return {
+            countryId: model.CountryId
+        };
+    }
+    function filterCities() {
+        var model = getCurrentEditedModel();
+        return {
+            stateProvinceId: model.StateProvinceId
+        };
+    }
+    function onSave(e) {
+        var jobOrderGrid = $("#vendoraddress-grid").data("kendoGrid");
+        jobOrderGrid.dataSource.read();
+    }
+</script>
+
+
+

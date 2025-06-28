@@ -1,0 +1,55 @@
+﻿@using Wfm.Core.Infrastructure;
+@using Wfm.Web.Models.Test
+
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    ViewBag.Title = T("Admin.Configuration.TestMaterials").Text;
+
+    var categoryService = EngineContext.Current.Resolve<Wfm.Services.Test.ITestService>();
+    var categories = categoryService.GetAllCategories().Select(x => new SelectListItem() { Text = x.TestCategoryName, Value = x.Id.ToString() });
+}
+
+
+<div class="page candidate-page">
+    <div class="page-body">
+        <div class="section-header">
+            <div class="title">
+                @T("Admin.Configuration.TestMaterials")
+            </div>
+            <div class="options">
+            </div>
+        </div>
+        @(Html.Kendo().Grid<TestMaterialModel>()
+            .Name("TestMaterial-grid")
+            .Columns(columns =>
+            {
+                columns.ForeignKey(x => x.TestCategoryId, categories, "Value", "Text").Title(T("Common.TestCategory").Text);
+                columns.Bound(x => x.AttachmentFileName).Title(T("Admin.Common.File").Text)
+                    .ClientTemplate("<a target=\"_blank\" href=\"" + @Url.Content("~/Candidate/DownloadTestMaterial?guid=") + "#= TestMaterialGuid #\">" + "#= AttachmentFileName #" + "</a>");
+            })
+            .EnableCustomBinding(false)
+            .Reorderable(reorder => reorder.Columns(true))
+            .Resizable(resize => resize.Columns(true))
+            .Sortable()
+            .Pageable(x => x.PageSizes(new[] { 10, 20, 50 }))
+            .DataSource(ds => ds
+                .Ajax()
+                .ServerOperation(true)
+                .PageSize(10)
+                .Read(read => read.Action("_TestMaterials", "Candidate"))
+            )
+            .Filterable(filterable => filterable
+                .Extra(false)
+                .Operators(operators => operators
+                    .ForString(str => str.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        .IsNotEqualTo("Is not equal to")
+                    )
+                )
+            )
+        )
+    </div>
+</div>

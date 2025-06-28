@@ -1,0 +1,795 @@
+﻿.header-lower {
+    padding-top: 15px;
+    padding-bottom: 0;
+}
+
+.header-menu {
+    border: hidden;
+    padding: 0;
+    margin: 15px auto;
+}
+
+.header-links-wrapper {
+    padding: 0;
+}
+
+.header-links span, .header-links a {
+    font-size: 16px;
+}
+
+.footer-block .list .socialLinkImage a {
+    display: inline-block;
+}
+
+body {
+    /*font: normal 14px Arial, Helvetica, sans-serif;*/
+    font-family: Arial, Sans-Serif, Verdana, "Trebuchet MS", Helvetica !important;
+}
+
+a:link {
+    text-decoration: none;
+}
+
+.carousel-inner {
+    overflow-y: hidden;
+}
+
+.carousel-item {
+    /*max-height: 480px;*/
+    max-height: 450px;
+}
+
+.carousel-caption {
+    top: 20px;
+    bottom: auto;
+}
+
+.carousel-caption h4 {
+    font-weight: bold;
+    color: white;
+}
+
+.home-page .topic-block {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.home-page .topic-block-title {
+    margin: 0;
+    border: hidden;
+}
+
+.home-page .topic-block-title h2 {
+    color: #0087C4;
+    font-weight: bold;
+}
+
+.page-body {
+    text-align: left;
+}
+
+.page-body h3 {
+    font-size: 120%;
+    font-weight: bold;
+}
+
+.buttons {
+    text-align: center;
+}
+
+.topic-block-body {
+    text-align: left;
+}
+
+.home-page .product-grid {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.home-page .product-grid .title {
+    padding: 5px 0;
+    margin-bottom: 0;
+    border: hidden;
+}
+
+.home-page .product-grid .item-box {
+    margin-bottom: 15px;
+}
+
+.home-page .product-grid .item-box .product-box-add-to-cart-button {
+    width: 70%;
+}
+
+.home-page .product-grid .item-box .add-to-wishlist-button {
+    width: 30%;
+}
+
+.home-page .post-title, .news-title {
+    height: 75px;
+}
+
+.news-list-homepage {
+    margin-bottom: 15px;
+}
+
+.news-list-homepage .news-body 
+{
+    text-align: left;
+}
+
+.center-1 {
+    margin-bottom: 30px;
+}
+
+.topic-page img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.topic-page .page-title {
+    margin-bottom: 0;
+}
+
+.topic-page .page-body {
+    margin-top: 15px;
+}
+
+.topic-page p {
+    text-align: left;
+}
+
+
+.center-1 .topic-page .page-title {
+    border: hidden;
+}
+
+.required {
+    vertical-align: middle;
+}
+
+.inputs {
+    font-size: 14px;
+}
+
+.password-recovery-page .tooltip {
+    position: relative;
+    opacity: 1;
+}
+
+.current-active a {
+    color: #0087C4 !important;
+}
+
+.page-title {
+    padding: 5px 10px;
+}
+
+.post-date {
+    padding: 0 10px;
+    background-color: #fff;
+}
+
+.post-body {
+    text-align: justify;
+}
+
+.side-2 {
+    margin: 0;
+}
+
+.side-2 .list a::before {
+    display: none;
+}
+
+.side-2 .list li {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.side-2 .sublist {
+    margin: 0;
+}
+
+.topic-page .product-grid {
+    margin: 50px 0;
+}
+
+.topic-page .product-item .product-title {
+    text-align: center;
+}
+
+.topic-page .item-box .picture a::before {
+    padding: 10%;
+}
+
+.block .list.compact-list a {
+    padding: 0;
+}
+
+.topic-page table {
+    width: 100%;
+}
+
+.topic-page td {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.topic-page td.title {
+    width: 70%;
+    max-width: 0;
+    text-overflow: ellipsis;
+}
+
+.pager {
+    margin-bottom: 0;
+}
+
+.pager ul {
+    /*font-size: initial;*/
+    font-size: medium;
+}
+
+.pager li.total-summary {
+    display: none;
+}
+
+
+.side-2 .list .selected {
+    color: #0087C4;
+}
+
+.fa.disabled {
+    display: none !important;
+}
+
+.item-box .add-to-wishlist-button {
+    background-image: url('../Themes/DefaultClean/Content/images/email-button.png');
+}
+
+.ui-dialog-content {
+    height: auto !important;
+}
+
+.ui-dialog .fieldset {
+    margin-bottom: 15px;
+}
+
+.ui-dialog .buttons {
+    text-align: center;
+    /*margin-bottom: 0;*/
+}
+
+.button-1 {
+    min-width: 140px;
+    border: none;
+    background-color: #4ab2f1;
+    padding: 10px 30px;
+    text-align: center;
+    font-size: 15px;
+    color: #fff;
+    text-transform: uppercase;
+}
+
+.notification-wrapper {
+    display: none;
+    width: 100%;
+    padding: 15px 25px 15px 10px;
+    line-height: 16px;
+    color: #fff;
+}
+
+.notification-wrapper.success {
+    background-color: #4bb07a;
+}
+
+.notification-wrapper.error {
+    background-color: #e4444c;
+}
+
+.notification-wrapper.warning {
+    background-color: #f39c12;
+}
+
+.notification-wrapper .content {
+    margin: 0 10px 0 0;
+}
+
+.notification-wrapper .content a {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.notification-wrapper .close {
+    width: 28px;
+    height: 28px;
+    margin: -5px -15px 0 0;
+    background: #fff url('../Themes/DefaultClean/Content/images/close.png') center no-repeat;
+    cursor: pointer;
+}
+
+.fieldset .title {
+    margin-top: 15px;
+    margin-bottom: 0;
+}
+
+.form-fields {
+    padding: 15px 15px;
+}
+
+.form-fields .inputs:last-child {
+    margin-bottom: 0;
+}
+
+.inputs .k-widget, .inputs .k-textbox {
+    display: inline-block;
+    width: 400px;
+    max-width: 100%;
+}
+
+p.entitled {
+    display: inline;
+    white-space: normal;
+    margin-left: 15px;
+}
+
+input[readonly] {
+    background-color: #eee !important;
+}
+
+.inputs .k-picker-wrap .k-input {
+    padding: 0;
+    /*line-height: 2em;*/
+    height: 2em;
+}
+
+.candidate-page .page-body p a, .candidate-page .page-body table a {
+    color: #007bff;
+}
+
+.candidate-page .page-title {
+    border: none;
+    margin-bottom: 0;
+}
+
+.k-pager-sizes.k-label, .k-pager-info.k-label {
+    display: none;
+}
+
+.k-ff input.k-button {
+    border-radius: 4px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+/* for ellipsis */
+.k-grid td.ellipsis {
+    max-width: 0;
+}
+
+.candidate-test-page .fieldset .title {
+    text-align: left;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.candidate-test-page .inputs {
+    text-align: left;
+    white-space: normal;
+}
+
+.candidate-test-page .page-title {
+    margin-bottom: 0;
+    border: none;
+}
+
+img.responsive {
+    max-width: 100%;
+    height: auto;
+}
+
+.video {
+    max-width: 649px;
+    margin: 0 auto;
+}
+
+/* 
+    scheduler widget for availability 
+*/
+.k-scheduler-views {
+    display: none;
+}
+
+.k-scheduler-monthview .k-scheduler-table td {
+    height: 7em;
+}
+
+.k-scheduler-monthview .availability-event {
+    margin-top: 6px;
+    text-align: center;
+    width: 12% !important;
+    margin-left: 1%;
+    margin-right: 1%;
+}
+
+.blank-availability {
+    background-color: linen !important;
+    border-color: linen !important;
+    color: lightgray !important;
+}
+
+.readonly-availability {
+    background-color: lightgray !important;
+    border-color: lightgray !important;
+}
+
+.hidden-availability {
+    display: none;
+}
+
+.k-scheduler-footer {
+    display: none;
+    height: 5px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.options label {
+    margin-bottom: 0;
+}
+
+.k-grid-header th.k-header {
+    font-weight: bold;
+    text-align: center;
+}
+
+.k-footer-template td {
+    background-color: lightcyan;
+}
+
+.registration-wizard-page .wizard > .content {
+    background-color: #fff;
+}
+
+.registration-wizard-page .wizard > .content > .body {
+    position: inherit;
+    width: 100%;
+    height: auto;
+    padding: 0 2.5% 2.5%;
+}
+
+.registration-wizard-page .wizard > .content > .body input {
+    display: inline-block;
+}
+
+.registration-wizard-page .wizard .content .inputs label {
+    display: inline-block;
+}
+
+.registration-wizard-page .inputs .k-widget {
+    width: 400px !important;
+    max-width: 100%;
+}
+
+.html-topic-page .item-grid {
+    margin-top: 30px;
+}
+
+.item-grid .item-box {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.item-box .product-title {
+    height: 42px;
+}
+
+/* 
+    from orig GcBlueIt style
+*/
+.section-header {
+    border-bottom: solid 3px #cfcfcf;
+    padding-bottom: 1px;
+    /*margin: 25px 0 10px 0;*/
+    margin: 10px 0;
+    /*height: 25px;*/
+    height: 45px;
+}
+
+    .section-header .title {
+        float: left;
+        color: #006699;
+        font-size: 115%;
+        font-weight: 700;
+        vertical-align: bottom;
+        text-transform: none;
+    }
+
+        .section-header .title img {
+            vertical-align: middle;
+            padding-bottom: 2px;
+        }
+
+    .section-header .options {
+        text-align: right;
+        float: right;
+        padding-right: 2px;
+    }
+
+/*
+    overwrite bootstrap style
+*/
+ul {
+    margin-bottom: 0;
+}
+
+.breadcrumb {
+    display: block;
+}
+
+a {
+    color: inherit;
+}
+
+    a:hover {
+        color: #4ab2f1;
+    }
+
+/* warning pop */
+button.ui-dialog-titlebar-close:focus {
+    outline: none;
+}
+
+.field-validation-error {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+
+/*****************************************/
+@media only screen and (max-width: 576px) {
+    .section-header .title.hideable {
+        display: none;
+    }
+
+}
+
+
+/*****************************************/
+@media only screen and (max-width: 768px) {
+    /* replace title of availability */
+    .k-scheduler-monthview .availability-event {
+        width: 11% !important;
+    }
+    
+    .k-event-template {
+        position: relative;
+        visibility: hidden;
+    }
+
+    .k-event-template:after {
+        position: absolute;
+        /*left: 10px;*/
+        left: 50%;
+        top: 50%;
+        -webkit-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+        visibility: visible;
+    }
+
+    .AM .k-event-template:after {
+        content: "AM";
+    }
+
+    .PM .k-event-template:after {
+        content: "PM";
+    }
+
+    .ANY .k-event-template:after {
+        content: "Any";
+    }
+
+    .k-grid-edit,
+    .k-grid-update,
+    .k-grid-cancel {
+        min-width: 32px !important;
+    }
+
+    .k-grid-edit span,
+    .k-grid-update span,
+    .k-grid-cancel span {
+        margin: 0 auto !important;
+    }
+
+    .k-group-cell,
+    .k-group-col
+    {
+        display: none;
+    }
+
+    .k-grid tbody .k-button {
+        min-width: 32px;
+    }
+}
+
+
+/**********************************/
+@media all and (max-width: 1000px) {
+
+    .top-menu > li > span {
+        display: block;
+        min-height: 55px;
+        padding: 18px;
+        font-size: 15px;
+        color: #555;
+    }
+
+    /* hide wizard steps */
+    .registration-wizard-page .wizard.vertical > .steps {
+        display: none;
+    }
+
+    .registration-wizard-page .wizard.vertical > .content {
+        width: 100%;
+        margin: 0 0;
+    }
+
+    .registration-wizard-page .wizard .content .inputs label {
+        display: block;
+    }
+}
+
+
+/*********************************/
+@media all and (min-width: 481px) {
+    .address-list-page .address-item {
+        float: left;
+        width: 48%;
+        margin: 0 1% 30px;
+    }
+
+    .address-list-page .address-item:nth-child(2n+1) {
+        clear: both;
+    }
+
+    .address-list-page .address-item:only-child {
+        float: none;
+        width: auto;
+        margin: 0 0 30px;
+    }
+
+    .pager li.total-summary {
+        display: inline-block;
+        margin-right: 30px;
+        vertical-align: bottom;
+    }
+
+    .item-grid .item-box:only-child {
+        float: none;
+        width: auto;
+    }
+
+    .k-pager-sizes.k-label, .k-pager-info.k-label {
+        display: inline;
+    }
+}
+
+
+/*********************************/
+@media all and (min-width: 576px) {
+    /* hide level 3 grouping */
+    /*.k-grid table colgroup col.k-group-col:nth-child(3),*/
+    .k-grid table tbody .k-grouping-row:nth-of-type(4n+3),
+    .k-grid table tr .k-group-cell:nth-child(3) {
+        display: none;
+    }
+}
+
+
+/*********************************/
+@media all and (min-width: 769px) {
+    .footer-block {
+        max-width: 19%;
+    }
+
+    .ui-dialog .inputs label {
+        width: 30%;
+        text-align: right;
+        vertical-align: middle;
+    }
+
+    .ui-dialog .inputs input, 
+    .ui-dialog .inputs .captcha-box {
+        width: 60%;
+        text-align: left;
+    }
+
+    .ui-dialog .inputs textarea {
+        width: 60%;
+        min-height: 100px;
+    }
+
+    .center-2 .buttons {
+        text-align: center;
+    }
+
+    .k-grid-edit,
+    .k-grid-update,
+    .k-grid-cancel {
+        min-width: 64px;
+    }
+
+    .k-grid-edit:after {
+        content: "Edit";
+    }
+
+    .k-grid-update:after {
+        content: "OK";
+    }
+
+    .k-grid-cancel:after {
+        content: "No";
+    }
+
+    /* hide level 2 grouping */
+    /*.k-grid table tbody .k-grouping-row:nth-of-type(4n+2),
+    .k-grid table tr .k-group-cell:nth-child(2) {
+        display: none;
+    }*/
+}
+
+
+/**********************************/
+@media all and (min-width: 1001px) {
+
+    .header-menu .sublist li a::before {
+        /*display: none;*/
+        /*background-color: #4ab2f1;*/
+    }
+
+    /* my account menu */
+    .header-menu > ul > li > span {
+        display: block;
+        padding: 5px 10px;
+        line-height: 20px;
+        color: #555;
+        font-size: 17px;
+    }
+
+    .registration-wizard-page .wizard.vertical > .steps {
+        width: 25%;
+    }
+
+    .registration-wizard-page .wizard.vertical > .content {
+        width: 70%;
+    }
+
+    .registration-wizard-page .wizard .content .inputs label {
+        width: 180px;
+        display: inline-block;
+    }
+
+    .header-menu ul li:active > .sublist {
+        display: block;
+    }
+
+}
+
+
+/**********************************/
+@media all and (min-width: 1367px) {
+
+    .wizard .content .inputs label {
+        width: 213px !important;
+    }
+
+    .header-menu > ul > li > a, .header-menu > ul > li > span {
+        font-size: 18px;
+    }
+}
+
+
+.buttons a:hover {
+    background-color: #248ece;
+}

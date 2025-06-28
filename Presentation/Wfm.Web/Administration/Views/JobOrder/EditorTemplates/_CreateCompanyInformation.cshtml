@@ -1,0 +1,107 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Common;
+@using Wfm.Services.JobOrders;
+@using Wfm.Services.Franchises;
+
+@model JobOrderModel
+
+@{
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var franchises = franchiseService.GetAllFranchises();
+    var franchiseDropDownList = new List<SelectListItem>();
+    foreach (var f in franchises.Where(x => !x.IsDefaultManagedServiceProvider || x.EnableStandAloneJobOrders))
+    {
+        franchiseDropDownList.Add(new SelectListItem() { Text = f.FranchiseName, Value = f.Id.ToString() });
+    }
+
+}
+@Html.HiddenFor(m=>m.CompanyId)
+
+<table class="adminContent">
+    @if (!workContext.CurrentAccount.IsLimitedToFranchises)
+    {
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.FranchiseGuid, "Vendor")
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownListFor(model => model.FranchiseGuid)
+                    .DataTextField("Item3").DataValueField("Item2")
+                    .DataSource(d => d.Read(r => r.Action("GetCascadeAllVendors", "Common")))
+                    .ValueTemplate("<span id='FranchiseData' datauid=#:data.Item1#>#:data.Item3#</span>")
+                )
+                @Html.WfmValidationMessageFor(model => model.FranchiseGuid)
+            </td>
+        </tr>
+    }
+    else
+    {
+        <tr>
+            <td hidden>
+                <span id='FranchiseData' datauid='@Model.FranchiseId'></span>
+                @(Html.Kendo().DropDownList()
+                    .Name("FranchiseGuid")
+                    .Items(i => i.Add().Text(Model.FranchiseName).Value(Model.FranchiseGuid.ToString()).Selected(true))
+                )
+            </td>
+        </tr>
+    }
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyGuid,T("Common.Company").Text)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList().Name("CompanyGuid")
+                .OptionLabel("--Select--").DataTextField("Item3").DataValueField("Item2")
+                .DataSource(source => source.Read(read => { read.Action("GetCascadeCompaniesWithGuid", "Common"); }))
+                .ValueTemplate("<span id='CompanyData' datauid=#:data.Item1#>#:data.Item3#</span>")
+            )
+            @Html.WfmValidationMessageFor(model => model.CompanyGuid)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyLocationId)
+        </td>
+        <td class="adminData required">
+            <script> function filterLocations() { return { companyid: $("#CompanyData").attr("datauid") }; } </script>
+            @(Html.Kendo().DropDownList().Name("CompanyLocationId")
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .DataSource(ds => ds.Read(r => { r.Action("GetCascadeLocations", "Common").Data("filterLocations"); }).ServerFiltering(true))               
+                .CascadeFrom("CompanyGuid")
+                .Events(e => e.Change("reloadPositions"))
+            )
+            @Html.WfmValidationMessageFor(model => model.CompanyLocationId)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyDepartmentId)
+        </td>
+        <td class="adminData">
+            <script> function filterDepartments() { return { locationid: $("#CompanyLocationId").val() }; } </script>
+            @(Html.Kendo().DropDownList().Name("CompanyDepartmentId")
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .DataSource(ds => ds.Read(r => { r.Action("GetCascadeDepartments", "Common").Data("filterDepartments"); }).ServerFiltering(true))               
+                .CascadeFrom("CompanyLocationId")
+            )
+            @Html.WfmValidationMessageFor(model => model.CompanyDepartmentId)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyContactId)
+        </td>
+        <td class="adminData">
+            <script> function filterContacts() { return { companyid: $("#CompanyData").attr("datauid") }; } </script>
+            @(Html.Kendo().DropDownList().Name("CompanyContactId")
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .DataSource(ds => ds.Read(r => { r.Action("GetCascadeContacts", "JobOrder").Data("filterContacts"); }).ServerFiltering(true))
+                .Enable(false).AutoBind(false).CascadeFrom("CompanyGuid")
+            )
+            @Html.WfmValidationMessageFor(model => model.CompanyContactId)
+        </td>
+    </tr>
+</table>

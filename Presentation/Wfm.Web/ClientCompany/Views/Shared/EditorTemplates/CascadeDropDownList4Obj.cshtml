@@ -1,0 +1,14 @@
+﻿@model object
+
+@(Html.Kendo().DropDownListFor(m => m)
+    .Value(Model?.ToString())
+    .OptionLabel((string)ViewData["Option"] ?? "All")
+    .DataTextField((string)ViewData["TextField"] ?? "Text")
+    .DataValueField((string)ViewData["ValueField"] ?? "Value")
+    .DataSource(ds => ds.Read(r => r.Action((string)ViewData["Action"], (string)ViewData["Controller"])
+        .Data((string)ViewData["OnData"] ?? null)).ServerFiltering(true))
+    .CascadeFrom((string)ViewData["From"] ?? null)
+    .Events(e => e.Change((string)ViewData["OnChange"] ?? "doNothing"))
+    .AutoBind(false).Enable(true)
+    .HtmlAttributes(ViewData["HtmlAttr"])
+)

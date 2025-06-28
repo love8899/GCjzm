@@ -1,0 +1,48 @@
+﻿@model Wfm.Admin.Models.Employee.ContactInfoModel
+@{
+    Layout = null;
+}
+
+@using (Html.BeginForm("_UpdateContactInfo", "Employee", FormMethod.Post, new { id = "contact-info-form" }))
+{
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.CandidateGuid)
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Email)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.Email)
+                @Html.WfmValidationMessageFor(model => model.Email)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.HomePhone)
+            </td>
+            <td class="adminData required">
+                @Html.Kendo().MaskedTextBoxFor(model => model.HomePhone).Mask("999-999-9999")
+                @Html.WfmValidationMessageFor(model => model.HomePhone)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.MobilePhone)
+            </td>
+            <td class="adminData">
+                @Html.Kendo().MaskedTextBoxFor(model => model.MobilePhone).Mask("999-999-9999")
+                @Html.WfmValidationMessageFor(model => model.MobilePhone)
+            </td>
+        </tr>
+    </table>
+}
+
+@* for jQUery validation *@
+<script>
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+</script>

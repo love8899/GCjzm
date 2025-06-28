@@ -1,0 +1,27 @@
+﻿@using System.Drawing
+@using System.Web.UI.WebControls
+@using MvcReportViewer
+
+
+@{
+    var settings = new ControlSettings
+    {
+        SizeToReportContent = true,
+        ShowParameterPrompts = false,
+        ShowFindControls = true,
+        BackColor = Color.AliceBlue,
+        KeepSessionAlive = true,
+        //Width = new Unit("100%"),
+        //Height = new Unit("800px"),
+        AsyncRendering = false
+    };
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    var franchiseId = workContext.CurrentAccount.IsLimitedToFranchises ? workContext.CurrentFranchise.Id : 0;
+}
+
+
+@Html.MvcReportViewer(
+    "/WFMReports/TimeSheetsValidationsReport",
+    new { startDate = ViewBag.StartDate, endDate = ViewBag.EndDate,companyIds= ViewBag.CompanyIds, franchiseId = franchiseId },
+    new { style = "border: none ; height: 100%; width: 100%;min-height: 600px" }
+).ControlSettings(settings)

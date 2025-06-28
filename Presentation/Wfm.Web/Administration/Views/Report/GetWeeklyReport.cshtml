@@ -1,0 +1,88 @@
+﻿@using Wfm.Services.Franchises
+@using Wfm.Core
+@{
+    var refDate = DateTime.Today;
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    
+
+}
+@(Html.Kendo().PanelBar().Name("search-bar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text(String.Format(T("Common.ReportParameters").Text, T("Report.WeeklyCostReport").Text))
+            .Expanded(true)
+            .Content(@<div class="panel">
+                <table>
+                    <tr>
+                        <td>
+                            <label class="first-label">Week Of: </label>
+                        </td>
+                        <td>
+                            @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("refDate").Value(refDate.ToString("yyyy-MM-dd"))
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label class="first-label">Vendors: </label>
+                        </td>
+                        <td>
+                            @(Html.Kendo().MultiSelect().Name("vendors").HtmlAttributes(new { style = "width:600px" })
+                                .Placeholder("Select vendors...")
+                                .BindTo(ViewBag.Franchises)
+                                .DataTextField("Text")
+                                .DataValueField("Value").MaxSelectedItems(10))
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label class="first-label">Company: </label>
+                        </td>
+                        <td>
+                            @(Html.Kendo().MultiSelect().Name("companies").HtmlAttributes(new { style = "width:600px" })
+                                .Placeholder("Select companies...")
+                                .DataSource(ds => ds.Read("GetCascadeCompanies", "Common"))
+                                .DataTextField("Text")
+                                .DataValueField("Value").MaxSelectedItems(10))
+                        </td>
+                    </tr>
+                </table>
+                <div style="text-align: center">
+                    <br />@(Html.Kendo().Button().Name("loadReport").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text))<br /><br />
+                </div>
+
+            </div>);
+    })
+        //.HtmlAttributes(new { style = "width:930px" })
+)
+
+<div id="report" />
+
+
+<script type="text/javascript">
+
+    $("#loadReport").bind("click", function () {
+        loadReport();
+    });
+    function loadReport() {
+        var refDate = $("#refDate").val();
+        var vendorIds = $("#vendors").val();
+        var companyIds = $("#companies").val();
+        //alert(vendorIds);
+        if (refDate == null || vendorIds == null || companyIds==null) {
+            //ids = "";
+            alert("Please select date or vendors or companies!");
+        }
+        else {
+            $("#report").load("_WeeklyCostReport", {
+                refDate: refDate,
+                vendorIds: vendorIds.join(),
+                companyIds: companyIds.join()
+            });
+        }
+    }
+
+</script>
+
+
+

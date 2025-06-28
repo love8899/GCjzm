@@ -1,0 +1,49 @@
+﻿@model PayrollCalendarModel
+
+@using (Html.BeginForm("", "", FormMethod.Post, new { id = "payroll-calendar-form" }))
+{
+    <div class="section-header">
+        <div class="options">
+            <input type="button" id="save-calendar" value="@T("Admin.Common.Save")" name="save" class="k-button" />
+            <input type="button" name="close" id="cancel-calendar" class="k-button" value="@T("Common.Cancel")" />
+        </div>
+    </div>
+    @Html.HiddenFor(model => model.PayGroupId)
+    @Html.HiddenFor(model => model.Year)
+    @Html.ValidationSummary(true)
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+               @Html.LabelFor(model => model.Year)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.Year)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                Enter the <b>start</b> date of the the first pay period of the year
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.PayPeriodStartDate)
+                @Html.ValidationMessageFor(model => model.PayPeriodStartDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                Enter the <b>pay</b> date of the the first pay period of the year
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.PayPeriodPayDate)
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+    @* for jQUery validation *@
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+</script>

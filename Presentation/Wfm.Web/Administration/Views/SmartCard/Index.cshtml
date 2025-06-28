@@ -1,0 +1,118 @@
+﻿@using Wfm.Core
+@using Wfm.Services.Franchises;
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts;
+
+@model IEnumerable<CandidateSmartCardModel>
+
+
+@{
+    ViewBag.Title = T("Admin.TimeClocks.CandidateSmartCards").Text;
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+    IList<Wfm.Core.Domain.Franchises.Franchise> franchises = null;
+    if (commonSettings.DisplayVendor)
+    {
+        var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+        franchises = franchiseService.GetAllFranchises();
+    }
+}
+
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.TimeClocks.CandidateSmartCards")
+     </div>
+    <div class="options">
+        @if (workContext.CurrentAccount.IsLimitedToFranchises == false)
+        {
+            @Html.ActionLink(T("Common.Add").Text, "AddSmartCard", null, new { @class = "k-button" })
+        }
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateSmartCardModel>()
+                .Name("candidatesmartcardmodel-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(70).Hidden();
+
+                    columns.Bound(x => x.SmartCardUid)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Width(180);
+
+                    columns.Bound(x => x.CandidateId).Title(@T("Common.Id").Text).Width(160);
+
+                    columns.Bound(x => x.EmployeeId)
+                        .ClientTemplate(@Html.ActionLink("#= EmployeeId #", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString())
+                        .Width(160);
+                    
+                    if (commonSettings.DisplayVendor && !workContext.CurrentAccount.IsVendor())
+                    {
+                        columns.ForeignKey(x => x.FranchiseId, franchises, "Id", "FranchiseName").Title(T("Common.Vendor").Text).Width(180);
+                    }
+
+                    columns.Bound(x => x.CandidateLastName).Filterable(false).Sortable(false);
+                    columns.Bound(x => x.CandidateFirstName).Filterable(false).Sortable(false);
+
+
+                    columns.Bound(x => x.IsActive)
+                        //.Template(@<img alt="" src="@Url.Content("~/Administration/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        //.ClientTemplate("<img alt='' src='" + Url.Content("~/Administration/Content/images/") + "active-#= IsActive #.png' />")
+                       .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(160);
+
+                    columns.Bound(x => x.ActivatedDate).Format("{0:yyyy-MM-dd}").Width(160);
+
+                    columns.Bound(x => x.DeactivatedDate).Format("{0:yyyy-MM-dd HH:mm}").Width(160).Hidden(true);
+                    columns.Bound(x => x.ReasonForDeactivation)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+
+                    columns.Bound(x => x.Note)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+
+                    columns.Bound(x => x.UpdatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120);
+                    columns.Bound(x => x.CreatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120).Hidden(true);
+
+                    if (permissionService.Authorize("ManageCandidateSmartCards"))
+                    {
+                        columns.Bound(x => x.CandidateSmartCardGuid).Filterable(false).Sortable(false).Title(T("Admin.Common.Edit").Text).Width(70)
+                            .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { x.CandidateSmartCardGuid }))
+                            .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/SmartCard/Edit/") + "#= CandidateSmartCardGuid #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                            .HtmlAttributes(new { style = "text-align:center" });
+                    }
+                
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(true)
+                        .PageSize(20)
+                        .Read(read => read.Action("Index", "SmartCard"))
+                )
+            )
+        </td>
+    </tr>
+</table>

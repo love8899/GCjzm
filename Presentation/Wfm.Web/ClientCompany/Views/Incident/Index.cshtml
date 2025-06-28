@@ -1,0 +1,130 @@
+﻿@model SearchIncidentModel
+@using Wfm.Shared.Models.Incident
+@using Wfm.Shared.Models.Search
+@using Wfm.Services.Incident
+@using Wfm.Services.Features
+@{
+    ViewBag.PageTitle = T("Admin.Candidate.IncidentHistory").Text;
+    var collapsePanelId = "addIncident";
+    ViewBag.CollapsePanelId = collapsePanelId;
+
+
+    ViewBag.Title = T("Admin.Candidate.IncidentHistory").Text;
+    Html.SetActiveMenuItemSystemName("DailyAttendanceList");
+
+    var gridName = "company-incident-grid";
+    var serverOperation = true;
+
+    var incidentService = EngineContext.Current.Resolve<IIncidentService>();
+    var incidentCategories = incidentService.GetAllIncidentCategories(WorkContext.CurrentAccount, true).ToList();
+    var userFeatureService = EngineContext.Current.Resolve<IUserFeatureService>();
+    bool jobOrderFeatureEnabled = userFeatureService.CheckFeatureByCode("JO");
+}
+
+@section Options {
+    <button type="button" class="btn bg-blue" data-toggle="collapse" data-target="#@collapsePanelId" aria-expanded="false">
+        <i class="fa fa-plus-square"></i>@T("Common.Add")
+    </button>
+}
+
+@section Search {
+    @Html.Partial("_SearchIncident", Model, new ViewDataDictionary
+    {
+        { "GridName", gridName }
+    })
+}
+
+@(Html.Kendo().Grid<IncidentReportModel>().Name(gridName)
+    .Events(e => e.DataBound("onDataBound"))
+    .Columns(columns =>
+    {
+        columns.Bound(x => x.EmployeeId).Title("No.")
+            .HeaderHtmlAttributes(new { title = T("Common.EmployeeNumber").Text })
+            .HtmlAttributes(new { @class = "cell-lg-2" })
+            .ClientTemplate("<a onclick=getCandidateInfo('#=CandidateGuid#')>#=EmployeeId#</a>");
+        columns.Bound(x => x.CandidateFirstName)
+            .HtmlAttributes(new { @class = "col-xxs-0 cell-lg-2" });
+        columns.Bound(x => x.CandidateLastName)
+            .HtmlAttributes(new { @class = "col-xxs-0 cell-lg-2" });
+        columns.Bound(x => x.JobOrderId).Visible(jobOrderFeatureEnabled);
+
+        columns.ForeignKey(x => x.LocationId, Model.AvailableLocations, "Value", "Text").Title(T("Common.Location").Text)
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 cell-lg-2" });
+        columns.Bound(x => x.Position).Visible(jobOrderFeatureEnabled);
+        columns.Bound(x => x.IncidentDateTimeUtc).Title("Date / Time")
+            .HtmlAttributes(new { @class = "col-xxs-0 cell-lg-2" })
+            .ClientTemplate("#=kendo.toString(IncidentDateTimeUtc,'yyyy-MM-dd HH:mm')#");
+        columns.ForeignKey(x => x.IncidentCategoryId, Model.AvailableIncidentCategories, "Value", "Text")
+            .Title(T("Common.Category").Text)
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 cell-lg-2" });
+        columns.Bound(x => x.Note)
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0" });
+        columns.Bound(x => x.ReportedByUserName)
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0 cell-lg-2" });
+
+        columns.Bound(x => x.Id).Filterable(false).Sortable(false).Title(T("Common.Action").Text)
+            .HtmlAttributes(new { style = "text-align:center;white-space: normal", @class = "cell-lg-3" })
+            .ClientTemplate("<a class='k-button' title='" + T("Common.Edit").Text + "' onclick=\"return editIncidentReport(#= Id #)\"><span class='fa fa-pencil'></span></a>" +
+            "<a class='k-button' title='" + T("Admin.Candidate.CandidateAttachments").Text + "' onclick=\"return manageIncidentReportFiles(#= Id #)\"><span class='fa fa-paperclip'></span></a>" +
+            "<a class='k-button' title='" + T("Common.Delete").Text + "' onclick=\"return removeIncidentReport(#= Id #)\"><span class='fa fa-trash'></span></a>");
+    })
+    .Sortable()
+    .Pageable(x => x.PageSizes(new[] { 10, 20, 30 }).Refresh(true))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .ServerOperation(serverOperation)
+        .PageSize(10)
+        .Read(read => read.Action("_CompanyIncidentsList", "Incident").Data("onRead"))
+        .Sort(s => s.Add(x => x.IncidentDateTimeUtc).Descending())
+    )
+)
+
+<div id="create-edit-incident-dialog"></div>
+
+@section scripts {<script type="text/javascript">
+
+    $(function () {
+        initSearchAndGrid(null, '@gridName');
+        setCollapseContent('@collapsePanelId', '@Url.Action("_NewIncidentReport")',
+            { viewName: "_AddIncident", panelName: '@collapsePanelId' });
+    });
+
+    function onRead(e) { return getGridOptions(); }
+
+    function onDataBound(e) { setGridResponsive(e.sender); }
+
+    function editIncidentReport(id) {
+        var formName = 'incident-report-form';
+        var getUrl = '@Url.Action("_EditIncidentReport")' + '/' + id + '?formName=' + formName + '&panelName=' + '@collapsePanelId';
+        var postUrl = '@Url.Action("_EditIncidentReport")';
+        popupPost('create-edit-incident-dialog', getUrl, 'Edit Incident Report', 480, formName, postUrl,
+            'Incident report is updated', function (result) { reloadGridByName('@gridName'); }
+        );
+    }
+
+    function removeIncidentReport(id) {
+        return toDelete(function () {
+            justPost('@Url.Action("_RemoveIncidentReport")', { incidentReportId: id },
+                'Incident report is removed', function (result) { reloadGridByName('@gridName'); });
+        })
+    }
+
+    function manageIncidentReportFiles(id) {
+        @*var winName = 'incident-files-win';
+        var title = 'Manage Incident Files';
+        var loadUrl = '@Url.Action("_ManageIncidentReportFiles")' + '/' + id;
+        openKendoWin(winName, title, loadUrl, null, true, 640);
+        return false;*@
+        var title = 'Manage Incident Files';
+        var dialogName = 'incident-files-dialog';
+        var loadUrl = '@Url.Action("_ManageIncidentReportFiles")' + '/' + id;
+        popupContentFromUrl(dialogName, loadUrl, title, true, 640);
+        return false;
+    }
+
+    function closeIncidentFilesDialog() {
+        //closeKendoWin('incident-files-win');
+        closeDialog('incident-files-dialog');
+    }
+
+</script>}

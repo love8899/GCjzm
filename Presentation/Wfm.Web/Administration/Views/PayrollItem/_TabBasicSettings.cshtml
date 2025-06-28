@@ -1,0 +1,205 @@
+﻿@using Wfm.Admin.Models.Payroll
+@model PayrollItemDetailModel
+
+@using (Html.BeginForm("_UpdatePayrollItem", "PayrollItem", FormMethod.Post, new { id = "payroll-item-form" }))
+{
+    @Html.HiddenFor(x => x.ID)
+    @Html.HiddenFor(x => x.IsReadOnly)
+    @Html.HiddenFor(x => x.TypeId)
+    @Html.HiddenFor(x => x.SubTypeId)
+    @Html.HiddenFor(x => x.State_Code)
+    @Html.HiddenFor(x => x.PayOutItemId)
+    @Html.HiddenFor(x => x.BalanceItemId)
+    @Html.HiddenFor(x => x.FranchiseId)
+    <div class="section-header">
+        <div class="title">
+            Basic Settings
+        </div>
+        <div class="options">
+            <input type="button" id="UpdatePayrollItem" class="k-button" value="Save" />
+            <input type="button" id="RefreshPayrollItem" class="k-button" value="Cancel" />
+        </div>
+    </div>
+    <table class="adminContent">
+        <tr>
+            <td>
+                <div>
+                    <h4>Basic Information</h4>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.Code)
+            </td>
+            <td class="adminData">
+                @Html.Kendo().MaskedTextBoxFor(m => m.Code).Mask("aaaa").ClearPromptChar(true)
+                @Html.ValidationMessageFor(m => m.Code)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.Description)
+            </td>
+            <td class="adminData">
+                @Html.Kendo().TextBoxFor(x => x.Description)
+                @Html.ValidationMessageFor(m => m.Description)
+            </td>
+        </tr>
+        <tr></tr>
+        <tr>
+            <td colspan="4">
+                <div>
+                    <h4>Options</h4>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.IsTaxable, "Taxable")
+            </td>
+            <td class="adminData">
+                @if (!Model.EnableOptions)
+                {
+                    @Html.CheckBoxFor(m => m.IsTaxable, new { disabled = "disabled" })
+                }
+                else
+                {
+                    @Html.CheckBoxFor(m => m.IsTaxable)
+                }
+                @Html.ValidationMessageFor(m => m.IsTaxable)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.IsPensionable, "Pensionable")
+            </td>
+            <td class="adminData">
+                @if (!Model.EnableOptions)
+                {
+                    @Html.CheckBoxFor(m => m.IsPensionable, new { disabled = "disabled" })
+                }
+                else
+                {
+                    @Html.CheckBoxFor(m => m.IsPensionable)
+                }
+                @Html.ValidationMessageFor(m => m.IsPensionable)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.IsInsurable, "Insurable")
+            </td>
+            <td class="adminData">
+                @if (!Model.EnableOptions)
+                {
+                    @Html.CheckBoxFor(m => m.IsInsurable, new { disabled = "disabled" })
+                }
+                else
+                {
+                    @Html.CheckBoxFor(m => m.IsInsurable)
+                }
+                @Html.ValidationMessageFor(m => m.IsInsurable)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.AccrueVacation, "Accrues Vacation")
+            </td>
+            <td class="adminData">
+                @if (!Model.EnableOptions)
+                {
+                    @Html.CheckBoxFor(m => m.AccrueVacation, new { disabled = "disabled" })
+                }
+                else
+                {
+                    @Html.CheckBoxFor(m => m.AccrueVacation)
+                }
+                @Html.ValidationMessageFor(m => m.AccrueVacation)
+            </td>
+        </tr>
+        <tr></tr>
+        <tr>
+            <td colspan="4">
+                <div>
+                    <h4>GL Accounts</h4>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.DebitAccount, "Debit Account")
+            </td>
+            <td class="adminData">
+                @Html.Kendo().MaskedTextBoxFor(m => m.DebitAccount).Mask("999999999999999999").ClearPromptChar(true).Enable(Model.EnableDebitAccount)
+                @Html.ValidationMessageFor(m => m.DebitAccount)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.CreditAccount, "Credit Account")
+            </td>
+            <td class="adminData">
+                @Html.Kendo().MaskedTextBoxFor(m => m.CreditAccount).Mask("999999999999999999").ClearPromptChar(true).Enable(Model.EnableCreditAccount)
+                @Html.ValidationMessageFor(m => m.CreditAccount)
+            </td>
+        </tr>
+        <tr></tr>
+        <tr>
+            <td colspan="4">
+                <div>
+                    <h4>Calculations</h4>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.Rate)
+            </td>
+            <td class="adminData">
+                @Html.Kendo().NumericTextBoxFor(x => x.Rate).Format("{0:0.00}").Enable(Model.EnableRate)
+                @Html.ValidationMessageFor(m => m.CreditAccount)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.HasYtdMaximum, "Apply YTD Maximum")
+            </td>
+            <td class="adminData">
+                @if (!Model.EnableHasYtdMaximum)
+                {
+                    @Html.CheckBoxFor(m => m.HasYtdMaximum, new { disabled = "disabled" })
+                }
+                else
+                {
+                    @Html.CheckBoxFor(m => m.HasYtdMaximum)
+                }
+                @Html.ValidationMessageFor(m => m.HasYtdMaximum)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.YTD_Maximum, "Maximum YTD Amount")
+            </td>
+            <td class="adminData">
+                @Html.Kendo().NumericTextBoxFor(x => x.YTD_Maximum).Format("{0:0.00}").Enable(Model.EnableYTD_Maximum)
+                @Html.ValidationMessageFor(m => m.YTD_Maximum)
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4">
+                <div>
+                    <h4>Paystub</h4>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.PrintOnPayStub, "Print On Paystub")
+            </td>
+            <td class="adminData">
+                @if (!Model.EnablePrintOnPayStub)
+                {
+                    @Html.CheckBoxFor(m => m.PrintOnPayStub, new { disabled = "disabled" })
+                }
+                else
+                {
+                    @Html.CheckBoxFor(m => m.PrintOnPayStub)
+                }
+                @Html.ValidationMessageFor(m => m.PrintOnPayStub)
+            </td>
+        </tr>
+    </table>
+}

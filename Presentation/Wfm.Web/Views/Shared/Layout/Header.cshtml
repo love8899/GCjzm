@@ -1,0 +1,61 @@
+﻿@using Wfm.Core
+@using Wfm.Core.Infrastructure
+@using Wfm.Web.Framework.Themes
+@using Wfm.Services.Franchises;
+@{
+    //logo path
+    var currentThemeName = EngineContext.Current.Resolve<IThemeContext>().WorkingThemeName;
+    var logoPath = "~/Themes/" + currentThemeName + "/Content/images/logo.gif";
+
+    //franchise name
+    var franchiseContext = EngineContext.Current.Resolve<IFranchiseContext>();
+    var franchiseName = franchiseContext.CurrentFranchise.FranchiseName;
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var image = franchiseService.GetPublicFranchiseLogo();
+    string imgSrc = String.Empty;
+    if (image != null)
+    {
+        var base64 = Convert.ToBase64String(image);
+        imgSrc = String.Format("data:image/gif;base64,{0}", base64);
+    }
+
+    var searchString = ViewBag.SearchString != null ? (string)ViewBag.SearchString : null;
+}
+<div class="header">
+    <div class="header-lower">
+        <div class="header-logo">
+            <a href="@Url.RouteUrl("HomePage")">
+                <img title="" alt="@franchiseName" src="@imgSrc">
+            </a>
+        </div>
+        <div class="search-box store-search-box">
+            <form id="site-search" name="site-search" method="post" action="@Url.Action("Index", "JobPost")">
+                @Html.Hidden("jobOrderCategoryId", 0)
+                <div class="input-group has-clear">
+                    <input type="text" class="search-box-text ui-autocomplete-input" id="searchString" name="searchString" autocomplete="off" placeholder="Search jobs" value="@searchString">
+                    <span class="btn bg-transparent form-control-clear" style="margin-left: -40px; z-index: 100;">
+                        <i class="fa fa-times"></i>
+                    </span>
+                    <input type="submit" class="button-1 search-box-button" value="Search" />
+                </div>
+            </form>
+        </div>
+        <div class="header-links-wrapper">
+            @Html.Action("HeaderLinks", "Common")
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('.has-clear input[type="text"]').on('input propertychange', function() {
+        var $this = $(this);
+        var visible = Boolean($this.val());
+        var clearBtn = $this.siblings('.form-control-clear');
+        clearBtn.toggleClass('hidden', !visible);
+        clearBtn.find('i').toggleClass('disabled', !visible);
+    }).trigger('propertychange');
+
+    $('.form-control-clear').click(function() {
+        $(this).siblings('input[type="text"]').val('')
+            .trigger('propertychange').focus();
+    });
+</script>

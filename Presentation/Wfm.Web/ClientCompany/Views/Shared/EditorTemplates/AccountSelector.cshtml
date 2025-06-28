@@ -1,0 +1,16 @@
+﻿@{
+    var accounts = ViewData["AvailableAccounts"] as IEnumerable<SelectListItem>;
+    if (accounts == null)
+    {
+        var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+        accounts = EngineContext.Current.Resolve<Wfm.Services.Accounts.IAccountService>()
+            .GetAllAccountsAsQueryable(workContext.CurrentAccount, false, true, false)
+            .Where(x => x.CompanyId == workContext.CurrentAccount.CompanyId)
+            .Select(x => new SelectListItem() { Value = x.Id.ToString(), Text = x.FullName }).AsEnumerable();
+    }
+}
+
+@(Html.Kendo().DropDownListFor(m => m)
+        .DataValueField("Value").DataTextField("Text")
+        .BindTo(accounts)
+)

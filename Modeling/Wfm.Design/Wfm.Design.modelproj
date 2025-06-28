@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <ResolveAssemblyReferenceIgnoreTargetFrameworkAttributeVersionMismatch>true</ResolveAssemblyReferenceIgnoreTargetFrameworkAttributeVersionMismatch>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{127b6e11-e5f0-4cf7-a553-3f09e7df217e}</ProjectGuid>
+    <ArchitectureToolsVersion>2.0.0.0</ArchitectureToolsVersion>
+    <Name>Wfm.Design</Name>
+    <RootNamespace>Wfm.Design</RootNamespace>
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(VSToolsPath)\ArchitectureTools\Microsoft.VisualStudio.TeamArchitect.ModelingProject.targets" Condition="'$(VSToolsPath)' != ''" />
+  <ItemGroup>
+    <Folder Include="ModelDefinition\" />
+    <Content Include="ModelDefinition\Wfm.Design.uml">
+      <SubType>Content</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Validate Include="LayerDiagram.layerdiagram">
+      <SubType>Content</SubType>
+    </Validate>
+    <Validate Include="LayerDiagram.layerdiagram.layout">
+      <SubType>Content</SubType>
+      <DependentUpon>LayerDiagram.layerdiagram</DependentUpon>
+    </Validate>
+    <Validate Include="LayerDiagram.layerdiagram.suppressions">
+      <SubType>Content</SubType>
+      <DependentUpon>LayerDiagram.layerdiagram</DependentUpon>
+    </Validate>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Libraries\Wfm.Core\Wfm.Core.csproj">
+      <Name>Wfm.Core</Name>
+      <Project>{6bda8332-939f-45b7-a25e-7a797260ae59}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\Wfm.Data\Wfm.Data.csproj">
+      <Name>Wfm.Data</Name>
+      <Project>{ccd7f2c9-6a2c-4cf0-8e89-076b8fc0f144}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\Wfm.Services\Wfm.Services.csproj">
+      <Name>Wfm.Services</Name>
+      <Project>{210541ad-f659-47da-8763-16f36c5cd2f4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Presentation\Wfm.Web.Framework\Wfm.Web.Framework.csproj">
+      <Name>Wfm.Web.Framework</Name>
+      <Project>{75fd4163-333c-4dd5-854d-2ef294e45d94}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Presentation\Wfm.Web\ClientCompany\Wfm.Client.csproj">
+      <Name>Wfm.Client</Name>
+      <Project>{8fae071b-3de7-4382-83c5-f84f36fc3733}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Presentation\Wfm.Web\Wfm.Web.csproj">
+      <Name>Wfm.Web</Name>
+      <Project>{4f1f649c-1020-45be-a487-f416d9297ff3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Wfm.Shared\Wfm.Shared.csproj">
+      <Name>Wfm.Shared</Name>
+      <Project>{523f2de7-9229-45f6-9cae-97b4f660dce7}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

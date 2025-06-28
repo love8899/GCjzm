@@ -1,0 +1,290 @@
+﻿@using Wfm.Core.Domain.TimeSheet
+@using Wfm.Core.Infrastructure
+@using Wfm.Services.Accounts
+@using Wfm.Services.Companies;
+@using Wfm.Web.Models.TimeSheet
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    ViewBag.Title = "Time Entry";
+
+    var excludedStatusIds = new int[] { (int)CandidateWorkTimeStatus.Matched, };
+    var availableWorkTimeStatus = CandidateWorkTimeStatus.PendingApproval.ToSelectList(false, excludedStatusIds).ToList();
+
+    var companyService = EngineContext.Current.Resolve<ICompanyService>();
+    var companies = companyService.GetCompanyListForCandidate();
+
+    var locationService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+    var locations = locationService.GetAllCompanyLocations();
+
+    //var deptService = EngineContext.Current.Resolve<ICompanyDepartmentService>();
+    //var departments = deptService.GetAllCompanyDepartmentsAsQueryable();
+
+    var accountService = EngineContext.Current.Resolve<IAccountService>();
+    var accounts = accountService.GetAllClientAccountForTask();
+
+    var candidateWorkTimeSettings = EngineContext.Current.Resolve<CandidateWorkTimeSettings>();
+    var earlierStart = candidateWorkTimeSettings.StartScanWindowSpanInMinutes;
+    var lateEnd = candidateWorkTimeSettings.EndScanWindowSpanInMinutes;
+}
+
+
+<div class="page candidate-page">
+    <div class="page-body">
+        <div class="section-header">
+            <div class="title hideable">
+                Time Entry
+            </div>
+            <div class="options">
+                <label class="first-label">Week of:&nbsp;</label>
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("refDate")
+                    .Max(DateTime.Today).Value((DateTime)ViewBag.RefDate).Format("MM/dd/yyyy")
+                    .Events(e => e.Change("onRefDateChange")))
+            </div>
+        </div>
+    </div>
+    <p>
+        You can only enter or change the times where "Sign In" / "Sign out" columns are empty or in <span style="color:blue">blue</span>.
+        <br />
+        Other times are not allowed to change, as they are approved or rejected already, or the companies do not allow manual time entry.
+    </p>
+    @(Html.Kendo().Grid<CandidateWorkTimeModel>()
+        .Name("WorkTime-grid")
+        .Events(events => events.DataBound("onDataBound"))
+        .Columns(columns =>
+        {
+            columns.ForeignKey(x => x.CompanyId, companies, "Value", "Text").Title(T("Common.Company").Text)
+                .ClientFooterTemplate("Total:")
+                .HtmlAttributes(new { @class = "col-lg-2" });
+            columns.ForeignKey(x => x.CompanyLocationId, locations, "Id", "LocationName").Title(T("Common.Location").Text)
+                .HtmlAttributes(new { @class = "col-lg-1" });
+
+            //columns.ForeignKey(x => x.CompanyDepartmentId, departments, "Id", "DepartmentName").Title(T("Common.Department").Text).Hidden();
+
+            columns.ForeignKey(x => x.CompanyContactId, accounts, "Id", "FullName").IncludeInMenu(false)
+                .Title(T("Web.JobOrder.JobOrder.Fields.Supervisor").Text).Hidden();
+
+            columns.Bound(x => x.StartDate).Format("{0:dddd, MM/dd/yyyy}").Title(T("Common.Date").Text).Hidden();
+
+            columns.Bound(x => x.StartTime).Format("{0:HH:mm}").Title(T("Common.Shift").Text)
+                .HtmlAttributes(new { @class = "col-sm-1 col-lg-1" });
+
+            columns.Bound(x => x.ClockIn).Format("{0:MM/dd/yyyy HH:mm}").Title("Sign In")
+                .ClientTemplate("#=clockInTemplate(data)#")
+                .HtmlAttributes(new { @class = "col-4 col-sm-3 col-lg-2" })
+                .EditorTemplateName("ClockInOut")
+                .EditorViewData(new { minValue = DateTime.MinValue, maxValue = DateTime.Now });
+            columns.Bound(x => x.ClockOut).Format("{0:MM/dd/yyyy HH:mm}").Title("Sign Out")
+                .ClientTemplate("#=clockOutTemplate(data)#")
+                .HtmlAttributes(new { @class = "col-4 col-sm-3 col-lg-2" })
+                .EditorTemplateName("ClockInOut")
+                .EditorViewData(new { minValue = DateTime.MinValue, maxValue = DateTime.Now });
+
+            columns.Bound(x => x.NetWorkTimeInHours).Title("Hours").Format("{0:n2}")
+                .HtmlAttributes(new { style = "text-align:right", @class = "col-2 col-sm-1 co-lg-1" })
+                .ClientFooterTemplate("<span style='float: right'>#= kendo.toString(sum, 'n') #</span>");
+
+            columns.ForeignKey(x => x.CandidateWorkTimeStatusId, availableWorkTimeStatus, "Value", "Text").Title("Status")
+                .HtmlAttributes(new { @class = "col-sm-3 col-lg-2" });
+
+            columns.Command(command => { command.Edit().Text(" ").UpdateText(" ").CancelText(" "); })
+                .Title("Action").HtmlAttributes(new { align = "center", @class = "col-2 col-sm-1 col-lg-1" });
+        })
+        .Editable(editable => editable.Mode(GridEditMode.InLine))
+        .Pageable(x => x.PageSizes(new[] { 5, 10 }).Refresh(true))
+        .DataSource(dataSource => dataSource
+            .Ajax().ServerOperation(false)
+            .Group(g => {
+                g.Add(model => model.StartDate);
+                g.Add(model => model.CompanyContactId);
+                g.Add(model => model.StartTime);
+            })
+            .PageSize(10)
+            .Aggregates(a => a.Add(model => model.NetWorkTimeInHours).Sum())
+            .Read(read => read.Action("_CandidateWorkTimeByWeek", "Candidate").Data("onRead"))
+            .Create(create => create.Action("_SaveWorkTime", "Candidate"))
+            .Update(update => update.Action("_SaveWorkTime", "Candidate"))
+            .Model(model =>
+            {
+                model.Id(m => m.UniqueId);
+                model.Field(m => m.CompanyId).Editable(false);
+                model.Field(m => m.CompanyLocationId).Editable(false);
+                model.Field(m => m.CompanyDepartmentId).Editable(false);
+                model.Field(m => m.CompanyContactId).Editable(false);
+                model.Field(m => m.NetWorkTimeInHours).Editable(false);
+                model.Field(m => m.CandidateWorkTimeStatusId).Editable(false);
+            })
+            .Events(e => e.Error("onError"))
+        )
+        .Events(e => e.Edit("onEdit").Save("onSave").Cancel("onCancel"))
+    )
+</div>
+
+<script type="text/javascript">
+
+    function onRefDateChange() {
+        if ($('#refDate').val())
+            refreshGrid();
+        else
+            displayPopupNotification("Please select a date!", "error");
+    }
+
+    function onRead() {
+        return { refDate: $('#refDate').val() };
+    }
+
+    function refreshGrid() {
+        var grid = $('#WorkTime-grid').data('kendoGrid');
+        grid.dataSource.read();
+    }
+
+    function onDataBound(e) {
+        showOrHideButton(e);
+        //removeCommandText(e);
+
+        // TODO: auto setup, upon bootstrap prefix
+        setGridColumnClass(e.sender, ["StartTime", "CandidateWorkTimeStatusId"], 'd-none d-sm-table-cell');
+        setGridColumnClass(e.sender, ["CompanyId", "CompanyLocationId"], 'd-none d-lg-table-cell');
+    }
+
+    function showOrHideButton(e) {
+        var grid = $("#WorkTime-grid").data("kendoGrid");
+        var data = grid.dataSource.data();
+        for (var i = 0; i < data.length; i++) {
+            var currentData = data[i];
+            var theRow = grid.tbody.find(">tr:not(.k-grouping-row)").eq(i);
+            if (currentData.ReadOnly) {
+                theRow.find(".k-grid-edit").remove();
+            }
+        }
+    }
+
+    function removeCommandText(e) {
+        $(".k-grid-edit").attr('title', 'Edit').html('<span class="k-icon k-edit"></span>');
+    }
+
+    function onError(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) { if ('errors' in value) $.each(value.errors, function () { message += this + "\n"; }); });
+            displayPopupNotification(message, "error");
+            refreshGrid();
+        }
+    }
+
+    function onEdit(e) {
+        if (e.model.Id === 0) {
+            if (e.model.JobEndDateTime > new Date('@(DateTime.Now)')) {
+                e.preventDefault();
+                displayPopupNotification('You cannot enter time as the shift does not end yet', "warning");
+            } else {
+                e.model.set("ClockIn", e.model.JobStartDateTime);
+                e.model.set("ClockOut", e.model.JobEndDateTime);
+            }
+        }
+        setMinMax(e);
+    }
+
+    function setMinMax(e) {
+        var min = new Date(e.model.JobStartDateTime.getTime() - @earlierStart * 60000);
+        var max = new Date(e.model.JobEndDateTime.getTime() + @lateEnd * 60000);
+        var clockInPicker = $('#ClockIn').data('kendoTimePicker');
+        clockInPicker.min(min);
+        clockInPicker.max(max);
+        clockOutPicker = $('#ClockOut').data('kendoTimePicker');
+        clockOutPicker.min(min);
+        clockOutPicker.max(max);
+    }
+
+    function onSave(e) {
+        var isValid = false;
+        var error = "";
+        var min = new Date(e.model.JobStartDateTime.getTime() - @earlierStart * 60000);
+        var max = new Date(e.model.JobEndDateTime.getTime() + @lateEnd * 60000);
+        if (e.model.ClockIn != null && e.model.ClockOut != null) {
+            // get intended date & time
+            adjustTimes(e.model);
+
+            if (e.model.ClockIn > e.model.ClockOut ||
+                e.model.ClockIn < min || e.model.ClockIn > max ||
+                e.model.ClockOut < min || e.model.ClockOut > max) {
+                error = "Invalid 'Sign In' or/and 'Sign Out' time:<br />" +
+                    e.model.ClockIn.toString() + "<br />" + e.model.ClockOut.toString();
+            }
+            else {
+                isValid = true;
+
+                // avoid possible validation errors
+                if (e.model.Id === 0) {
+                    var utcNow = new Date('@(DateTime.UtcNow)');
+                    e.model.set("CreatedOnUtc", utcNow);
+                    e.model.set("UpdatedOnUtc", utcNow);
+                }
+            }
+        }
+        else
+            error = "Invalid 'Sign In' or/and 'Sign Out' input";
+
+        if (!isValid || error) {
+            e.preventDefault();
+            displayPopupNotification(error, "error");
+        }
+    }
+
+    function adjustTimes(model) {
+        // forced to the start date
+        var sameDayIn = getDateTime(model.JobStartDateTime, model.ClockIn);
+        var inDiff = (sameDayIn - model.JobStartDateTime) / 60000;
+        if (inDiff < -12 * 60)
+            model.ClockIn = addDays(sameDayIn, 1);
+        else
+            model.ClockIn = sameDayIn;
+
+        // forced to the end date
+        var sameDayOut = getDateTime(model.JobEndDateTime, model.ClockOut);
+        var outDiff = (sameDayOut - model.JobStartDateTime) / 60000;
+        if (outDiff > 12 * 60 + @lateEnd)
+            model.ClockOut = addDays(sameDayOut, -1);
+        else
+            model.ClockOut = sameDayOut;
+    }
+
+    function onCancel(e) {
+        e.preventDefault();
+        refreshGrid();
+    }
+
+    function clockInTemplate(data) {
+        var template = kendo.template($('#clockIn').html());
+        return template(data);
+    }
+
+    function clockOutTemplate(data) {
+        var template = kendo.template($('#clockOut').html());
+        return template(data);
+    }
+
+</script>
+
+
+<script id="clockIn" type="text/x-kendo-template">
+    # var clock = kendo.toString(ClockIn,'MM/dd/yyyy HH:mm'); #
+    # if (!clock) clock = ""; #
+    # if (ReadOnly) {#
+    #= clock #
+    #} else {#
+    <span style='color:blue'>#= clock #</span>
+    #}#
+</script>
+
+
+<script id="clockOut" type="text/x-kendo-template">
+    # var clock = kendo.toString(ClockOut,'MM/dd/yyyy HH:mm'); #
+    # if (!clock) clock = ""; #
+    # if (ReadOnly) {#
+    #= clock #
+    #} else {#
+    <span style='color:blue'>#= clock #</span>
+    #}#
+</script>

@@ -1,0 +1,39 @@
+﻿@using (Html.BeginForm("_PopulateWorkTime", "Scheduling", FormMethod.Post, new { id = "populate-worktime-form" }))
+{
+    <table>
+        <tr>
+            <td class="adminTitle" width="25%">Start Date</td>
+            <td class="adminData required" width="75%">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                    .Name("startDate")
+                    .Format("yyyy-MM-dd")
+                    .Min(ViewBag.PeriodStartDate).Max(ViewBag.PeriodEndDate)
+                    .Value(ViewBag.PeriodStartDate)
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">End Date</td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                    .Name("endDate")
+                    .Format("yyyy-MM-dd")
+                    .Min(ViewBag.PeriodStartDate).Max(ViewBag.PeriodEndDate)
+                    .Value(ViewBag.PeriodEndDate)
+                )
+            </td>
+        </tr>
+    </table>
+
+    <br/><br/>
+    <div style="text-align:center"><input type="submit" id="submit-populate" value="Submit" name="submit" class="k-button" /></div>
+}
+
+
+<script type="text/javascript">
+
+    function populateWorkTime() {
+        // assign values to hidden inputs
+    }
+
+</script>

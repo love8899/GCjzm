@@ -1,0 +1,293 @@
+﻿@using Wfm.Services.Common;
+@using Wfm.Services.DirectoryLocation;
+@using Wfm.Services.Franchises;
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts;
+@model IEnumerable<CandidateModel>
+
+@{
+    ViewBag.Title = T("Admin.Candidate.Candidate.Pictures").Text;
+    
+    var genderService = EngineContext.Current.Resolve<IGenderService>();
+    var transportationService = EngineContext.Current.Resolve<ITransportationService>();
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var cityService = EngineContext.Current.Resolve<ICityService>();
+    var stateProvinceService = EngineContext.Current.Resolve<IStateProvinceService>();
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+    
+    var genders = genderService.GetAllGenders();
+    var transportation = transportationService.GetAllTransportations();
+    var shifts = shiftService.GetAllShifts();
+    var franchises = franchiseService.GetAllFranchises();
+    var cities = cityService.GetAllCities();
+    var stateProvinces = stateProvinceService.GetAllStateProvinces();
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+    //set the Global viewbag Variable
+    ViewBag.SearchArea = "Candidate";
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Candidate.Candidate.Pictures")
+    </div>
+    <div class="options">
+        @if (permissionService.Authorize("AllowAddCandidates"))
+        {
+            @Html.ActionLink(T("Common.Add").Text, "Create", null, new { @class = "k-button" })
+        }
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateModel>()
+                .Name("candidate-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x).Width(40).Sortable(false).Filterable(false)
+                        .ClientTemplate("#if (IsHot == true) {# <img alt='' src='" + Url.Content("~/Administration/Content/images/hot-true.png") + "' /> #} else if (IsBanned == true) {# <img alt='' src='" + Url.Content("~/Administration/Content/images/ico-stop1.png") + "' /> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" })
+                        .HtmlAttributes(new { style = "text-align:center;vertical-align:middle;" })
+                        .Title("");
+
+                    
+                    columns.Bound(x => x).Width(120).Sortable(false).Filterable(false)
+                        .ClientTemplate("<img alt='#= Id #' src='#= PictureThumbnailUrl #' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" })
+                        .HtmlAttributes(new { style = "text-align:center;vertical-align:middle;" })
+                        .Title(T("Common.Photo").Text);
+
+
+                    columns.Bound(x => x.LastName)
+                        .Template(x => Html.ActionLink(x.FirstName, "Details", new { guid=x.CandidateGuid }, new { }))
+                        .ClientTemplate(
+                            "<div class=\"banned-#= IsBanned #\">" +
+                                "<span class='employeeId'>#= EmployeeId #</span>" +
+                                "<span class='name'>" + @Html.ActionLink("#=FirstName# #=LastName#", "Details", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString() + "</span>" +
+                                "<span class='description'>#= prettyPhone(HomePhone) ##if (MobilePhone != null) {# , #= prettyPhone(MobilePhone) ##}#</span>" +
+                                "<span class='description'>#= Email #</span>" +
+                            "</div>")
+                        .HtmlAttributes(new { style = "vertical-align:middle;" })
+                        .Title("Details");
+
+                    
+                    columns.Bound(x => x.FirstName)
+                        .HtmlAttributes(new { style = "vertical-align:middle;" })
+                        .Hidden(true);
+                    columns.Bound(x => x.MiddleName)
+                        .HtmlAttributes(new { style = "vertical-align:middle;" })
+                        .Hidden(true);
+                    columns.Bound(x => x.Id).ClientTemplate("#= kendo.toString(Id, '00000000') #")
+                        .HtmlAttributes(new { style = "text-align:center;vertical-align:middle;" })
+                        .Width(80)
+                        .Hidden(true);
+                    columns.ForeignKey(x => x.GenderId, genders, "Id", "GenderName")
+                        .HtmlAttributes(new { style = "vertical-align:middle;" })
+                        .Hidden(true);
+                    columns.Bound(x => x.BirthDate)
+                        .HtmlAttributes(new { style = "vertical-align:middle;" })
+                        .Hidden(true);
+                    columns.Bound(x => x.Email)
+                        .HtmlAttributes(new { style = "vertical-align:middle;" })
+                        .Hidden(true);
+                    columns.Bound(x => x.Email2)
+                        .HtmlAttributes(new { style = "vertical-align:middle;" })
+                        .Hidden(true);
+                    columns.Bound(x => x.SearchKeys).Sortable(false)
+                        .HtmlAttributes(new { style = "vertical-align:middle;" })
+                        .Hidden(true);
+                    columns.Bound(x => x.HomePhone)
+                        .ClientTemplate("#= prettyPhone(HomePhone) #")
+                        .HtmlAttributes(new { style = "vertical-align:middle;" })
+                        .Width(110)
+                        .Hidden(true);
+                    columns.Bound(x => x.MobilePhone)
+                        .ClientTemplate("#= prettyPhone(MobilePhone) #")
+                        .HtmlAttributes(new { style = "vertical-align:middle;" })
+                        .Width(110)
+                        .Hidden(true);
+                    columns.Bound(x => x.EmergencyPhone)
+                        .ClientTemplate("#= prettyPhone(EmergencyPhone) #")
+                        .HtmlAttributes(new { style = "vertical-align:middle;" })
+                        .Width(110)
+                        .Hidden(true);
+                    columns.Bound(x => x.SocialInsuranceNumber)
+                        .ClientTemplate("#= prettySocialInsuranceNumber(SocialInsuranceNumber) #")
+                        .HtmlAttributes(new { style = "vertical-align:middle;" })
+                        .Width(100)
+                        .Hidden(true);
+
+                    
+                    columns.ForeignKey(x => x.CandidateAddressModel.CityId, cities, "Id", "CityName").Sortable(false).Filterable(false)
+                        .HtmlAttributes(new { style = "vertical-align:middle;font-size:1.8em;font-weight:bold;", @class = "location" });
+                    columns.ForeignKey(x => x.CandidateAddressModel.StateProvinceId, stateProvinces, "Id", "StateProvinceName").Sortable(false).Filterable(false)
+                        .HtmlAttributes(new { style = "vertical-align:middle;font-size:1.8em;font-weight:bold;", @class = "location" });
+                    columns.ForeignKey(x => x.TransportationId, transportation, "Id", "TransportationName")
+                        .HtmlAttributes(new { style = "vertical-align:middle;font-size:1.8em;font-weight:bold;", @class = "location" });
+                    
+                    
+                    columns.Bound(x => x.PreferredWorkLocation)
+                        .HtmlAttributes(new { style = "vertical-align:middle;" })
+                        .Hidden(true);
+                    columns.ForeignKey(x => x.ShiftId, shifts, "Id", "ShiftName")
+                        .HtmlAttributes(new { style = "vertical-align:middle;" })
+                        .Hidden(true);
+                    if (!workContext.CurrentAccount.IsVendor() && commonSettings.DisplayVendor)
+                    {
+                        columns.ForeignKey(x => x.FranchiseId, franchises, "Id", "FranchiseName")
+                            .HtmlAttributes(new { style = "vertical-align:middle;" })
+                            .Hidden(true);
+                    }
+                    columns.Bound(x => x.Note)
+                        .HtmlAttributes(new { style = "vertical-align:middle;" })
+                        .Encoded(false)
+                        .Hidden(true);
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#")
+                        .HtmlAttributes(new { style = "vertical-align:middle;" })
+                        .Width(120)
+                        .Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#")
+                        .HtmlAttributes(new { style = "vertical-align:middle;" })
+                        .Width(120)
+                        .Hidden(true);
+
+                    
+                    columns.Bound(x => x.IsActive)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)                       
+                        .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" })
+                        .HtmlAttributes(new { style = "text-align:center;vertical-align:middle;" })
+                        .Width(90);
+                        
+                        
+                    columns.Bound(x => x.IsHot)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/hot-" + item.IsHot.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Administration/Content/images/") + "hot-#= IsHot #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" })
+                        .HtmlAttributes(new { style = "text-align:center;vertical-align:middle;" })
+                        .Width(90)
+                        .Hidden(true);
+                    columns.Bound(x => x.IsBanned)
+                        .Template(@<img alt="" src="@Url.Content("~/Administration/Content/images/stop-" + item.IsBanned.ToString().ToLowerInvariant() + ".png")" />)                      
+                        .ClientTemplate("#if (IsBanned == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" })
+                        .HtmlAttributes(new { style = "text-align:center;vertical-align:middle;" })
+                        .Width(90)
+                        .Hidden(true);
+
+
+                    columns.Bound(x => x.Id).Sortable(false).Filterable(false).IncludeInMenu(false)
+                        .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { guid=x.CandidateGuid }))                      
+                        .ClientTemplate("<a class='k-button' title='" + T("Common.Edit").Text + "' href=\"" + @Url.Content("~/Admin/Candidate/Edit?guid=") + "#= CandidateGuid #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" })
+                        .HtmlAttributes(new { style = "text-align:center;vertical-align:middle;" })
+                        .Title("")
+                        .Width(90);
+
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 5, 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(true)
+                        .PageSize(5)
+                        .Read(read => read.Action("ListByPicture", "Candidate"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+@section HeadContent {
+    <style>
+        .k-grid tr td {
+             border:none;
+             padding:15px;
+         }
+        .employeeId {
+            font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #898989;
+        }
+
+        .location {
+            vertical-align:middle;
+            font-size:1.8em;
+            font-weight:bold;
+            color:grey;
+        }
+        .k-grid tr.k-state-selected .location, .k-grid tr.k-state-selected .employeeId {
+            color:#fff;
+        }
+
+        td.photo, .employeeId {
+            text-align: center;
+        }
+        .name {
+            display: block;
+            font-size: 1.8em;
+            padding: .7em 0;
+        }
+        .name a {
+            font-weight: bold;
+        }
+        .name a:hover {
+            font-weight: bold;
+            text-decoration:none;
+        }
+        .description {
+            display: block;
+            font-size: 1.1em;
+        }
+
+        .k-grid-header .k-header {
+            padding:7px 15px;
+        }
+        .k-grid-header th.k-header, .k-filter-row th {
+            padding:7px 15px;
+        }
+
+        .k-grid td {
+            background: -moz-linear-gradient(top, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 100%);
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,0.05)), color-stop(100%,rgba(0,0,0,0.15)));
+            background: -webkit-linear-gradient(top, rgba(0,0,0,0.05) 0%,rgba(0,0,0,0.15) 100%);
+            background: -o-linear-gradient(top, rgba(0,0,0,0.05) 0%,rgba(0,0,0,0.15) 100%);
+            background: -ms-linear-gradient(top, rgba(0,0,0,0.05) 0%,rgba(0,0,0,0.15) 100%);
+            background: linear-gradient(to bottom, rgba(0,0,0,0.05) 0%,rgba(0,0,0,0.15) 100%);
+            padding: 20px;
+        }
+
+        .k-grid .k-alt td {
+            background: -moz-linear-gradient(top, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.1) 100%);
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,0.2)), color-stop(100%,rgba(0,0,0,0.1)));
+            background: -webkit-linear-gradient(top, rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.1) 100%);
+            background: -o-linear-gradient(top, rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.1) 100%);
+            background: -ms-linear-gradient(top, rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.1) 100%);
+            background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.1) 100%);
+        }
+    </style>
+}
+
+
+

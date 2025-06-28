@@ -1,0 +1,274 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Companies
+@using Wfm.Services.Scheduling
+@using Wfm.Shared.Mapping
+@using Wfm.Shared.Models.Scheduling
+
+@model EmployeeSchedulePreviewModel
+    @{ 
+        var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+        var editPermission = permissionService.Authorize("ManageSchedulingPlacement");
+        var timelineTemplate = "<div class='task-template-margin'>" +
+                        "# if (typeof BreakTimeDisplayNotNull !== 'undefined') { for (var i = 0; i < BreakTimeDisplayNotNull.length; i++) { # " +
+                            "<span class='break-marker' data-index='#=i#' title='Break at #= BreakTimeDisplayNotNull[i] #' style='top: #= BreakTimePosition[i] #%;position: absolute;'></span>" +
+                        "# } }#" +
+                            "<div>" +
+                                "<strong>#= title #</strong> <br />" +
+                                "<span class='sub-title'>#= kendo.toString(start, \"hh:mm tt\") # - #: kendo.toString(end, \"hh:mm tt\") #</span>" +
+                            "</div>" +
+                        "</div>";
+    }
+<style scoped>
+    .k-widget.k-multiselect {
+        width: 500px;
+        vertical-align: middle;
+        display: inline-block;
+    }
+
+    .k-grid {
+        font-size: 85% !important;
+    }
+
+    .k-scheduler-table {
+        font-size: 80% !important;
+    }
+
+    .k-event-template {
+        font-size: 80% !important;
+    }
+
+    .k-scheduler-footer {
+        font-size: 80% !important;
+    }
+
+    .k-scheduler-times-all-day {
+        display: none;
+    }
+
+    .k-scheduler-header-all-day {
+        display: none;
+    }
+
+    .k-scheduler-footer {
+        background-color: white !important;
+    }
+
+    .k-scheduler-toolbar .k-link {
+        color: white !important;
+    }
+
+    .k-scheduler-footer .k-link {
+        color: black !important;
+    }
+
+    td[role='gridcell'] input {
+        font-size: 1em !important;
+    }
+
+    .k-event {
+        border-radius: 5px;
+        box-shadow: 5px 5px 2px #888888;
+        border-color: #606fc7;
+        background: #606fc7 0 -257px none repeat-x;
+        color: #ffffff;
+    }
+
+    .k-scheduler-table th.k-slot-cell {
+        font-size: 1.1em;
+        font-family: cursive;
+    }
+</style>
+<div class="section-header">
+    <div class="title">
+        @string.Format("{0} {1}", T("Common.Employee"), T("Common.Schedule"))
+    </div>
+</div>
+<script>
+    var editPermission = @Json.Encode(editPermission);
+    var breakMarkerIsMoving = false;
+    function showMessage(html) {
+        var kendoWindow = $("<div />").kendoWindow({
+            title: "Errors and Warnings",
+            resizable: false,
+            width: 800,
+            height: 600,
+            modal: true
+        });
+
+        kendoWindow.data("kendoWindow")
+            .content(html)
+            .center().open();
+        return false;
+    }
+
+    function getEmployeeGuid() {
+        return { employeeGuid: '@ViewBag.EmployeeId' };
+    }
+    function filterEmployees() {
+        return {
+            schedulePeriodId: 0,
+        }
+    }
+    function moveStart(event) {
+        if (!editPermission ||
+            (event.event && event.event.EmployeeScheduleId == 0) ||// timeoff booking
+            breakMarkerIsMoving) { 
+            event.preventDefault();
+        } 
+    }
+
+    function onResizeStart(event) {
+        if (!editPermission ||
+            (event.event && event.event.EmployeeScheduleId == 0)) { // timeoff booking
+            event.preventDefault();
+        }
+    }
+    function onAdd(e) {
+        if (!editPermission) { 
+            e.preventDefault();
+        }
+        else {
+            debugger
+            e.event.EmployeeId = @ViewBag.CandidateId;
+            e.event.ScheduelDate = e.event.start;
+            e.event.EmployeeScheduleId = -1;
+        }
+    }
+    function onEdit(e) {
+        if (!editPermission ||
+            (e.event && e.event.EmployeeScheduleId == 0)) { // timeoff booking
+            e.preventDefault();
+        }
+    }
+    function onDataBound(e){
+        if (!editPermission) { // timeoff booking
+            $('.k-event-delete').hide();
+        }
+    }
+    function onSave(e) {
+        $.ajax({
+            url: '@Url.Action("_ValidateShiftSchedulePreview", "Scheduling")',
+            async: false,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(e.event),
+            dataType: 'json',
+            success: function (result) {
+                if (result.Popup) {
+                    showMessage(result.Popup);
+                }
+                if (!result.Success) {
+                    e.preventDefault();
+                }
+            }
+        });
+    }
+    $(function(){
+        onDataBound(null);
+        $("#contextMenu").kendoContextMenu({
+            filter: ".k-event, .k-scheduler-table td",
+            target: "#shift-scheduler",
+            //Optionally show the menu on left mouse click:
+            //showOn: "click",
+            select: function(e) {
+                var target = $(e.target);
+                var scheduler = $("#shift-scheduler").data("kendoScheduler");
+
+                if (target.hasClass("k-event")) {
+                    var occurrenceByUid = scheduler.occurrenceByUid(target.data("uid"));
+
+                    scheduler.editEvent(occurrenceByUid);
+                } else {
+                    var slot = scheduler.slotByElement(target);
+
+                    scheduler.addEvent({
+                        start: slot.startDate,
+                        end: slot.endDate
+                    });
+                }
+            },
+            open: function(e) {
+                var menu = e.sender;
+                var text = $(e.target).hasClass("k-event") ? "Edit event" : "Add Event";
+
+                menu.remove(".myClass");
+                menu.append([{text: text, cssClass: "myClass" }]);
+            }
+        });
+    })
+</script>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Scheduler<EmployeeSchedulePreviewModel>()
+            .Name("shift-scheduler")
+            .Date(DateTime.Today)
+            .Selectable(true)
+            .Editable(edit =>
+            {
+                edit.Create(true);
+                edit.TemplateName("_EmployeeScheduleEditorTemplate");
+            })
+            .Messages(m => m.Editor(b => b.EditorTitle("Scheduled Task")))
+            //.Max(endDate)
+            //.Min(startDate)
+            //.Height(700) //  #=  #
+            .Views(views =>
+            {
+                views.DayView(day =>
+                {
+                    day.EventTemplate(timelineTemplate);
+                });
+                views.WeekView(week =>
+                {
+                    week.Selected(true);
+                    week.EventTemplate(timelineTemplate);
+                });
+                views.WorkWeekView(week =>
+                {
+                    week.EventTemplate(timelineTemplate);
+                });
+            })
+            .DateHeaderTemplate("#= kendo.toString(date, 'yyyy-MM-dd') #")
+            .MajorTimeHeaderTemplate("#= kendo.toString(date, 'h tt') #")
+            .DataSource(d => d
+                .Model(m =>
+                {
+                    m.Id(f => f.UniqueId);
+                })
+                .ServerOperation(true)
+                .Read(
+                    read =>
+                    {
+                        read.Action("_ReadEmployeeSchedule", "Scheduling").Data("getEmployeeGuid");
+                    })
+                .Create(
+                    create =>
+                    {
+                        create.Action("_CreateShiftSchedulePreview", "Scheduling").Data("filterEmployees");
+                    })
+                .Update(
+                    update =>
+                    {
+                        update.Action("_UpdateShiftSchedulePreview", "Scheduling");
+                    })
+                 .Destroy(
+                    delete =>
+                    {
+                        delete.Action("_DeleteEmployeeScheduleDaily", "Scheduling");
+                    })
+                )
+            .Events(e =>
+            {
+                e.Add("onAdd");
+                e.Edit("onEdit");
+                e.Save("onSave");
+                e.DataBound("onDataBound");
+                e.MoveStart("moveStart");
+                e.ResizeStart("onResizeStart");
+            })
+            )
+            <ul id="contextMenu"></ul>
+        </td>
+    </tr>
+</table>

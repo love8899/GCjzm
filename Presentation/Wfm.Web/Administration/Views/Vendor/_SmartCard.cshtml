@@ -1,0 +1,51 @@
+﻿<div class="smartcard">
+    <div id="front-container" class="side-container">
+        <div id="front" class="side">
+            <div id="logo" class="row"><img alt="Logo"></div>
+            <div id="photo" class="row"><img alt="Photo"></div>
+            <div id="fullname" class="row">Name</div>
+            <div id="employeeid" class="row">ID</div>
+        </div>
+    </div>
+    <div id="back-container" class="side-container">
+        <div id="back" class="side">
+            <div id="barcode" class="row">Bar Code</div>
+            <div id="note" class="row">Note</div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function scaleImages() {
+        scaleDivImg('#logo');
+        scaleDivImg('#photo');
+    }
+    function scaleDivImg(divId) {
+        var div = $(divId);
+        var outterRatio = div.width() / div.height();
+        var img = $(divId + ' img');
+        img.one("load", function () {
+            if (!img.attr("src")) {
+                $(this).width('100%');
+                $(this).height('100%');
+                return;
+            };
+            var innerRatio = this.width / this.height;
+            if (innerRatio < outterRatio) {
+                $(this).height('100%');
+                var width = (innerRatio / outterRatio * 100).toFixed(2);
+                $(this).width(width + '%');
+                $(this).css('margin-left', (100 - width) / 2 + '%');
+            } else if (innerRatio > outterRatio) {
+                $(this).width('100%');
+                var height = (outterRatio / innerRatio * 100).toFixed(2);
+                $(this).height(height + '%');
+                $(this).css('margin-top', (100 - height) / 2 + '%');
+            } else {
+                $(this).width('100%');
+                $(this).height('100%');
+            }
+        }).each(function() {
+            if(this.complete) $(this).load();
+        });
+    }
+</script>

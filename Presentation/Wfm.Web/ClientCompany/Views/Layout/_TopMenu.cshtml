@@ -1,0 +1,124 @@
+﻿@using Wfm.Core
+@using Wfm.Services.Features;
+@using Wfm.Web.Framework.Menu
+@{
+    Layout = null;
+
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var userFeatureService = EngineContext.Current.Resolve<IUserFeatureService>();
+    List<string> features = userFeatureService.GetAllUserFeatureNamesByUserId(workContext.CurrentAccount.CompanyId);
+
+    var siteMap = new XmlSiteMap("Client", features);
+    siteMap.LoadFrom("~/ClientCompany/sitemap.config");
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+}
+
+@helper RenderMenuItem(Wfm.Web.Framework.Menu.SiteMapNode item)
+{
+    string url = null;
+    if (!String.IsNullOrEmpty(item.ControllerName) && !String.IsNullOrEmpty(item.ActionName))
+    {
+        url = Url.Action(item.ActionName, item.ControllerName, item.RouteValues, null, null);
+    }
+    else if (!string.IsNullOrEmpty(item.Url))
+    {
+        url = item.Url.StartsWith("~/", StringComparison.Ordinal) ? Url.Content(item.Url) : item.Url;
+    }
+    var isActive = item.ContainsSystemName(Html.GetActiveMenuItemSystemName());
+
+    if (!String.IsNullOrEmpty(url))
+    {
+        <li @(isActive ? Html.Raw("class=\"active current-active-item\"") : null)>
+            <a href="@url" class="menu-item-link" @(item.OpenUrlInNewTab ? Html.Raw(" target=\"_blank\"") : null)>
+                @*@if (!String.IsNullOrEmpty(item.IconClass))
+                    {
+                        <text>
+                            <i class="fa @Url.Content(item.IconClass)"></i>
+                        </text>
+                    }*@
+                @item.Title
+            </a>
+        </li>
+    }
+    else
+    {
+        var childNodes = item.ChildNodes.Where(x => x.Visible);
+        var hasChildNodes = childNodes.Any();
+        <li class="@(hasChildNodes ? Html.Raw("dropdown") : null) @(isActive ? Html.Raw("active current-active-item") : null)">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                @*@if (!String.IsNullOrEmpty(item.IconClass))
+                    {
+                        <text>
+                            <i class="fa @Url.Content(item.IconClass)"></i>
+                        </text>
+                    }*@
+                @item.Title&nbsp;<span class="caret"></span>
+            </a>
+            @if (hasChildNodes)
+            {
+                <ul class="dropdown-menu" role="menu">
+                    @foreach (var childItem in childNodes)
+                    {
+                        @RenderMenuItem(childItem)
+                    }
+                </ul>
+            }
+        </li>
+    }
+}
+
+<div class="container">
+    <div class="navbar-header">
+        <a href="~/Client/Home/News" class="navbar-brand" title="@siteTitle">
+            @*<span class="hidden-xs hidden-sm hidden-md">@siteTitle</span>*@
+            <span class="hidden-sm hidden-md">@siteTitle</span>
+        </a>
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false">
+            <i class="fa fa-bars"></i>
+        </button>
+    </div>
+    <div class="navbar-collapse pull-left collapse" id="navbar-collapse" aria-expanded="false" style="height: 0.8px;">
+        <ul class="nav navbar-nav">
+            @foreach (var item in siteMap.RootNode.ChildNodes.Where(x => x.Visible))
+            {
+                @RenderMenuItem(item)
+            }
+        </ul>
+        @*<form class="navbar-form navbar-left" role="search">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="navbar-search-input" placeholder="Search">
+                </div>
+            </form>*@
+    </div>
+    <div class="navbar-custom-menu">
+        <ul class="nav navbar-nav">
+            @*<li class="dropdown messages-menu">
+                    @Html.Partial("Layout/_MessagesMenu")
+                </li>*@
+            <li class="dropdown notifications-menu">
+                @Html.Partial("_NotificationsMenu")
+            </li>
+            @*<li class="dropdown tasks-menu">
+                    @Html.Partial("layout/_TasksMenu")
+                </li>*@
+            <li class="dropdown user user-menu">
+                @Html.Partial("_UserMenu")
+            </li>
+        </ul>
+    </div>
+</div>
+<script>
+    $(function () {
+        //var isTouchDevice = ('ontouchstart' in window || 'onmsgesturechange' in window);
+        var isTouchDevice = !!('ontouchstart' in window || navigator.maxTouchPoints);
+        if (!isTouchDevice) {   // hover = click
+            $("li.dropdown").hover(function (e) {
+                $(this).toggleClass("open");
+            });
+        } else {    // hide some features on mobile
+            $("ul.navbar-nav li > a:contains('Reports')").parent().hide();
+        }
+    });
+</script>

@@ -1,0 +1,107 @@
+﻿@using Wfm.Core
+@using Wfm.Shared.Models.Companies
+@using Wfm.Services.Common
+@using Wfm.Services.Companies
+
+@model CompanyJobRoleModel
+<script>
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+</script>
+@{ 
+    var companyId = EngineContext.Current.Resolve<IWorkContext>().CurrentAccount.CompanyId;
+    var accounts = EngineContext.Current.Resolve<ICompanyContactService>()
+        .GetCompanyContactsByCompanyId(companyId)
+        .Select(x => new SelectListItem { Text = x.FullName, Value = x.Id.ToString(), }).ToArray();
+    var positions = EngineContext.Current.Resolve<IPositionService>().GetAllPositionByCompanyId(companyId)
+        .Select(x => new SelectListItem { Text = x.Name, Value = x.Id.ToString(), }).ToArray();
+}
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "job-role-report-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @(Model.Id > 0 ? T("Web.JobRole.Edit").Text : T("Web.JobRole.Add").Text)
+        </div>
+        <div class="options">
+            <input type="button" name="save" id="save-job-role-report" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" name="close" id="close-job-role-report" class="k-button" value="@T("Common.Close")" />
+        </div>
+    </div>
+
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.CompanyId)
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+    @Html.HiddenFor(model => model.UpdatedOnUtc)
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.PositionId)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                .Name("PositionId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(positions)
+                )
+                @Html.WfmValidationMessageFor(model => model.PositionId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.LocationName)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                .Name("LocationId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(Model.LocationList)
+                )
+                @Html.WfmValidationMessageFor(model => model.LocationId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Name)
+            </td>
+            <td class="adminData required">
+                @Html.Kendo().TextBoxFor(model => model.Name)
+                @Html.WfmValidationMessageFor(model => model.Name)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Description)
+            </td>
+            <td class="adminData">
+                @Html.TextAreaFor(model => model.Description, new { id = "Description", style = "height:50px;width:100%;" })
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.RequiredSkillIds)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().MultiSelect()
+                  .Name("RequiredSkillIds")
+                  .Placeholder("Select required skills...")
+                  .DataTextField("Text")
+                  .DataValueField("Value")
+                  .BindTo(Model.SkillList)
+                  .Value(Model.SelectedSkillList))
+            </td>
+        </tr>
+    </table>
+}
+
+
+
+

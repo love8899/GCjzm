@@ -1,0 +1,88 @@
+﻿@model CandidateLogOnModel
+@using Wfm.Core
+@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@using Wfm.Web.Models.Candidate
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.cshtml";
+    ViewBag.PageClass = "html-login-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    ViewBag.Title = "Sign In - Job Seekers | " + siteTitle + " Employment";
+    ViewBag.Description = siteTitle + " Employment is one of Toronto’s Leading Employment Agencies. We offer leading jobs in Toronto, Markham, Mississauga, Brampton and throughout Ontario.";
+    ViewBag.Keywords = siteTitle + " Employment,Employment,Staffing,Jobs,Temporary,Permanent,Information Technology,Call Centre,General Labour,Warehouse,Accounting,Customer Service,Marketing,Skilled Trades,Manufacturing";
+
+    string returnUrl = ViewBag.ReturnUrl ?? this.Context.Request.QueryString["returnUrl"];
+
+    //register URL with return URL (if specified)
+    var registerUrl = Url.RouteUrl("CandidateNewRegister");
+    if (!String.IsNullOrEmpty(returnUrl))
+    {
+        var webHelper = EngineContext.Current.Resolve<IWebHelper>();
+        registerUrl = webHelper.ModifyQueryString(registerUrl, "returnurl=" + HttpUtility.UrlEncode(this.Context.Request.QueryString["returnUrl"]), null);
+    }
+}
+
+<script type="text/javascript">
+    $("#signin").one("click", function () { $(this).click(function () { return false; }); });
+</script>
+<div class="page login-page">
+    <div class="page-title">
+        <h1>Welcome, Please Sign In!</h1>
+    </div>
+    <div class="page-body">
+        <div class="customer-blocks">
+            <div class="new-wrapper register-block">
+                <div class="title">
+                    <strong>New Candidate</strong>
+                </div>
+                <div class="text">
+                    By creating an account on our website you will be able to search & apply jobs, and to keep track of your work & payment records.
+                </div>
+                <div class="buttons">
+                    <input type="button" class="button-1 register-button" onclick="location.href='@registerUrl'" value="Register" />
+                </div>
+            </div>
+            <div class="returning-wrapper">
+                @using (Html.BeginForm(new { returnUrl = returnUrl }))
+                {
+                    var validationSummary = Html.ValidationSummary(true, "Login failed");
+                    <div class="title">
+                        <strong>Registered Candidate</strong>
+                    </div>
+                    if (!MvcHtmlString.IsNullOrEmpty(validationSummary))
+                    {
+                        <div class="message-error">@validationSummary</div>
+                    }
+                    @Html.AntiForgeryToken()
+                    <div class="fieldset">
+                        <div class="form-fields">
+                            <div class="inputs">
+                                @Html.LabelFor(m => m.UserName, new { }, ":")
+                                @*@Html.LabelFor(m => m.UserName, new { @class = "required" }, ":")*@
+                                @Html.TextBoxFor(m => m.UserName, new { @class = "username", autofocus = "autofocus" })
+                                @Html.ValidationMessageFor(m => m.UserName)
+                                @*@Html.WfmValidationMessageFor(m => m.UserName)*@
+                            </div>
+                            <div class="inputs">
+                                @Html.LabelFor(m => m.Password, new { }, ":")
+                                @Html.PasswordFor(m => m.Password, new { @class = "password" })
+                                @Html.ValidationMessageFor(m => m.Password)
+                                @*@Html.WfmValidationMessageFor(m => m.Password)*@
+                            </div>
+                            <div class="inputs reversed">
+                                <span class="forgot-password">
+                                    @Html.RouteLink("Forgot password?", "CandidateForgetPassword")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="buttons">
+                        <input id="signin" class="button-1 login-button" type="submit" value="Log in" />
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

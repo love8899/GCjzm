@@ -1,0 +1,12 @@
+﻿@model int?
+
+@(Html.Kendo().DropDownListFor(m => m)
+    .OptionLabel((string)ViewData["Option"] ?? "All")
+    .DataTextField((string)ViewData["TextField"] ?? "Text")
+    .DataValueField((string)ViewData["ValueField"] ?? "Value")
+    .Enable((bool?)ViewData["Enable"] ?? true)
+    .DataSource(ds => ds.Read(r => r.Action((string)ViewData["Action"], (string)ViewData["Controller"])
+        .Data((string)ViewData["OnData"])).ServerFiltering(true))
+    .Events(e => e.Change((string)ViewData["OnChange"] ?? "doNothing"))
+    .HtmlAttributes(ViewData["HtmlAttr"])
+)

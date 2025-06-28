@@ -1,0 +1,56 @@
+﻿@using Wfm.Core.Domain.Companies
+@using Wfm.Services.Companies
+
+<div class="section-header">
+    <div class="title">
+        @T("CompanyActivity.ActivityTypeId") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+    <div class="options">
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+
+            @(Html.Kendo().Grid<ActivityType>()
+                .Name("activity-type-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(50);
+                    columns.Bound(x => x.TypeName).Title(T("Common.Name").Text).Width(150).HtmlAttributes(new { required="required"});
+                    columns.Command(command => { command.Destroy().Text(" "); }).Width(50);
+                })
+                .ToolBar(toolBar => { toolBar.Save(); toolBar.Create(); })
+                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                .EnableCustomBinding(false)
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Batch(true)
+                    .Read(read => read.Action("_ActivityTypeList", "ActivityType"))
+                    .Events(events => events.Error("error_handler"))
+                    .Model(model =>
+                    {
+                        model.Id(x => x.Id);
+                        model.Field(x => x.Id).Editable(false);
+                        model.Field(x => x.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(x => x.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                    })
+                            .Create(update => update.Action("_AddActivityType", "ActivityType"))
+                            .Update(update => update.Action("_EditActivityType", "ActivityType"))
+                            .Destroy(update => update.Action("_RemoveActivityType", "ActivityType"))
+                                    .Events(events => events.Sync(@"function(e){setTimeout(function(){refreshGrid('#activity-type-grid')})}"))
+                )
+            )
+
+        </td>
+    </tr>
+</table>
+

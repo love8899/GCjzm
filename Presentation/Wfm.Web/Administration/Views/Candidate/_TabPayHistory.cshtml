@@ -1,0 +1,88 @@
+﻿@using Wfm.Core.Domain.Candidates
+@{
+    Layout = "";
+    ViewBag.Title = T("Admin.Candidate.PayHistory").Text;
+
+    var refDate = ViewBag.RefDate;
+}
+<script type="text/javascript">
+    function gridParameter() {
+        return {
+            candidateGuid: '@(ViewBag.CandidateGuid)',
+            refDate: $("#refDate").data("kendoDatePicker").value()
+        };
+    }
+    function onChangeDatePicker() { reloadGrid(); }
+    function reloadGrid() {
+        $("#pay-history-grid").data("kendoGrid").dataSource.read();
+        selectedIds = [];
+    }
+</script>
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Candidate.PayHistory")
+    </div>
+    <div class="options">
+        <label for="inquiry-date">Load from: </label>
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("refDate").Events(e =>
+              {
+                  e.Change("onChangeDatePicker");
+              }).Value(refDate).Format("yyyy-MM-dd")
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<PaymentHistory>()
+                .Name("pay-history-grid")
+                .Columns(columns =>
+                    {
+                        columns.Bound(p => p.Company);
+                        columns.Bound(p => p.PayPeriodStart).Format("{0:yyyy-MM-dd}");
+                        columns.Bound(p => p.PayPeriodEnd).Format("{0:yyyy-MM-dd}");
+                        columns.Bound(p => p.PaymentDate).Format("{0:yyyy-MM-dd}");
+
+                        columns.Bound(p => p.ChequeNumber);
+                        columns.Bound(p => p.DirectDepositNumber);
+
+                        columns.Bound(p => p.GrossPay) .Format("{0:c}").HtmlAttributes(new { style = "text-align: right" });
+                        columns.Bound(p => p.TotalDeductions) .Format("{0:c}").HtmlAttributes(new { style = "text-align: right" });
+                        columns.Bound(p => p.NetPay).Format("{0:c}").HtmlAttributes(new { style = "text-align: right" });
+
+                        columns.Bound(x => x.CandidatePaymentHistoryGuid).Title(T("Common.Action").Text).Filterable(false).Sortable(false).IncludeInMenu(false)
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                            .ClientTemplate("<a class='k-button' target='_blank' href=\"" + @Url.Content("~/Admin/Candidate/Paystub/#=CandidatePaymentHistoryGuid#") + "\">" + T("Common.View").Text + "</a>")
+                            .Width(100);
+                    })
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(10)
+                    .Read(read => read.Action("_TabPayHistory", "Candidate").Data("gridParameter"))
+                    .Sort(sorts => {
+                        sorts.Add(x => x.PaymentDate).Descending();
+                        sorts.Add(x => x.PayPeriodStart).Descending();
+                    })
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

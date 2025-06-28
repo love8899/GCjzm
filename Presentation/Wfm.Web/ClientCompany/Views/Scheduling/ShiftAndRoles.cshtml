@@ -1,0 +1,44 @@
+﻿@model CompanyModel
+@using Wfm.Services.Security
+@using Wfm.Core
+
+@{
+    //ViewBag.Title = T("Admin.Companies.Company.CompanyDetails").Text;
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    var _workContext = EngineContext.Current.Resolve<IWorkContext>();
+}
+
+<script type="text/javascript">
+    function reTitleDelete() {
+        $('.k-grid-delete').html('<span class="fa fa-trash"></span>');
+    }
+</script>
+
+
+@if (!permissionService.Authorize("ManageClientJobRole") && !permissionService.Authorize("ManageClientJobShift"))
+{
+    <p>Access Denied.</p>
+}
+else
+{
+    @Html.Kendo().TabStrip().Name("company-details-tabstrip").Items(x =>
+    {
+        if (permissionService.Authorize("ManageClientJobRole"))
+        {
+            x.Add().Text(T("Web.JobRole.Title").Text).LoadContentFrom(Url.Action("_TabCompanyJobRoles", "Company"));
+        }
+        if (permissionService.Authorize("ManageClientJobShift"))
+        {
+            x.Add().Text(T("Common.JobShift").Text).LoadContentFrom(Url.Action("_TabCompanyJobShifts", "Company"));
+        }
+    })
+}
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var tabStrip = $("#company-details-tabstrip").data("kendoTabStrip");
+        if (tabStrip)
+            tabStrip.select(0);
+    });
+</script>

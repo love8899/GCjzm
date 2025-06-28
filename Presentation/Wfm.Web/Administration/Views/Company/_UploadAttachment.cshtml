@@ -1,0 +1,29 @@
+﻿@using Wfm.Core.Domain.Accounts;
+
+@{
+    var account = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>().CurrentAccount;
+    var isRestrictedByDefault = account.IsAdministrator() || account.IsPayrollAdministrator();
+}
+
+<script src="@Url.Content("~/Scripts/fileUploadHelper.js")" type="text/javascript"></script>
+<table class="adminContent">
+    <tr>
+        <td class="adminData">
+            @Html.CheckBox("IsRestricted", isRestrictedByDefault) Accessible only for you or administrators
+        </td>
+    </tr>
+    <tr>
+        <td class="adminData">
+            @(Html.Kendo().Upload().Name("files").Multiple(true)
+                .Async(c => c.AutoUpload(false)
+                .Save("SaveCompanyAttachment", "Company"))
+                .Events(events => events
+                    .Complete("onComplete2")
+                    .Error("onError")
+                    .Select("onSelect")
+                    .Success("onSuccess")
+                    .Upload("onUpload2"))
+            )
+        </td>
+    </tr>
+</table>

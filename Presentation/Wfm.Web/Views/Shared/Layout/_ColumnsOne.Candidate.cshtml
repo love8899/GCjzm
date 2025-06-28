@@ -1,0 +1,12 @@
+﻿@{
+    Layout = "~/Views/Shared/Layout/_Root.cshtml";
+
+    ViewBag.Area = ".Candidate";
+}
+<div id="notification-wrapper" class="notification-wrapper">
+    <span class="close" title="@T("Common.Close")">&nbsp;</span>
+    @*for notifications in page*@
+</div>
+<div class="center-1">
+    @RenderBody()
+</div>

@@ -1,0 +1,294 @@
+﻿@using System.Linq;
+@using Wfm.Services.Security;
+
+@{
+    Layout = "";
+    ViewBag.Title = T("Admin.Companies.Company.Candidate").Text;
+
+    var companyGuid = ViewBag.CompanyGuid;
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+}
+<script>
+    function onDataBound(e) {
+        $('.pool-rating').click(function (e) {
+            var posX = e.pageX - $(this).offset().left;
+            var rating = posX * 5 / $(this).width();
+            var innerWidth = rating * 20;
+            $(this).children('div').css('width', innerWidth + '%');
+            $.ajax({
+                cache: false,
+                url: '@Html.Raw(Url.Action("UpdateCompanyCandidateRatingValue", "Company"))',
+                data: { companyCandidateId: $(this).attr('data-rowid'), rating: rating },
+                dataType: "json",
+                type: 'post',
+                success: function (result) {
+                }
+            });
+        });
+    }
+</script>
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Companies.Company.Candidate")
+    </div>
+    <div class="options">
+        @if (permissionService.Authorize("ManageCandidates"))
+        {
+            <button id="import-candidate" class="k-button">@T("Admin.Companies.Company.Candidate.Import").Text</button>
+            <button id="export-candidate" class="k-button">@T("Admin.Companies.Company.Candidate.Export").Text</button>
+        }
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CompanyCandidateViewModel>()
+                .Name("company-candidate-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Hidden(true)
+                        .HtmlAttributes(new { id = "company-candidate-id" });
+
+                    columns.Bound(x => x.CompanyId).Hidden();
+
+                    columns.Bound(x => x.CandidateId).Title(@T("Common.Id").Text).Width(75).HtmlAttributes(new { id = "candidate-id" });
+
+                    columns.Bound(x => x.EmployeeId)
+                        .ClientTemplate(@Html.ActionLink("#=EmployeeId#", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString())
+                        .Width(100);
+
+                    columns.Bound(x => x.FirstName);
+                    columns.Bound(x => x.LastName);
+
+                    columns.Bound(x => x.HomePhone).ClientTemplate("#= prettyPhone(HomePhone) #").Width(110);
+                    columns.Bound(x => x.MobilePhone).ClientTemplate("#= prettyPhone(MobilePhone) #").Width(110);
+                    columns.Bound(x => x.Email).Hidden(true);
+
+                    columns.Bound(x => x.Position);
+                    columns.Bound(x => x.RatingValue).Width(90).HeaderTemplate(T("Company.CandidatePool.LatestRating").Text)
+                        .ClientTemplate("<div class=\"rating pool-rating\" data-rowid=\"#= Id #\"><div style=\"width: #= RatingValue/5*100 #%;\"></div></div>");
+
+                    columns.Bound(x => x.StartDate).ClientTemplate("#if (StartDate == null) {# #}else{# #=kendo.toString(StartDate,'yyyy-MM-dd')# #}#");
+                    columns.Bound(x => x.EndDate).ClientTemplate("#if (EndDate == null) {# #}else{# #=kendo.toString(EndDate,'yyyy-MM-dd')# #}#");
+                    columns.Bound(x => x.Status).Hidden(true).ClientGroupHeaderTemplate("#=value#");
+                    
+                    columns.Bound(x => x.ReasonForLeave);
+
+                    columns.Bound(x => x.Note);
+
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+
+                    //columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                    //.Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { x.Id }))
+                    //.ClientTemplate("<a href='\\#' onclick='editCandidate(event);'><span class='k-icon k-i-pencil'></span></a>")
+                    //.HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                    //.Width(60)
+                    //.Title(T("Admin.Common.Edit").Text);
+
+                    //columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                    //.Template(x => Html.ActionLink(T("Common.Delete").Text, "Remove", new { x.Id }))
+                    //.ClientTemplate("<a class='k-button' href='\\#' onclick='removeCandidate(event);'><span class='fa fa-trash'></span></a>")
+                    //.HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                    //.Width(60)
+                    //.Title(T("Common.Delete").Text);
+                    
+                    columns.Bound(x => x.GenderName).Hidden(true);
+                    columns.Bound(x => x.TransportationName).Hidden(true).Title(T("Admin.Candidate.Candidate.Fields.TransportationId").Text);
+                    columns.Bound(x => x.Intersection).Hidden(true);
+                    columns.Bound(x => x.PreferredWorkLocation).Hidden(true);
+                    columns.Bound(x => x.ShiftName).Hidden(true).Title(T("Common.Shift").Text);
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                    .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center;" })
+                    .ClientTemplate("<a class='k-button' href='\\#' onclick='editCandidate(event);'><span class='k-icon k-i-pencil'></span></a>" +
+                                    "<a class='k-button' href='\\#' onclick='removeCandidate(event);'><span class='fa fa-trash'></span></a>"
+                    )
+                    .Title("").Width(120);
+
+                })
+
+                .EnableCustomBinding(false)
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Resizable(x => x.Columns(true))
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("_TabCompanyCandidateList", "Company", new { companyGuid = companyGuid }))
+                    .Group(grp=>grp.Add(x=>x.Status))
+                )
+                .Events(events => events.DataBound("onDataBound"))
+            )
+        </td>
+    </tr>
+</table>
+
+@Html.Action("_SearchCandidate", new { companyGuid = companyGuid })
+
+@*import candidates form*@
+<div id="import-candidate-window" style="display:none;">
+    @using (Ajax.BeginForm("ImportCandidate", "Company", new { companyGuid = companyGuid }, null, new { enctype = "multipart/form-data" }))
+    {
+        <table style="text-align:left;">
+            <tr>
+                <td>
+                    @T("Admin.Common.ExcelFile"):
+                </td>
+                <td>
+                    <input type="file" id="importexcelfile" name="importexcelfile" />
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <input type="submit" class="k-button" value="Import" />
+                </td>
+            </tr>
+        </table>
+    }
+</div>
+
+<script type="text/javascript">
+    $("#import-candidate").bind("click", importCandidate);
+    $("#export-candidate").bind("click", exportCandidate);
+
+    function importCandidate(e) {
+        e.preventDefault();
+
+        var window = $("#import-candidate-window");
+        if (!window.data("kendoWindow")) {
+            window.kendoWindow({
+                modal: true,
+                width: "500px",
+                title: "Import candidates from Excel sheet",
+                actions: ["Close"]
+            });
+        }
+        window.data('kendoWindow').center().open();
+    }
+
+    function exportCandidate(e) {
+        e.preventDefault();
+
+        var url = '@Url.Action("ExportCandidate", "Company")';
+        url += '?companyGuid=' + '@ViewBag.CompanyGuid';
+        window.open(url, '_self');
+    }
+
+    function reloadGrid() {
+        var grid = $("#company-candidate-grid").data("kendoGrid");
+        grid.dataSource.page(1);
+        grid.dataSource.read();
+    }
+
+    function removeCandidate(e) {
+        e.preventDefault();
+
+        var theRow = $(e.currentTarget).closest("tr");
+        var companyCandidateId = theRow.find("#company-candidate-id").text();
+        var routes = '/' + companyCandidateId;
+
+        $(document.body).append('<div id="remove-candidate"></div>');
+        $("#remove-candidate").kendoWindow({
+            title: "Remove candidate from pool",
+            modal: true,
+            resizable: false,
+            width: 640,
+            height: 480,
+            content: '@Url.Action("RemoveCandidateFromPool", "Company")' + routes,
+            close: function () {
+                setTimeout(function () {
+                    $('#remove-candidate').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-cancel').click(function () {
+                    win.close();
+                })
+                $('#btn-save').click(function () {
+                    var form = $('#remove-candidate-form');
+                    if (form.valid()) {
+                        var link = '@Url.Action("RemoveCandidateFromPool", "Company")';
+                        $.ajax({
+                            type: "POST",
+                            url: link,
+                            data: form.serialize(),
+                            success: function (response) {
+                                if (response.Result) {
+                                    // alert('Work Time is adjusted.');
+                                    $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+                                    $(".messageBox").text("Candidate removed from pool.");
+                                    win.close();
+                                    reloadGrid();
+                                }
+                                else {
+                                    alert(response.ErrorMessage);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }).data('kendoWindow').center();
+    }
+
+    function editCandidate(e) {
+        e.preventDefault();
+
+        var theRow = $(e.currentTarget).closest("tr");
+        var companyCandidateId = theRow.find("#company-candidate-id").text();
+        var routes = '/' + companyCandidateId;
+
+        $(document.body).append('<div id="edit-candidate"></div>');
+        $("#edit-candidate").kendoWindow({
+            title: "Edit candidate in pool",
+            modal: true,
+            resizable: false,
+            width: 640,
+            height: 400,
+            content: '@Url.Action("EditCompanyCandidate", "Company")' + routes,
+            close: function () {
+                setTimeout(function () {
+                    $('#edit-candidate').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-cancel').click(function () {
+                    win.close();
+                })
+                $('#btn-save').click(function () {
+                    var form = $('#edit-candidate-form');
+                    if (form.valid()) {
+                        var link = '@Url.Action("EditCompanyCandidate", "Company")';
+                        $.ajax({
+                            type: "POST",
+                            url: link,
+                            data: form.serialize(),
+                            success: function (response) {
+                                if (response.Result) {
+                                    // alert('Work Time is adjusted.');
+                                    $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+                                    $(".messageBox").text("Candidate updated sucessfully!");
+                                    win.close();
+                                    reloadGrid();
+                                }
+                                else {
+                                    alert(response.ErrorMessage);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }).data('kendoWindow').center();
+    }
+
+</script>

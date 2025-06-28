@@ -1,0 +1,29 @@
+﻿@using Wfm.Services.Security
+@{
+    ViewBag.Title = T("Common.OvertimeRule").Text;
+}
+
+<script type="text/javascript">
+    function onEdit(e) {
+        //check if record is new
+        if (e.model.isNew()) {
+            //set the required field value
+            e.model.set("CompanyId", '@ViewBag.CompanyId');
+        }
+    }
+
+    function getGuid() {
+        return { companyGuid: '@ViewBag.CompanyGuid' }
+    }
+    function error_handler1(e) {
+        error_handler(e);
+        refreshGrid('#company-overtime-rule-gid');
+    }
+</script>
+
+<div class="section-header">
+    <div class="title">
+        @T("Common.OvertimeRule")
+    </div>
+</div>
+@Html.Partial("_CreateOrUpdateCompanyOvertimeRules")

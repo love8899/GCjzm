@@ -1,0 +1,320 @@
+﻿@using System.Linq
+@using Wfm.Services.Franchises
+@using Wfm.Shared.Models.Accounts
+@using Wfm.Core
+
+@model AccountModel
+
+@{
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+
+    // build franchises
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var franchises = franchiseService.GetAllFranchises();
+    var franchiseDropDownList = new List<SelectListItem>();
+    foreach (var f in franchises)
+    {
+        franchiseDropDownList.Add(new SelectListItem() { Text = f.FranchiseName, Value = f.Id.ToString() });
+    }
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.AccountGuid)
+@Html.HiddenFor(model => model.Username)
+@Html.HiddenFor(model => model.IsDeleted)
+@Html.HiddenFor(model => model.IsClientAccount)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.AccountRoleSystemName)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList()
+                .Name("AccountRoleSystemName")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                    //.BindTo(accountRolesDropDownList)
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetCascadeAccountRoles", "AccountManager").Data("getFranchideId");
+                    })
+                    .ServerFiltering(true);
+                })
+              .CascadeFrom("FranchiseId")
+            )
+            @Html.WfmValidationMessageFor(model => model.AccountRoleSystemName)
+        </td>
+    </tr>
+    <tr>
+        <td colspan="4">
+            <div class="statisticsTitle">
+                @T("Admin.Accounts.Account.FranchiseInformation")
+            </div>
+        </td>
+    </tr>
+    @if(commonSettings.DisplayVendor)
+    { 
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.FranchiseId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList()
+                    .Name("FranchiseId")
+                    .OptionLabel("--Select--")
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .BindTo(franchiseDropDownList)
+                    .Enable(!workContext.CurrentAccount.IsLimitedToFranchises)
+            )
+            @Html.WfmValidationMessageFor(model => model.FranchiseId)
+        </td>
+    </tr>
+    }
+    else
+    {
+        <tr>
+            <td>
+                @Html.HiddenFor(x=>x.FranchiseId)
+            </td>
+        </tr> 
+    }
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.ManagerId)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().DropDownList()
+                .Name("ManagerId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .DataSource(source =>
+                {
+                    if (Model.Id == 0)
+                    {
+                        // The drop down list will only show active accounts
+                        source.Read(read =>
+                        {
+                            read.Action("GetCascadeActiveAccounts", "AccountManager").Data("getFranchideId");
+                        })
+                            .ServerFiltering(true);
+                    }
+                    else
+                    {
+                        // The drop down list will show active and inactive accounts
+                        source.Read(read =>
+                        {
+                            read.Action("GetCascadeAccounts", "AccountManager").Data("getFranchideId");
+                        })
+                            .ServerFiltering(true);
+                    }
+                })
+                .Enable(!commonSettings.DisplayVendor)
+              //  .AutoBind(false)
+                .CascadeFrom("FranchiseId")
+            )
+
+            @*@(Html.Kendo().AutoComplete().Name("ManagerName")
+                    .Events(events => events.Change("onManagerChange"))
+                    .DataTextField("Text")
+                    .Value(Model.ManagerId)
+                    .Filter("contains")
+                    .MinLength(4)
+                    .Placeholder("Search by name")
+                    .DataSource(source =>
+                     {
+                         if (Model.Id == 0)
+                         {
+                             // The employee drop down list will only show active employees
+                             source.Read(read =>
+                             {
+                                 read.Action("GetCascadeActiveAccounts", "AccountManager").Data("filterManagersByVendor");
+                             })
+                                 .ServerFiltering(true);
+                         }
+                         else
+                         {
+                             // The employee drop down list will show active and inactive employees
+                             source.Read(read =>
+                             {
+                                 read.Action("GetCascadeAccounts", "AccountManager").Data("filterManagersByVendor");
+                             })
+                                 .ServerFiltering(true);
+                         }
+                     }
+                    )
+            )
+            @Html.HiddenFor(model => model.ManagerId)*@
+        </td>
+    </tr>
+    <tr>
+        <td colspan="4">
+            <div class="statisticsTitle">
+                @T("Common.BasicInformation")
+            </div>
+        </td>
+    </tr>
+    @if (!Model.IsClientAccount)
+    {
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EmployeeId)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().AutoComplete().Name("EmployeeIdAndName")
+                    .Events(events => events.Change("onEmployeeChange"))
+                    .DataTextField("Text")
+                    .Value(Model.EmployeeId)
+                    .Filter("contains")
+                    .MinLength(4)
+                    .Placeholder("Search by Id")
+                 //   .ValuePrimitive(true)
+                    .DataSource(source =>
+                     {
+                         if (Model.Id == 0)
+                         {
+                             // The employee drop down list will only show active employees
+                             source.Read(read =>
+                             {
+                                 read.Action("GetCascadeActiveEmployees", "Candidate").Data("filterByVendor");
+                             })
+                                 .ServerFiltering(true);
+                         }
+                         else
+                         {
+                             // The employee drop down list will show active and inactive employees
+                             source.Read(read =>
+                             {
+                                 read.Action("GetCascadeEmployees", "Candidate").Data("filterByVendor");
+                             })
+                                 .ServerFiltering(true);
+                         }
+                     }
+                    )
+                )
+                @Html.HiddenFor(model => model.EmployeeId)
+            </td>
+        </tr>
+    }
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.FirstName)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.FirstName)
+            @Html.WfmValidationMessageFor(model => model.FirstName)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.LastName)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.LastName)
+            @Html.WfmValidationMessageFor(model => model.LastName)
+        </td>
+    </tr>
+    <tr>
+        <td colspan="4">
+            <div class="statisticsTitle">
+                @T("Admin.Accounts.Account.ContactInformation")
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Email)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.Email)
+            @Html.WfmValidationMessageFor(model => model.Email)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.WorkPhone)
+        </td>
+        <td class="adminData required">
+            @Html.Kendo().MaskedTextBoxFor(model => model.WorkPhone).Mask("(999) 000-0000")
+            @Html.WfmValidationMessageFor(model => model.WorkPhone)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.HomePhone)
+        </td>
+        <td class="adminData">
+            @Html.Kendo().MaskedTextBoxFor(model => model.HomePhone).Mask("(999) 000-0000")
+            @Html.WfmValidationMessageFor(model => model.HomePhone)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.MobilePhone)
+        </td>
+        <td class="adminData">
+            @Html.Kendo().MaskedTextBoxFor(model => model.MobilePhone).Mask("(999) 000-0000")
+            @Html.WfmValidationMessageFor(model => model.MobilePhone)
+        </td>
+    </tr>
+</table>
+<script>
+    function getFranchideId() { return { franchiseId: $("#FranchiseId").val() }; }
+
+    function _getEmployeeId()
+    {
+        var empId = "";
+        var t = $("#EmployeeIdAndName").data("kendoAutoComplete").value();
+        if (t && t !== "") {
+            var _arr = t.split("-");
+            if (_arr.length > 0)
+            {
+                empId = _arr[0].trim();
+            }
+        }
+        return empId;
+    }
+
+    function filterByVendor() {
+        return {
+            franchiseId: $("#FranchiseId").val(),
+            idString: _getEmployeeId(),
+            maxNum: 100
+        };
+    }
+
+    function onEmployeeChange(e) {
+        var empId = _getEmployeeId();
+        if (empId !== "") {
+            $.ajax({
+                url: "@(Url.Action("_GetEmployeeName", "Candidate"))",
+                data: {
+                    franchiseId: $("#FranchiseId").val(),
+                    candidateId: empId
+                },
+                cache: false,
+                //async: false,
+                type: 'GET',
+                //dataType: 'html',
+                success: function (result) {
+                    if (result)
+                    {
+                        $("#FirstName").val(result.FirstName);
+                        $("#LastName").val(result.LastName);
+                    }
+                    
+                },
+            });
+        }
+        $("#EmployeeId").val(empId);
+    }
+</script>

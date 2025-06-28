@@ -1,0 +1,236 @@
+﻿@using Wfm.Core.Infrastructure
+@using Wfm.Core.Domain.Common
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    ViewBag.Title = "Corporate Social Responsibility | Leading Staffing and Employment Agency - "+siteTitle+" Employment";
+    ViewBag.Description = siteTitle +" Employment has a wide range of services including Contract Hire, Permanent Hire, Executive Search, Payroll Services and much more.";
+    ViewBag.Keywords =siteTitle + " Employment,GC,Jobs,Job Agency,Employment Agency,Staffing,Temporary Staffing,Permanent Staffing,Mass Recruitment Services,Temporary Foreign Worker Program";
+}
+
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Corporate Social Responsibility</h1>
+    </div>
+    <div class="page-body">
+
+        <br />
+        <h4>Waster Management Policy</h4>
+        <br />
+
+        <h5>1.0 COMPANY POLICY</h5>
+
+        <p>This Waste Management Policy forms part of @siteTitle sustainability framework and underpins the Company's sustainability policy.</p>
+
+        <p>The policy aims to reduce the negative environmental impacts of our waste, to reduce landfill waste and to ensure disposal of waste materials is in an environmentally responsible manner.</p>
+
+        <p>@siteTitle is committed to the implementation of an effective waste management program that meets or exceeds all legislative and regulatory requirements placed upon it.</p>
+
+        <h5>2.0 POLICY AIMS</h5>
+
+        <p>The company's waste management policy is based on the principle that priority order of action is to:</p>
+
+        <p>Reduce waste produced: Through purchasing policy, operational activity and by raising awareness, reduce the waste that will be created for disposal.</p>
+
+        <ul>
+            <li>Re-­‐use: Before discarding items, take action to re-­‐use in the first instance within the company and if this is not applicable, with external nominated organizations and contractors. Every avenue of re-­‐use of items must be explored before being discarded as wastes.</li>
+            <li>Recycle: Where practical and viable the Company's procurement activities will support these markets for recycled materials.</li>
+            <li>Minimum waste to landfill: Redundant items that cannot be dealt with other than being disposed of, will in the first instance, be considered for heat recovery before being sent to landfill as a last resort.</li>
+            <li>Risk Minimization: Complying with regulations, legislation and applying best practice in order to minimize risks of immediate and future pollution or harm to health by disposing of waste appropriately.</li>
+        </ul>
+
+        <h5>3.0 DEFINITIONS</h5>
+
+        <p><strong>Waste</strong></p>
+        <p>
+            Waste includes any substance or object which the holder discards or intends or is required to discard and any substance which constitutes a scrap material, an effluent or other unwanted surplus arising from the application of any process or any substance or article which requires to be disposed of which has been broken, worn out, contaminated or otherwise spoiled as per the Environmental Protection Act 1990 and amendments.
+        </p>
+
+        <p><strong>General Waste</strong></p>
+        <p>
+            A form of Controlled Waste, comprising all Waste from Company employees and departments with the exception of Hazardous Waste.
+        </p>
+
+        <p><strong>Recycling</strong></p>
+        <p>
+            The diversion of waste away from landfill or incineration and the reprocessing of those wastes either into the same product or a different one. This mainly includes non-­‐hazardous wastes (or non-­‐ hazardous components of other wastes) such as paper, glass, plastic and scrap metal.
+        </p>
+
+        <p><strong>Duty of Care</strong></p>
+        <p>
+            A requirement of all producers, importers, carriers and those involved in the disposal of waste to take all reasonable steps to ensure that waste is segregated, described, stored, transported and treated or disposed of safely.
+        </p>
+
+        <p><strong>Service Provider</strong></p>
+        <p>
+            Third parties providing works, goods or services to the Company whether contracted or not.
+        </p>
+
+        <p><strong>Hazardous Waste</strong></p>
+        <p>
+            This term encompasses the term Special Waste as defined by Hazardous Waste Regulations 2005 and amendments. It includes waste that could, in certain circumstances, be harmful to human health or the environment in the short or long term due to its physical, chemical or biological properties of explosive, oxidizing, flammable or highly flammable, irritant, corrosive, toxic or very toxic, harmful, carcinogenic, mutagenic, infectious.
+        </p>
+        <p>
+            Batteries, fluorescent tubes, photographic chemicals, paint, waste oils, solvents, acids, alkaline solutions, pesticides and electrical equipment are all hazardous wastes.
+        </p>
+        <p>
+            Some hazardous wastes such as Asbestos, Electrical and Radioactive Waste are subject to their own regulations and within the company; their disposal is covered by other guidance.
+        </p>
+        
+        <h5>4.0	WASTE MANAGEMENT</h5>
+        
+        <ul>
+            <li>Waste should be prevented or minimized wherever possible and must be stored, carried, processed or disposed of in accordance with the principles of duty of care.</li>
+            <li>Waste must be stored in compliant and suitable containers and locations pending their disposal.</li>
+            <li>Waste containers must be securely sealed to prevent accidental spillage or leakage.</li>
+            <li>Segregation of waste should take place to prevent mixing of incompatible materials and to allow for recycling.</li>
+            <li>Waste is not to be stored in plant rooms or service risers.</li>
+            <li>Waste and recycling removed from the company must only be transported by persons or service providers that are authorized to do so.</li>
+        </ul>
+
+        <h5>5.0 RESPONSIBILITIES</h5>
+        
+        <p><strong>Members of Staff</strong></p>
+        <p>
+            All members of the Company have a personal responsibility for the way their conduct impacts on this policy and should ensure that the waste they create is dealt with in accordance with this policy.
+        </p>
+        
+
+        <p><strong>Supervisors and technical staff</strong></p>
+        <p>
+            With changing waste legislation affecting the Company, those Supervisors and Technical staff with responsibilities for the disposal of waste, must ensure that they are doing so legally and appropriately.
+        </p>
+        
+        <p><strong>CEO</strong></p>
+        <p>
+            Ensure Waste Management Policy aligns with Occupational Health and Safety and Infection Control Policies. Establish and implement systems for waste management. Ensure waste management policies and procedures are effectively implemented.
+        </p>
+        
+        <br />
+        <h4>Equal Opportunities Policy Statement</h4>
+
+        <p>@siteTitle Employment Services is an equal opportunity employer and is fully committed to a policy of treating all of its employees and job applicants equally.</p>
+
+        <p>The Company will take all reasonable steps to employ, train and promote employees on the basis of their experience, abilities and qualifications without regard to race, colour, ethnic origin, nationality, national origin, religion or belief, sex, sexual orientation, gender reassignment, age, marital or civil partnership status or disability. The Company will also take all reasonable steps to provide a work environment in which all employees are treated with respect and dignity and that is free of harassment based upon an employee’s race, colour, ethnic origin, nationality, national origin, religion or belief, sex, sexual orientation, gender reassignment, age, marital or civil partnership status or disability. The Company will not condone any form of harassment, whether engaged in by employees or by outside third parties who do business with the Company.</p>
+
+        <p>Employees have a duty to co-­‐operate with the Company to ensure that this policy is effective in ensuring equal opportunities and in preventing discrimination, harassment or bullying. Action will be taken under the Company’s disciplinary procedure against any employee who is found to have committed an act of improper or unlawful discrimination, harassment, bullying or intimidation. Serious breaches of this equal opportunities and dignity at work statement will be treated as potential gross misconduct and could render the employee liable to summary dismissal. Employees should also bear in mind that they can be held personally liable for any act of unlawful discrimination. Employees who commit serious acts of harassment may also be guilty of a criminal offence.</p>
+
+        <p>Employees should draw the attention of your line manager to suspected discriminatory acts or practices or suspected cases of harassment. Any employee must not victimise or retaliate against an employee who has made allegations or complaints of discrimination or harassment or who has provided information about such discrimination or harassment. Such behaviour will be treated as potential gross misconduct in accordance with the Company’s disciplinary procedure.</p>
+
+        <p>The Company will regularly monitor the effects of selection decisions and personnel and pay practices and procedures in order to assess whether equal opportunity and dignity at work are being achieved. This will also involve considering any possible indirectly discriminatory effects of its working practices. If changes are required, the Company will implement them. The Company will also make reasonable adjustments to its standard working practices to overcome barriers caused by disability.</p>
+
+        <br />
+        <h4>Code of Ethics</h4>
+
+        <p>@siteTitle will conduct our duties with the highest degree of professionalism and practices in keeping with the standards and practices of the industry when dealing with employees, candidates and clients.</p>
+
+        <ol>
+            <li>
+                <p><b>Moderate Behavior as a Member of Society</b></p>
+                <p>We will recognize our roles and responsibilities as members of society, and always maintain and behave in a moral and ethical way to those around us and to society as a whole.</p>
+            </li>
+            <li>
+                <p><b>Compliance with Laws and Regulations</b></p>
+                <p>In fulfilling our social roles through our business, we will comply with any applicable laws, regulations, and ordinances. @siteTitle will respect and adhere to all applicable regulation regarding employment and human rights in the treatment of our employees, applicants, and clients.</p>
+            </li>
+            <li>
+                <p><b>Compliance with Agreements</b></p>
+                <p>In doing business, we will recognize our social responsibilities, enter into fair agreements with our customers and related cooperating parties, and complies with such agreements. Each agreement should be in writing, and the content agreed upon with the other party upon giving due consideration. The execution of any agreement will be subject to confirmation by the Legal Department and any written agreement will be retained in a secure manner.</p>
+            </li>
+            <li>
+                <p><b>Fair Commercial Activities</b></p>
+                <p>@siteTitle will respect and adhere to all applicable regulation regarding our day to day operation. We will not engage in unethical business practices.</p>
+                <p>We will conduct fair and equitable trading. Accordingly, we will not engage in any unfair commercial activities that may hinder fair and equitable trading. (i.e., any acts that may cause adverse effects on fair and competitive order.)</p>
+            </li>
+            <li>
+                <p><b>Appropriate Handling of Information</b></p>
+                <p>@siteTitle will respect the privacy of our employees, candidates and clients and will work to protect any collected confidential information that has been entrusted to us.</p>
+
+                <ol>
+                    <li>
+                        <p>Protection of the information of customers, related third parties, and our company:</p>
+                        <p>We do not divulge or use any data/ information of our customers, related third parties, and our company that has come to our knowledge in the course of our business for any purpose, other than for its intended use, without obtaining the consent of the customers, related cooperating parties, and our company's management.</p>
+                    </li>
+                    <li>
+                        <p>Protection of personal information:</p>
+                        <p>We keep all personal information and data confidential. There is a possibility that the inappropriate use of personal information obtained through the ordinary course of business may cause huge damage to the subject. We will not divulge or use personal information for any purpose, other than its intended purpose, without obtaining consent from the subject of such information.</p>
+                    </li>
+                    <li>
+                        <p>Ban of personal use of unreleased information:</p>
+                        <p>We will not personally exploit, for either themselves or for third parties, any information provided before it is released to the general public.</p>
+                    </li>
+                </ol>
+            </li>
+
+            <li>
+                <p><b>Protection of Intellectual Property</b></p>
+
+                <ol>
+                    <li>
+                        <p>Protection of third party's intellectual property:</p>
+                        <p>We will strive to protect intellectual property of our customers and related cooperating parties who support our business. In doing business, our customers and related cooperating parties provide us with valuable information, copyrighted works, and other similar information or works. The information and works we receive are the outcome of the intellectual activities of a number of related persons and are the intellectual property created as a result of investing an enormous amount of time, expense and effort. Therefore, the rights of the owner thereof must be protected to the greatest extent possible.</p>
+                    </li>
+                </ol>
+            </li>
+            <li>
+                <p><b>Clarification of Scope of Business and Responsibility</b></p>
+                <p>In doing business with customers and related cooperating parties, we will clarify the allocation of tasks and responsibility between them and us. We will refrain from interfering in matters between our customers and/ or related cooperating parties where we do not have full understanding of the dispute. We will ensure that we communicate clearly with our customers and/or related cooperating parties. Accordingly, the scope of business and responsibilities must be clearly understood and agreed upon amongst the parties.</p>
+            </li>
+            <li>
+                <p><b>Respects for Human Rights and Elimination of Discrimination</b></p>
+                <p>We will respect the human rights of individuals. Accordingly, @siteTitle will not engage in any discriminatory practices.</p>
+                <p>@siteTitle will ensure that candidates, can freely choose to accept any offers of employment without outside influence.</p>
+                <p>@siteTitle will ensure that any complaints, as well as concerns regarding working conditions, work place discrimination, work place violence and any other issues regarding their employment are promptly addressed as soon as possible.</p>
+            </li>
+            <li>
+                <p><b>Securing a Pleasant Working Environment</b></p>
+                <p>@siteTitle will ensure that candidates be provided with all the necessary information regarding the position applied for as supplied by the clients.</p>
+                <p>@siteTitle will ensure that workers are properly informed of the nature of the work, which the work place is safe, and that proper personal protective equipment and training are available for all workers.</p>
+                <p>We will strive to create a work environment in which there is mutual trust and sound judgment. We eliminate any acts that infringe upon human rights including, but not limited to, discrimination, violent acts, sexual harassment, and power harassment in the workplace.</p>
+            </li>
+            <li>
+                <p><b>Disconnecting with organized crime, crime syndicates and other anti-­‐societal organizations</b></p>
+                <p>We will not have any involvement with organized crime, crime syndicates, and other anti-­‐societal organizations that draw criticism from society.</p>
+            </li>
+        </ol>
+
+        <p>@siteTitle will ensure that all of our employees, clients and candidates are made aware of this code of ethics and that we are bound to abide by this document.</p>
+
+        <br />
+        <h4>Corporate Sustainability</h4>
+
+        <p><strong>Introduction</strong></p>
+
+        <p>As an employment service, @siteTitle can have a significant impact on the community it serves by providing human resources to employers and by providing employment for the community. Thus, @siteTitle strives to incorporate corporate sustainability in all of our activities, including business practices, environmental impact and people and community.</p>
+
+        <p><strong>Purpose</strong></p>
+
+        <p>The purpose of @siteTitle’s Corporate Sustainability policy is to:</p>
+
+        <ul>
+            <li>Creating and adapting to long-­‐term opportunities in mitigating damage in social, environmental and economic sectors.</li>
+            <li>Working with employees, clients and customers to create a more sustainable future.</li>
+            <li>Working to make positive contributions on the communities where @siteTitle is located.</li>
+        </ul>
+
+        <p><strong>Scope</strong></p>
+
+        <p>This policy will apply to all of @siteTitle as a fundamental element of @siteTitle’ Corporate governance policies.</p>
+
+        <p><strong>Objective</strong></p>
+
+        <ul>
+            <li>Striving for Corporate Responsibility by implementing transparency and corporate responsibility into the daily operations of @siteTitle.</li>
+            <li>Embracing opportunities for reducing our environmental impact in order to create a more sustainable future.</li>
+            <li>Growing our business in a socially responsible fashion that will foster innovation and contribute to the community.</li>
+        </ul>
+
+        <p><strong>Evaluation</strong></p>
+
+        <p>@siteTitle will continually evaluate and update our sustainability practices to ensure that they reflect the changing parameters of our corporate, social and environmental conditions.</p>
+
+    </div>
+</div>

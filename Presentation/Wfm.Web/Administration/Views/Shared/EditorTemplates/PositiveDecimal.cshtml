@@ -1,0 +1,8 @@
+﻿@model Decimal
+
+@(Html.Kendo().NumericTextBox<decimal>()
+        .Name(ViewData.TemplateInfo.GetFullHtmlFieldName(string.Empty))
+        .Value(Model)
+        .Decimals(2)   //always display 2 digits
+        .Min(0.01M)
+)

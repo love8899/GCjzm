@@ -1,0 +1,41 @@
+﻿@model ResumeModel
+
+<table width="100%">
+    <tr>
+        <td><br /></td>
+    </tr>
+    <tr>
+        <td>
+            <h4>From</h4>
+            @Html.DisplayFor(model => model.FromName)
+            <span>(@Html.DisplayFor(model => model.From))</span>
+        </td>
+        <td>
+            <h4>To</h4>
+            <span>@Html.DisplayFor(model => model.To)</span>
+        </td>
+        <td>
+            <h4>Date</h4>
+            @Html.DisplayFor(model => model.Date)
+        </td>
+        <td width="15%">
+            @if (Model.IsContacted)
+            {
+                @*<h4 style="color:red">Contacted</h4>&nbsp;&nbsp;@Html.DisplayFor(model => model.IsContacted)*@
+                <h4 style="color:red">Contacted</h4>
+                <a href="#history" onclick="enableHistory()">Check contact history</a>
+            }
+            else
+            {
+                @*<h4>Contacted</h4>&nbsp;&nbsp;@Html.DisplayFor(model => model.IsContacted)*@
+                <h4>NOT contacted</h4>
+                <a href="#history" onclick="enableHistory()">Add contact history</a>
+            }
+        </td>
+    </tr>
+</table>
+
+<br />
+
+<script>
+</script>

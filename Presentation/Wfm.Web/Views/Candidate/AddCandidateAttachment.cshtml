@@ -1,0 +1,118 @@
+﻿@model CandidateAttachmentModel
+@using Wfm.Services.Media
+@using Wfm.Web.Models.Candidate
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    ViewBag.Title = "Candidate attachment list";
+    var documentTypeService = Wfm.Core.Infrastructure.EngineContext.Current.Resolve<IDocumentTypeService>();
+    var documentTypes = documentTypeService.GetAllDocumentTypes().Where(x => x.IsPublic);
+}
+
+<div class="page candidate-page">
+    <div class="page-body">
+        @Html.Action("_CandidateAttachmentList", new { candidateId = Model.CandidateId })
+
+        <br />
+        <h5>Add new attachment</h5>
+        @Html.HiddenFor(model => model.CandidateId)
+
+        <div class="fieldset">
+            <div class="form-fields">
+                <div class="inputs">
+                    @Html.LabelFor(model => model.DocumentTypeId)
+                    @(Html.Kendo().DropDownList()
+                        .Name("DocumentTypeId")
+                        .OptionLabel("--Select--")
+                        .DataTextField("TypeName")
+                        .DataValueField("Id")
+                        .BindTo(documentTypes)
+                    )
+                    @Html.WfmValidationMessageFor(model => model.DocumentTypeId)
+                </div>
+                <div class="inputs">
+                    @Html.LabelFor(model => model.ExpiryDate)
+                    @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("ExpiryDate")
+                </div>
+                <div class="inputs">
+                    @Html.Label(" ")
+                    @(Html.Kendo().Upload().Name("attachments").Multiple(false)
+                        .Async(async => async
+                            .Save("UploadAttachmentFiles", "Candidate")
+                            .Remove("RemoveAttachmentFile", "Candidate", new { model = Model })
+                            .AutoUpload(false)
+                        )
+                        .Events(events => events
+                            .Complete("onComplete")
+                            .Error("onError")
+                            .Select("onSelect")
+                            .Success("onSuccessOverride")
+                            .Upload("onUploadOverride")
+                        )
+                    )
+                </div>
+            </div>
+        </div>
+
+        <script src="@Url.Content("~/Scripts/fileUploadHelper.js")" type="text/javascript"></script>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    function validateFileName(_file, documenttypeId) {
+        var filename = _file.name.toString();
+        var isValid = true;
+        $.ajax({
+            url: '@Url.Action("GetFileStartNameByDocumentId")',
+            data: { documentTypeId: documenttypeId },
+            type: 'GET',
+            async: false,
+            success: function (result) {
+                if (result.FileName != "") {
+                    if (typeof String.prototype.startsWith != 'function') {
+                        String.prototype.startsWith = function (str) {
+                            return this.substring(0, str.length) === str;
+                        }
+                    };
+                    if (!filename.toUpperCase().startsWith(result.FileName)) {
+                        isValid = false;
+                        alert("Filename: " + filename + " must start with " + result.FileName);
+                    }
+                    else isValid = true;
+                }
+            }
+        });
+        return isValid;
+    }
+
+    function onUploadOverride(e) {
+        var CandidateId = '@Model.CandidateId';
+        var documenttypeId = $("#DocumentTypeId").val();
+        var expirydate = $("#ExpiryDate").val();
+        if (documenttypeId == "") {
+            alert("Document type is required.");
+            e.preventDefault();
+        }
+        else {
+            var files = e.files;
+            $.each(files, function () {
+                if (!validateFileName(this, documenttypeId) || !validateFileSize(this)) {
+                    e.preventDefault(); // This cancels the upload for the file
+                }
+            });
+            e.data = { candidateId: CandidateId, documentTypeId: documenttypeId, expiryDate: expirydate };
+        }
+    }
+
+    function onSuccessOverride(e) { $('#Attachment').data('kendoGrid').dataSource.read(); }
+
+    function onSelect() {
+        var documenttypeId = $("#DocumentTypeId").val();
+        if (documenttypeId == "") {
+            alert("Document type is required.");
+        }
+    }
+
+</script>

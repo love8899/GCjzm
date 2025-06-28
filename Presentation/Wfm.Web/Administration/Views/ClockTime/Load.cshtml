@@ -1,0 +1,53 @@
+﻿@model CandidateClockTimeModel
+
+@{
+    ViewBag.Title = T("Admin.TimeClocks.CandidateClockTime.LoadBatch").Text;
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "candidateclocktime-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.TimeClocks.CandidateClockTime.LoadBatch")
+            @Html.ActionLink("(" + T("Admin.TimeClocks.CandidateClockTime.BackToList") + ")", "Index")
+        </div>
+        <div class="options">
+            <a class="k-button" href="@Url.Action("Load", "ClockTime")"><span class="k-icon k-i-refresh"></span>@T("Admin.Common.Refresh").Text</a>
+            <button id="loading-worktime" class="k-button">@T("Admin.Common.Load").Text</button>
+        </div>
+    </div>
+
+    <table class="adminContent">
+        <tr>
+            <td>
+                @(Html.Kendo().Grid<TimeClockFileModel>()
+                  .Name("clocktimefile-grid")
+                  .BindTo((System.Collections.Generic.IEnumerable<TimeClockFileModel>)ViewBag.Data)
+                  .Columns(columns =>
+                    {
+                        columns.Bound(x => x.FileId);
+                        columns.Bound(x => x.FileName);
+                        columns.Bound(x => x.FileLocation);
+                        columns.Bound(x => x.FileName);
+                        columns.Bound(x => x.CreatedOn).Format("{0:yyyy-MM-dd HH:mm}").Width(120);
+                        columns.Bound(x => x.ModifiedOn).Format("{0:yyyy-MM-dd HH:mm}").Width(120);
+                    })
+                    .EnableCustomBinding(false)
+                    .Reorderable(reorder => reorder.Columns(true))
+                    .Resizable(resize => resize.Columns(true))
+                    .Filterable()
+                    .Sortable()
+                    .ColumnMenu()
+                    .Selectable()
+                    .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(false)
+                        .PageSize(20)
+                        //.Read(read=> read.Action("_Create","ClockTime"))
+                    )
+                )
+            </td>
+        </tr>
+    </table>
+}

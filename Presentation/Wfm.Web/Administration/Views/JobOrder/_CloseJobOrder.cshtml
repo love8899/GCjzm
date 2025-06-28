@@ -1,0 +1,64 @@
+﻿@using Wfm.Core.Domain.JobOrders
+
+
+@{
+    var jobOrderCloseReasonCodes = JobOrderCloseReasonCode.Unknown.ToSelectList(false).ToList();
+}
+
+
+@using (Html.BeginForm("", "", FormMethod.Post, new { id = "close-joborder-form" }))
+{
+    @Html.ValidationSummary(true)
+
+    <div class="section-header">
+        <div class="title">
+            Select End Date & Reason
+        </div>
+        <div class="options">
+            <input type="button" id="btn-save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" id="btn-cancel" class="k-button" value="@T("Admin.Common.Cancel")" />
+        </div>
+    </div>
+
+    <table style="text-align:left;">
+        <tr>
+            <td class="adminTitle">
+                @T("Common.EndDate"):
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                    .Name("EndDate")
+                    .Format("yyyy-MM-dd")
+                    .Min(ViewBag.StartDate).
+                    Value(ViewBag.EndDate ?? DateTime.Today)
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Admin.JobOrder.JobOrder.Fields.JobOrderCloseReason"):
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                    .Name("JobOrderCloseReason")
+                    .OptionLabel("--Select--")
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .BindTo(jobOrderCloseReasonCodes)
+                    .Value(ViewBag.JobOrderCloseReason ?? null)
+                )
+            </td>
+        </tr>
+    </table>
+
+}
+
+
+@* for jQUery validation *@
+<script>
+        $(function () {
+            $("form").removeData("validator");
+            $("form").removeData("unobtrusiveValidation");
+            $.validator.unobtrusive.parse("form");
+        });
+</script>

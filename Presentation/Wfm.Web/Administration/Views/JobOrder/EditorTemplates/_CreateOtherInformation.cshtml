@@ -1,0 +1,70 @@
+﻿@model JobOrderModel
+<table class="adminContent">
+   
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.RequireSafetyShoe)
+        </td>
+        <td class="adminData">
+            @Html.CheckBoxFor(model => model.RequireSafetyShoe)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.RequireSafeEquipment)
+        </td>
+        <td class="adminData">
+            @Html.CheckBoxFor(model => model.RequireSafeEquipment)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.HiringDurationExpiredDate)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                .Name("HiringDurationExpiredDate")
+                .Format("dddd, MMMM d, yyyy")
+            )
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EstimatedFinishingDate)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                    .Name("EstimatedFinishingDate")
+                    .Format("dddd, MMMM d, yyyy")
+            )
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EstimatedMargin)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.EstimatedMargin)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.HoursPerWeek)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().NumericTextBox<double>()
+                .Name("HoursPerWeek")
+                .Format("#.00")
+                .Step(0.1)
+            )
+        </td>
+    </tr>
+    <tr> 
+        <td class="adminTitle">
+            Required tests
+        </td>
+        <td class="adminData"> 
+            @Html.Action("JobOrderTest", new { guid = Model.JobOrderGuid, editMode = true })
+        </td>
+    </tr>
+</table>

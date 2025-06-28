@@ -1,0 +1,109 @@
+﻿@{
+    ViewBag.Title = "Weekly Demand";
+    var weekStartDate = DateTime.Today.AddDays(DayOfWeek.Sunday - DateTime.Today.DayOfWeek);
+
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+}
+
+
+<div class="section-header">
+    <div class="title">
+        Weekly Demand
+    </div>   
+
+    <div class="options">
+        <label>Week</label>
+        <span class="k-icon k-i-arrow-w" id="lastWeek"></span>
+        @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("weekCalendar")
+            .Format("yyyy-MM-dd")
+            .Value(weekStartDate)
+        )
+        <span class="k-icon k-i-arrow-e" id="nextWeek"></span>
+        
+        <label>Location</label>
+        @(Html.Kendo().DropDownList().Name("LocationId")
+            .DataTextField("Text")
+            .DataValueField("Value")
+            .DataSource(source => source.Read(read => read.Action("GetCascadeLocations", "Common")).ServerFiltering(true))
+            .Value(workContext.CurrentAccount.CompanyLocationId.ToString())
+        )
+
+        @Html.Kendo().Button().Name("loadDemand").HtmlAttributes(new { @class = "k-button", style = "margin-left:20px" }).Content(@T("Admin.Common.Load").Text)
+    </div>
+
+    <div class="options"></div>
+</div>
+
+<div id="demand-pane"><br /><p>&nbsp;&nbsp;No data loaded yet.</p></div>
+
+
+<script type="text/javascript">
+
+    var editPermission = @Json.Encode(permissionService.Authorize("ManageClientScheduling"));
+
+    $(document).ready(function () {
+        $('#lastWeek').bind('click', function () {
+            var theDate = $("#weekCalendar").data("kendoDatePicker").value();
+            var weekAgo = new Date(theDate.setTime(theDate.getTime() - 7 * 24 * 3600 * 1000));
+            //$("#weekCalendar").data("kendoDatePicker").value(weekAgo);
+            $("#weekCalendar").val(weekAgo.toISOString().split('T')[0]);
+        });
+
+        $('#nextWeek').bind('click', function () {
+            var theDate = $("#weekCalendar").data("kendoDatePicker").value();
+            var weekAfter = new Date(theDate.setTime(theDate.getTime() + 7 * 24 * 3600 * 1000));
+            $("#weekCalendar").val(weekAfter.toISOString().split('T')[0]);
+        });
+
+        $('#loadDemand').bind('click', function () {
+            var locationId = $('#LocationId').val();
+            if (locationId > 0)
+                loadDemand();
+            else
+                alert('Please select a location!');
+        });
+    });
+
+    function firstWorkDay(d) {
+        var dayOffset = d.getUTCDay() * 86400000;
+        d.setTime(d.getTime() - dayOffset);
+        return d;
+    }
+
+    function loadDemand() {
+        var opts = { locationId: $('#LocationId').val(), refDate: $('#weekCalendar').val() };
+        var locationName = $("#LocationId_option_selected").text();
+        var today = new Date('@weekStartDate');
+        var firstDate = firstWorkDay(new Date($("#weekCalendar").val()));
+        var lastDate = new Date(firstDate);
+        lastDate.setDate(lastDate.getDate() + 6);
+
+        $.ajax({
+            url: '_GetSchedulePeriodByLocationAndDate',
+            dataType: 'json',
+            async: false,
+            data: opts,
+            success: function (data) {
+                if (data.currentId === 0)
+                    alert('Cannot find any schedule periods!');
+                else
+                    loadPane();
+            }
+        });
+    }
+
+    function loadPane() {
+        $.ajax({
+            url: '@Url.Action("_GetWeeklyDemandPane")',
+            cache: false,
+            type: 'POST',
+            //data: null,
+            dataType: 'html',
+            success: function (result) {
+                $('#demand-pane').html(result);
+            }
+        })
+    }
+
+</script>

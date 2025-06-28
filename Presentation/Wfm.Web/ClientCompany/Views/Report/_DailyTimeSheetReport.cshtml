@@ -1,0 +1,13 @@
+﻿@{
+    Layout = "_ReportViewerLayout";
+    ViewBag.ReportFile = "DailyTimeSheetWithRate";
+
+    ViewBag.ReportParameters = new
+    {
+        CompanyId = ViewBag.CompanyId,
+        StartDate = ViewBag.StartDate,
+        EndDate = ViewBag.EndDate,
+        Status = ViewBag.Status,
+        HoursOnly = ViewBag.HoursOnly
+    };
+}

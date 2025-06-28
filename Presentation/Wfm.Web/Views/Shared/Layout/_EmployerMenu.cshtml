@@ -1,0 +1,94 @@
+﻿@using Wfm.Web.Framework.HtmlHelpers
+@{
+    var forTopMenu = (string)ViewData["Parent"] == "TopMenu";
+    var l1Class = forTopMenu ? "sublist first-level" : "list";
+    var l2Class = forTopMenu ? "sublist second-level" : "sublist";
+    var l1Toggle = ViewData["L1Toggle"] != null ? (bool)ViewData["L1Toggle"] : false;
+}
+<ul class="@l1Class">
+    <li>
+        <span class="@Html.SideBarMenuLink("Staffing Solutions", "Employers_StaffingSolutions", "Employers")">
+            @Html.ActionLink("Staffing Solutions", "Employers_StaffingSolutions", "Employers")
+        </span>
+        @if (l1Toggle)
+        {
+            <div class="sublist-toggle"></div>
+        }
+        <ul class="@l2Class">
+            <li class="@Html.SideBarMenuLink("Permanent Staffing", "Employers_StaffingSolutions_PermanentStaffing", "Employers")">
+                @Html.ActionLink("Permanent Staffing", "Employers_StaffingSolutions_PermanentStaffing", "Employers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Temporary Staffing", "Employers_StaffingSolutions_TemporaryStaffing", "Employers")">
+                @Html.ActionLink("Temporary Staffing", "Employers_StaffingSolutions_TemporaryStaffing", "Employers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Mass Recruitment Services", "Employers_StaffingSolutions_MassRecruitmentServices", "Employers")">
+                @Html.ActionLink("Mass Recruitment Services", "Employers_StaffingSolutions_MassRecruitmentServices", "Employers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Temporary Foreign Worker Program", "Employers_StaffingSolutions_TemporaryForeignWorkerProgram", "Employers")">
+                @Html.ActionLink("Temporary Foreign Worker Program", "Employers_StaffingSolutions_TemporaryForeignWorkerProgram", "Employers")
+            </li>
+        </ul>
+    </li>
+    <li>
+        <span class="@Html.SideBarMenuLink("Safety and Prevention", "Employers_SafetyAndPrevention", "Employers")">
+            @Html.ActionLink("Safety and Prevention", "Employers_SafetyAndPrevention", "Employers")
+        </span>
+    </li>
+    <li>
+        <span class="@Html.SideBarMenuLink("Training", "Employers_Training", "Employers")">
+            @Html.ActionLink("Training", "Employers_Training", "Employers")
+        </span>
+    </li>
+    <li>
+        <span class="@Html.SideBarMenuLink("Area Specialties", "Employers_AreaSpecialties", "Employers")">
+            @Html.ActionLink("Area Specialties", "Employers_AreaSpecialties", "Employers")
+        </span>
+        @if (l1Toggle)
+        {
+            <div class="sublist-toggle"></div>
+        }
+        <ul class="@l2Class">
+            <li class="@Html.SideBarMenuLink("Management and Executive", "Employers_AreaSpecialties_ManagementAndExecutive", "Employers")">
+                @Html.ActionLink("Management and Executive", "Employers_AreaSpecialties_ManagementAndExecutive", "Employers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Sales and Marketing", "Employers_AreaSpecialties_SalesAndMarketing", "Employers")">
+                @Html.ActionLink("Sales and Marketing", "Employers_AreaSpecialties_SalesAndMarketing", "Employers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Financial and Accounting", "Employers_AreaSpecialties_FinancialAndAccounting", "Employers")">
+                @Html.ActionLink("Financial and Accounting", "Employers_AreaSpecialties_FinancialAndAccounting", "Employers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Information Technology", "Employers_AreaSpecialties_InformationTechnology", "Employers")">
+                @Html.ActionLink("Information Technology", "Employers_AreaSpecialties_InformationTechnology", "Employers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Life Sciences", "Employers_AreaSpecialties_LifeSciences", "Employers")">
+                @Html.ActionLink("Life Sciences", "Employers_AreaSpecialties_LifeSciences", "Employers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Engineering", "Employers_AreaSpecialties_Engineering", "Employers")">
+                @Html.ActionLink("Engineering", "Employers_AreaSpecialties_Engineering", "Employers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Industrial and Manufacturing", "Employers_AreaSpecialties_IndustrialAndManufacturing", "Employers")">
+                @Html.ActionLink("Industrial and Manufacturing", "Employers_AreaSpecialties_IndustrialAndManufacturing", "Employers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Call Centre and Customer Service", "Employers_AreaSpecialties_CallCentreAndCustomerService", "Employers")">
+                @Html.ActionLink("Call Centre and Customer Service", "Employers_AreaSpecialties_CallCentreAndCustomerService", "Employers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Supply Chain, Logistics and Warehousing", "Employers_AreaSpecialties_SupplyChainLogisticsAndWarehousing", "Employers")">
+                @Html.ActionLink("Supply Chain, Logistics and Warehousing", "Employers_AreaSpecialties_SupplyChainLogisticsAndWarehousing", "Employers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Administrative and Office", "Employers_AreaSpecialties_AdministrativeAndOffice", "Employers")">
+                @Html.ActionLink("Administrative and Office", "Employers_AreaSpecialties_AdministrativeAndOffice", "Employers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Skilled Trades", "Employers_AreaSpecialties_SkilledTrades", "Employers")">
+                @Html.ActionLink("Skilled Trades", "Employers_AreaSpecialties_SkilledTrades", "Employers")
+            </li>
+            <li class="@Html.SideBarMenuLink("Others", "Employers_AreaSpecialties_Others", "Employers")">
+                @Html.ActionLink("Others", "Employers_AreaSpecialties_Others", "Employers")
+            </li>
+        </ul>
+    </li>
+    <li>
+        <span class="@Html.SideBarMenuLink("Testimonials", "Employers_Testimonials", "Employers")">
+            @Html.ActionLink("Testimonials", "Employers_Testimonials", "Employers")
+        </span>
+    </li>
+</ul>

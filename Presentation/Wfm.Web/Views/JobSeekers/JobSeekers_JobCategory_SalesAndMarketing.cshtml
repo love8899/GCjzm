@@ -1,0 +1,52 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Sales and Marketing";
+    //var description = "Our clients include leading consumer goods, financial services, manufacturing, engineering and other Fortune 500 companies, as well as enterprising local firms.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower() + " jobs";
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Sales and Marketing</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            Do you thrive when faced with the challenges of increased competition, maturing
+            markets, pricing pressures, fragmented audiences and demanding consumers? If so,
+            @siteTitle is the right search partner for you. Our clients include leading
+            consumer goods, financial services, manufacturing, engineering and other Fortune
+            500 companies, as well as enterprising local firms.
+        </p>
+        <p>
+            In addition to conducting searches for senior marketing managers, our consultants
+            also handle assignments across the full spectrum of marketing functional work in
+            the following areas:
+        </p>
+        <ul id="SaleMarketing">
+            <li>Account management</li>
+            <li>Advertising </li>
+            <li>Business development </li>
+            <li>Channel management </li>
+            <li>Consumer research</li>
+            <li>Corporate communications</li>
+            <li>Direct marketing</li>
+            <li>Retail </li>
+        </ul>
+    </div>
+</div>

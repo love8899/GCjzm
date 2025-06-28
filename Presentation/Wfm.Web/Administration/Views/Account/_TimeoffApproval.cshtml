@@ -1,0 +1,37 @@
+﻿<br />
+@Html.Kendo().TabStrip().Name("timeoff-tabstrip").Items(x =>
+{
+    x.Add().Text("Request").Content(TimeOffRequestTab().ToHtmlString()).HtmlAttributes(new { id = "tab-request" }).Selected(true);
+
+    x.Add().Text("History").LoadContentFrom(Url.Action("_TabTimeOffHistory", "Account")).HtmlAttributes(new { id = "tab-history" });
+})
+
+
+@helper TimeOffRequestTab()
+{
+    @Html.Action("_TabTimeOffRequest")
+}
+
+
+<script type="text/javascript">
+
+    $(function () {
+        var tabId = '@(ViewBag.TabId)';
+        if (tabId)
+            tabIndex = $("#" + tabId).index();
+        else
+            tabIndex = 0;
+        $("#timeoff-tabstrip").data("kendoTabStrip").select(tabIndex);
+    })
+
+    function showMsg(msg) {
+        $(".notification-wrapper").append('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+        $(".messageBoxSuccess").text(msg);
+    }
+
+    function showWarning(warning) {
+        $(".notification-wrapper").append('<div class="messageBox messageBoxWarning"></div><div class="clear"></div>');
+        $(".messageBoxWarning").text(warning);
+    }
+
+</script>

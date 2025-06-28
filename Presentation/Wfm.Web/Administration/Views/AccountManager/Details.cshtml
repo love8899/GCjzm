@@ -1,0 +1,131 @@
+﻿@using Wfm.Services.Common
+@using Wfm.Services.Franchises
+@using Wfm.Shared.Models.Accounts
+
+@model AccountModel
+@{
+    ViewBag.Title = "View Profile";
+
+    string returnPath = ViewBag.ReturnPath;
+    var listPath = returnPath != null && !returnPath.Contains("AccountManager") ? returnPath : "~/Admin/AccountManager/Index";
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Common.Account") @Html.ActionLink("(" + T("Admin.Accounts.Account.BackToList") + ")", null, null, null, new { href = Url.Content(listPath) })
+    </div>
+    <div class="options">
+        @Html.ActionLink(T("Admin.Accounts.Account.ResetPassword").Text, "ResetPassword", new { guid = Model.AccountGuid, returnPath = returnPath }, new { @class = "k-button" })
+        @Html.ActionLink(T("Admin.Accounts.Account.EditProfile").Text, "Edit", new { guid = Model.AccountGuid, returnPath = returnPath }, new { @class = "k-button" })
+    </div>
+</div>
+@Html.Kendo().TabStrip().Name("company-details-tabstrip").Items(x =>
+{
+    x.Add().Text(T("Common.BasicInformation").Text).Content(CompanyBasicInfoTab().ToHtmlString()).Selected(true);
+    x.Add().Text(T("Common.Company").Text).LoadContentFrom(Url.Action("_TabCompanyRecruiterList", new { guid = Model.AccountGuid }))
+                    .HtmlAttributes(new { id = "tab-Companies" });
+})
+@helper CompanyBasicInfoTab()
+{
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var franchise = franchiseService.GetFranchiseById(Model.FranchiseId);
+    @Html.HiddenFor(model => model.Id)
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Username)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.Username)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.AccountRoleSystemName)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.AccountRoleSystemName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.FirstName)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.FirstName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.LastName)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.LastName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Email)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.Email)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.WorkPhone)
+            </td>
+            <td class="adminData">
+                @Model.WorkPhone.ToPrettyTelephone()
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.MobilePhone)
+            </td>
+            <td class="adminData">
+                @Model.MobilePhone.ToPrettyTelephone()
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.HomePhone)
+            </td>
+            <td class="adminData">
+                @Model.HomePhone.ToPrettyTelephone()
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.IsActive)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.IsActive)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.FranchiseId)
+            </td>
+            <td class="adminData">
+                @(franchise == null ? "" : franchise.FranchiseName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CreatedOn)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CreatedOn)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.UpdatedOn)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.UpdatedOn)
+            </td>
+        </tr>
+    </table>
+}

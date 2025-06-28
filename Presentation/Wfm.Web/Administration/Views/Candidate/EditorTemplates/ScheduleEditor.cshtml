@@ -1,0 +1,191 @@
+﻿@using Wfm.Core.Domain.Candidates;
+@using Wfm.Services.Candidates
+@using Wfm.Services.Companies
+<style>
+    .k-scheduler-edit-form .k-edit-label {
+        width:21%
+    }
+
+    .k-scheduler-edit-form .k-edit-field {
+        width:70%
+    }
+</style>
+@model CandidateScheduleModel
+
+@{
+    //required in order to render validation attributes
+    ViewContext.FormContext = new FormContext();
+
+    var candidateJobOrderStatusDropDownList = new List<SelectListItem>();
+    var noStatus = CandidateJobOrderStatusEnum.NoStatus;
+    var contacted = CandidateJobOrderStatusEnum.Contacted;
+    var placed = CandidateJobOrderStatusEnum.Placed;
+    var refused = CandidateJobOrderStatusEnum.Refused;
+    candidateJobOrderStatusDropDownList.Add(new SelectListItem() { Text = noStatus.ToString(), Value = ((int)noStatus).ToString() });
+    candidateJobOrderStatusDropDownList.Add(new SelectListItem() { Text = contacted.ToString(), Value = ((int)contacted).ToString() });
+    candidateJobOrderStatusDropDownList.Add(new SelectListItem() { Text = placed.ToString(), Value = ((int)placed).ToString() });
+    candidateJobOrderStatusDropDownList.Add(new SelectListItem() { Text = refused.ToString(), Value = ((int)refused).ToString() });
+}
+
+@functions{
+    public Dictionary<string, object> generateDatePickerAttributes(
+           string elementId,
+           string fieldName,
+           string dataBindAttribute,
+           bool required,
+           Dictionary<string, object> additionalAttributes = null)
+    {
+
+        Dictionary<string, object> datePickerAttributes = additionalAttributes != null ? new Dictionary<string, object>(additionalAttributes) : new Dictionary<string, object>();
+
+        datePickerAttributes["id"] = elementId;
+        datePickerAttributes["name"] = fieldName;
+        datePickerAttributes["data-bind"] = dataBindAttribute;
+        if (required)
+            datePickerAttributes["required"] = "required";
+        datePickerAttributes["style"] = "z-index: inherit;";
+
+        return datePickerAttributes;
+    }
+}
+
+<script type="text/javascript">
+    function filterLocations() { return { companyId: $("\#CompanyId").val() }; }
+
+    function filterDepartments() { return { locationId: $("\#LocationId").val() }; }
+
+    function filterJobOrders() {
+        return {
+            companyId: $('[name="CompanyId"]').val(),
+            locationId: $('[name="LocationId"]').val(),
+            departmentId: $('[name="DepartmentId"]').val(),
+            startDateString: $('[name="start"]').val(),
+            endDateString: $('[name="end"]').val()
+        };
+    }
+</script>
+
+<div class="k-edit-label">
+    @T("Common.Company")
+</div>
+<div class="k-edit-field">
+    @(Html.Kendo().ComboBoxFor(model => model.CompanyId)
+        .HtmlAttributes(new { data_bind = "value:CompanyId", style = "width: 250px" })
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .Placeholder("Select a company...")
+        .DataSource(source =>
+            source.Read(read => read.Action("GetCascadeCompanies", "JobOrder")).ServerFiltering(true)
+        )
+    )
+</div>
+
+<div class="k-edit-label">
+    @T("Common.Location")
+</div>
+<div data-container-for="LocationId" class="k-edit-field">
+    @(Html.Kendo().DropDownListFor(model => model.LocationId)
+        .HtmlAttributes(new { data_bind = "value:LocationId", style = "width: 250px" })
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .OptionLabel("Select a location...")
+        .DataSource(source =>
+            source.Read(read => read.Action("GetCascadeLocations", "Common").Data("filterLocations")).ServerFiltering(true)
+        )
+        .Enable(false)
+        .AutoBind(false)
+        .CascadeFrom("CompanyId")
+    )
+</div>
+
+<div class="k-edit-label">
+    @T("Common.Department")
+</div>
+<div data-container-for="DepartmentId" class="k-edit-field">
+    @(Html.Kendo().DropDownListFor(model => model.DepartmentId)
+        .HtmlAttributes(new { data_bind = "value:DepartmentId", style = "width: 250px" })
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .OptionLabel("Select a department...")
+        .DataSource(source =>
+            source.Read(read => read.Action("GetCascadeDepartments", "Common").Data("filterDepartments")).ServerFiltering(true)
+        )
+        .Enable(false)
+        .AutoBind(false)
+        .CascadeFrom("LocationId")
+    )
+</div>
+
+<div class="k-edit-label">
+    @T("Common.JobOrders")
+</div>
+<div data-container-for="JobOrderId" class="k-edit-field">
+    @(Html.Kendo().DropDownListFor(model => model.JobOrderId)
+        .HtmlAttributes(new { data_bind = "value:JobOrderId", style = "width: 370px" })
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .OptionLabel("Select a job order...")
+        .DataSource(source =>
+            source.Read(read => read.Action("GetCascadeJobOrders", "JobOrder").Data("filterJobOrders")).ServerFiltering(true)
+                    
+        )
+        .Events(e => e.Change("getAvailableOpening"))
+        .Enable(false)
+        .AutoBind(false)
+        .CascadeFrom("DepartmentId")
+    )
+</div>
+<div class="k-edit-label">
+    @T("Admin.JobOrder.JobOrder.Fields.OpeningAvailable")
+</div>
+<div data-container-for="AvailableOpening" class="k-edit-field">
+    @Html.Kendo().TextBoxFor(model => model.AvailableOpening).HtmlAttributes(new { id = "AvailableOpening" }).Enable(false)
+</div>
+<div class="k-edit-label">
+    @(Html.LabelFor(model => model.Start))
+</div>
+<div data-container-for="start" class="k-edit-field">
+    @(Html.Kendo().DateTimePickerFor(model => model.Start).Events(e => e.Change("onStartChange"))
+        .HtmlAttributes(generateDatePickerAttributes("startDateTime", "start", "value:start,invisible:isAllDay", true)))
+    @(Html.Kendo().DatePickerFor(model => model.Start).Events(e => e.Change("onStartChange"))
+        .HtmlAttributes(generateDatePickerAttributes("startDate", "start", "value:start,visible:isAllDay", true)))
+</div>
+
+<div class="k-edit-label">
+    @(Html.LabelFor(model => model.End))
+</div>
+<div data-container-for="end" class="k-edit-field">
+    @(Html.Kendo().DateTimePickerFor(model => model.End)
+        .HtmlAttributes(generateDatePickerAttributes(
+            "endDateTime",
+            "end",
+            "value:end,invisible:isAllDay",
+            false,
+            new Dictionary<string, object>() { { "data-dateCompare-msg", "End date should be greater than or equal to the start date" } })))
+    @(Html.Kendo().DatePickerFor(model => model.End)
+        .HtmlAttributes(generateDatePickerAttributes(
+            "endDate",
+            "end",
+            "value:end,visible:isAllDay",
+            false,
+            new Dictionary<string, object>() { { "data-dateCompare-msg", "End date should be greater than or equal to the start date" } })))
+</div>
+
+<div class="k-edit-label">
+    @T("Common.Status")
+</div>
+<div data-container-for="end" class="k-edit-field required">
+    @(Html.Kendo().DropDownList()
+        .Name("StatusId")
+        //.Text("Status")
+        .DataTextField("Text").DataValueField("Value")
+        .HtmlAttributes(new { style = "width: 200px" })
+        .BindTo(candidateJobOrderStatusDropDownList)
+        .OptionLabel("Select a status")
+        //.Value("1")
+    )
+</div>
+
+@{
+    ViewContext.FormContext = null;
+}

@@ -1,0 +1,143 @@
+﻿@using Wfm.Services.Companies
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts;
+
+@{
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var companyService = EngineContext.Current.Resolve<ICompanyService>();
+    var companies = companyService.GetAllCompanies(workContext.CurrentAccount);
+}
+
+@using Wfm.Services.Policies
+@{
+    var mealPolicyService = EngineContext.Current.Resolve<IMealPolicyService>();
+    var mealPolicies = mealPolicyService.GetAllMealPoliciesAsQueryable().Select(x=>new SelectListItem(){Text=x.Name,Value=x.Id.ToString()});
+
+    var breakPolicyService = EngineContext.Current.Resolve<IBreakPolicyService>();
+    var breakPolicies = breakPolicyService.GetAllBreakPoliciesAsQueryable().Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() });
+
+    var roundingPolicyService = EngineContext.Current.Resolve<IRoundingPolicyService>();
+    var roundingPolicies = roundingPolicyService.GetAllRoundingPoliciesAsQueryable().Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() });
+}
+<div class="section-header">
+    <div class="title">
+        @T("Admin.SchedulePolicies")
+    </div>
+    <div class="options">
+        @Html.ActionLink(T("Common.Add").Text, "Create", null, new { @class = "k-button" })
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<SchedulePolicyModel>()
+              .Name("schedulePolicy-grid")
+              .Columns(columns =>
+                {
+                    if (!workContext.CurrentAccount.IsClientAdministrator())
+                    {
+                        columns.ForeignKey(x => x.CompanyId, companies, "Value", "Text").Width(180);
+                    }
+                    
+                    columns.Bound(x => x.Name);
+                    columns.ForeignKey(x => x.MealPolicyId, mealPolicies, "Value", "Text").EditorTemplateName("MealPolicyEditor");
+                    columns.Bound(x => x.MealTimeInMinutes);
+                    columns.ForeignKey(x => x.BreakPolicyId, breakPolicies, "Value", "Text").EditorTemplateName("BreakPolicyEditor");
+                    columns.Bound(x => x.BreakTimeInMinutes);
+                    columns.ForeignKey(x => x.RoundingPolicyId, roundingPolicies, "Value", "Text").EditorTemplateName("RoundingPolicyEditor");
+                    columns.Bound(x => x.RoundingIntervalInMinutes);
+                    columns.Bound(x => x.RoundingGracePeriodInMinutes);
+
+                    columns.Bound(x => x.IsStrictSchedule)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsStrictSchedule.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsStrictSchedule #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" });
+
+                    columns.Bound(x => x.OvertimeGracePeriodInMinutes);
+
+                    columns.Bound(x => x.IsActive)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsActive #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    //columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                    //    .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                    //    .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { x.Id }))
+                    //    .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/SchedulePolicy/Edit/") + "#= Id #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                    //    .Width(80)
+                    //    .Title(T("Admin.Common.Edit").Text);
+                })
+                .ToolBar(tool => { tool.Create(); tool.Save(); })
+                .Editable(edit => edit.Mode(GridEditMode.InCell))
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataBinding => dataBinding
+                           .Ajax()
+                           .Batch(true)
+                           .ServerOperation(true)
+                           .PageSize(20)
+                           .Read(read => read.Action("List", "SchedulePolicy"))
+                           .Create(create => create.Action("Create", "SchedulePolicy"))
+                           .Update(update => update.Action("Edit", "SchedulePolicy"))
+                           //.Destroy(delete => delete.Action("Delete", "SchedulePolicy"))
+                           .Events(e => e.Error("error_handler"))
+                           .Model(model => {
+                               model.Id(x => x.Id);
+                               model.Field(x => x.CompanyId).Editable(true).DefaultValue(1);
+                               model.Field(x => x.BreakPolicyId).Editable(true).DefaultValue(0);
+                               model.Field(x => x.BreakTimeInMinutes).Editable(false).DefaultValue(0);
+                               
+                               model.Field(x => x.MealPolicyId).Editable(true).DefaultValue(0);
+                               model.Field(x => x.MealTimeInMinutes).Editable(false).DefaultValue(0);
+                               
+                               model.Field(x => x.RoundingPolicyId).Editable(true).DefaultValue(0);
+                               model.Field(x => x.RoundingGracePeriodInMinutes).Editable(false).DefaultValue(0);
+                               model.Field(x => x.RoundingIntervalInMinutes).Editable(false).DefaultValue(0);
+                               
+                               
+                               model.Field(x => x.IsStrictSchedule).Editable(true).DefaultValue(true);
+                               model.Field(x => x.IsActive).Editable(true).DefaultValue(true);
+                               model.Field(x => x.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                               model.Field(x => x.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                               model.Field(x => x.CreatedOn).Editable(false).DefaultValue(DateTime.Now);
+                               model.Field(x => x.UpdatedOn).Editable(false).DefaultValue(DateTime.Now);
+                           })
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+<script type="text/javascript">
+    function getCurrentEditedModel(gridName) {
+        var grid = $(gridName).data("kendoGrid");
+        var editRow = grid.tbody.find("tr:has(.k-edit-cell)");
+        return grid.dataItem(editRow);
+    }
+    function filterPolicy() {
+        var model = getCurrentEditedModel("#schedulePolicy-grid");
+        return {
+            companyId: model.CompanyId
+        };
+    }
+</script>

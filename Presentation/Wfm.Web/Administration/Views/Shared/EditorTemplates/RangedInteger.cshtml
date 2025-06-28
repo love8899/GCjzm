@@ -1,0 +1,8 @@
+@model int
+
+@(Html.Kendo().NumericTextBoxFor<int>(m => m)
+      .HtmlAttributes(new { style = "width:100%" })
+      .Min((int?)ViewData["minValue"] ?? int.MinValue)
+      .Max((int?)ViewData["maxValue"] ?? int.MaxValue)
+      .Format((string)ViewData["Format"] ?? "#")
+)

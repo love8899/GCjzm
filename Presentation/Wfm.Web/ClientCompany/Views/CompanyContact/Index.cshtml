@@ -1,0 +1,60 @@
+﻿@using Wfm.Client.Models.CompanyContact
+@using Wfm.Services.Common
+@model IEnumerable<CompanyContactViewModel>
+@{
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var shifts = shiftService.GetAllShifts(companyId: (int)ViewBag.CompanyId);
+}
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Accounts.Accounts") 
+    </div>
+    <div class="options">
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CompanyContactViewModel>()
+              .Name("account-grid") 
+              .Columns(columns =>
+                {
+                    columns.Bound(x => x.FirstName).Width(150);
+                    columns.Bound(x => x.LastName).Width(150);
+                    //columns.Bound(x => x.AccountRoleSystemName);                  
+                    columns.ForeignKey(x => x.ShiftId, shifts, "Id", "ShiftName").Width(180);                   
+                    columns.Bound(x => x.Email);
+
+                    columns.Bound(x => x.WorkPhone).Width(120)
+                    .ClientTemplate("#= prettyPhone(WorkPhone) #");
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                })
+                .EnableCustomBinding(true)
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("Index", "CompanyContact"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

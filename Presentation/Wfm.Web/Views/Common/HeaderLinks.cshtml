@@ -1,0 +1,37 @@
+﻿@model HeaderLinksModel
+@using Wfm.Web.Models.Common;
+
+<div class="header-links">
+    <ul>
+        @Html.Widget("header_links_before")
+        @if (Model.IsAuthenticated)
+        {
+            @*<li><a href="/Candidate" class="ico-account">@User.Identity.Name</a></li>*@
+            <li><a href="/Candidate" class="ico-account">My account</a></li>
+            <li>@Html.ActionLink("Sign Out", "SignOut", "Candidate")</li>
+        }
+        else
+        {
+            <li>@Html.ActionLink("Sign in", "SignIn", "Candidate")</li>
+            <li>@Html.ActionLink("Register", "NewRegister", "Candidate")</li>
+        }
+        @*@if (Model.AllowPrivateMessages)
+        {
+            <li>
+                <a href="@Url.RouteUrl("PrivateMessages", new { tab = "" })" class="ico-inbox">
+                    <span class="inbox-label">@T("PrivateMessages.Inbox")</span>
+                    <span class="inbox-unread">@Model.UnreadPrivateMessages</span>
+                </a>
+            </li>
+        }*@
+    </ul>
+    @*@if (Model.AllowPrivateMessages && !string.IsNullOrEmpty(Model.AlertMessage))
+    {
+        //new private message notification
+        <script type="text/javascript">
+            $(document).ready(function () {
+                displayPopupNotification('@Html.Raw(HttpUtility.JavaScriptStringEncode(Model.AlertMessage))', 'success', false);
+            });
+        </script>
+    }*@
+</div>

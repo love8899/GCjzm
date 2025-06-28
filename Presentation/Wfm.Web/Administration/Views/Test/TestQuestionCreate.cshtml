@@ -1,0 +1,18 @@
+﻿@model TestQuestionModel
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "testquestion-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Common.TestQuestion")
+            @Html.ActionLink("(" + T("Admin.Configuration.TestQuestion.BackToList") + ")", "TestQuestionIndex", new { testCategoryId = Model.TestCategoryId })
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />
+            @Html.ActionLink(T("Admin.Common.Cancel").Text, "TestQuestionIndex", "Test", new { testCategoryId = Model.TestCategoryId }, new { @class = "k-button" })
+        </div>
+    </div>
+
+    @Html.Partial("_CreateOrUpdate.TestQuestion", Model)
+}

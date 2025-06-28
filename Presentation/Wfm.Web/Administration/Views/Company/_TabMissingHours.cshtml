@@ -1,0 +1,524 @@
+﻿@using Wfm.Core;
+@using Wfm.Core.Domain.TimeSheet;
+@using Wfm.Services.Franchises;
+@using Wfm.Core.Domain.Accounts;
+@using Wfm.Services.Accounts;
+
+
+@{
+    Layout = null;
+
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var franchises = franchiseService.GetAllFranchises();
+    var accountService = EngineContext.Current.Resolve<Wfm.Services.Accounts.IAccountService>();
+    var accounts = accountService.GetAllAccountsAsQueryable();
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+    var availableStatus = CandidateMissingHourStatus.PendingApproval.ToSelectList(false).ToList();
+    var today = DateTime.Today;
+    var startDate = today.AddDays(-7 * 4);
+    var endDate = today;
+    if (ViewBag.JobStartDate != null)
+    {
+        startDate = ViewBag.JobStartDate;
+        endDate = startDate;
+    }
+}
+
+
+<script>
+    function onDataBound(e) {
+        $('#missinghour-grid input[type=checkbox][id!=mastercheckbox]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds);
+            //set checked based on if current checkbox's value is in selectedIds.
+            $(this).attr('checked', checked > -1);
+        });
+
+        updateMasterCheckbox();
+        applyCommandIcons(e);
+        showOrHideButton(e);
+    }
+
+    function refreshGird() {
+        var grid = $("#missinghour-grid").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    function gridParameter() {
+        var startDate = $("#fromDate").val();
+        var endDate = $("#toDate").val();
+        return {
+            companyGuid: '@ViewBag.CompanyGuid',
+            candidateId: '@ViewBag.CandidateId',
+            jobStartDate: startDate,
+            jobEndDate: endDate
+        };
+    }
+
+    function adjustEntry(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        $(document.body).append('<div id="adjust-win"></div>');
+        $("#adjust-win").kendoWindow({
+            title: "Adjust Missing Hour",
+            modal: true,
+            resizable: false,
+            width: 640,
+            height: 400,
+            content: '@Url.Action("_AdjustMissingHour", "Company")' + '?missingHourId=' + dataItem.Id,
+            close: function () {
+                setTimeout(function () {
+                    $('#adjust-win').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-cancel').click(function () {
+                    win.close();
+                })
+                $('#btn-save').click(function () {
+                    var form = $('#adjust-form');
+                    if (form.valid()) {
+                        var link = '@Url.Action("_SaveMissingHour", "Company")';
+                        $.ajax({
+                            type: "POST",
+                            url: link,
+                            data: form.serialize(),
+                            success: function (response) {
+                                if (response.Result) {
+                                    showMsg("Missing hour is adjusted.");
+                                    win.close();
+                                    refreshGird();
+                                }
+                                else {
+                                    alert(response.ErrorMessage);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }).data('kendoWindow').center();
+    }
+
+
+    function changeStatus(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        $(document.body).append('<div id="changestatus-win"></div>');
+        $("#changestatus-win").kendoWindow({
+            title: "Change Time Sheet Status",
+            modal: true,
+            resizable: false,
+            width: 800,
+            height: 500,
+            content: '@Url.Action("_ChangeMissingHourStatus", "Company")' + '?missingHourId=' + dataItem.Id,
+            close: function () {
+                setTimeout(function () {
+                    $('#changestatus-win').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-cancel').click(function () {
+                    win.close();
+                })
+                $('#btn-save').click(function () {
+                    var form = $('#changestatus-form');
+                    if (form.valid()) {
+                        var link = '@Url.Action("_ChangeMissingHourStatus", "Company")';
+                        $.ajax({
+                            type: "POST",
+                            url: link,
+                            data: form.serialize(),
+                            success: function (response) {
+                                if (response.Result) {
+                                    showMsg("Missing Hour Status is changed.");
+                                    win.close();
+                                    refreshGird();
+                                }
+                                else {
+                                    alert(response.ErrorMessage);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }).data('kendoWindow').center();
+    }
+
+    function copyEntry(e) {
+        e.preventDefault();
+
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        $(document.body).append('<div id="copyMissingHourEntry"></div>');
+        $("#copyMissingHourEntry").kendoWindow({
+            title: "Copy Missing Hour",
+            modal: true,
+            resizable: false,
+            width: 540,
+            height: 440,
+            content: '@Url.Action("_CopyMissingHour", "Company")' + '/' + dataItem.Id,
+            close: function () {
+                setTimeout(function () {
+                    $('#copyMissingHourEntry').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-cancel').click(function () {
+                    win.close();
+                });
+                $('#btn-save').click(function () {
+                    var form = $('#copyhour-form');
+                    if (form.valid()) {
+                        var oldWorkDate = kendo.toString(dataItem.WorkDate, 'yyyy-MM-dd');
+                        var newWorkDate = $('#WorkDate').val();
+                        if (newWorkDate == oldWorkDate)
+                            alert('The work date must be different!');
+                        else {
+                            $.ajax({
+                                type: "POST",
+                                url: '@Url.Action("_SaveMissingHour", "Company")',
+                                data: form.serialize(),
+                                success: function (response) {
+                                    if (response.Result) {
+                                        showMsg("Missing hour is copied and saved.");
+                                        win.close();
+                                        refreshGird();
+                                    }
+                                    else {
+                                        alert(response.ErrorMessage);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        }).data('kendoWindow').center();
+    }
+
+</script>
+
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.MissingHour")
+    </div>
+    <div class="options">
+        @Html.Label("fromDate", T("Admin.Common.From").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("fromDate").Max(today).Value(startDate).Events(e => e.Change("refreshGird"))
+        @Html.Label("toDate", T("Admin.Common.To").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("toDate").Max(today).Value(endDate).Events(e => e.Change("refreshGird"))
+        <button id="add-hour" class="k-button" style="margin-left: 120px">@T("Common.Add").Text</button>
+        <button id="ask-for-approval" class="k-button">Ask For Approval</button>
+        <button id="export-selected" class="k-button">@T("Admin.Common.ExportToExcel")</button>
+    </div>
+</div>
+
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateMissingHourModel>()
+                .Name("missinghour-grid")
+                .Events(events => events.DataBound("onDataBound"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x).Filterable(false).Sortable(false)
+                        .HeaderTemplate("<input id='mastercheckbox' type='checkbox'/>")
+                        .ClientTemplate("<input type='checkbox' value='#=Id#' class='checkboxGroups'/>")
+                        .HtmlAttributes(new { align = "center" }).Width(30);
+
+                    if (!workContext.CurrentAccount.IsVendor()&&commonSettings.DisplayVendor)
+                    {
+                        columns.ForeignKey(x => x.FranchiseId, franchises, "Id", "FranchiseName").Title(T("Common.Vendor").Text).Hidden(true);
+                    }
+
+                    columns.Bound(x => x.EmployeeId)
+                        .ClientTemplate(@Html.ActionLink("#=EmployeeId#", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString())
+                        .Width(90);
+
+                    columns.Bound(x => x.EmployeeLastName)
+                        .Width(100);
+                    columns.Bound(x => x.EmployeeFirstName)
+                        .Width(100);
+
+                    columns.Bound(x => x.JobOrderId).Title(T("Common.JobOrder").Text)
+                        .ClientTemplate(@Html.ActionLink("#=JobOrderId#", "Details", "JobOrder", new { guid = "#=JobOrderGuid#" }, new { target = "_blank" }).ToHtmlString())
+                        .Width(60);
+
+                    columns.Bound(x => x.JobTitle).Hidden(true);
+
+                    columns.Bound(x => x.LocationName);
+                    columns.Bound(x => x.DepartmentName);
+                    columns.Bound(x => x.ContactName);
+
+                    columns.Bound(x => x.WorkDate).Title(T("Common.Date").Text).Format("{0:yyyy-MM-dd}").Width(120).HtmlAttributes(new { id = "joborder-startdate" });
+
+                    columns.Bound(x => x.OrigHours).Format("{0:n}").HtmlAttributes(new { align = "right" }).Width(60);
+                    columns.Bound(x => x.NewHours).Format("{0:n}").HtmlAttributes(new { align = "right" }).Width(60);
+                    columns.Bound(x => x.BillableHours).Format("{0:n}").HtmlAttributes(new { align = "right" }).Width(60);
+
+                    columns.ForeignKey(x => x.CandidateMissingHourStatusId, availableStatus, "Value", "Text")
+                        .Width(105);
+
+                    columns.Bound(x => x.Note).Hidden(true);
+
+                    columns.ForeignKey(x => x.EnteredBy, accounts, "Id", "FullName").Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(false);
+
+                    columns.ForeignKey(x => x.ApprovedBy, accounts, "Id", "FullName").Hidden(true);
+                    columns.Bound(x => x.ApprovedOn)
+                        .ClientTemplate("#if (ApprovedOn) {# #=kendo.toString(ApprovedOn, 'yyyy-MM-dd HH:mm')# #} else {# #}#")
+                        .Width(120).Hidden(true);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    columns.Command(command =>
+                    {
+                        command.Custom("Adjust").Click("adjustEntry").Text("");
+                        command.Custom("Status").Click("changeStatus").Text("");
+                        command.Custom("Copy").Click("copyEntry").Text("");
+                    }).Title("Action").HtmlAttributes(new { align = "center" }).Width(160);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(
+                    dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(30)
+                    .Read(read => read.Action("CandidateMissingHour", "Company").Data("gridParameter"))
+                    .Group(g => g.Add(model => model.ContactName))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+
+@using (Html.BeginForm("_ExportMissingHourToXlsx", "Company", FormMethod.Post, new { id = "exporttoxlsx-selected-form" }))
+{
+    <input type="hidden" id="companyGuid" name="companyGuid" value="@ViewBag.CompanyGuid" />
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+}
+
+
+<script>
+
+    $("#add-hour").bind("click", function (e) {
+        e.preventDefault();
+        $(document.body).append('<div id="addhour-window"></div>');
+        $("#addhour-window").kendoWindow({
+            title: "Add Missing Hour",
+            width: 500,
+            height: 520,
+            resizable: false,
+            content: '@Url.Action("_AddMissingHour", "Company")' + "?companyGuid=" + '@ViewBag.CompanyGuid',
+            close: function () {
+                setTimeout(function () {
+                    $('#addhour-window').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-save').click(function () {
+                    var form = $('#addhour-form');
+                    if ($('#CandidateId').val() == 0)
+                        alert('Please select a candidate!');
+                    else if ($('#JobOrderId').val() == 0)
+                        alert('Please select a job order!');
+                    else if ($('#NewHours').val() == 0)
+                        alert('Hour must be great than zero!');
+                    else if (form.valid()) {
+                        $.ajax({
+                            type: "POST",
+                            url: '@Url.Action("_SaveMissingHour", "Company")',
+                            data: $('#addhour-form').serialize(),
+                            dataType: 'Json',
+                            success: function (result) {
+                                if (result.Result) {
+                                    win.close();
+                                    showMsg("Missing Hour is added/updated.");
+                                    refreshGird()
+                                }
+                                else {
+                                    alert(result.ErrorMessage);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        });
+        var dialog = $("#addhour-window").data("kendoWindow");
+        dialog.center().open();
+    });
+
+    function updateMasterCheckbox() {
+        var numChkBoxes = $('#missinghour-grid input[type=checkbox][id!=mastercheckbox]').length;
+        var numChkBoxesChecked = $('#missinghour-grid input[type=checkbox][checked][id!=mastercheckbox]').length;
+        $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+
+    var selectedIds = [];
+
+    $('#mastercheckbox').click(function () {
+        $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+    });
+
+    //wire up checkboxes.
+    $('#missinghour-grid').on('change', 'input[type=checkbox][id!=mastercheckbox]', function (e) {
+        var $check = $(this);
+        if ($check.is(":checked") == true) {
+            var checked = jQuery.inArray($check.val(), selectedIds);
+            if (checked == -1) {
+                //add id to selectedIds.
+                selectedIds.push($check.val());
+            }
+        }
+        else {
+            var checked = jQuery.inArray($check.val(), selectedIds);
+            if (checked > -1) {
+                //remove id from selectedIds.
+                selectedIds = $.grep(selectedIds, function (item, index) {
+                    return item != $check.val();
+                });
+            }
+        }
+        updateMasterCheckbox();
+    });
+
+    function applyCommandIcons(e) {
+        $(".k-grid-Adjust").attr('title', 'Adjust').html('<span class="fa fa-pencil"></span>');
+        $(".k-grid-Status").attr('title', 'Status').html('<span class="fa fa-check-square-o"></span>');
+        $(".k-grid-Copy").attr('title', 'Copy').html('<span class="fa fa-copy"></span>');
+    }
+
+    function showOrHideButton(e) {
+        var grid = $("#missinghour-grid").data("kendoGrid");
+        var data = grid.dataSource.data();
+        currentRow = 0;
+        var l1Num = data.length;
+        for (var i = 0; i < l1Num; i++) {
+            var l2Num = data[i].items.length;
+            for (var j = 0; j < l2Num; j++) {
+                var currentData = data[i].items[j];
+                var theRow = grid.tbody.find(">tr:not(.k-grouping-row):not(.k-detail-row)").eq(currentRow);
+                // processed
+                if (currentData.CandidateMissingHourStatusId == '@((int)(CandidateMissingHourStatus.Processed))') {
+                    theRow.find(".k-grid-Adjust").remove();
+                    theRow.find(".k-grid-Status").remove();
+                    //theRow.find(".checkboxGroups").remove();
+                }
+                    // approved
+                else if (currentData.CandidateMissingHourStatusId == '@((int)(CandidateMissingHourStatus.Approved))') {
+                    //theRow.find(".k-grid-Status").remove();
+                    //theRow.find(".checkboxGroups").remove();
+                }
+                    // voided or rejected
+                else if (currentData.CandidateMissingHourStatusId == '@((int)(CandidateMissingHourStatus.Voided))' ||
+                         currentData.CandidateMissingHourStatusId == '@((int)(CandidateMissingHourStatus.Rejected))') {
+                    theRow.find(".k-grid-Adjust").remove();
+                    //theRow.find(".checkboxGroups").remove();
+                }
+                currentRow++;
+            }
+        }
+    }
+
+    function showMsg(msg) {
+        $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+        $(".messageBox").text(msg);
+    }
+
+    $("#ask-for-approval").bind("click", function (e) {
+        e.preventDefault();
+        if (selectedIds.length == 0)
+            alert('Please select record(s) first!');
+        else if (selectedIds.length == 1 || confirm('Multiple missing hour records are selected.\r\nAre you sure to include them in one single email?\r\n')) {
+            var ids = selectedIds.join(",");
+            askForApproval(ids);
+        }
+
+        return false;
+    });
+
+    function askForApproval(ids) {
+        $(document.body).append('<div id="askforapproval-window"></div>');
+        $("#askforapproval-window").kendoWindow({
+            title: "Ask For Approval",
+            width: 800,
+            height: 600,
+            resizable: false,
+            content: '@Url.Action("_AskForApproval", "Company")' + "?ids=" + ids,
+            close: function () {
+                setTimeout(function () {
+                    $('#askforapproval-window').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-send').click(function () {
+                    var form = $('#askforapproval-form');
+                    if (form.valid()) {
+                        $.ajax({
+                            type: "POST",
+                            url: '@Url.Action("_AskForApproval", "Company")',
+                            data: $('#askforapproval-form').serialize(),
+                            dataType: 'Json',
+                            success: function (result) {
+                                if (result.Result) {
+                                    win.close();
+                                    showMsg("The missing hour report email will be send to client.");
+                                    refreshGird()
+                                }
+                                else {
+                                    alert(result.ErrorMessage);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        });
+        var dialog = $("#askforapproval-window").data("kendoWindow");
+        dialog.center().open();
+    }
+
+    $("#export-selected").bind("click", function (e) {
+        e.preventDefault();
+
+        var ids = selectedIds.join(",");
+        if (ids.length == 0)
+            alert('Please select record(s) first!');
+        else {
+            $('#exporttoxlsx-selected-form #selectedIds').val(ids);
+            $('#exporttoxlsx-selected-form').submit();
+        }
+
+        return false;
+    });
+
+</script>

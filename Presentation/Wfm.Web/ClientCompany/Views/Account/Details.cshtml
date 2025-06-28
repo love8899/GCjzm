@@ -1,0 +1,55 @@
+﻿@model AccountModel
+@using Wfm.Shared.Models.Accounts
+
+@{
+    ViewBag.PageTitle = T("Common.AccountDetails").Text;
+    ViewBag.PanelTitle = T("Admin.Candidate.AccountInformation").Text;
+    ViewBag.Panel2Title = T("Admin.Accounts.Account.ContactInformation").Text;
+
+    ViewBag.Title = T("Admin.Profile").Text;
+    Html.SetActiveMenuItemSystemName("Client account");
+}
+
+@section Options {
+    <a class="btn bg-blue" href="@Url.Action("Edit")">
+        <i class="fa fa-pencil"></i>@T("Admin.Accounts.Account.EditProfile")
+    </a>
+    <a class="btn bg-blue" href="@Url.Action("ResetPassword")">
+        <i class="fa fa-unlock"></i>@T("Admin.Accounts.Account.ResetPassword")
+    </a>
+    <a class="btn bg-blue" href="@Url.Action("ChangeSecurityQuestions")">
+        <i class="fa fa-unlock"></i>@T("Web.Candidate.Candidate.ChangeSecurityQuestions")
+    </a>
+    <a class="btn bg-blue" href="@Url.Action("SignaturePad")">
+        <i class="fa fa-signing"></i>@T("Client.Account.Signature.Menu")
+    </a>
+    <a class="btn bg-yellow" href="@Url.Action("Delegate")">
+        <i class="fa fa-users"></i>@T("Admin.Accounts.Account.Delegate")
+    </a>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        @Html.LineFor(m => m.Email)
+        @Html.LineFor(m => m.AccountRoleSystemName)
+        @Html.LineFor(m => m.FirstName)
+        @Html.LineFor(m => m.LastName)
+        @Html.LineFor(m => m.ShiftName)
+    </div>
+</div>
+
+@section Panel2 {
+    <div class="row">
+        <div class="col-md-6">
+            @Html.LineFor(m => m.CompanyLocationName)
+            @Html.LineFor(m => m.CompanyDepartmentName)
+            @Html.LineFor(m => m.WorkPhone, Model.WorkPhone?.ToPrettyTelephone())
+            @Html.LineFor(m => m.MobilePhone, Model.MobilePhone?.ToPrettyTelephone())
+            @Html.LineFor(m => m.HomePhone, Model.HomePhone?.ToPrettyTelephone())
+        </div>
+    </div>
+}
+
+@section scripts {<script type="text/javascript">
+        //addClass2FormLines(undefined, ['col-sm-3', 'col-sm-9']);
+    </script>}

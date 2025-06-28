@@ -1,0 +1,22 @@
+﻿@using Wfm.Core.Infrastructure
+@using Wfm.Core.Domain.Common
+@{
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+}
+
+
+<div class="topic-block">
+    <div class="topic-block-title">
+        <h2>Connecting Great People with Great Companies<sup>&reg;</sup></h2>
+    </div>
+    <div class="topic-block-body">
+        @siteTitle is a leading Ontario-based full cycle
+        employment services agency, providing premium human resource solutions to clients,
+        large and small in a multitude of industries. With our first-rate screening process,
+        safety training and testing and our exceptional track record of providing highly-dependable
+        employees, we take the risk out of our clients’ human resource decisions. We provide
+        a competitive advantage by connecting great companies with great people.
+        <span> <a href="@Url.Action("Index", "AboutUs")">More about us.</a></span>
+    </div>
+</div>

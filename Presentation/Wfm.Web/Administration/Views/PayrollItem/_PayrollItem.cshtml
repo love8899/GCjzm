@@ -1,0 +1,34 @@
+﻿<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<PayrollItemModel>()
+                .Name("payroll-items-grid")
+                        .Events(e => e.DataBound("onDataBound").Change("onSelect"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.ID).Hidden(true);
+                    columns.Bound(x => x.VendorName).Hidden(true).ClientGroupHeaderTemplate("#= value #");
+                    columns.Bound(x => x.Code).Title("Code").Width(100);
+                    columns.Bound(x => x.Name).Title("Name");
+                    columns.Bound(x => x.Type).Title("Type");
+                })
+                .Selectable()
+                .Filterable()
+                .ColumnMenu()
+                .Sortable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(20)
+                    .Read(read => read.Action("_GetPayrollItems", "PayrollItem"))
+                    .Group(groups => groups.Add(x => x.VendorName))
+                )
+            )
+        </td>
+    </tr>
+</table>
+<script>
+    function refreshPayrollItems() { $('#payroll-items-grid').data('kendoGrid').dataSource.read(); }
+    function refreshTaxFormSetting() { $('#tax-form-setting-grid').data('kendoGrid').dataSource.read(); }
+</script>

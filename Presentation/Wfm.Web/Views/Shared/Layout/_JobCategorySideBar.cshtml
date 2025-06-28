@@ -1,0 +1,24 @@
+﻿@model SelectList
+@{ 
+    var jobCategoryId = (ViewData["JobCategoryId"] != null ? (int)ViewData["JobCategoryId"] : 0).ToString();
+}
+<div class="block block-category-navigation">
+    <div class="title">
+        <strong>@Html.RouteLink("All Categories", "JobPost", new { searchString = ViewBag.SearchString })</strong>
+    </div>
+    <div class="listbox">
+        <ul class="list compact-list">
+            @foreach (var item in Model)
+            {
+                if (item.Value == jobCategoryId)
+                {
+                    <li>@Html.RouteLink(item.Text, "JobOrderCategorySEO", new { searchString = ViewBag.SearchString, JobOrderCategoryId = item.Value }, new { @class = "selected" })</li>
+                }
+                else
+                {
+                    <li>@Html.RouteLink(item.Text, "JobOrderCategorySEO", new { searchString = ViewBag.SearchString, JobOrderCategoryId = item.Value }, null)</li>
+                }
+            }
+        </ul>
+    </div>
+</div>

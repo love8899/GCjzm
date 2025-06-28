@@ -1,0 +1,6 @@
+@model DateTime?
+
+@(Html.Kendo().DateTimePicker()
+        .Name(ViewData.TemplateInfo.GetFullHtmlFieldName(string.Empty))
+        .Value(Model > DateTime.MinValue? Model : null)
+)

@@ -1,0 +1,239 @@
+﻿@using Wfm.Core.Domain.TimeSheet
+@using Wfm.Core
+@using Wfm.Core.Domain.Accounts
+@{
+    Layout = null;
+
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var franchiseService = EngineContext.Current.Resolve<Wfm.Services.Franchises.IFranchiseService>();
+    var franchises = franchiseService.GetAllFranchises();
+    var accountService = EngineContext.Current.Resolve<Wfm.Services.Accounts.IAccountService>();
+    var accounts = accountService.GetAllAccountsAsQueryable();
+
+    var availableStatus = CandidateMissingHourStatus.PendingApproval.ToSelectList(false).ToList();
+    var today = DateTime.Today;
+    var startDate = today.AddDays(-7 * 4);
+    var endDate = today;
+    if (ViewBag.JobStartDate != null)
+    {
+        startDate = ViewBag.JobStartDate;
+        endDate = startDate;
+    }
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+<script>
+    function onDataBound(e) {
+        $('#history-grid input[type=checkbox][id!=mastercheckbox]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds);
+            //set checked based on if current checkbox's value is in selectedIds.
+            $(this).attr('checked', checked > -1);
+        });
+
+        updateMasterCheckbox();
+    }
+
+    function refreshHistoryGird() {
+        refreshGrid("#history-grid");
+    }
+
+    function gridParameter() {
+        return {
+            jobStartDate: $("#fromDate").val(),
+            jobEndDate: $("#toDate").val()
+        };
+    }
+</script>
+
+<div class="section-header">
+    <div class="title">
+        @*@T("Admin.MissingHour")*@
+    </div>
+    <div class="options">
+        @Html.Label("fromDate", T("Admin.Common.From").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("fromDate").Max(today).Value(startDate).Events(e => e.Change("refreshHistoryGird"))
+        @Html.Label("toDate", T("Admin.Common.To").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("toDate").Max(today).Value(endDate).Events(e => e.Change("refreshHistoryGird"))
+        <button id="export-selected" class="k-button" style="margin-left: 120px">@T("Admin.Common.ExportToExcel")</button>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateMissingHourModel>()
+                .Name("history-grid")
+                .Events(events => events.DataBound("onDataBound"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x).Filterable(false).Sortable(false)
+                        .HeaderTemplate("<input id='mastercheckbox' type='checkbox'/>")
+                        .ClientTemplate("<input type='checkbox' value='#=Id#' class='checkboxGroups'/>")
+                        .HtmlAttributes(new { align = "center" }).Width(30);
+
+                    if (!workContext.CurrentAccount.IsVendor()&&commonSettings.DisplayVendor)
+                    {
+                        columns.ForeignKey(x => x.FranchiseId, franchises, "Id", "FranchiseName").Title(T("Common.Vendor").Text).Hidden(true);
+                    }
+
+                    columns.Bound(x => x.EmployeeId)
+                        .ClientTemplate(@Html.ActionLink("#=EmployeeId#", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString())
+                        .Width(90);
+
+                    columns.Bound(x => x.EmployeeLastName)
+                        .Width(100);
+                    columns.Bound(x => x.EmployeeFirstName)
+                        .Width(100);
+
+                    columns.Bound(x => x.JobOrderId).Title(T("Common.JobOrder").Text)
+                        .ClientTemplate(@Html.ActionLink("#=JobOrderId#", "Details", "JobOrder", new { guid = "#=JobOrderGuid#" }, new { target = "_blank" }).ToHtmlString())
+                        .Width(60);
+
+                    columns.Bound(x => x.JobTitle).Hidden(true);
+
+                    columns.Bound(x => x.LocationName);
+                    columns.Bound(x => x.DepartmentName);
+                    columns.Bound(x => x.ContactName);
+
+                    columns.Bound(x => x.WorkDate).Title(T("Common.StartDate").Text).Format("{0:yyyy-MM-dd HH:mm}").Width(120).HtmlAttributes(new { id = "joborder-startdate" });
+
+                    columns.Bound(x => x.OrigHours).Format("{0:n}").HtmlAttributes(new { align = "right" }).Width(60);
+                    columns.Bound(x => x.NewHours).Format("{0:n}").HtmlAttributes(new { align = "right" }).Width(60);
+                    columns.Bound(x => x.BillableHours).Format("{0:n}").HtmlAttributes(new { align = "right" }).Width(60);
+
+                    columns.ForeignKey(x => x.CandidateMissingHourStatusId, availableStatus, "Value", "Text")
+                        .Width(105);
+
+                    columns.Bound(x => x.Note).Hidden(true);
+
+                    columns.ForeignKey(x => x.EnteredBy, accounts, "Id", "FullName").Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(false);
+
+                    columns.ForeignKey(x => x.ApprovedBy, accounts, "Id", "FullName").Hidden(true);
+                    columns.Bound(x => x.ApprovedOnUtc).Title("Approved on")
+                        .ClientTemplate("#if (ApprovedOn) {# #=kendo.toString(ApprovedOn, 'yyyy-MM-dd HH:mm')# #} else {# #}#")
+                        .Width(120).Hidden(true);
+
+                    columns.ForeignKey(x => x.ProcessedBy, accounts, "Id", "FullName").Hidden(true);
+                    columns.Bound(x => x.ProcessedOnUtc).Title("Processed on")
+                        .ClientTemplate("#if (ProcessedOn) {# #=kendo.toString(ProcessedOn, 'yyyy-MM-dd HH:mm')# #} else {# #}#")
+                        .Width(120).Hidden(true);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .ClientTemplate("<a class='k-button' title='" + T("Admin.Candidate.CandidateAttachments").Text + "' onclick=\"return viewAttachedFiles(#= Id #)\"><span class='fa fa-paperclip'></span></a>")
+                        .Width(60)
+                        .Title("");
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(
+                    dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(30)
+                    .Read(read => read.Action("_MissingHourHistory", "TimeSheet").Data("gridParameter"))
+                    .Group(g => g.Add(model => model.CompanyName))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+@using (Html.BeginForm("_ExportMissingHourToXlsx", "TimeSheet", FormMethod.Post, new { id = "exporttoxlsx-selected-form" }))
+{
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+    <input type="hidden" id="hidenStartDate" name="hidenStartDate" value="" />
+    <input type="hidden" id="hidenEndDate" name="hidenEndDate" value="" />
+}
+
+<script>
+    var selectedIds = [];
+
+    function updateMasterCheckbox() {
+        var numChkBoxes = $('#history-grid input[type=checkbox][id!=mastercheckbox]').length;
+        var numChkBoxesChecked = $('#history-grid input[type=checkbox][checked][id!=mastercheckbox]').length;
+        $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+
+    $('#mastercheckbox').click(function () {
+        $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+    });
+
+    //wire up checkboxes.
+    $('#history-grid').on('change', 'input[type=checkbox][id!=mastercheckbox]', function (e) {
+        var $check = $(this);
+        if ($check.is(":checked") == true) {
+            var checked = jQuery.inArray($check.val(), selectedIds);
+            if (checked == -1) {
+                //add id to selectedIds.
+                selectedIds.push($check.val());
+            }
+        }
+        else {
+            var checked = jQuery.inArray($check.val(), selectedIds);
+            if (checked > -1) {
+                //remove id from selectedIds.
+                selectedIds = $.grep(selectedIds, function (item, index) {
+                    return item != $check.val();
+                });
+            }
+        }
+        updateMasterCheckbox();
+    });
+
+    $("#export-selected").bind("click", function (e) {
+        e.preventDefault();
+
+        var ids = selectedIds.join(",");
+        if (ids.length == 0)
+            alert('Please select record(s) first!');
+        else {
+            $('#exporttoxlsx-selected-form #selectedIds').val(ids);
+            $('#exporttoxlsx-selected-form #hidenStartDate').val($("#startDate").val());
+            $('#exporttoxlsx-selected-form #hidenEndDate').val($("#endDate").val());
+            $('#exporttoxlsx-selected-form').submit();
+        }
+
+        return false;
+    });
+
+    function viewAttachedFiles(id) {
+        $(document.body).append('<div id="attachedFilesDialog"></div>');
+        $("#attachedFilesDialog").kendoWindow({
+            title: "Attached Files",
+            modal: true,
+            resizable: false,
+            width: 500,
+            height: 150,
+            content: {
+                url: '@Url.Action("_MissingHourDocuments", "Company")',
+                data: { missingHourId: id },
+                type: "POST"
+                },
+            close: function () {
+                $('#attachedFilesDialog').kendoWindow('destroy');
+            },
+            refresh: function (e) {
+            }
+        }).data('kendoWindow').center();
+    }
+</script>

@@ -1,0 +1,40 @@
+﻿<style type="text/css">
+    .k-multiselect.k-header {
+        /*border-color: #94c0d2;
+        text-align: right;*/
+        float: none;
+        vertical-align: middle;
+        display: inline-block;
+        margin-left: 10px;
+        margin-right: 20px;
+    }
+
+
+</style>
+
+<div id="vendor-account-selector">
+    @Html.Partial("_VendorAccountSelector")
+</div>
+
+<div style="text-align: center">
+    <br />
+    @(Html.Kendo().Button().Name("Search")
+        .HtmlAttributes(new { type = "submit" }).Content("Search"))
+</div>
+
+<br />
+
+<script type="text/javascript">
+    $("#Search").click(function () {
+        if (!IsSelectorComplete())
+            alert("Please select some criteria.");
+        else
+            refreshGird();
+    });
+
+    function onRead(e) {
+        return {
+            selector: GetSelector(),
+        };
+    }
+</script>

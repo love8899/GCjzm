@@ -1,0 +1,64 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Franchises;
+@{  
+    var endDate = DateTime.Today;
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+ }
+
+
+@(Html.Kendo().PanelBar().Name("search-bar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text(String.Format(T("Common.ReportParameters").Text, T("Report.DailyAttendanceByRecruiterReport").Text))
+            .Expanded(true)
+            .Content(@<div class="panel">
+                            <br />
+@if (workContext.CurrentAccount.IsLimitedToFranchises == false)
+{
+            @Html.Label("Vendor","Vendor: ")
+            @(Html.Kendo().DropDownList()
+                    .Name("FranchiseId").HtmlAttributes(new { style = "width: 400px" })
+                        .OptionLabel("--Select--")
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                    .BindTo(ViewBag.Franchises))
+    <br />
+    <br />
+
+}
+else
+{
+    @Html.Hidden("FranchiseId", workContext.CurrentFranchise.Id)
+}
+
+
+                            @Html.Label("ToDate", "Work Date: ")
+                            @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("workDate").Value(endDate.ToString("yyyy-MM-dd"))
+                          <div style="text-align: center">
+                              <br />@(Html.Kendo().Button().Name("loadReport").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text))<br /><br />
+                          </div>
+                        </div>);
+    })
+)
+
+<div id="report" />
+<script type="text/javascript">
+
+    $("#loadReport").bind("click", function () {
+        loadReport();
+    });
+  
+    function loadReport() {
+        var franchiseId = $("#FranchiseId").val();
+        if (franchiseId) {
+            $("#report").load("_DailyAttendanceByRecruiter", {
+                workDate: $("#workDate").val(),
+                franchiseId: franchiseId
+            });
+        }
+        else
+            alert('Please choose a vendor first');
+    }
+
+</script>

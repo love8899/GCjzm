@@ -1,0 +1,71 @@
+﻿@{
+    ViewBag.Title = T("Account.AccountLogin.Login");
+    Layout = "";
+}
+@model IEnumerable<Wfm.Web.Models.Accounts.AccountDelegateModel>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <title>@T("Account.AccountLogin.Login")</title>
+    <script src="https://code.jquery.com/jquery-2.2.2.min.js"></script>
+
+    <link href="@Url.Content("~/Content/login.css")" rel="stylesheet" type="text/css" />
+    <style>
+        .fieldlist {
+            margin: 0em 0 0;
+            padding: 0;
+        }
+        .fieldlist li {
+            list-style: none;
+            padding-bottom: 1em;
+            font-size: 17px;
+        }
+    </style>
+    <script>
+    $(function () {
+        $('#btnLoginAs').on('click',function () {
+            if ($('input[name=AccountName]:radio:checked').length > 0) {
+                var selecteddelegateId = $('input[name=AccountName]:radio:checked').attr('delegateId');
+                $.ajax({
+                    url: '@Url.Action("SignInAs", "Account")',
+                    type: 'POST',
+                    data: { delegateId: selecteddelegateId, currentAccountGuid: '@ViewBag.CurrentAccountGuid' },
+                    dataType: 'json',
+                    success: function (result) {
+                        if (result.url) {
+                            window.location.href = window.location.href.replace("login", result.url);
+                        }
+                    }
+                })
+            }
+        })
+    })
+
+    </script>
+</head>
+<body>
+    <div class="login-box" style="width:320px;">       
+        <div class="login-header"></div>
+        <div class="login-info">Login As</div> 
+        <ul class="fieldlist">
+            @foreach (var item in Model)
+            {
+                <li>
+                        @(Html.Kendo().RadioButton().Checked(item.AccountId == item.DelegateAccountId).Name(item.AccountName).HtmlAttributes(new { @name = "AccountName", @delegateId = item.Id }).Label(item.AccountName))
+                </li>
+            }
+        </ul>
+        <div class="retrieve-text">You are elected as delegate of your colleague(s).</div>
+        <div class="login-remember">
+            <div class="login-button"><button id="btnLoginAs" name="btnLoginAs" type="button">Continue</button></div>
+        </div>
+    </div>
+    <div class="login-footer">
+        <div class="copyright">&copy; @(DateTime.Today.Year) Tempus Workforce Management</div>
+        <div class="footer-links"> @Html.ActionLink("Privacy policy", "ClientPrivacyPolicy", "Home", null, new { target = "_blank" }) | @Html.ActionLink("Terms of use", "ClientTermsOfUse", "Home", null, new { target = "_blank" })</div>
+    </div>
+    
+</body>
+</html>

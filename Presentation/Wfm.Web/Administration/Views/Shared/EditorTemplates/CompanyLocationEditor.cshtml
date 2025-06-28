@@ -1,0 +1,14 @@
+﻿@model int
+
+@(Html.Kendo().DropDownListFor(m => m)
+        .AutoBind(false)
+        .OptionLabel("Select Location...")
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .DataSource(dataSource =>
+        {
+            dataSource.Read(read => read.Action("GetCascadeLocations", "Common").Data("filterLocations"))
+                    .ServerFiltering(true);
+        })
+)
+@Html.ValidationMessageFor(m => m)

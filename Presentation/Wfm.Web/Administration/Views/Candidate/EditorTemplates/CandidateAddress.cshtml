@@ -1,0 +1,86 @@
+﻿@using Wfm.Services.Common;
+@using Wfm.Services.DirectoryLocation;
+@model AddressModel
+
+@Html.ValidationSummary(true)
+
+<h4>@T("Admin.Candidate.CandidateAddress")</h4>
+<section>
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.UnitNumber)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.UnitNumber)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.AddressLine1)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.AddressLine1)
+                @Html.WfmValidationMessageFor(model => model.AddressLine1)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.AddressLine2)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.AddressLine2)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CountryId)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.CountryId)
+                @Html.WfmValidationMessageFor(model => model.CountryId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.StateProvinceId)
+            </td>
+            <td class="adminData required">
+                <script>
+                    function filterStateProvince() {
+                        return {
+                            countryId: $("#CandidateAddressModel_CountryId").val()
+                        };
+                    }
+                </script>
+                @Html.EditorFor(model => model.StateProvinceId)
+                @Html.WfmValidationMessageFor(model => model.StateProvinceId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CityId)
+            </td>
+            <td class="adminData required">
+                <script>
+                    function filterCities() {
+                        return {
+                            stateProvinceId: $("#CandidateAddressModel_StateProvinceId").val()
+                        };
+                    }
+                </script>
+                @Html.EditorFor(model => model.CityId)
+                @Html.WfmValidationMessageFor(model => model.CityId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.PostalCode)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().MaskedTextBoxFor(model => model.PostalCode).Mask("L0L 0L9"))
+                @Html.WfmValidationMessageFor(model => model.PostalCode)
+            </td>
+        </tr>
+    </table>
+</section>

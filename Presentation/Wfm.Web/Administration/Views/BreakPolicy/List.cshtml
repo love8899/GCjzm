@@ -1,0 +1,76 @@
+﻿@using Wfm.Services.Companies
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts
+
+@{
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var companyService = EngineContext.Current.Resolve<ICompanyService>();
+    var companies = companyService.GetAllCompanies(workContext.CurrentAccount);
+    companies.Add(new SelectListItem() { Text = "None", Value = "0" });
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Common.BreakPolicy")
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<BreakPolicyModel>()
+                .Name("breakPolicy-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(60).Hidden();
+
+                    if (!workContext.CurrentAccount.IsClientAdministrator())
+                    {
+                        columns.ForeignKey(x => x.CompanyId, companies, "Value", "Text");
+                    }
+
+                    columns.Bound(x => x.Name).Width(150);
+                    columns.Bound(x => x.BreakTimeInMinutes).Width(150);
+                    columns.Bound(x => x.Note);
+                    columns.Bound(x => x.IsActive).Width(80)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsActive #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" });
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                })
+                .ToolBar(toolBar => { toolBar.Save(); toolBar.Create(); })
+                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                .EnableCustomBinding(false)
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Batch(true)
+                    .Read(read => read.Action("List", "BreakPolicy"))
+                    .Events(events => events.Error("error_handler"))
+                    .Model(model =>
+                    {
+                        model.Id(x => x.Id);
+                        model.Field(x => x.Id).Editable(false);
+                        model.Field(x => x.CompanyId).DefaultValue(workContext.CurrentAccount.CompanyId);
+                        model.Field(x => x.IsActive).DefaultValue(true);
+                        model.Field(x => x.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(x => x.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(x => x.UpdatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        model.Field(x => x.CreatedOn).Editable(false).DefaultValue(DateTime.Now);
+                    })
+                    .Create(update => update.Action("_AddBreakPolicy", "BreakPolicy"))
+                    .Update(update => update.Action("_EditBreakPolicy", "BreakPolicy"))
+                    //.Destroy(update => update.Action("_RemoveBreakPolicy", "BreakPolicy"))
+                )
+            )
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,61 @@
+﻿@using Wfm.Services.Companies
+<script src="@Url.Content("~/Scripts/admin.common.js?version=1.8")" type="text/javascript"></script>
+@{
+    var activityTypeService = EngineContext.Current.Resolve<IActivityTypeService>();
+    var types = activityTypeService.GetAllActivityTypesForDropDownList();
+}
+<div class="section-header">
+    <div class="title">
+        @T("Common.CompanyActivity")
+    </div>
+    <div class="options">
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CompanyActivityModel>()
+                .Name("company-activity-grid")
+                .Columns(columns =>
+                {
+                    columns.ForeignKey(x => x.ActivityTypeId, types, "Value", "Text").Title(T("CompanyActivity.ActivityTypeId").Text).Width(150);
+                    columns.Bound(x => x.ActivityDate)
+                        .ClientTemplate("#=kendo.toString(ActivityDate,'yyyy-MM-dd')#")
+                        .Width(150);
+                    columns.Bound(x => x.Note).Width(250);
+                    columns.Command(command => { command.Destroy().Text(" "); }).Width(50);
+                })
+                .ToolBar(toolBar => { toolBar.Save(); toolBar.Create(); })
+                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                .EnableCustomBinding(false)
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Batch(true)
+                    .Read(read => read.Action("_CompanyActivityList", "Company", new { guid = ViewBag.CompanyGuid }))
+                    .Events(events => events.Error("error_handler"))
+                    .Model(model =>
+                    {
+                        model.Id(x => x.Id);
+                        model.Field(x => x.CompanyId).Editable(false).DefaultValue(ViewBag.CompanyId);
+                        model.Field(x => x.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(x => x.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                    })
+                    .Create(update => update.Action("_AddCompanyActivity", "Company"))
+                    .Update(update => update.Action("_EditCompanyActivity", "Company"))
+                    .Destroy(update => update.Action("_RemoveCompanyActivity", "Company"))
+                            .Events(events => events.Sync(@"function(e){setTimeout(function(){refreshGrid('#company-activity-grid')})}"))
+                )
+            )
+
+        </td>
+    </tr>
+</table>
+

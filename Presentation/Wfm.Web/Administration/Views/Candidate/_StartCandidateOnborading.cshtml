@@ -1,0 +1,375 @@
+﻿@using Wfm.Core.Domain.Candidates
+
+@model CandidateOnboardingModel
+@{
+    var availableCandidateOnboardingStatus = CandidateOnboardingStatusEnum.NoStatus.ToSelectList(false).ToList();
+}
+<script type="text/javascript">
+    function onClick(e)
+    {
+        e.preventDefault();
+        var card = getCardLayout();
+        if (card) {
+            card = setSmartCard(card);
+            card = setPhoto(card);
+            card = setBarcode(card);
+            var page = setPage('Smart Card', card);
+            var win = window.open('', 'Smart Card', '');
+            win.document.write(page);
+            win.document.close(); // necessary for IE >= 10
+            win.focus(); // necessary for IE >= 10
+            // wait for image load
+            setTimeout(function () {
+                win.print();
+                win.close();
+            }, 1000);
+        }
+        else
+            alert('Cannot get smart card layout.');
+        return false;
+    }
+    function toggleSinExpiryDate() {
+        var sin = $('#SocialInsuranceNumber').val();
+        sin = sin.replace(/ /g, '').replace(/-/g, '');
+        if (sin.length == 9 && !isNaN(sin) && sin[0] == "9") {
+            $("#SINExpiryDate").data('kendoDatePicker').enable(true);
+        }
+        else {
+            $("#SINExpiryDate").data('kendoDatePicker').enable(false);
+            $("#SINExpiryDate").data('kendoDatePicker').val = new Date();
+            $("#SINExpiryDate").val(null);
+            clearFieldError('SINExpiryDate');
+        }
+    }
+</script>
+@using (Html.BeginForm("", "", FormMethod.Post, new { id = "start-onboarding-form" }))
+{
+<div id="onboard-wizard">
+    <h4>@T("Common.BasicInformation")</h4>
+    <div>
+            @Html.ValidationSummary(true)
+            @Html.HiddenFor(model => model.Id)
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle">
+                        @Html.LabelFor(model => model.EmployeeId)
+                    </td>
+                    <td class="adminData">
+                        @Model.EmployeeId
+                    </td>
+                </tr>
+                <tr>
+                    <td class="adminTitle">
+                        @Html.LabelFor(model => model.FirstName)
+                    </td>
+                    <td class="adminData">
+                        @Model.FirstName
+                    </td>
+                </tr>
+                <tr>
+                    <td class="adminTitle">
+                        @Html.LabelFor(model => model.MiddleName)
+                    </td>
+                    <td class="adminData">
+                        @Model.MiddleName
+                    </td>
+                </tr>
+                <tr>
+                    <td class="adminTitle">
+                        @Html.LabelFor(model => model.LastName)
+                    </td>
+                    <td class="adminData">
+                        @Model.LastName
+                    </td>
+                </tr>
+                <tr>
+                    <td class="adminTitle">
+                        @Html.LabelFor(model => model.SocialInsuranceNumber)
+                    </td>
+                    <td class="adminData required">
+                        @Html.Kendo().MaskedTextBoxFor(model => model.SocialInsuranceNumber).Mask("999 999 999").Events(e => e.Change("toggleSinExpiryDate"))
+                        @Html.WfmValidationMessageFor(model => model.SocialInsuranceNumber)
+                    </td>
+                </tr>
+                <tr id="sin-expiration-date">
+                    <td class="adminTitle">
+                        @Html.LabelFor(model => model.SINExpiryDate)
+                    </td>
+                    <td class="adminData required">
+                        <div style="width:300px">
+                            @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                                .Name("SINExpiryDate")
+                                .Format("yyyy-MM-dd")
+                                .Min(DateTime.Now.AddDays(-60))
+                            )
+                            @Html.WfmValidationMessageFor(model => model.SINExpiryDate)
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            @*<br />
+            <br />
+            <div class="options" align="center">
+                <input type="button" id="btn-save" class="k-button" value="@T("Admin.Common.Save")" />
+                <input type="button" id="btn-cancel" class="k-button" value="@T("Admin.Common.Cancel")" />
+            </div>*@
+        
+    </div>
+    <h4>@T("Common.Photo")</h4>
+    <div data-mode ="async" data-url="@Url.Action("_TabCandidatePictureList", "Candidate", new { candidateGuid = ViewBag.CandidateGuid, displayHeader = false })"></div>
+    <h4>@T("Common.SmartCard")</h4>
+    <div>
+        <table>
+            <tr>
+                <td class="adminTitle"></td>
+                <td class="adminData">
+                    @Html.Kendo().Button().Name("Print").Content("Print Smart Card").HtmlAttributes(new { type = "button" }).Enable(true).Events(events => events.Click("onClick"))
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.SmartCardUid)
+                </td>
+                <td class="adminData">
+                    @Html.Kendo().MaskedTextBoxFor(model => model.SmartCardUid).Mask("0000000000").ClearPromptChar(true).Enable(String.IsNullOrEmpty(Model.SmartCardUid))
+                    @Html.WfmValidationMessageFor(model => model.SmartCardUid)
+                </td>
+            </tr>
+        </table>
+    </div>
+    <h4>@T("Admin.Candidate.TestResults")</h4>
+    <div data-mode="async" data-url="@Url.Action("_TabCandidateTestResultList", "Candidate", new { candidateGuid = ViewBag.CandidateGuid })"></div>
+
+</div>
+}
+
+
+@* for jQuery validation *@
+<script>
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+    $(document).ready(function () {
+        toggleSinExpiryDate();
+    });
+    var newPage = @Html.Raw(Json.Encode(ViewBag.NewPage));
+    var form = $("#onboard-wizard").show();
+    form.steps({
+        headerTag: "h4",
+        bodyTag: "div",
+        enableAllSteps: !newPage,
+        autoFocus: true,
+        showFinishButtonAlways: !newPage,
+        transitionEffect: "slideLeft",
+        stepsOrientation: "vertical",
+
+        onStepChanging: function (event, currentIndex, newIndex) {
+            $(".notification-wrapper").html('');
+            // Allways allow previous action even if the current form is not valid!
+            if (currentIndex > newIndex) {
+
+                return true;
+            }
+            // Needed in some cases if the user went back (clean up)
+            if (currentIndex == newIndex - 1) {
+                // To remove error styles
+                form.find(".body:eq(" + newIndex + ") label.error").remove();
+                form.find(".body:eq(" + newIndex + ") .error").removeClass("error");
+
+                // optional step
+                if(currentIndex==0)
+                {
+                    var onboardForm = $("#start-onboarding-form");
+                    addCustomRules();
+                    return onboardForm.valid() && isValidSin();
+                }
+                if(currentIndex==1)
+                {
+                    var grid = $("#candidatepictures-grid").data("kendoGrid");
+                    var rows = grid.dataSource.total();
+                    if(rows>0)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        alert("Please upload at least one picture for the employee!");
+                        return false;
+                    }
+                }
+                return true;
+
+            }
+
+        },
+
+        onStepChanged: function (event, currentIndex, priorIndex) {
+            $("#onboard-wizard-p-" + currentIndex).css("display", "block");
+        },
+
+        onFinishing: function (event, currentIndex) {
+            var onboardForm = $("#start-onboarding-form");
+            var link = '@Url.Action("StartOnboarding", "Candidate")';
+            $.ajax({
+                type: "POST",
+                url: link,
+                data: onboardForm.serialize(),
+                success: function (response) {
+                    if (response.Result) {
+                        $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+                        $(".messageBox").text("Onboarding is started.");
+                        $("#start-onboarding").data("kendoWindow").close();
+                        //location.reload();
+                    }
+                    else {
+                        alert(response.ErrorMessage);
+                    }
+                }
+            });
+            return false;
+
+        },
+
+        onFinished: function (event, currentIndex) {
+
+        }
+    });
+
+    // add class to recover style
+    if (!newPage) {
+        $('.steps ul li').not(':eq(0)').each(function () {
+            $(this).addClass('done');
+        });
+    }
+
+    function addCustomRules() {
+        $("#SINExpiryDate").rules("add", {
+            required: true,
+            messages: {
+                required: "Expiry Date is required for Temporary SIN",
+            }
+        });
+    }
+
+    function isValidSin() {
+        var isValid = false;
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("ValidateSin", "Candidate")',
+            data: { sin: $('#SocialInsuranceNumber').val() },
+            async: false,
+            success: function (response) {
+                if (response.Result)
+                    isValid = true;
+                else
+                    alert('Social Insurance Number (SIN) is invalid.');
+            }
+        });
+        return isValid;
+    }
+
+    function clearFieldError(name) {
+        $('input[name="' + name + '"]').removeClass('input-validation-error');
+        $('span[data-valmsg-for="' + name + '"]').empty();
+        $('span[data-valmsg-for="' + name + '"]').removeClass('field-validation-error');
+        $('span[data-valmsg-for="' + name + '"]').addClass('field-validation-valid');
+    }
+
+    // css style for smart card
+    var style = '';
+
+    function printElement(elem, title) {
+        newPopup($(elem).html(), title);
+    }
+
+    function newPopup(data, title) {
+        var win = window.open('', title, '');
+        win.document.write('<html><head><title>' + title + '</title>');
+        win.document.write('<link href="@Url.Content("~/Administration/Content/tempus.css")" rel="stylesheet" type="text/css" />');
+        win.document.write('</head><body>');
+        win.document.write(data);
+        win.document.write('</body></html>');
+
+        win.document.close(); // necessary for IE >= 10
+        win.focus(); // necessary for IE >= 10
+
+        // wait for image load
+        setTimeout(function () {
+            win.print();
+            win.close();
+        }, 1000);
+    }
+
+    function getCardLayout() {
+        var layout = '';
+        $.ajax({
+            url: "@(Url.Action("_GetSmartCardLayout", "Vendor"))",
+            cache: false,
+            async: false,
+            type: 'GET',
+            dataType: 'html',
+            success: function (result) {
+                layout = result;
+            },
+        });
+        return layout;
+    }
+
+    function setSmartCard(card) {
+        var error = '';
+        $.ajax({
+            url: "@(Url.Action("_GetSmartCardVendorInformation", "Vendor"))",
+            data: { franchiseId: '@(Model.FranchiseId)' },
+            cache: false,
+            async: false,
+            type: 'POST',
+            success: function (result) {
+                style = result.Style;
+                card = card.replace('<div id="logo" class="row"><img alt="Logo"></div>', '<div id="logo" class="row"><img src="data:image/bmp;base64,' + result.LogoStr + '" alt="Logo"></div>');
+                var name = result.NamePrefix + '@(Model.FirstName)' + ' ' + '@(Model.LastName)';
+                card = card.replace('<div id="fullname" class="row">Name</div>', '<div id="fullname" class="row">' + name + '</div>');
+                var id = result.IdPrefix + '@(Model.Id)';
+                card = card.replace('<div id="employeeid" class="row">ID</div>', '<div id="employeeid" class="row">' + id + '</div>');
+                card = card.replace('<div id="note" class="row">Note</div>', '<div id="note" class="row">' + result.NoteText + '</div>');
+            },
+        });
+        return card;
+    }
+
+    function setPhoto(card) {
+        $.ajax({
+            url: "@(Url.Action("_GetCandidatePhoto", "Candidate"))",
+            data: { candidateId: '@(Model.Id)' },
+            cache: false,
+            async: false,
+            type: 'POST',
+            success: function (result) {
+                card = card.replace('<div id="photo" class="row"><img alt="Photo"></div>', '<div id="photo" class="row"><img src="data:image/bmp;base64,' + result.PhotoStr + '" alt="Photo"></div>');
+            },
+        });
+        return card;
+    }
+
+    function setBarcode(card) {
+        return card.replace('<div id="barcode" class="row">Bar Code</div>',
+            '<div id="barcode" class="row">@Html.GenerateQrCode((string)String.Format("{0};{1}", Model.Id, ViewBag.CandidateGuid), 1000, 1000, 0)</div>')
+    }
+
+    function setPage(title, card) {
+        var page = '<html><head><title>' + title + '</title>';
+        page += '<link href="@Url.Content("~/Administration/Content/tempus.css")" rel="stylesheet" type="text/css" />';
+        if (!style)
+            page += '<link href="@Url.Content("~/Administration/Content/smartcard.css")" rel="stylesheet" type="text/css" />';
+        else
+            page += '<style>\r\n' + style + '\r\n</style>';
+        page += '<script src="https://code.jquery.com/jquery-2.2.2.min.js">' + '<\/script>';
+        page += '</head><body>';
+        page += card;
+        page += '<script>window.onload = function () { scaleImages(); };<\/script>';
+        page += '</body></html>';
+        return page;
+    }
+
+</script>

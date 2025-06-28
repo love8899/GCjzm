@@ -1,0 +1,60 @@
+﻿@model IEnumerable<CandidateTestResultModel>
+@{
+    Layout = "";
+    ViewBag.Title = "_TabCandidateTestResult";
+}
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Candidate.CandidateTestResults")
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateTestResultModel>()
+                .Name("TestResultModel-grid")
+                .BindTo(Model)
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(70).Hidden();
+                    
+                    columns.Bound(x => x.TestCategory.TestCategoryName);
+                    
+                    columns.Bound(x => x.TotalScore);
+                    columns.Bound(x => x.PassScore);
+                    columns.Bound(x => x.TestScore);
+
+                    columns.Bound(x => x.IsPassed)
+                        .Template(@<img alt="check" src="@Url.Content("~/Content/images/active-" + item.IsPassed.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='check' src='" + Url.Content("~/Content/images/") + "active-#= IsPassed #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(100);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(130).Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(130);
+
+                    columns.Bound(x => x.Id).Sortable(false).Filterable(false).IncludeInMenu(false)
+                        .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/Candidate/DownloadCandidateTestResult/") + "#=Id#" + "\"><span class='fa fa-download'></span></a>")
+                        .Title(T("Common.Download").Text)
+                        .HtmlAttributes(new { style = "text-align:center", title = T("Common.Download").Text })
+                        .Width(100);
+
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(false)
+                        .PageSize(30)
+                )
+            )
+        </td>
+    </tr>
+</table>

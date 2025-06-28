@@ -1,0 +1,290 @@
+﻿@using Wfm.Services.Security
+@using Wfm.Core
+
+@model FranchiseModel
+@{
+    ViewBag.Title = T("Admin.Vendors.Vendor.Details").Text;
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Vendors.Vendor.Details")
+        @Html.ActionLink("(" + T("Admin.Vendors.Vendor.BackToList") + ")", "Index")
+    </div>
+</div>
+
+@Html.Kendo().TabStrip().Name("vendor-details-tabstrip").Items(x =>
+{
+    x.Add().Text(T("Common.BasicInformation").Text).Content(VendorBasicInfoTab().ToHtmlString()).Selected(true).HtmlAttributes(new { id = "tab-basic-info" });
+    if (permissionService.Authorize("ManageAccounts"))
+    {
+        x.Add().Text(T("Admin.Accounts.Accounts").Text).Content(Html.Action("_TabVendorAccountList", new { vendorGuid = Model.FranchiseGuid }).ToHtmlString()).HtmlAttributes(new { id = "tab-accounts" });
+    }
+    x.Add().Text(T("Admin.Common.Address").Text).Content(Html.Action("_TabVendorAddress", new { vendorGuid = Model.FranchiseGuid }).ToHtmlString()).HtmlAttributes(new { id = "tab-vendor-address" });
+    if (permissionService.Authorize("ManageVendors"))
+    {
+        x.Add().Text(T("Admin.Settings").Text).Content(Html.Action("_TabVendorSettings", new { vendorGuid = Model.FranchiseGuid }).ToHtmlString()).HtmlAttributes(new { id = "tab-settings" });
+        x.Add().Text(T("Common.SmartCard").Text).Content(Html.Action("_TabSmartCard", new { vendorGuid = Model.FranchiseGuid }).ToHtmlString()).HtmlAttributes(new { id = "tab-smartcard" });
+    }
+    if (permissionService.Authorize(StandardPermissionProvider.ManageVendorPayrollSetting))
+    {
+        x.Add().Text(T("Admin.Common.PayrollSetting").Text).Content(Html.Action("_TabVendorPayrollSetting", new { vendorGuid = Model.FranchiseGuid }).ToHtmlString()).HtmlAttributes(new { id = "tab-vendor-payroll-setting" });
+    }
+    if (permissionService.Authorize(StandardPermissionProvider.ViewVendorEmailSetting))
+    {
+        x.Add().Text(T("Admin.Common.EmailSetting").Text).Content(Html.Action("_TabVendorEmailSetting", new { vendorGuid = Model.FranchiseGuid }).ToHtmlString()).HtmlAttributes(new { id = "tab-vendor-email-setting" });
+    }
+})
+
+@* Vendor Basic Tab View*@
+@helper VendorBasicInfoTab()
+{
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    var base64 = Convert.ToBase64String(Model.FranchiseLogo);
+    var imgSrc = String.Format("data:image;base64,{0}", base64);
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+
+    <div class="section-header">
+        <div class="title">
+            @T("Common.BasicInformation")
+        </div>
+        <div class="options">
+            @if (permissionService.Authorize("ManageVendors"))
+            {
+                @Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", "Vendor", new { guid = Model.FranchiseGuid }, new { @class = "k-button" })
+            }
+        </div>
+    </div>
+    <table class="adminContent">
+        @if (WorkContext.CurrentAccount.Franchise.IsDefaultManagedServiceProvider)
+        {
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.Id)
+                </td>
+                <td class="adminData">
+                    @Html.DisplayFor(model => model.Id)
+                </td>
+                <td class="adminTitle" rowspan="6"></td>
+                <td class="adminData picture-td" rowspan="6">
+                    @if (!String.IsNullOrWhiteSpace(base64))
+                    {
+                        <img src="@imgSrc" alt="" Maxwidth="100" Maxheight="45" />
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.FranchiseName)
+                </td>
+                <td class="adminData">
+                    @Html.DisplayFor(model => model.FranchiseName)
+                </td>
+            </tr>
+            if (commonSettings.DisplayVendor)
+            {
+                <tr>
+                    <td class="adminTitle">
+                        @Html.LabelFor(model => model.EnableStandAloneJobOrders, T("Admin.Franchises.Franchise.Fields.EnableStandAloneJobOrders").Text)
+                    </td>
+                    <td class="adminData">
+                        @Html.DisplayFor(model => model.EnableStandAloneJobOrders)
+                    </td>
+                </tr>
+                <tr>
+                    <td class="adminTitle">
+                        @Html.LabelFor(model => model.IsDefaultManagedServiceProvider)
+                    </td>
+                    <td class="adminData">
+                        @Html.DisplayFor(model => model.IsDefaultManagedServiceProvider)
+                    </td>
+                </tr>
+                <tr>
+                    <td class="adminTitle">
+                        @Html.LabelFor(model => model.ReasonForDisabled)
+                    </td>
+                    <td class="adminData">
+                        @Html.DisplayFor(model => model.ReasonForDisabled)
+                    </td>
+                </tr>
+            }
+
+        }
+
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.PrimaryContactName)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.PrimaryContactName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Email)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.Email)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.WebSite)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.WebSite)
+            </td>
+        </tr>
+        @if (commonSettings.DisplayVendor)
+        {
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.Description)
+                </td>
+                <td class="adminData">
+                    @Html.DisplayFor(model => model.Description)
+                </td>
+            </tr>
+        }
+        @if (WorkContext.CurrentAccount.Franchise.IsDefaultManagedServiceProvider)
+        {
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.Note)
+                </td>
+                <td class="adminData">
+                    @Html.Raw(Model.Note)
+                </td>
+            </tr>
+        }
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CreatedOn)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CreatedOn)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.UpdatedOn)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.UpdatedOn)
+            </td>
+        </tr>
+    </table>
+    if (commonSettings.DisplayVendor)
+    {
+        <div class="section-header">
+            <div class="title">
+                @T("Admin.Vendor.Certificate")
+            </div>
+        </div>
+        <table class="adminContent">
+            <tr>
+                <td>
+                    @(Html.Kendo().Grid<VendorCertificateModel>()
+                .Name("vendorCertificate-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(50);
+                    columns.Bound(x => x.FranchiseId).Hidden();
+                    columns.Bound(x => x.GeneralLiabilityCoverage).Title(T("Admin.Franchises.Franchise.Fields.GeneralLiabilityCoverage").Text).Width(200);
+                    columns.Bound(x => x.GeneralLiabilityCertificateExpiryDate).Title(T("Admin.Franchises.Franchise.Fields.GeneralLiabilityCertificateExpiryDate").Text)
+                            .ClientTemplate("#=kendo.toString(GeneralLiabilityCertificateExpiryDate,'yyyy-MM-dd')#").Width(200);
+                    columns.Bound(x => x.Description);
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        //.Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { x.Id }))
+                            .ClientTemplate("#if(HasCertificate){#<a class='k-button' onclick=\"return downloadCertificate('#=kendo.toString(CertificateGuid)#')\"><span class='fa fa-download' title='Download'></span></a>" +
+                            "<a class='k-button' onclick=\"return upload('#=kendo.toString(CertificateGuid)#')\"><i class='fa fa-upload' aria-hidden='true' title='Upload'></i></a>#}"
+                            + "else if(Id!=0){#<a class='k-button' onclick=\"return upload('#=kendo.toString(CertificateGuid)#')\"><i class='fa fa-upload' aria-hidden='true' title='Upload'></i></a>#}#")
+                            .Width(200).Title("");
+                    columns.Command(command => command.Destroy().Text(" ")).Width(110);
+                })
+                .ToolBar(toolBar => { toolBar.Save(); toolBar.Create(); })
+                .Editable(editable => editable.Mode(GridEditMode.InCell).CreateAt(GridInsertRowPosition.Bottom))
+                .EnableCustomBinding(false)
+                .Filterable()
+                .Resizable(x => x.Columns(true))
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Batch(true)
+                    .Events(events => events.Error("error_handler"))
+                    .Read(read => read.Action("_CertificateList", "Vendor", new { guid = ViewBag.FranchiseGuid }))
+                    .Create(config => config.Action("_CreateNewCertificate", "Vendor"))
+                    .Destroy(delete => delete.Action("_DeleteCertificate", "Vendor").Type(HttpVerbs.Post))
+                    .Update(update => update.Action("_SaveVendorCertificate", "Vendor"))
+                    .Model(model =>
+                    {
+                        model.Id(x => x.Id);
+                        model.Field(x => x.Id).Editable(false);
+                        model.Field(x => x.CertificateGuid).Editable(false).DefaultValue(null);
+                        model.Field(x => x.FranchiseId).Editable(false).DefaultValue(ViewBag.FranchiseId);
+                        model.Field(x => x.GeneralLiabilityCoverage).Editable(true).DefaultValue(decimal.One);
+                        model.Field(x => x.GeneralLiabilityCertificateExpiryDate).Editable(true).DefaultValue(DateTime.Today);
+                        model.Field(x => x.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(x => x.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(x => x.CreatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        model.Field(x => x.UpdatedOn).Editable(false).DefaultValue(DateTime.Now);
+                    })
+                )
+                    )
+                </td>
+            </tr>
+        </table>
+    }
+}
+<div id="upload-window"></div>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        var tabId = '@(ViewBag.TabId)';
+        if (tabId)
+            tabIndex = $("#" + tabId).index();
+        else
+            tabIndex = 1;
+        $("#vendor-details-tabstrip").data("kendoTabStrip").select(tabIndex);
+    });
+
+    function upload(CertificateGuid) {
+        //alert(HasCertificate);
+        var dialog = $("#upload-window").data("kendoWindow");
+        if (!dialog) {
+            $("#upload-window").kendoWindow({
+                title: "Upload Certificate",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 250,
+            });
+            dialog = $("#upload-window").data("kendoWindow");
+        }
+        else {
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_UploadCertificate", "Vendor")',
+            data: { guid: CertificateGuid }
+        });
+        dialog.center();
+        return false;
+    }
+    function downloadCertificate(CertificateGuid) {
+        window.location.href = '@Url.Action("_DownloadCertificate", "Vendor")' + '?guid=' + CertificateGuid;
+        return false;
+    }
+</script>

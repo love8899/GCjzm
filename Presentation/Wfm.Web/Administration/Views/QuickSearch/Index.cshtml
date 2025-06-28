@@ -1,0 +1,9 @@
+﻿@model QuickSearchModel
+
+@using (Html.BeginForm("QuickSearchResult", "QuickSearch", FormMethod.Post, new { name = "quick-search-form", id = "quick-search-form" }))
+{
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Domain)
+    @Html.TextBoxFor(model => model.KeyWord, new { @class = "k-textbox k-space-right", @style = "width:300px"})
+    <input type="submit" value="Search"  class="k-button" />
+}

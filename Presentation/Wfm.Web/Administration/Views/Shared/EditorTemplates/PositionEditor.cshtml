@@ -1,0 +1,12 @@
+﻿@model int
+@(Html.Kendo().DropDownListFor(m => m)
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .OptionLabel("None")
+                    .DataSource(source =>
+                                    source.Read(read => read.Action("GetCascadePositions", "Common").Data("filterLocations")).ServerFiltering(true)
+                    )
+                    .AutoBind(false)
+                    .CascadeFrom("FranchiseId")
+)
+

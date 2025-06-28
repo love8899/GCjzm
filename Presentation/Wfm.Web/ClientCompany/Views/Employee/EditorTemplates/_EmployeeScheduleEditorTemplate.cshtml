@@ -1,0 +1,79 @@
+﻿@using Wfm.Core
+@using Wfm.Services.Companies
+@using Wfm.Services.Scheduling
+@using Wfm.Shared.Models.Scheduling
+
+@model EmployeeSchedulePreviewModel
+@{
+    var context = EngineContext.Current.Resolve<IWorkContext>();
+    var companyService = EngineContext.Current.Resolve<ICompanyService>();
+    var jobRoleList = companyService.GetAllJobRoles(context.CurrentAccount.CompanyId).Select(
+    e => new SelectListItem
+    {
+        Text = e.Name,
+        Value = e.Id.ToString(),
+    });
+}
+@Html.HiddenFor(m => m.SchedulePeriodId, new { id = "popup-schedulePeriodId"})
+<div class="k-edit-label">
+    @(Html.LabelFor(model => model.EmployeeId))
+</div>
+<div data-container-for="employeeid" class="k-edit-field">
+    @(Html.Kendo().DropDownListFor(m => m.EmployeeId)
+                .Name("EmployeeId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .DataSource(source => source.Read(read => read.Action("_GetAvailableEmployees", "Scheduling").Data("filterEmployees")).ServerFiltering(true))
+                .Enable(false)
+                .HtmlAttributes(new { style = "width:360px;" }))
+</div>
+<div class="k-edit-label">
+    @(Html.LabelFor(model => model.CompanyJobRoleId))
+</div>
+<div data-container-for="companyjobroleid" class="k-edit-field">
+    @(Html.Kendo().DropDownListFor(m => m.CompanyJobRoleId)
+                .Name("CompanyJobRoleId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(jobRoleList)
+                .HtmlAttributes(new { style = "width:360px;" }))
+</div>
+<div class="k-edit-label">
+    @(Html.LabelFor(model => model.Start))
+</div>
+<div data-container-for="start" class="k-edit-field">
+    @(Html.Kendo().TimePickerFor(model => model.Start).Name("start").Format("hh:mm tt").HtmlAttributes(new { type = "text" }))
+    <span style="width:30%;"> -  @Html.Kendo().DatePickerFor(model => model.ScheduelDate).Name("ScheduelDate").Enable(false).Format("dddd yyyy-M-d").HtmlAttributes(new { type = "text" }) </span>
+</div>
+
+@for (int i = 0; i < 4; i++)
+{
+    <div class="k-edit-label">
+        <label>Break No.@((i + 1).ToString())</label>
+    </div>
+    <div data-container-for="breaktimedisplay" class="k-edit-field">
+        @(Html.Kendo().TimePicker()
+            .HtmlAttributes(new { type = "text" })
+            .Name("BreakTimeDisplay[" + i.ToString() + "]")
+            .Format("hh:mm tt")
+            .Max(Model.End - Model.Start.Date)
+            .Min(Model.Start.TimeOfDay))
+        @(Html.Kendo().NumericTextBox()
+            .Name("BreakLengthInMinutes[" + i.ToString() + "]")
+            .Min(0)
+            .Max(30)
+            .Step(5)
+            .HtmlAttributes(new { style = "width:30%;" })) <span>min.</span>
+    </div>
+}
+
+
+<div class="k-edit-label">
+    @(Html.LabelFor(model => model.End)) type = "text" 
+</div>
+<div data-container-for="end" class="k-edit-field">
+    @(Html.Kendo().TimePickerFor(model => model.End).Name("end").Format("hh:mm tt")
+        .HtmlAttributes(new { data_dateCompare_msg = "End date should be greater than or equal to the start date",type = "text"  }))
+</div>

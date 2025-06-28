@@ -1,0 +1,86 @@
+﻿<br />
+<table>
+    <tr>
+        <td>
+            <label id="char-counter" style="margin-left:20px"></label>
+        </td>
+        <td></td>
+        <td>
+            <label id="char-counter">To Mobile Phone Numbers (separeated by ',')</label>
+            <button id="QuickSend" style="float:right;margin-right:20px">Quick Send</button><br />
+        </td>
+    </tr>
+    <tr>
+        <td>
+            @Html.TextArea("TextMessage", new { @cols="80", @rows="10", maxlength = "560", style = "margin-left:20px; resize:none",
+                                                placeholder = "Input text message (max 560 letters)" })
+        </td>
+        <td></td>
+        <td>
+            @Html.TextArea("QuickNumbers", new {  @cols="60", @rows="10", maxlength = "1100", style="margin-right:20px", 
+                                                  placeholder = "Input phone numbers here, or search and choose candidates from the grid below" })
+        </td>
+    </tr>
+</table>
+<br />
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#char-counter').text('Text (0 of 560 characters)');
+        $('#TextMessage').keyup(function (e) {
+            var len = this.value.length;
+            $('#char-counter').text('Text (' + len + ' of 560 characters)');
+        });
+
+        $("#QuickSend").bind("click", QuickSend);
+    });
+
+    function IsTextMessageReady() {
+        var message = GetTextMessage();
+        return message.Body ? true : false;
+    }
+
+    function GetTextMessage() {
+        var message = $("#TextMessage").val();
+        if (message)
+            message = message.trim();
+        return {
+            Body: message,
+        };
+    }
+
+    function QuickSend(e) {
+        e.preventDefault();
+
+        var numbers = $('#QuickNumbers').val();
+        if (!IsTextMessageReady())
+            alert('The text message is empty. Please input.');
+        else if (!numbers)
+            alert('Please input at least one mobile phone number.');
+        else {
+            var ids = selectedIds.join();
+            var textMessage = GetTextMessage();
+            $.ajax({ 
+                url: "@(Url.Action("_QuickTextMessage", "Candidate"))",
+                data: { textMessage: textMessage.Body, numbers: numbers },
+                cache: false,
+                async: false,
+                type: 'POST',
+                success: function (result) {
+                    if (result.ErrorMessage) {
+                        alert(result.ErrorMessage);
+                    }
+                    else {
+                        alert('The message will be sent to ' + result.Done + ' number(s).');
+                    }
+                },
+                error: function (data) {
+                    alert(data.responseText);
+                }
+            });
+        return false;
+        }
+    }
+
+</script>

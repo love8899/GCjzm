@@ -1,0 +1,71 @@
+﻿@model ScheduleTaskModel
+
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Name)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.Name)
+            @Html.WfmValidationMessageFor(model => model.Name)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Seconds)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().NumericTextBox<int>()
+                  .Name("Seconds")
+                  .Min(0)
+            )
+            @Html.WfmValidationMessageFor(model => model.Seconds)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Type)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.Type)
+            @Html.WfmValidationMessageFor(model => model.Type)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">@Html.LabelFor(model => model.IsActive)</td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.IsActive)
+            @Html.WfmValidationMessageFor(model => model.IsActive)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Note)
+        </td>
+        <td class="adminData">
+            @Html.TextAreaFor(model => model.Note, new { style = "height:150px;width:99%;" })
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CreatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.CreatedOn)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.UpdatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.UpdatedOn)
+        </td>
+    </tr>
+</table>

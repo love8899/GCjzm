@@ -1,0 +1,84 @@
+﻿@model Wfm.Admin.Models.Employee.EmployeePayrollSettingModel
+@{
+    Layout = null;
+}
+@using (Html.BeginForm("_UpdateEmployeeInfo", "Employee", FormMethod.Post, new { id = "payroll-info-form" }))
+{
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(m => m.EmployeeId)
+    @Html.HiddenFor(m => m.TaxProvinceId)
+
+    <div class="section-header">
+        <div class="options">
+            <input type="button" id="UpdatePayrollInfo" class="k-button" value="Save" />
+            <input type="button" id="RefreshPayrollInfo" class="k-button" value="Cancel" />
+        </div>
+    </div>
+
+    <div id="payroll-info-div">
+        @Html.Partial("_PayrollInfo", Model)
+    </div>
+}
+<script>
+
+    $(function () {
+        bindButtonsForPayrollInfo();
+        showHideRegularPay();
+    });
+
+    function bindButtonsForPayrollInfo() {
+        $('#UpdatePayrollInfo').click(updatePayrollInfo);
+
+        $('#RefreshPayrollInfo').click(function () {
+            $("#payroll-info-div").load('@Url.Action("_PayrollInfo", "Employee", new { guid = ViewBag.CandidateGuid })', function () {
+                showHideRegularPay();
+                $('#EmployeeTypeId').change(onEmployeeTypeChange);
+            });
+        });
+
+        $('#EmployeeTypeId').change(onEmployeeTypeChange);
+    }
+
+    function updatePayrollInfo(e) {
+        e.preventDefault();
+        // save payroll template for regular employee
+        if ($('#EmployeeTypeId').val() == 3)
+            $('#template-grid').data('kendoGrid').saveChanges();
+        var form = $('#payroll-info-form');
+        if (form.valid()) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("_UpdatePayrollInfo", "Employee")',
+                data: form.serialize(),
+                success: function (response) {
+                    if (response.Result) {
+                        alert("Payroll info is updated");
+                    }
+                    else {
+                        alert(response.ErrorMessage);
+                    }
+                }
+            });
+        }
+    }
+
+    function showHideRegularPay() {
+        if ($('#EmployeeTypeId').val() == 3)
+            $('#regular_pay_cell').show();
+        else
+            $('#regular_pay_cell').hide();
+    }
+
+    function onEmployeeTypeChange(e) {
+        showHideRegularPay();
+        if ($('#EmployeeTypeId').val() == 3)
+            loadPayrollTemplate();
+    }
+
+    @* for jQUery validation *@
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+</script>

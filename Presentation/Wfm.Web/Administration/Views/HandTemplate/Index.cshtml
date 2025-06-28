@@ -1,0 +1,326 @@
+﻿@{
+    ViewBag.Title = T("Admin.HandTemplates").Text;
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+    IList<Wfm.Core.Domain.Franchises.Franchise> franchises = null;
+    if (commonSettings.DisplayVendor)
+    {
+        var franchiseService = EngineContext.Current.Resolve<Wfm.Services.Franchises.IFranchiseService>();
+        franchises = franchiseService.GetAllFranchises(WorkContext.CurrentAccount);
+    }
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.HandTemplates")
+    </div>
+    <div class="options">
+        <a class="k-button" onclick="addTemplateToClock()">Add to Clock</a>
+        <a class="k-button" onclick="removeTemplateFromClock()">Remove from Clock</a>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<HandTemplateModel>()
+                .Name("hand-template-grid")
+                .Events(events => events.DataBound("onDataBound"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x).Filterable(false).Sortable(false)
+                        .HeaderTemplate("<input id='mastercheckbox' type='checkbox'/>").ClientTemplate("<input type='checkbox' value='#=CandidateId#' class='checkboxGroups'/>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(30);
+
+                    columns.Bound(x => x.CandidateId).Width(150);
+
+                    columns.Bound(x => x.EmployeeId)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate(@Html.ActionLink("#= EmployeeId #", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString());
+
+                    columns.Bound(x => x.SmartCardUid).Filterable(true).Sortable(true);
+
+                    columns.Bound(x => x.CandidateLastName).Filterable(true).Sortable(true);
+                    columns.Bound(x => x.CandidateFirstName).Filterable(true).Sortable(true);
+
+                    if (commonSettings.DisplayVendor)
+                    {
+                        columns.ForeignKey(x => x.FranchiseId, franchises, "Id", "FranchiseName").Title(T("Common.Franchise").Text);
+                    }
+
+                    columns.Bound(x => x.IsActive)
+                        .ClientTemplate("#if (IsActive) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(120);
+
+                    columns.Bound(x => x.Note)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+
+                    columns.Bound(x => x.CreatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#if (CreatedOn > new Date(1,1,1)) {# #=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')# #}#")
+                        .Width(120).Hidden(true);
+                    columns.Bound(x => x.UpdatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#if (UpdatedOn > new Date(1,1,1)) {# #=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')# #}#")
+                        .Width(120);
+
+                    if (permissionService.Authorize("ManageCandidateSmartCards"))
+                    {
+                        columns.Command(command =>
+                        {
+                            command.Custom("Add").Click("addTemplate").Text("");
+                            command.Custom("Update").Click("updateTemplate").Text("");
+                        }).Title(T("Common.Action").Text).HtmlAttributes(new { align = "center" }).Width(120);
+                    }
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("Index", "HandTemplate"))
+                    .Sort(sort => {
+                        sort.Add(x => x.UpdatedOnUtc).Descending();
+                        sort.Add(x => x.CandidateId);
+                    })
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+<div id="enrolment-confirm" style="display:none">
+    <span>
+        Follow instructions on the clock to enroll hand tempalte.<br /><br />
+        If the enrolment done successfully, click Yes.<br />
+        Otherwise click No, and press Clear button on clock.
+    </span>
+</div>
+
+
+<script type="text/javascript">
+
+    var selectedIds = [];
+
+    function onDataBound(e) {
+        $('#hand-template-grid input[type=checkbox][id!=mastercheckbox]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds);
+            $(this).attr('checked', checked > -1);
+        });
+        updateMasterCheckbox();
+        applyCommandIcons();
+        showOrHideButton(e.sender);
+    }
+
+    function updateMasterCheckbox() {
+        var numChkBoxes = $('#hand-template-grid input:checkbox[id!=mastercheckbox]').length;
+        var numChkBoxesChecked = $('#hand-template-grid input:checkbox[id!=mastercheckbox]:checked').length;
+        $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+
+    $('#mastercheckbox').click(function () { $('.checkboxGroups').attr('checked', $(this).is(':checked')).change(); });
+
+    $('#hand-template-grid').on('change', 'input[type=checkbox][id!=mastercheckbox]', function (e) {
+        var $check = $(this);
+        if ($check.is(":checked") == true) {
+            var checked = jQuery.inArray($check.val(), selectedIds);
+            if (checked == -1)
+                selectedIds.push($check.val());
+        }
+        else {
+            var checked = jQuery.inArray($check.val(), selectedIds);
+            if (checked > -1)
+                selectedIds = $.grep(selectedIds, function (item, index) { return item != $check.val(); });
+        }
+        updateMasterCheckbox();
+    });
+
+    function applyCommandIcons() {
+        $(".k-grid-Add").attr('title', 'Add').html('<span class="fa fa-plus"></span>');
+        $(".k-grid-Update").attr('title', 'Update').html('<span class="fa fa-pencil"></span>');
+    }
+
+    function showOrHideButton(grid) {
+        var data = grid.dataSource.data();
+        for (var i = 0; i < data.length; i++) {
+            var currentData = data[i];
+            var theRow = grid.tbody.find(">tr:not(.k-grouping-row)").eq(i);
+            if (currentData.HandTemplateGuid != '@(Guid.Empty.ToString())') {
+                theRow.find(".k-grid-Add").remove();
+            }
+            else {
+                theRow.find(".k-grid-Update").remove();
+                theRow.find(".checkboxGroups").remove();
+            }
+        }
+    }
+
+    function refreshGrid() { $("#hand-template-grid").data("kendoGrid").dataSource.read(); }
+
+    function addTemplate(e, msg) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        enrollTemplate(dataItem, 'The employee hand template is added successfully.')
+    }
+
+    function updateTemplate(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        enrollTemplate(dataItem, 'The employee hand template is updated successfully.')
+    }
+
+    function enrollTemplate(dataItem, msg) {
+        $(document.body).append('<div id="enrollUser"></div>');
+        $("#enrollUser").kendoWindow({
+            title: "Enroll hand template",
+            modal: true,
+            resizable: false,
+            width: 480,
+            height: 240,
+            content: '@Url.Action("_Enroll", "HandTemplate")' + '/' + dataItem.CandidateId,
+            close: function () { setTimeout(function () { $('#enrollUser').kendoWindow('destroy'); }, 200); },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-cancel').click(function () { win.close(); });
+                $('#btn-start').click(function () {
+                    var clockDeviceId = $('#ClockDeviceId').val();
+                    if (clockDeviceId) {
+                        if (startEnrolling(clockDeviceId, dataItem.CandidateId)) {
+                            $('#enrolment-confirm').dialog({
+                                resizable: false,
+                                height: "auto",
+                                width: 540,
+                                modal: true,
+                                title: 'Enrolment done successfully?',
+                                buttons: {
+                                    "Yes": function () {
+                                        $(this).dialog("close");
+                                        if (getLastEnrolled(clockDeviceId, dataItem.CandidateId)) {
+                                            showMsg(msg);
+                                            refreshGrid();
+                                        } else {
+                                            showMsg('Cannot get the hand template of enrolled user.');
+                                        }
+                                    },
+                                    'No': function () {
+                                        $(this).dialog("close");
+                                    }
+                                }
+                            });
+                        }
+                        win.close();
+                    }
+                    else
+                        alert('Clock device is not selected.');
+                });
+            }
+        }).data('kendoWindow').center();
+    }
+
+    function startEnrolling(clockDeviceId, candidateId) {
+        var result = true;
+        $.ajax({
+            type: "POST",
+            async: false,
+            url: '@Url.Action("StartEnrolling", "Handtemplate")',
+            data: { clockDeviceId: clockDeviceId, candidateId: candidateId },
+            success: function (response) {
+                if (!response.Result) {
+                    result = false;
+                    alert(response.ErrorMessage);
+                }
+            }
+        });
+        return result;
+    }
+
+    function getLastEnrolled(clockDeviceId, candidateId) {
+        var result = true;
+        $.ajax({
+            type: "POST",
+            async: false,
+            url: '@Url.Action("GetLastEnrolled", "Handtemplate")',
+            data: { clockDeviceId: clockDeviceId, candidateId: candidateId },
+            success: function (response) {
+                if (!response.Result) {
+                    result = false;
+                    alert(response.ErrorMessage);
+                }
+            }
+        });
+        return result;
+    }
+
+    function showMsg(msg) {
+        $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+        $(".messageBox").text(msg);
+    }
+
+    function addTemplateToClock() {
+        if (selectedIds.length == 0)
+            alert("Please select employee(s) to be added to clock");
+        else {
+            addOrRemove('add');
+        }
+    }
+
+    function removeTemplateFromClock() {
+        if (selectedIds.length == 0)
+            alert("Please select employee(s) to be removed from clock");
+        else {
+            addOrRemove('remove');
+        }
+    }
+
+    function addOrRemove(action) {
+        $(document.body).append('<div id="addOrRemoveUser"></div>');
+        $("#addOrRemoveUser").kendoWindow({
+            title: action == 'add' ? ' Add to clock' : ' Remove from clock',
+            modal: true,
+            resizable: false,
+            width: 480,
+            height: 240,
+            content: '@Url.Action("_SelectClock", "HandTemplate")',
+            close: function () { setTimeout(function () { $('#addOrRemoveUser').kendoWindow('destroy'); }, 200); },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-cancel').click(function () { win.close(); });
+                $('#btn-start').click(function () {
+                    var clockDeviceId = $('#ClockDeviceId').val();
+                    if (clockDeviceId) {
+                        var ids = selectedIds.join(",");
+                        $.ajax({
+                            url: 'HandTemplate/AddOrRemoveCandidate',
+                            data: { clockDeviceId: clockDeviceId, selectedIds: ids, action: action },
+                            async: false,
+                            type: 'POST',
+                            success: function (result) {
+                                alert(result.Message);
+                            },
+                            error: function (data) {
+                                alert(data.responseText);
+                            }
+                        });
+                        win.close();
+                    }
+                    else
+                        alert('Clock device is not selected.');
+                });
+            }
+        }).data('kendoWindow').center();
+    }
+
+</script>
+

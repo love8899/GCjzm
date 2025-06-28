@@ -1,0 +1,51 @@
+﻿@using Wfm.Core;
+@using Wfm.Core.Infrastructure
+@using Wfm.Web.Framework.Themes
+@{
+    var supportRtl = EngineContext.Current.Resolve<IWorkContext>().WorkingLanguage.Rtl;
+    var themeName = EngineContext.Current.Resolve<IThemeContext>().WorkingThemeName;
+
+    var cssLinks = new List<string>();
+    var jsLinks = new List<string>();
+
+    //add browser specific CSS files
+    var browser = Request.Browser;
+    if (browser.Browser == "IE" && browser.MajorVersion == 8)
+    {
+        cssLinks.Add(string.Format("~/Themes/{0}/Content/css/ie8.css", themeName));
+    }
+
+    //add main CSS file
+    if (supportRtl)
+    {
+        cssLinks.Add(string.Format("~/Themes/{0}/Content/css/styles.rtl.css", themeName));
+    }
+    else
+    {
+        cssLinks.Add(string.Format("~/Themes/{0}/Content/css/styles.css", themeName));
+    }
+
+    if (browser.Browser == "IE" && browser.MajorVersion == 8)
+    {
+        jsLinks.Add("~/Scripts/selectivizr.min.js");
+        jsLinks.Add("~/Scripts/respond.min.js");
+    }
+}
+@*theme style css*@
+@foreach (var ln in cssLinks)
+{
+    <link href="@Url.Content(ln)" rel="stylesheet" type="text/css" />
+}
+@* Bootstrap css files *@
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<link href="/Content/bs4grid.css" rel="stylesheet" type="text/css" />    @* workaround for BS4 col width issue for IE10+ etc *@
+<link href="/Content/tempus.css" rel="stylesheet" type="text/css" />
+@*theme scripts*@
+@foreach (var ln in jsLinks)
+{
+    <script src="@Url.Content(ln)" type="text/javascript" />
+}
+@* Bootstrap scripts *@
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+<script src="/Scripts/tempus.js" type="text/javascript"></script>

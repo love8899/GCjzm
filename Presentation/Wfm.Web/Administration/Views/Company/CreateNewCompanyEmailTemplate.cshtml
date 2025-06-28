@@ -1,0 +1,20 @@
+﻿@model CompanyEmailTemplateModel
+
+@using (Html.BeginForm("CreateOrUpdateCompanyEmailTemplate","Company"))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Common.CompanyEmailTemplate") @Html.ActionLink("(" + T("Admin.Company.EmailTemplate.BackToList") + ")", "Details", "Company", new { guid = Model.CompanyGuid, tabId = "tab-company-email-template" },null)
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+        </div>
+    </div>
+
+    @Html.Partial("_CreateOrUpdateCompanyEmailTemplate", Model)
+}
+<script type="text/javascript">
+    $('form input[type=submit]').click(function () {
+        tinyMCE.triggerSave();
+    });
+</script>

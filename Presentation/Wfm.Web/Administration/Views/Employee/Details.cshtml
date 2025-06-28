@@ -1,0 +1,104 @@
+﻿@using Wfm.Core
+@using Wfm.Services.Security
+@using Wfm.Core.Domain.Candidates
+
+@model Wfm.Admin.Models.Employee.EmployeeModel
+@{
+    ViewBag.Title = T("Admin.Employee.EmployeeDetails").Text;
+
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+}
+
+<div class="section-header">
+    <div class="title">
+        @Model.Id / @Model.FirstName @Model.LastName
+    </div>
+    <div class="options">
+    </div>
+</div>
+
+@Html.Kendo().TabStrip().Name("employee-details-tabstrip").Items(x =>
+{
+    x.Add().Text("Basic Info").Content(CandidateBasicInfoTab().ToHtmlString()).Selected(true)
+        .HtmlAttributes(new { id = "basic-info" });
+
+    x.Add().Text("Contact Info").LoadContentFrom(Url.Action("_TabContactInfo", "Employee", new { guid = Model.CandidateGuid })).HtmlAttributes(new { id = "contact-info" });
+
+    x.Add().Text("Payroll Info").LoadContentFrom(Url.Action("_TabPayrollInfo", "Employee", new { guid = Model.CandidateGuid })).HtmlAttributes(new { id = "payroll-info" });
+
+    x.Add().Text("TD1").LoadContentFrom(Url.Action("_TabTD1", "Employee", new { guid = Model.CandidateGuid })).HtmlAttributes(new { id = "td1" });
+
+    x.Add().Text("Bank Account").LoadContentFrom(Url.Action("_TabBankAccount", "Employee", new { guid = Model.CandidateGuid })).HtmlAttributes(new { id = "bank-account" });
+
+    x.Add().Text("Payroll History").LoadContentFrom(Url.Action("_TabPayrollHistory", "Employee", new { guid = Model.CandidateGuid })).HtmlAttributes(new { id = "payroll-history" });
+
+    x.Add().Text(T("Admin.Employee.Timeoff").Text).LoadContentFrom(Url.Action("_TabEntitlements", "Employee", new { guid = Model.CandidateGuid })).HtmlAttributes(new { id = "entitlements" });
+    x.Add().Text(T("Admin.Employee.TaxForm").Text).LoadContentFrom(Url.Action("_TabTaxForm", "Employee", new { guid = Model.CandidateGuid })).HtmlAttributes(new { id = "tax-forms" });
+    if ((int)ViewBag.EmployeeTypeId == (int)EmployeeTypeEnum.REG)
+    {
+        x.Add().Text(T("Admin.Employee.WCBRate").Text).LoadContentFrom(Url.Action("_TabWCBRate", "Employee", new { guid = Model.CandidateGuid })).HtmlAttributes(new { id = "wcb-rate" });
+    }
+})
+
+@helper CandidateBasicInfoTab()
+{
+    <div class="section-header">
+        <div class="options">
+            <input type="button" id="UpdateBasicInfo" class="k-button" value="Save" />
+            <input type="button" id="RefreshBasicInfo" class="k-button" value="Cancel" />
+        </div>
+    </div>
+    
+    <div id="basic-info-div">
+        @Html.Partial("_BasicInfo", Model)
+    </div>
+}
+
+<script type="text/javascript">
+
+    $(function () {
+        selectTab();
+
+        bindButtonsForBasicInfo();
+    });
+
+    function selectTab() {
+        var tabId = '@(ViewBag.TabId)';
+        if (tabId)
+            tabIndex = $("#" + tabId).index();
+        else
+            tabIndex = 0;
+        $("#employee-details-tabstrip").data("kendoTabStrip").select(tabIndex);
+    }
+
+    function bindButtonsForBasicInfo() {
+        $('#UpdateBasicInfo').click(updateBasicInfo);
+
+        $('#RefreshBasicInfo').click(function () {
+            @*$("#basic-info-div").load('@Url.Action("_BasicInfo", "Employee")', @Html.Raw(Json.Encode(Model)));*@
+            $("#basic-info-div").load('@Url.Action("_BasicInfo", "Employee", new { guid = Model.CandidateGuid })');
+        });
+    }
+
+    function updateBasicInfo(e) {
+        e.preventDefault();
+        var form = $('#basic-info-form');
+        if (form.valid()) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("_UpdateBasicInfo", "Employee")',
+                data: form.serialize(),
+                success: function (response) {
+                    if (response.Result) {
+                        alert("Basic info is updated");
+                    }
+                    else {
+                        alert(response.ErrorMessage);
+                    }
+                }
+            });
+        }
+    }
+
+</script>

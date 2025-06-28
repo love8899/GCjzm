@@ -1,0 +1,23 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    Layout = "";
+
+    //title
+    Html.AddTitleParts(T("PageTitle.AccessDenied").Text);
+
+    ViewBag.Title = siteTitle + " Employment - Staffing Agency | Temp Jobs | Full-time Jobs | Employment Agency | Temp Agency | Staffing Services";
+    ViewBag.Description = "Leading provider of recruitment solutions and human resources services across Canada and United States. From temporary, to contract, to full-time we offer access to top jobs in Toronto, Markham, Mississauga, Brampton, Oakville, Burlington, Calgary.";
+    ViewBag.keywords = "Jobs,Resume,Employment,Staffing,Call Centre,General Labour,Warehouse,Accounting,Customer Service,Marketing";
+}
+<div class="page access-denied-page">
+    <div class="page-body">
+        <div align="center">
+            <img src="@Url.Content("~/Administration/Content/images/ico-blacklist.png")" alt="@T("Admin.AccessDenied.Title")" />
+            @T("Admin.AccessDenied.Title")
+            <P>@T("Admin.AccessDenied.Description")</P>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,51 @@
+﻿@{
+    Layout = "_ReportLayout";
+    ViewBag.ReportTitle = "Detailed labor cost report";
+
+    ViewBag.Title = "Detailed labor cost report";
+    Html.SetActiveMenuItemSystemName("DetailedLaborCostReport");
+
+    var startDate = DateTime.Today.Date.AddDays(-7);
+    var endDate = DateTime.Today;
+}
+
+<div class="col-md-6">
+    @Html.InputLine("fromDate", "From", tmplt: "Date", viewData: new { Value = startDate, OnChange = "startDateChange" })
+    @Html.InputLine("toDate", "To", tmplt: "Date", viewData: new { Value = endDate })
+</div>
+<div class="col-md-6">
+    @Html.InputLine("vendors", "Vendors", tmplt: "MultiSelect", viewData: new { Items = ViewBag.Franchises, PlaceHolder = "Select vendors..." })
+</div>
+
+<script type="text/javascript">
+    var reportParams = {};
+    var reportUrl = '_DetailedLabourCostReport';
+    function valParams() {
+        var result = false;
+        var fromDate = $("#fromDate").val();
+        var toDate = $("#toDate").val();
+        var vendorIds = $("#vendors").val();
+        if (!fromDate || !toDate || !vendorIds)
+            popupNotification('Please select start or end date or vendors', 'error');
+        else {
+            result = true;
+            reportParams = {
+                startDate: fromDate,
+                endDate: toDate,
+                vendorIds: vendorIds.join()
+            };
+        }
+        return result;
+    }
+    function startDateChange() {
+        var startDate = this.value();
+        var endPicker = $("#toDate").data("kendoDatePicker");
+        if (startDate) {
+            startDate = new Date(startDate);
+            endPicker.min(startDate);
+            var suggestedDt = new Date(startDate);
+            suggestedDt.setDate(suggestedDt.getDate() + 6);
+            endPicker.value(suggestedDt);
+        }
+    }
+</script>

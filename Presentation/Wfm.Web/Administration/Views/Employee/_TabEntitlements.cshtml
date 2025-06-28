@@ -1,0 +1,120 @@
+﻿<script src="@Url.Content("~/Scripts/admin.common.js?version=1.8")" type="text/javascript"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var tabId = '@(ViewBag.TabId)';
+        if (tabId == '' || tabId == null)
+            tabId = 'timeOffEntitlements';
+
+        var $radios = $('input:radio[id=' + tabId + ']');
+        if ($radios.is(':checked') === false) {
+            $radios.prop('checked', true);
+        }
+    });
+    function reloadEntitlementGrid() {
+        refreshGrid('#timeoff-entitlement-grid');
+        reloadBookHistoryGrid();
+    }
+    function reloadBookHistoryGrid() {
+        refreshGrid('#timeoff-booking-grid');
+    }
+    function filterEntitlement() { return { employeeId: '@ViewBag.EmployeeId', year: $("#inquiry-year").val() }; }
+    $(function () {
+        $('#add-timeoff').click(function () { addTimeoff(); });
+    })
+    function bookTimeoff() {
+        $.ajax({
+            url: '@Url.Action("_SaveTimeoffBooking", "Employee")',
+            type: 'POST',
+            data: $('#timeoff-booking-form').serialize(),
+            dataType: 'html',
+            success: function (result) {
+                if (result == 'done') {
+                    $("#book-timeoff-dialog").data("kendoWindow").close();
+                    reloadEntitlementGrid();
+                }
+                else {
+                    $('#timeoff-booking-form').parent().html(result);
+                    bindDialogEvent();
+                }
+            }
+        });
+    }
+    function bindDialogEvent() {
+        $('#close-timeoff-booking').click(function () {
+            $("#book-timeoff-dialog").data("kendoWindow").close();
+        });
+        $('#save-timeoff-booking').click(function () {
+            $.ajax({
+                url: '@Url.Action("_GetEmployeeScheduleForTimeoffBooking", "Employee")',
+                type: 'POST',
+                data: $('#timeoff-booking-form').serialize(),
+                dataType: 'json',
+                success: function (result) {
+                    if (result.Schedule.length > 0) {
+                        confirmAction('Scheduled tasks found in this period. Do you want continue?', bookTimeoff);
+                    }
+                    else {
+                        bookTimeoff();
+                    }
+                }
+            });
+        });
+    }
+    function timeoffPopup(refreshUrl, title) {
+        var dialog = $("#book-timeoff-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#book-timeoff-dialog").kendoWindow({
+                title: title,
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 440,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    bindDialogEvent();
+                }
+            });
+            dialog = $("#book-timeoff-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.open();
+        }
+        dialog.refresh({
+            url: refreshUrl
+        });
+        dialog.center();
+        return false;
+
+    }
+    function addTimeoff() {
+        var entityGrid = $("#timeoff-entitlement-grid").data("kendoGrid");
+        var selectedItem = entityGrid.dataItem(entityGrid.select());
+        var selectedTypeId = selectedItem ? selectedItem.EmployeeTimeoffTypeId : 0;
+        return timeoffPopup('@Html.Raw(Url.Action("_BookNewTimeoffPopup", "Employee", new { employeeId = ViewBag.EmployeeId, timeoffTypeId ="XXXX" }))'
+            .replace("XXXX", selectedTypeId.toString()), 'Request New Timeoff');
+    }
+    function editTimeoffBooking(id) {
+        return timeoffPopup('@Url.Action("_EditTimeoffPopup", "Employee", new { timeoffBookingId = "XXXX" })'.replace("XXXX", id.toString()),
+            'Edit Timeoff Requests');
+    }
+</script>
+<div class="tabordion" style="height:700px;">
+    <section id="section1">
+        <input type="radio" name="sections" id="timeOffEntitlements">
+        <label for="timeOffEntitlements">@T("Admin.Employee.Timeoff.Entitlement")</label>
+        <article>
+            <h2>@T("Admin.Employee.Timeoff.Entitlement")</h2>
+            @Html.Partial("_TimeOffEntitlements")
+        </article>
+    </section>
+    <section id="section2">
+        <input type="radio" name="sections" id="timeOffHistory">
+        <label for="timeOffHistory">@T("Admin.Employee.Timeoff.BookingHistory")</label>
+        <article>
+            <h2>@T("Admin.Employee.Timeoff.BookingHistory")</h2>
+            @Html.Partial("_TimeoffHistory")
+        </article>
+    </section>
+</div>

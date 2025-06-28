@@ -1,0 +1,75 @@
+﻿@using Wfm.Shared.Models.Incident
+@model IncidentReportModel
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "incident-report-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @(Model.Id > 0 ? T("Admin.Candidate.IncidentReport.Edit").Text : T("Common.Incident").Text)
+        </div>
+        <div class="options">
+            <input type="button" name="save" id="save-incident-report" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" name="close" id="close-incident-report" class="k-button" value="@T("Common.Close")" />
+        </div>
+    </div>
+
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.CompanyId)
+    @Html.HiddenFor(model => model.CandidateId)
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+    @Html.HiddenFor(model => model.UpdatedOnUtc)
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.IncidentDateTimeUtc)
+            </td>
+            <td class="adminData">
+                                @(Html.Kendo().DateTimePicker()
+                            .Name("IncidentDateTimeUtc")
+                            .Format("dddd, MMMM d, yyyy, hh:mm tt")
+                            .Start(CalendarView.Month)
+                            .Min(DateTime.Now.AddYears(-10))
+                            .Max(DateTime.Now)
+                                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.IncidentCategoryCode)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                .Name("IncidentCategoryId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(Model.IncidentCategoryList)
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.LocationName)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownList()
+                .Name("LocationId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(Model.LocationList)
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Note)
+            </td>
+            <td class="adminData">
+                @Html.TextAreaFor(model => model.Note, new { id = "Note", style = "height:50px;width:100%;" })
+            </td>
+        </tr>
+    </table>
+}

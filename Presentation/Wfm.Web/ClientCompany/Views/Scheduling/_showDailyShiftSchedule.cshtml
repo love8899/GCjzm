@@ -1,0 +1,135 @@
+﻿@using Wfm.Shared.Models.Scheduling
+<script type="text/javascript">
+    function refreshScheduler()
+    {
+        var scheduler = $('#scheduler').data('kendoScheduler');
+        scheduler.dataSource.read();
+    }
+    function toStdString(d) {
+        if (d == null)
+            return "9999-12-31";
+        return d.toISOString();
+    }
+
+    function event2model(event) {
+        var model = event.toJSON();
+        model.start = toStdString(event.start);
+        model.end = toStdString(event.end);
+        model.SchedulePeriodId = event.SchedulePeriodId;
+        model.CreatedOnUtc = toStdString(event.CreatedOnUtc);
+        model.UpdatedOnUtc = toStdString(event.UpdatedOnUtc);
+        model.CreatedOn = toStdString(event.CreatedOn);
+        model.UpdatedOn = toStdString(event.UpdatedOn);
+        return model;
+    }
+    function scheduler_save(e) {
+        var model = event2model(e.event);
+        $.ajax({
+            url: '@Url.Action("SaveDailyShiftSchedule", "Scheduling")',
+            type: 'POST',
+            data: { model: model },
+            cache: false,
+            async: false,
+            success: function (result) {
+                if (!result.Succeed) {
+                    alert(result.Error);
+                }
+            },
+        });
+    }
+    function scheduler_remove(e) {
+            model = event2model(e.event);
+            $.ajax({
+                url: '@Url.Action("RemoveDailyShiftSchedule", "Scheduling")',
+                type: 'POST',
+                data: { model: model },
+                cache: false,
+                async: false,
+                success: function (result) {
+                    if (!result.Succeed) {
+                        alert(result.Error);
+                        //errNotification(result.Error);
+                    }
+                },
+            });
+    }
+
+    function scheduler_edit(e) {
+        for (var r in e.event.OpeningDictionary) {
+            if (e.event.OpeningDictionary[r].MandantoryRequiredCount || e.event.OpeningDictionary[r].ContingencyRequiredCount) {
+                $('#JobRole_' + r).show();
+            }
+        }
+    }
+
+</script>
+
+@(Html.Hidden("schedulePeriodId", (int)(ViewBag.SchedulePeriodId)))
+@(Html.Kendo().Scheduler<DailyShiftScheduleModel>()
+    .Name("scheduler")
+    .Date((DateTime)ViewBag.MinDate)
+    .StartTime(DateTime.Today)
+    .MajorTick(60)
+    .Height(700)
+    .Messages(m => m.Editor(b => b.EditorTitle("Shift Time")))
+    .Views(views =>
+    {
+        views.MonthView(m=>m.Selected(true).EventHeight(25));
+        views.DayView(m=>m.AllDaySlot(false));
+    })
+    .EventTemplateId("event-template")
+        .Editable(editable => editable.TemplateName("ScheduleEditor").Move(true).Resize(false).Create(false))
+            .Group(group => group.Resources("CompanyShiftId").Orientation(SchedulerGroupOrientation.Vertical))
+                .Resources(resource =>
+                        {
+                            resource.Add(model => model.CompanyShiftId)
+                                .Title("CompanyShiftId")
+                                .Name("CompanyShifts")
+                                .DataTextField("Text")
+                                .DataValueField("Value")
+                                .DataColorField("Color")
+                                .DataSource(data => data.Read(read => read.Action("GetAllCompanyShiftsWithColor", "Company", new { schedulePeriodId = ViewBag.SchedulePeriodId })));
+                        })
+    .DataSource(d => d
+            .Model(m =>
+            {
+                m.Id(f => f.Id);
+                m.Field(f => f.Title).DefaultValue("No title");
+                m.Field(f => f.SchedulePeriodId).DefaultValue(ViewBag.SchedulePeriodId);
+                m.Field(f => f.CompanyShiftId).DefaultValue("None");
+                m.Field(f => f.Description).DefaultValue("No title");
+                m.Field(f => f.Start);
+                m.Field(f => f.End);
+                m.Field(f => f.IsAllDay).DefaultValue(true);
+            })
+            .Read(read => read.Action("_dailyShiftSchedule", "Scheduling", new { schedulePeriodId = ViewBag.SchedulePeriodId }))
+            .Events(e => e.Sync("refreshScheduler"))
+    )
+    .Events(e =>
+    {
+        //e.DataBinding("scheduler_dataBinding");
+        //e.DataBound("scheduler_dataBound");
+        //e.Change("scheduler_change");
+        e.Save("scheduler_save");
+        e.Remove("scheduler_remove");
+        //e.Cancel("scheduler_cancel");
+        e.Edit("scheduler_edit");
+        //e.Add("scheduler_add");
+        //e.MoveStart("scheduler_moveStart");
+        //e.Move("scheduler_move");
+        //e.MoveEnd("scheduler_moveEnd");
+        //e.ResizeStart("scheduler_resizeStart");
+        //e.Resize("scheduler_resize");
+        //e.ResizeEnd("scheduler_resizeEnd");
+        //e.Navigate("scheduler_navigate");
+    })
+)
+
+
+<script id="event-template" type="text/x-kendo-template">
+    <div>
+        <div class="k-event-template">#: title #</div>
+    </div>
+</script>
+
+

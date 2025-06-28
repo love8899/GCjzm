@@ -1,0 +1,142 @@
+﻿@using Wfm.Core.Domain.Common;
+@using Wfm.Core.Infrastructure;
+@{
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var facebookLink = commonSettings.FacebookLink;
+    var linkedinLink = commonSettings.LinkedinLink;
+    var twitterLink = commonSettings.TwitterLink;
+    var isISO9001Certified = commonSettings.IsISO9001Certified;
+}
+
+<div class="footer">
+    <div class="footer-upper">
+        <div class="footer-block information">
+            <div class="title">
+                <strong>Job Seekers</strong>
+            </div>
+            <ul class="list">
+                <li>@Html.ActionLink("Job Categories", "JobSeekers_JobCategory", "JobSeekers")</li>
+                <li>@Html.ActionLink("Job Search Resources", "JobSeekers_JobSearchResource", "JobSeekers")</li>
+                <li>@Html.ActionLink("Training and Development", "JobSeekers_TrainingAndDevelopment", "JobSeekers")</li>
+                <li>@Html.ActionLink("Job Search", "Index", "JobPost")</li>
+                @*<li>@Html.ActionLink("Testimonials", "JobSeekers_Testimonials", "JobSeekers")</li>*@
+            </ul>
+        </div>
+        <div class="footer-block customer-service">
+            <div class="title">
+                <strong>Employers</strong>
+            </div>
+            <ul class="list">
+                <li>@Html.ActionLink("Staffing Solutions", "Employers_StaffingSolutions", "Employers")</li>
+                <li>@Html.ActionLink("Safety and Prevention", "Employers_SafetyAndPrevention", "Employers")</li>
+                <li>@Html.ActionLink("Training", "Employers_Training", "Employers")</li>
+                <li>@Html.ActionLink("Area Specialties", "Employers_AreaSpecialties", "Employers")</li>
+                @*<li>@Html.ActionLink("Request Staff", "AboutUs", "Home")</li>
+                <li>@Html.ActionLink("Testimonials", "Employers_Testimonials", "Employers")</li>*@
+            </ul>
+        </div>
+        <div class="footer-block my-account">
+            <div class="title">
+                <strong>Associates</strong>
+            </div>
+            <ul class="list">
+                <li>@Html.ActionLink("Employment Guidelines", "EmploymentGuidelines", "Associate")</li>
+                @*<li>Orientation</li>*@
+                <li>@Html.ActionLink("Safety Information", "SafetyInformation", "Associate")</li>
+            </ul>
+        </div>
+        <div class="footer-block my-account">
+            <div class="title">
+                <strong>About us</strong>
+            </div>
+            <ul class="list">
+                <li>@Html.ActionLink("About Us", "AboutUs", "Home")</li>
+                <li>@Html.ActionLink("Social Responsibility", "CorporateSocialResponsibility", "Home")</li>
+                @*<li>@Html.ActionLink("Blog", "List", "Blog")</li>*@
+                @if (isISO9001Certified)
+                {
+                    <li><img src="@Url.Content("~/Content/images/cms/footer_iso9001.png")" height="60" width="72" alt="Iso9001" /></li>
+                }
+            </ul>
+        </div>
+        <div class="footer-block my-account">
+            <div class="title">
+                <strong>Contact</strong>
+            </div>
+            <ul class="list">
+                <li>@Html.ActionLink("Contact Us", "ContactUs", "Home")</li>
+                <li>@Html.ActionLink("Office Locations", "Locations", "Home")</li>
+                <li>@Html.ActionLink("Franchise Opportunities", "FranchiseOpportunities", "Home")</li>
+                <li>
+                    <span class="socialLinkImage">
+                        <a href=@facebookLink target="_blank">
+                            <img src="@Url.Content("~/Content/images/cms/social/btn_facebook.jpeg")" alt="fackebook image" />
+                        </a>
+                    </span>
+                    <span class="socialLinkImage">
+                        <a href=@linkedinLink target="_blank">
+                            <img src="@Url.Content("~/Content/images/cms/social/btn_linkedin.jpeg")" alt="linkedin image" />
+                        </a>
+                    </span>
+                    <span class="socialLinkImage">
+                        <a href=@twitterLink target="_blank">
+                            <img src="@Url.Content("~/Content/images/cms/social/btn_twitter.jpeg")" alt="twitter image" />
+                        </a>
+                    </span>
+                </li>
+            </ul>
+        </div>
+        @*<div class="footer-block my-account">
+            <div class="title">
+                <strong>My Account</strong>
+            </div>
+            <ul class="list">
+                <li>@Html.ActionLink("Login to my account", "SignIn", "Candidate")</li>
+                <li>@Html.ActionLink("Create new account", "NewRegister", "Candidate")</li>
+                <li>@Html.ActionLink("Can't access your account ?", "CandidateRecovery", "Candidate")</li>
+            </ul>
+        </div>*@
+    </div>
+    <div class="footer-lower">
+        <div class="footer-info">
+            <span class="footer-disclaimer">Copyright &copy;@String.Format(" {0} {1}. All rights reserved.", DateTime.Now.Year, siteTitle)</span>
+        </div>
+        <div class="footer-powered-by">
+            @*<span>Powered by Tempus Workforce</span>*@
+            <span>@Html.ActionLink("Privacy policy", "PrivacyPolicy", "Home") / </span>
+            <span>@Html.ActionLink("Terms of use", "TermsOfUse", "Home") / </span>
+            <span>@Html.ActionLink("Application agreement", "ApplicationAgreement", "Home")</span>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.footer-block .title').click(function () {
+            var e = window, a = 'inner';
+            if (!('innerWidth' in window)) {
+                a = 'client';
+                e = document.documentElement || document.body;
+            }
+            var result = { width: e[a + 'Width'], height: e[a + 'Height'] };
+            if (result.width < 769) {
+                $(this).siblings('.list').slideToggle('slow');
+            }
+        });
+    });
+</script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.block .title').click(function () {
+            var e = window, a = 'inner';
+            if (!('innerWidth' in window)) {
+                a = 'client';
+                e = document.documentElement || document.body;
+            }
+            var result = { width: e[a + 'Width'], height: e[a + 'Height'] };
+            if (result.width < 1001) {
+                $(this).siblings('.listbox').slideToggle('slow');
+            }
+        });
+    });
+</script>

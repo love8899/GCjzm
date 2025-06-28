@@ -1,0 +1,82 @@
+﻿@model IEnumerable<CountryModel>
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.Countries").Text;
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration.Countries") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+    <div class="options">
+        @Html.ActionLink(T("Common.Add").Text, "Create", null, new { @class = "k-button" })
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CountryModel>()
+                .Name("country-grid")
+                .BindTo(Model)
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(80);
+                    columns.Bound(x => x.CountryName).Width(250);
+                    columns.Bound(x => x.TwoLetterIsoCode).Width(150);
+                    columns.Bound(x => x.ThreeLetterIsoCode).Width(150);
+                    columns.Bound(x => x.NumericIsoCode).Width(150);
+
+                    //columns.Bound(x => x.IsActive).Width(50)
+                    //      .ClientTemplate("<input name='IsActive<#= Id #>' id='IsActive l<#= Id#>' disabled type='checkbox' <#= IsActive ? checked='checked' : '' #> />").Title("IsActive");
+
+                    columns.Bound(x => x.IsActive)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        //.ClientTemplate("<img alt='' src='" + Url.Content("~/Administration/Content/images/") + "active-#= IsActive #.gif' />")
+                        .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Content/images/") + "active-#= IsActive #.png)'></div>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(100);
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+
+                    //columns.Bound(x => x.Id)
+                    //    .Template(x => Html.ActionLink("Edit", "Edit", new { x.Id }))
+                    //    .ClientTemplate("<a href=\"" + @Url.Content("~/Admin/Country/Edit/") + "#= Id #\">" + T("Admin.Common.Edit").Text + "</a>")
+                    //    .Title(T("Admin.Common.Edit").Text).Width(50).Sortable(false);
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                        .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { x.Id }))
+                        .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/Country/Edit/") + "#= Id #\">" + "<span class='k-icon k-i-pencil'></span></a>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80)
+                        .Title(T("Admin.Common.Edit").Text);
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(20)
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,97 @@
+﻿@model CityModel
+
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.DisplayOrder)
+@Html.HiddenFor(model => model.EnteredBy)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CountryName)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList()
+                                .Name("CountryId")
+                                .OptionLabel("--Select--")
+                                .DataTextField("Text")
+                                .DataValueField("Value")
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("GetCascadeCountries", "Common");
+                                    });
+                                })
+            )
+            @Html.WfmValidationMessageFor(model => model.CountryId)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.StateProvinceId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList()
+                                .Name("StateProvinceId")
+                                .OptionLabel("--Select--")
+                                .DataTextField("Text")
+                                .DataValueField("Value")
+                                .DataSource(source =>
+                                {
+                                    source.Read(read =>
+                                    {
+                                        read.Action("GetCascadeStateProvinces", "Common").Data("filterStateProvinces");
+                                    })
+                                        .ServerFiltering(true);
+                                })
+                                .Enable(false)
+                                .AutoBind(false)
+                                .CascadeFrom("CountryId")
+            )
+            <script>
+                function filterStateProvinces() {
+                    return {
+                        countryid: $("#CountryId").val()
+                    };
+                }
+            </script>
+            @Html.WfmValidationMessageFor(model => model.StateProvinceId)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CityName)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.CityName)
+            @Html.WfmValidationMessageFor(model => model.CityName)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsActive)
+        </td>
+        <td class="adminData">
+            @Html.CheckBoxFor(model => model.IsActive)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CreatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.CreatedOn)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.UpdatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.UpdatedOn)
+        </td>
+    </tr>
+</table>

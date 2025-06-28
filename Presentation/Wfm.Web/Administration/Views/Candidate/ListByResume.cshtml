@@ -1,0 +1,105 @@
+﻿@using Wfm.Services.Media
+@{
+    ViewBag.Title = T("Admin.Candidate.CandidateAttachments").Text;
+
+    var attachmentTypeService = EngineContext.Current.Resolve<IAttachmentTypeService>();
+    var attachmentTypes = attachmentTypeService.GetAllAttachmentTypes();
+}
+<div class="section-header">
+    <div class="title">
+        @T("Admin.ListByResume.Title")
+    </div>
+    <div class="options">
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateAttachmentModel>()
+                .Name("candidateattachment-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.CandidateId).Title(@T("Common.Id").Text).Width(75);
+
+                    columns.Bound(x => x.EmployeeId).Width(120)
+                        .ClientTemplate(@Html.ActionLink("#=EmployeeId#", "Details", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString());
+
+                    columns.Bound(x => x.FirstName).Width(160);
+                    columns.Bound(x => x.LastName).Width(160);
+                    columns.Bound(x => x.OriginalFileName)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+
+                    columns.ForeignKey(x => x.AttachmentTypeId, attachmentTypes, "Id", "TypeName"); //.Width(160);
+
+                    columns.Bound(x => x.ContentType)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+
+                    columns.Bound(x => x.ContentText)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+
+                    columns.Bound(x => x.Note)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+                    columns.Bound(x => x.UseForDirectPlacement)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                       // .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.UseForDirectPlacement.ToString().ToLowerInvariant() + ".png")" />)
+                                            .ClientTemplate("#if (UseForDirectPlacement == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                                            .HtmlAttributes(new { style = "text-align:center" })
+                                            .Width(80);
+                    columns.Bound(x => x.IsActive)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                   //     .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)                        
+                        .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HtmlAttributes(new { style = "text-align:center" })
+                        .Width(60);
+
+                    columns.Bound(x => x.UpdatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120);
+                    columns.Bound(x => x.CreatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120).Hidden(true);
+
+                    columns.Bound(x => x.Id).Sortable(false).Filterable(false)
+                        .ClientTemplate("<a class='-k-button' title='" + T("Common.Download") + "' href=\"" + @Url.Content("~/Admin/Candidate/DownloadCandidateAttachment?guid=") + "#= CandidateAttachmentGuid #\"><span class='fa fa-download'></span></a>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Title("")
+                        .Width(68);
+
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(true)
+                        .PageSize(20)
+                        .Events(events => events.Error("error_handler").Sync("sync_handler"))
+                        .Read(read => read.Action("ListByResume", "Candidate"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+<script type="text/javascript">
+    function sync_handler(e) {
+        this.read();
+    }
+</script>

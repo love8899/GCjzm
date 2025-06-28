@@ -1,0 +1,53 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Supply Chain, Logistics and Warehousing";
+    //var description = "At " + siteTitle + ", we understand that the success of your business depends on how efficiently and effectively your warehouse and distribution system operate.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Supply Chain, Logistics and Warehousing</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            At @siteTitle, we understand that the success of your business depends on
+            how efficiently and effectively your warehouse and distribution system operate.
+            This is where our vast experience in flexible staffing for warehouses and distribution
+            centres can help. We recognize that the warehouse is no longer just a static storage
+            facility. It now has to use virtually real-time data to closely match supply to
+            demand, eliminate the need to hold excess inventory, and increase the flow of goods
+            throughout the supply chain. Allow us to help you keep up with shipments and ease
+            your workload while at the same time improving the flexibility and cost effectiveness
+            of your workforce. @siteTitle is your staffing solution for all of your warehouse
+            and distribution needs, including:
+        </p>
+        <ul>
+            <li>General labour: order picker, packagers, sorters, etc.</li>
+            <li>Inventory control</li>
+            <li>Material handlers</li>
+            <li>Forklift operators</li>
+            <li>Shipper/Receivers</li>
+            <li>Warehouse supervisors</li>
+            <li>Distribution supervisors</li>
+            <li>AZ/DZ, G licensed drivers</li>
+            <li>Materials managers</li>
+        </ul>
+    </div>
+</div>

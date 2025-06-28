@@ -1,0 +1,85 @@
+﻿@using Wfm.Services.Companies;
+@using Wfm.Services.Franchises;
+@using Wfm.Services.Security;
+@using Wfm.Core
+@{
+    Layout = "";
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+
+@*<script type="text/javascript">
+    function FormatDate(deactivatedDate) {
+        var html = "";
+        if (deactivatedDate != null) {
+            html = kendo.toString(deactivatedDate, 'yyyy-MM-dd HH:mm');
+        }
+        return html;
+    }
+</script>*@
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<Wfm.Client.Models.CompanyBilling.CompanyBillingRateModel>()
+              .Name("companybillingrate-grid")
+              .Columns(columns =>
+              {
+                  //columns.Bound(x => x).Filterable(false).Sortable(false)
+                  //      .ClientTemplate("<input type='checkbox' name='checkedRecords' value='#= Id #' class='checkboxGroups'/>")
+                  //      .Title("<input id='mastercheckbox' type='checkbox'/>")
+                  //      .Width(25);
+                  columns.Bound(x => x.Id).Width(60).Hidden();
+                  
+                  if (commonSettings.DisplayVendor)
+                  {
+                      columns.Bound(x => x.FranchiseName).Width(150).Title(T("Common.Vendor").Text);
+                  }
+
+                  columns.Bound(x => x.CompanyLocationName).Width(150).Title(T("Common.Location").Text);
+                  columns.Bound(x => x.RateCode).Width(100).Title(T("Admin.Companies.CompanyBillingRate.Fields.RateCode").Text);
+                  columns.Bound(x => x.PositionCode).Width(100).Title(T("Common.Position").Text);
+                  columns.Bound(x => x.ShiftCode).Width(60).Title(T("Common.Shift").Text);
+                  columns.Bound(x => x.RegularBillingRate).ClientTemplate("#= kendo.toString(RegularBillingRate, 'c') #").Width(60);
+                  columns.Bound(x => x.OvertimeBillingRate).ClientTemplate("#= kendo.toString(OvertimeBillingRate, 'c') #").Width(60);
+                  columns.Bound(x => x.BillingTaxRate).ClientTemplate("#= kendo.toString(BillingTaxRate, 'p2') #").Width(60);
+                  columns.Bound(x => x.WeeklyWorkHours).Width(60);
+                  columns.Bound(x => x.Note).Hidden();
+                  columns.Bound(x => x.IsActive).Hidden()
+                      .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                      .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                      .Width(80);
+                  columns.Bound(x => x.EffectiveDateString).Width(100).Title(T("Admin.Companies.CompanyBillingRate.Fields.EffectiveDate").Text);
+                  columns.Bound(x => x.DeactivatedDateString).Title(T("Admin.Companies.CompanyBillingRate.Fields.DeactivatedDate").Text).Width(100);
+                  columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden();
+                  columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+              })
+        .EnableCustomBinding(true)
+                .ToolBar(x => x.Excel())
+                .Excel(excel => excel.FileName("CompanyBillingRates.xlsx").Filterable(true).ProxyURL(Url.Action("ExportExcel", "Company")).AllPages(true))
+        .Reorderable(reorder => reorder.Columns(true))
+        .Resizable(resize => resize.Columns(true))
+        .Filterable()
+        .Sortable()
+        .ColumnMenu()
+        .Selectable()
+        .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+        .DataSource(dataBinding => dataBinding
+                    .Ajax()
+                    .ServerOperation(true)
+                    .Read(read => read.Action("_TabCompanyBillingRates", "Company"))
+                    .PageSize(20)
+        )
+        .Filterable(filterable => filterable
+            .Extra(false)
+            .Operators(operators => operators
+                .ForString(str => str.Clear()
+                    .Contains("Contains")
+                    .IsEqualTo("Is equal to")
+                    .IsNotEqualTo("Is not equal to")
+                )
+            )
+        )
+                //.Events(events => { events.DataBound("onDataBound"); })
+            )
+        </td>
+    </tr>
+</table>

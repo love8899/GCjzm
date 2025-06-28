@@ -1,0 +1,33 @@
+﻿@model IEnumerable<BlogPostModel>
+@using Wfm.Web.Models.Blogs
+@using Wfm.Web.Framework.HtmlHelpers
+
+@if (Model.Any())
+{
+    var htmlToText = new HtmlToText();
+    <div class="news-list-homepage">
+        <div class="title">
+            <strong>What's new</strong>
+        </div>
+        <div class="news-items">
+            @foreach (var item in Model)
+            {
+                <div class="news-item">
+                    <div class="news-head">
+                        <a class="news-title" href="@Url.RouteUrl("BlogPostSeo", new { blogPostId = item.Id, seoName = Html.ToSeoUrl(item.Title) })">@item.Title</a>
+                        <span class="news-date">@item.CreatedOn.Value.ToString("D")</span>
+                    </div>
+                    <div class="news-body">
+                        @Html.Raw(htmlToText.Convert(item.Body, 300) + " ...")
+                    </div>
+                    <div class="buttons">
+                        <a href="@Url.RouteUrl("BlogPostSeo", new { blogPostId = item.Id, seoName = Html.ToSeoUrl(item.Title) })" class="read-more">Details</a>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="view-all">
+            <a href="/blog">View Blog Archive</a>
+        </div>
+    </div>
+}

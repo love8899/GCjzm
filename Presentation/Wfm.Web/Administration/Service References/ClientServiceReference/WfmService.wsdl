@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="http://tempuri.org/" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="WfmService" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://tempuri.org/Imports">
+      <xsd:import schemaLocation="http://localhost:3630/WfmService.svc?xsd=xsd0" namespace="http://tempuri.org/" />
+      <xsd:import schemaLocation="http://localhost:3630/WfmService.svc?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+      <xsd:import schemaLocation="http://localhost:3630/WfmService.svc?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/WcfServices" />
+      <xsd:import schemaLocation="http://localhost:3630/WfmService.svc?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/WcfServices.TimeSheets" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="IWfmService_PingWfmService_InputMessage">
+    <wsdl:part name="parameters" element="tns:PingWfmService" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_PingWfmService_OutputMessage">
+    <wsdl:part name="parameters" element="tns:PingWfmServiceResponse" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_SendMassEmail_InputMessage">
+    <wsdl:part name="parameters" element="tns:SendMassEmail" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_SendMassMessage_InputMessage">
+    <wsdl:part name="parameters" element="tns:SendMassMessage" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_AuthenticateUser_InputMessage">
+    <wsdl:part name="parameters" element="tns:AuthenticateUser" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_AuthenticateUser_OutputMessage">
+    <wsdl:part name="parameters" element="tns:AuthenticateUserResponse" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_RefreshSession_InputMessage">
+    <wsdl:part name="parameters" element="tns:RefreshSession" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_RefreshSession_OutputMessage">
+    <wsdl:part name="parameters" element="tns:RefreshSessionResponse" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_LogOut_InputMessage">
+    <wsdl:part name="parameters" element="tns:LogOut" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_LogOut_OutputMessage">
+    <wsdl:part name="parameters" element="tns:LogOutResponse" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_SendPasswordResetMessage_InputMessage">
+    <wsdl:part name="parameters" element="tns:SendPasswordResetMessage" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_SendPasswordResetMessage_OutputMessage">
+    <wsdl:part name="parameters" element="tns:SendPasswordResetMessageResponse" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_GetDailyTimeSheet_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetDailyTimeSheet" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_GetDailyTimeSheet_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetDailyTimeSheetResponse" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_GetEmployeeTimeSheetHistoryByDate_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetEmployeeTimeSheetHistoryByDate" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_GetEmployeeTimeSheetHistoryByDate_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetEmployeeTimeSheetHistoryByDateResponse" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_GetTimeSheetForApproval_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetTimeSheetForApproval" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_GetTimeSheetForApproval_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetTimeSheetForApprovalResponse" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_UpdateTimeSheet_InputMessage">
+    <wsdl:part name="parameters" element="tns:UpdateTimeSheet" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_UpdateTimeSheet_OutputMessage">
+    <wsdl:part name="parameters" element="tns:UpdateTimeSheetResponse" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_ApproveTimeSheet_InputMessage">
+    <wsdl:part name="parameters" element="tns:ApproveTimeSheet" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_ApproveTimeSheet_OutputMessage">
+    <wsdl:part name="parameters" element="tns:ApproveTimeSheetResponse" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_ApproveTimeSheets_InputMessage">
+    <wsdl:part name="parameters" element="tns:ApproveTimeSheets" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_ApproveTimeSheets_OutputMessage">
+    <wsdl:part name="parameters" element="tns:ApproveTimeSheetsResponse" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_RejectTimeSheet_InputMessage">
+    <wsdl:part name="parameters" element="tns:RejectTimeSheet" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_RejectTimeSheet_OutputMessage">
+    <wsdl:part name="parameters" element="tns:RejectTimeSheetResponse" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_AddCandidateWorkTime_InputMessage">
+    <wsdl:part name="parameters" element="tns:AddCandidateWorkTime" />
+  </wsdl:message>
+  <wsdl:message name="IWfmService_AddCandidateWorkTime_OutputMessage">
+    <wsdl:part name="parameters" element="tns:AddCandidateWorkTimeResponse" />
+  </wsdl:message>
+  <wsdl:portType name="IWfmService">
+    <wsdl:operation name="PingWfmService">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWfmService/PingWfmService" message="tns:IWfmService_PingWfmService_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IWfmService/PingWfmServiceResponse" message="tns:IWfmService_PingWfmService_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="SendMassEmail">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWfmService/SendMassEmail" message="tns:IWfmService_SendMassEmail_InputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="SendMassMessage">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWfmService/SendMassMessage" message="tns:IWfmService_SendMassMessage_InputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="AuthenticateUser">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWfmService/AuthenticateUser" message="tns:IWfmService_AuthenticateUser_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IWfmService/AuthenticateUserResponse" message="tns:IWfmService_AuthenticateUser_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="RefreshSession">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWfmService/RefreshSession" message="tns:IWfmService_RefreshSession_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IWfmService/RefreshSessionResponse" message="tns:IWfmService_RefreshSession_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="LogOut">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWfmService/LogOut" message="tns:IWfmService_LogOut_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IWfmService/LogOutResponse" message="tns:IWfmService_LogOut_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="SendPasswordResetMessage">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWfmService/SendPasswordResetMessage" message="tns:IWfmService_SendPasswordResetMessage_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IWfmService/SendPasswordResetMessageResponse" message="tns:IWfmService_SendPasswordResetMessage_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetDailyTimeSheet">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWfmService/GetDailyTimeSheet" message="tns:IWfmService_GetDailyTimeSheet_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IWfmService/GetDailyTimeSheetResponse" message="tns:IWfmService_GetDailyTimeSheet_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetEmployeeTimeSheetHistoryByDate">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWfmService/GetEmployeeTimeSheetHistoryByDate" message="tns:IWfmService_GetEmployeeTimeSheetHistoryByDate_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IWfmService/GetEmployeeTimeSheetHistoryByDateResponse" message="tns:IWfmService_GetEmployeeTimeSheetHistoryByDate_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetTimeSheetForApproval">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWfmService/GetTimeSheetForApproval" message="tns:IWfmService_GetTimeSheetForApproval_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IWfmService/GetTimeSheetForApprovalResponse" message="tns:IWfmService_GetTimeSheetForApproval_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="UpdateTimeSheet">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWfmService/UpdateTimeSheet" message="tns:IWfmService_UpdateTimeSheet_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IWfmService/UpdateTimeSheetResponse" message="tns:IWfmService_UpdateTimeSheet_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="ApproveTimeSheet">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWfmService/ApproveTimeSheet" message="tns:IWfmService_ApproveTimeSheet_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IWfmService/ApproveTimeSheetResponse" message="tns:IWfmService_ApproveTimeSheet_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="ApproveTimeSheets">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWfmService/ApproveTimeSheets" message="tns:IWfmService_ApproveTimeSheets_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IWfmService/ApproveTimeSheetsResponse" message="tns:IWfmService_ApproveTimeSheets_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="RejectTimeSheet">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWfmService/RejectTimeSheet" message="tns:IWfmService_RejectTimeSheet_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IWfmService/RejectTimeSheetResponse" message="tns:IWfmService_RejectTimeSheet_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="AddCandidateWorkTime">
+      <wsdl:input wsaw:Action="http://tempuri.org/IWfmService/AddCandidateWorkTime" message="tns:IWfmService_AddCandidateWorkTime_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IWfmService/AddCandidateWorkTimeResponse" message="tns:IWfmService_AddCandidateWorkTime_OutputMessage" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="BasicHttpBinding_IWfmService" type="tns:IWfmService">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="PingWfmService">
+      <soap:operation soapAction="http://tempuri.org/IWfmService/PingWfmService" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SendMassEmail">
+      <soap:operation soapAction="http://tempuri.org/IWfmService/SendMassEmail" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+    </wsdl:operation>
+    <wsdl:operation name="SendMassMessage">
+      <soap:operation soapAction="http://tempuri.org/IWfmService/SendMassMessage" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+    </wsdl:operation>
+    <wsdl:operation name="AuthenticateUser">
+      <soap:operation soapAction="http://tempuri.org/IWfmService/AuthenticateUser" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RefreshSession">
+      <soap:operation soapAction="http://tempuri.org/IWfmService/RefreshSession" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="LogOut">
+      <soap:operation soapAction="http://tempuri.org/IWfmService/LogOut" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SendPasswordResetMessage">
+      <soap:operation soapAction="http://tempuri.org/IWfmService/SendPasswordResetMessage" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetDailyTimeSheet">
+      <soap:operation soapAction="http://tempuri.org/IWfmService/GetDailyTimeSheet" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetEmployeeTimeSheetHistoryByDate">
+      <soap:operation soapAction="http://tempuri.org/IWfmService/GetEmployeeTimeSheetHistoryByDate" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetTimeSheetForApproval">
+      <soap:operation soapAction="http://tempuri.org/IWfmService/GetTimeSheetForApproval" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateTimeSheet">
+      <soap:operation soapAction="http://tempuri.org/IWfmService/UpdateTimeSheet" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ApproveTimeSheet">
+      <soap:operation soapAction="http://tempuri.org/IWfmService/ApproveTimeSheet" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ApproveTimeSheets">
+      <soap:operation soapAction="http://tempuri.org/IWfmService/ApproveTimeSheets" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RejectTimeSheet">
+      <soap:operation soapAction="http://tempuri.org/IWfmService/RejectTimeSheet" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AddCandidateWorkTime">
+      <soap:operation soapAction="http://tempuri.org/IWfmService/AddCandidateWorkTime" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="WfmService">
+    <wsdl:port name="BasicHttpBinding_IWfmService" binding="tns:BasicHttpBinding_IWfmService">
+      <soap:address location="http://localhost:3630/WfmService.svc/soap" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

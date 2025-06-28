@@ -1,0 +1,159 @@
+﻿@using Wfm.Core.Domain.Accounts
+@{
+    var guid = ViewBag.CandidateGuid;
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    var isRecruiter = workContext.CurrentAccount.IsRecruiter();
+    var dNRReasonService = EngineContext.Current.Resolve<Wfm.Services.Common.IDNRReasonService>();
+    var reasons = dNRReasonService.GetAllDNRReasonsForDropDownList();
+}
+<script type="text/javascript">
+    function onCompanyDataBound() {
+        if (!(@Html.Raw(Json.Encode(isRecruiter)))) {
+            var combobox = $("#clientId").data("kendoDropDownList");
+            var data = combobox.dataSource.data();
+            if (!combobox._adding) {
+                combobox._adding = true;
+                data.splice(0, 1, {
+                    "Text": "All Companies",
+                    "Value": null
+                });
+                this._adding = false;
+            }
+        }
+    }
+    function filterJobOrders() {
+        var cmp = $('[name="clientId"]').val();
+        if (cmp == 0) cmp = -1; // if no company is selected, do not return any job orders
+        return {
+            companyId: cmp,
+            locationId: 0,
+            departmentId: 0,
+            startDateString: $('[name="start"]').val(),
+            endDateString:''
+        };
+    }
+</script>
+@using (Html.BeginForm("_AddCandidateToBlacklist", "Candidate", FormMethod.Post, new { id = "addtoblacklist-form" }))
+{
+    @Html.ValidationSummary(true)
+    <input type="hidden" id="guid" name="guid" value="@guid" />
+    <br />
+    <span>
+        @T("Admin.Candidate.AddToBlacklist.Warning")
+    </span>
+    <br /><br />
+    <table class="adminContent">
+        <tr id="client-company">
+            <td class="adminTitle" >
+                @T("Common.Company")
+            </td>
+            <td class="adminData">
+                @(Html.Kendo()
+                    .DropDownList()
+                    .Name("clientId")
+                    .HtmlAttributes(new { data_bind = "value:CompanyId", style = "width: 270px" })
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .DataSource(source =>
+                source.Read(read => read.Action("GetCascadeCompanies", "JobOrder")).ServerFiltering(true)
+                    )
+                    .SelectedIndex(0)
+        //.Suggest(true)
+                    .Events(eve => eve.DataBound("onCompanyDataBound"))
+                )
+            </td>
+        </tr>
+        <tr id="banned-reason">
+            <td class="adminTitle" style="vertical-align: top">
+                Reason
+            </td>           
+            <td class="adminData required">
+                @Html.Kendo().DropDownList().Name("reason").OptionLabel("-- Select --").BindTo(reasons).DataValueField("Text").DataTextField("Text")
+            </td>
+        </tr>
+        <tr style="display:none" id="client-field">
+            <td class="adminTitle">
+                @T("Admin.JobOrder.JobOrder.Fields.CompanyContactId")
+            </td>
+            <td class="adminData required">
+                @Html.Kendo().TextBox().Name("clientName")
+            </td>
+        </tr>
+        <tr id="client-joborder">
+            <td class="adminTitle">
+                @T("Common.JobOrder")
+            </td>
+            <td class="adminData">
+                @(Html.Kendo()
+                    .DropDownList()
+                    .Name("jobOrderId")
+                    .HtmlAttributes(new { data_bind = "value:JobOrderId", style = "width: 370px" })
+                    .OptionLabel("None")
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .DataSource(source =>
+                            source.Read(read => read.Action("GetCascadeJobOrders", "JobOrder").Data("filterJobOrders")).ServerFiltering(true)
+                    )
+                    .SelectedIndex(0)
+                    //.Events(eve => eve.DataBound("onCompanyDataBound"))
+                    .CascadeFrom("clientId")
+                )
+            </td>
+        </tr>
+        <tr id="banned-note">
+            <td class="adminTitle" style="vertical-align: top">
+                Note
+            </td>
+            <td class="adminData">
+                @Html.TextArea("note", new { style = "width:330px;height:90px", maxlength = 255 })
+            </td>
+        </tr>
+        <tr id="effective-date">
+            <td class="adminTitle">
+                Effective date
+            </td>
+            <td class="adminData required">
+                @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("startDate").Value(DateTime.Today).HtmlAttributes(new { style = "width:270px" })
+            </td>
+        </tr>
+    </table>
+
+    <br />
+    <div style="text-align: center">
+        <input type="button" id="submit-addtoblacklist" class="k-button" value="Add" style="text-align:center" />
+    </div>
+}
+
+<script type="text/javascript">
+    function validateInput() {
+        var result = false;
+        var note = $("#note").val();
+        var clientId = $("#clientId").val();
+        var since = $("#startDate").val();
+        var reason =  $("#reason").data("kendoDropDownList").text();
+        var clientName = $("#clientName").val();
+        if (@Html.Raw(Json.Encode(isRecruiter)) && clientId <= 0)
+            alert('@T("Common.Company")' + ' ' + '@T("Common.IsRequired")');
+        else if (!since)
+            alert('@T("Admin.Candidate.AddToBlacklist.DateMissing")');
+        else if (!reason||reason=="-- Select --")
+            alert('@T("Admin.Candidate.AddToBlacklist.ReasonMissing")');
+        else if(clientId > 0 && !clientName)
+            alert("Contact name is required!");
+        else if (reason == "Other" && !note)
+            alert("Note is required!");
+        else
+            result = true;
+        return result;
+    }
+
+    $("#clientId").change(function () {
+        var clientId = $("#clientId").val();
+        if (clientId > 0) {
+            $("#client-field").show();
+        }
+        else {
+            $("#client-field").hide();
+        }
+    });
+</script>

@@ -1,0 +1,128 @@
+﻿@model ContactUsModel
+@using Wfm.Core.Infrastructure
+@using Wfm.Core.Domain.Common
+@using Wfm.Web.Models.Home;
+@using reCAPTCHA.MVC
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-contact-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Contact Us";
+    var description = "Contact our customer service teams, find labor law information or links to our frequently asked questions.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle;
+
+    var respondByList = new List<SelectListItem>();
+    var item1 = new SelectListItem() { Text = "Phone", Value = "Phone" };
+    var item2 = new SelectListItem() { Text = "E-mail", Value = "E-mail" };
+    respondByList.Add(item1);
+    respondByList.Add(item2);
+}
+@section left {
+    @Html.Partial("Layout/_ContactSideBar")
+}
+<div class="page contact-page">
+    <div class="page-title">
+        <h1>Contact Us</h1>
+    </div>
+    <div class="page-body">
+        @if (Model.SuccessfullySent)
+        {
+            <div class="result">
+                @Model.Result
+            </div>
+        }
+        else
+        {
+            using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                var validationSummary = Html.ValidationSummary(true);
+                if (!MvcHtmlString.IsNullOrEmpty(validationSummary))
+                {
+                    <div class="message-error">@validationSummary</div>
+                }
+                <div class="fieldset">
+                    <div class="form-fields">
+                        <div class="inputs">
+                            @Html.LabelFor(model => model.Subject)
+                            @Html.EditorFor(model => model.Subject)
+                            @Html.WfmValidationMessageFor(model => model.Subject)
+                        </div>
+                        <div class="inputs">
+                            @Html.LabelFor(model => model.ContactName)
+                            @Html.EditorFor(model => model.ContactName)
+                            @Html.WfmValidationMessageFor(model => model.ContactName)
+                        </div>
+                        <div class="inputs">
+                            @Html.LabelFor(model => model.Company)
+                            @Html.EditorFor(model => model.Company)
+                            @Html.WfmValidationMessageFor(model => model.Company)
+                        </div>
+                        <div class="inputs">
+                            @Html.LabelFor(model => model.Phone)
+                            @Html.Kendo().MaskedTextBoxFor(model => model.Phone).Mask("(999) 000-0000")
+                            @Html.WfmValidationMessageFor(model => model.Phone)
+                        </div>
+                        <div class="inputs">
+                            @Html.LabelFor(model => model.Email)
+                            @Html.EditorFor(model => model.Email)
+                            @Html.WfmValidationMessageFor(model => model.Email)
+                        </div>
+                        <div class="inputs">
+                            @Html.LabelFor(model => model.Message)
+                            @Html.TextAreaFor(model => model.Message, new { @Class = "text-area" })
+                            @Html.RequiredHint()
+                            @Html.WfmValidationMessageFor(model => model.Message)
+                        </div>
+                        <div class="inputs">
+                            @Html.LabelFor(model => model.RespondBy)
+                            @(Html.Kendo().DropDownList()
+                                .Name("RespondBy")
+                                .OptionLabel("--Select--")
+                                .BindTo(respondByList)
+                            )
+                            @Html.WfmValidationMessageFor(model => model.RespondBy)
+                        </div>
+                        <div class="inputs">
+                            @Html.LabelFor(model => model.BestTimeToRespond)
+                            @Html.EditorFor(model => model.BestTimeToRespond)
+                            @Html.WfmValidationMessageFor(model => model.BestTimeToRespond)
+                        </div>
+                        <div class="inputs">
+                            @Html.Label("Are you a human?")
+                            <div class="captcha-box" style="display:inline-block">
+                                @Html.reCaptcha()
+                            </div>
+                            @Html.ValidationMessage("ReCaptcha")
+                        </div>
+                    </div>
+                </div>
+                <div class="buttons">
+                    <input type="submit" name="send-email" class="button-1 contact-us-button" value="Send" />
+                </div>
+            }
+        }
+        @Html.Widget("contactus_bottom")
+    </div>
+</div>
+
+
+
+
+
+@*<div class="main-content">
+        <div class="contact-us-container">
+            @if (!Model.SuccessfullySent)
+            {
+            }
+        </div>
+    </div>*@

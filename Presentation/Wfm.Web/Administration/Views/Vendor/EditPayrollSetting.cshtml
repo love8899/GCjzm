@@ -1,0 +1,150 @@
+﻿@using Wfm.Core.Domain.Payroll
+@using Wfm.Services.Payroll
+@model PayrollSetting
+
+@{
+    var payrollSettingService = EngineContext.Current.Resolve<IPayrollSettingService>();
+    var ddFileLayout = payrollSettingService.GetAllDDFileLayoutDataSource();
+}
+@using (Html.BeginForm("EditPayrollSetting","Vendor",FormMethod.Post))
+{
+    @Html.HiddenFor(x => x.FranchiseGuid)
+    @Html.HiddenFor(x => x.FranchiseId)
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Vendors.Vendor.EditVendorPayrollSetting") @Html.ActionLink("(" + T("Admin.Vendors.Vendor.BackToDetails") + ")", "Details", new {guid=Model.FranchiseGuid })
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+        </div>
+    </div>
+<table class="adminContent">
+    <tr>
+        <td colspan="12">
+            <div class="statisticsTitle">
+                @T("Admin.Vendor.PayrollSetting.DirectDepositInformation")
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.DDFileLayout, T("Admin.PayrollSetting.DDFileLayout").Text)
+        </td>
+        <td class="adminData required">
+            @Html.Kendo().DropDownListFor(x=>x.DDFileLayout).BindTo(ddFileLayout)
+            @Html.WfmValidationMessageFor(x=>x.DDFileLayoutId)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Client_Number, T("Admin.PayrollSetting.ClientNumber").Text)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model=>model.Client_Number)
+            @Html.WfmValidationMessageFor(x => x.Client_Number)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Transmission_Header, T("Admin.PayrollSetting.TransmissionHeader").Text)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.Transmission_Header)
+            @Html.WfmValidationMessageFor(x => x.Transmission_Header)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.InstitutionNumber, T("Admin.PayrollSetting.InstitutionNumber").Text)
+        </td>
+        <td class="adminData">
+            @Html.Kendo().MaskedTextBoxFor(model => model.InstitutionNumber).Mask("###0")
+            @Html.WfmValidationMessageFor(x => x.InstitutionNumber)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.TransitNumber, T("Admin.PayrollSetting.TransitNumber").Text)
+        </td>
+        <td class="adminData">
+            @Html.Kendo().MaskedTextBoxFor(model => model.TransitNumber).Mask("####0")
+            @Html.WfmValidationMessageFor(x => x.TransitNumber)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.AccountNumber, T("Admin.PayrollSetting.AccountNumber").Text)
+        </td>
+        <td class="adminData">
+            @Html.Kendo().MaskedTextBoxFor(model => model.AccountNumber).Mask("###########0")
+            @Html.WfmValidationMessageFor(x => x.AccountNumber)
+        </td>
+    </tr>
+    <tr>
+        <td colspan="12">
+            <div class="statisticsTitle">
+                @T("Admin.Vendor.PayrollSetting.PayrollInformation")
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.BusinessNumber, T("Admin.PayrollSetting.BusinessNumber").Text)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.BusinessNumber)
+            @Html.WfmValidationMessageFor(x => x.BusinessNumber)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EIRate, T("Admin.PayrollSetting.EIRate").Text)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.EIRate)
+            @Html.WfmValidationMessageFor(x => x.EIRate)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.NEQ, T("Admin.PayrollSetting.NEQ").Text)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.NEQ)
+            @Html.WfmValidationMessageFor(x => x.NEQ)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.QuebecIdentificationNumber, T("Admin.PayrollSetting.QuebecIdentificationNumber").Text)
+        </td>
+        <td class="adminData">
+            @Html.Kendo().MaskedTextBoxFor(model => model.QuebecIdentificationNumber).Mask("0000000000RS0000")
+            @Html.WfmValidationMessageFor(x => x.QuebecIdentificationNumber)
+        </td>
+    </tr>
+
+    <tr>
+        <td colspan="12">
+            <div class="statisticsTitle">
+                @T("Admin.Vendor.PayrollSetting.RL1Information")
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.RL1TransmitterNumber, T("Admin.PayrollSetting.RL1TransmitterNumber").Text)
+        </td>
+        <td class="adminData">
+            @Html.Kendo().MaskedTextBoxFor(model => model.RL1TransmitterNumber).Mask("NP######")
+            @Html.WfmValidationMessageFor(x => x.RL1TransmitterNumber)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.RL1SequentialNumber, T("Admin.PayrollSetting.RL1SequentialNumber").Text)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.RL1SequentialNumber)
+            @Html.WfmValidationMessageFor(x => x.RL1SequentialNumber)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.RL1XMLSequentialNumber, T("Admin.PayrollSetting.RL1XMLSequentialNumber").Text)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.RL1XMLSequentialNumber)
+            @Html.WfmValidationMessageFor(x => x.RL1XMLSequentialNumber)
+        </td>
+    </tr>
+</table>
+}

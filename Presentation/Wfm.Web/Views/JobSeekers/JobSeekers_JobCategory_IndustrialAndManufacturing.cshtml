@@ -1,0 +1,53 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Industrial and Manufacturing";
+    //var description = siteTitle + " provides staffing to a multitude of industries ranging from automotive to consumer goods and pharmaceuticals and the aviation industry.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower() + " jobs";
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Industrial and Manufacturing</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            You thrive on the shop floor, helping meet factory quotas while minimizing rework.
+            You understand deadlines and the pressure to constantly reduce lead-time. Whether
+            you are a skilled production worker or a general labourer, @siteTitle will
+            use our strong connections with leading manufacturers to help you find the permanent,
+            contract or temporary position that meets your needs.
+        </p>
+        <p>
+            @siteTitle provides staffing to a multitude of industries ranging from automotive
+            to consumer goods and pharmaceuticals and the aviation industry. Here are just some
+            of the roles we have had a lot of success filling:
+        </p>
+        <ul>
+            <li>Assemblers</li>
+            <li>Machinists</li>
+            <li>Equipment operators</li>
+            <li>Maintenance</li>
+            <li>Production labourers</li>
+            <li>Quality control</li>
+            <li>Order picker, packager</li>
+            <li>Technical team leads</li>
+            <li>Skilled trades</li>
+        </ul>
+    </div>
+</div>

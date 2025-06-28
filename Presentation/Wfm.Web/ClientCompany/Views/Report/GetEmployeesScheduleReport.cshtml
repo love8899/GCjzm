@@ -1,0 +1,115 @@
+﻿
+@{      
+    var startDate = DateTime.Today.Date.AddDays(-7);
+    var endDate = DateTime.Today;
+}
+<style type="text/css">
+    .k-multiselect.k-header {
+        text-align: left;
+        float: none;
+        vertical-align: middle;
+        display: inline-block;
+        margin-left: 10px;
+        margin-right: 20px;
+    }
+</style>
+
+@(Html.Kendo().PanelBar().Name("search-bar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text(String.Format(T("Common.ReportParameters").Text, T("Report.EmployeesScheduleReport").Text))
+            .Expanded(true)
+            .Content(@<div class="panel">
+
+              
+                <label class="first-label">From: </label>
+                @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("fromDate").Value(startDate.ToString("yyyy-MM-dd")).Events(e => e.Change("startDateChange"))
+                <label class="first-label">To: </label>
+                @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("toDate").Value(endDate.ToString("yyyy-MM-dd")).Events(e => e.Change("endDateChange"))
+     
+                          <br /><br />  <label class="first-label">Employee's: </label>
+                          @(Html.Kendo().MultiSelect().Name("employees").HtmlAttributes(new { style = "width:600px" })                                                          
+                                .DataSource(source => source.Read(read => read.Action("GetEmployeesForSchedule", "Report").Data("filterEmployees")))                                                                
+                                .DataTextField("Text")
+                                .DataValueField("Value"))   
+                          <script> function filterEmployees() { return { startDate: $("#fromDate").val(), endDate: $("#toDate").val() }; } </script>
+                          <input type="checkbox" id="selectAll" />  <label>Select All Employees </label>   
+    <br /><br />  <label class="first-label">One Page per Employee: </label>
+                          <input type="checkbox" id="pageBreak" />         
+       <div style="text-align: center">
+                    <br />@(Html.Kendo().Button().Name("loadReport").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text))<br /><br />
+                </div>
+                        
+            </div>);
+    }))       
+
+<div id="report" />
+
+
+<script type="text/javascript">
+
+    $("#loadReport").bind("click", function () {
+        loadReport();
+    });
+    function loadReport() {
+        var fromDate = $("#fromDate").val();
+        var toDate = $("#toDate").val();
+        var employeeIds = $("#employees").val();
+        if (fromDate == null || fromDate == "") {
+            alert("Please select start date!");
+        }
+        else if (toDate == null || toDate == "") {
+            alert("Please select end date!");
+        }
+        else if (employeeIds == null)
+        {
+            alert("Please select at least one employee!");
+        }
+        else {
+            $("#report").load("_EmployeesScheduleReport", {
+                startDate: $("#fromDate").val(),
+                endDate: $("#toDate").val(),
+                employeeIds: employeeIds.join(),
+                breakPage: $('#pageBreak').is(':checked')
+            });
+        }
+    }
+    function startDateChange() {
+        var employees = $('#employees').data('kendoMultiSelect');
+        employees.value([]);
+        $('#selectAll').attr('checked', false)
+        var startDate = this.value(),
+            endPicker = $("#toDate").data("kendoDatePicker"), endDate = endPicker.value();
+
+        if (startDate) {
+            startDate = new Date(startDate);
+            endPicker.min(startDate);
+        }
+        employees.dataSource.read();
+    }
+    function endDateChange() {
+        var employees = $('#employees').data('kendoMultiSelect');
+        employees.value([]);
+        $('#selectAll').attr('checked', false)
+        employees.dataSource.read();    }
+  
+    $('#selectAll').change(function () {
+        var multiSelect = $("#employees").data("kendoMultiSelect");
+        if ($('#selectAll').is(':checked')) {          
+          
+            var selectedValues = "";
+            var strComma = "";
+            for (var i = 0; i < multiSelect.dataSource.data().length; i++) {
+                var item = multiSelect.dataSource.data()[i];
+                selectedValues += strComma + item.Value;
+                strComma = ",";
+            }
+            multiSelect.value(selectedValues.split(","));
+        }
+        else {
+            multiSelect.value([]);
+                   }
+    });
+    
+</script>

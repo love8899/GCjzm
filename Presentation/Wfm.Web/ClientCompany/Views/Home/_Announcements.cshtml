@@ -1,0 +1,75 @@
+﻿@model IEnumerable<Wfm.Core.Domain.Announcements.Announcement>
+@using Wfm.Core
+@using Wfm.Services.Common
+
+@{
+    const string panelId = "news-box";
+    const string hidePanelAttributeName = "HideWfmNewsPanel";
+    var hidePanel = EngineContext.Current.Resolve<IWorkContext>().CurrentFranchise.GetAttribute<bool>(hidePanelAttributeName);
+}
+
+<div class="box box-info @if(hidePanel){<text>collapsed-box</text>}" id="@panelId">
+    <div class="box-header with-border clearfix">
+        <div class="box-title">
+            <i class="fa fa-newspaper-o"></i>
+            Announcements
+            @*@if (Model.Any())
+            {
+                <div class="new-item-notification"><span>@Model.Count()</span></div>
+            }*@
+        </div>
+        <div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                @if (hidePanel)
+                {
+                    <text><i class="fa fa-plus"></i></text>
+                }
+                else
+                {
+                    <text><i class="fa fa-minus"></i></text>
+                }
+            </button>
+        </div>
+    </div>
+    <div class="box-body">
+        <div class="row">
+            @if (Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <div class="col-md-4">
+                        <div class="panel panel-info cardAnnouncement">
+                            <div class="panel-heading clearfix">
+                                @*<h4>@item.EnteredByAccount.Franchise.FranchiseName (@item.CreatedOnUtc.Value.ToShortDateString()):</h4>*@
+                                <h4>@item.Subject<br />(@item.CreatedOnUtc.Value.ToShortDateString())</h4>
+                                <div class="pull-right">
+                                    <a class="k-button clsMarkAsRead" announcementguid='@item.AnnouncementGuid'>Don't show again</a>
+                                </div>
+                            </div>
+                            <div class="panel-body">
+                                @Html.Raw(item.AnnouncementText)
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-md-4">
+                    <span>There are no announcements for now.</span>
+                </div>
+                <div class="col-md-4"></div>
+                <div class="col-md-4"></div>
+            }
+        </div>
+
+        @*<script>
+            $(document).ready(function () {
+                $('#@panelId').on('click', 'button[data-widget="collapse"]', function () {
+                    var collapsed = !$('#@panelId').hasClass('collapsed-box');
+                    saveUserPreferences('@(Url.Action("SavePreference", "Preferences"))', '@hidePanelAttributeName', collapsed);
+                });
+            });
+        </script>*@
+    </div>
+</div>

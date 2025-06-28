@@ -1,0 +1,31 @@
+﻿@model CandidateKeySkillModel
+
+
+@{
+    Layout = "";
+    //ViewBag.Title = T("Admin.Candidate.CandidateKeySkill.AddNew").Text;
+}
+
+
+@using (Html.BeginForm("", "", FormMethod.Post, new { id = "createcandidatekeyskill-form" }))
+{
+    <br />
+    @Html.Partial("_CreateOrUpdate.KeySkill", Model)
+    
+    <br /><br />
+    <div style="text-align: center">
+        <input type="button" id="btn-save" class="k-button" value="@T("Common.Save")" />
+        <input type="button" id="btn-cancel" class="k-button" value="@T("Common.Cancel")" />
+    </div>
+    <br />
+}
+
+
+@* for jQUery validation *@
+<script>
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+</script>

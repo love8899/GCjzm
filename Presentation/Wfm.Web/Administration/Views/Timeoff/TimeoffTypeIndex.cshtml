@@ -1,0 +1,106 @@
+﻿@using Wfm.Admin.Models.Timeoff
+@using Wfm.Services.Employees
+@model IEnumerable<EmployeeTimeoffTypeModel>
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.EmployeeTimeoffType").Text;
+    var employeeService = EngineContext.Current.Resolve<IEmployeeService>();
+    var employeeTypes = employeeService.GetAllEmployeeTypes().Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() });
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration.EmployeeTimeoffType") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+    <div class="options">
+       
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<EmployeeTimeoffTypeModel>()
+                .Name("timeoff-type-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(80).Hidden();
+                    columns.Bound(x => x.Name).Width(80);
+                    columns.Bound(x => x.Description);
+                    columns.ForeignKey(x => x.EmployeeTypeId, employeeTypes, "Value", "Text").Width(120);
+                    columns.Bound(x => x.DefaultAnnualEntitlementInHours).Width(80);
+
+                    columns.Bound(x => x.Paid)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.Paid.ToString().ToLowerInvariant() + ".png")" />)
+                        //.ClientTemplate("<img alt='' src='" + Url.Content("~/Administration/Content/images/") + "active-#= IsActive #.gif' />")
+                            .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Content/images/") + "active-#= Paid #.png)'></div>")
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                            .Width(100);
+                    columns.Bound(x => x.AllowNegative)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.AllowNegative.ToString().ToLowerInvariant() + ".png")" />)
+                        //.ClientTemplate("<img alt='' src='" + Url.Content("~/Administration/Content/images/") + "active-#= IsActive #.gif' />")
+                         .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Content/images/") + "active-#= AllowNegative #.png)'></div>")
+                         .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                         .Width(100);
+                    columns.Bound(x => x.IsActive)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        //.ClientTemplate("<img alt='' src='" + Url.Content("~/Administration/Content/images/") + "active-#= IsActive #.gif' />")
+                        .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Content/images/") + "active-#= IsActive #.png)'></div>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(100);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                })
+                .ToolBar(x => { x.Create(); x.Save(); })
+                .Editable(x => x.Mode(GridEditMode.InCell))
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .Batch(true)
+                    .Read(x => x.Action("Index", "Timeoff"))
+                    .Create(x => x.Action("CreateTimeoffType", "Timeoff"))
+                    .Update(x => x.Action("UpdateTimeoffType", "Timeoff"))
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Model(model => {
+                        model.Id(x=>x.Id);
+                        model.Field(x => x.Id).Editable(false);
+                        model.Field(x => x.Name).Editable(true);
+                        model.Field(x => x.Description).Editable(true);
+                        model.Field(x => x.EmployeeTypeId).Editable(true).DefaultValue(0);
+                        model.Field(x => x.DefaultAnnualEntitlementInHours).Editable(true).DefaultValue(0);
+                        model.Field(x => x.Paid).Editable(true);
+                        model.Field(x => x.AllowNegative).Editable(true);
+                        model.Field(x => x.IsActive).Editable(true).DefaultValue(true);
+                        model.Field(x => x.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(x => x.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(x => x.UpdatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        model.Field(x => x.CreatedOn).Editable(false).DefaultValue(DateTime.Now);
+                    })
+                    .Events(events => events.Error("error_handler").Sync(@"function(e){setTimeout(function(){refreshGrid('#timeoff-type-grid')})}"))
+                )
+
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

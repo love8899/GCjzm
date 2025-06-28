@@ -1,0 +1,79 @@
+﻿@model Wfm.Shared.Models.Search.SearchIncidentModel
+@{
+    Layout = "_SearchLayout";
+
+    var minDate = Model.MinDate();
+    var today = Model.MaxDate();
+    var thisWeekStart = today.AddDays(DayOfWeek.Sunday - today.DayOfWeek);
+    var lastWeekEnd = thisWeekStart.AddDays(-1);
+    var lastWeekStart = thisWeekStart.AddDays(-7);
+
+    var defaultTitle = (string)ViewData["DefaultTitle"] ?? string.Empty;
+    var allowAll = String.IsNullOrWhiteSpace(defaultTitle);
+
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+
+@section DateRange {
+    @Html.EditorFor(x => x.sf_From, "Date", new { Min = Model.MinDate(), Max = Model.MaxDate(), OnChange = "onFromChange" })
+    <i class="fa fa-angle-right"></i>
+    @Html.EditorFor(x => x.sf_To, "Date", new { Min = Model.MinDate(), Max = Model.MaxDate(), OnChange = "onToChange" })
+    <script type="text/javascript">
+        function onFromChange(e) {
+            var toPicker = $("#sf_To").data("kendoDatePicker");
+            toPicker.value(this.value()); toPicker.trigger('change');   // refresh grid anyway
+        }
+        function onToChange(e) { $('#btn-search').click(); }
+    </script>
+}
+
+@section Shortcuts {
+    @if (allowAll)
+    {
+        <button class="btn btn-sm btn-info btn-flat bg-dark-blue margin-r-5" id="btn-all" title="All incident reports">All</button>
+    }
+    else
+    {
+        <button class="btn btn-sm btn-info btn-flat bg-dark-blue margin-r-5" id="btn-default" title="@defaultTitle">Default</button>
+    }
+    <button class="btn btn-sm btn-info btn-flat bg-blue margin-r-5" id="btn-last" title="Incident reports of last week">Last</button>
+    <button class="btn btn-sm btn-info btn-flat bg-light-blue" id="btn-this" data-chart-period="week" title="Incident reports of this week">This</button>
+    <script type="text/javascript">
+        $("#btn-this").on("click", function () {
+            reloadByDataRange('@(thisWeekStart.ToShortDateString())', '@(today.ToShortDateString())');
+        });
+        $("#btn-last").on("click", function () {
+            reloadByDataRange('@(lastWeekStart.ToShortDateString())', '@(lastWeekEnd.ToShortDateString())');
+        });
+        $("#btn-default").on("click", function () {
+            reloadByDataRange('@(Model.sf_From.ToShortDateString())', '@(Model.sf_To.ToShortDateString())');
+        });
+        $("#btn-all").on("click", function () {
+            reloadByDataRange('@(minDate.ToShortDateString())', '@(today.ToShortDateString())');
+        });
+    </script>
+}
+
+<div class="col-md-6">
+    @Html.InputFor(x => x.sf_CandidateId, "String")
+    @Html.InputFor(x => x.sf_EmployeeId)
+    @Html.InputFor(x => x.sf_EmployeeFirstName)
+    @Html.InputFor(x => x.sf_EmployeeLastName)
+    @Html.InputFor(x => x.sf_IncidentCategoryId, "DropDownList", new { Items = Model.AvailableIncidentCategories })
+</div>
+<div class="col-md-6">
+    @if (commonSettings.DisplayVendor)
+    {
+        @Html.InputFor(x => x.sf_FranchiseId, "DropDownList", new { Items = Model.AvaliableVendors })
+    }
+
+    @Html.InputFor(x => x.sf_CompanyLocationId, "DropDownList", new { Items = Model.AvailableLocations })
+
+    @Html.InputFor(x => x.sf_CompanyDepartmentId, "CascadeDropDownList",
+        new { Controller = "Company", Action = "GetCascadeDepartments", OnData = "filterDepartments", From = "sf_CompanyLocationId" })
+    <script>function filterDepartments() { return { locationId: $("#sf_CompanyLocationId").val(), addNone: false }; }</script>
+
+    @Html.InputFor(x => x.sf_CompanyContactId, "DropDownList", new { Items = Model.AvailableContacts, HtmlAttr = new { @readonly = "readonly" } })
+
+    @Html.InputFor(x => x.sf_JobTitle)
+</div>

@@ -1,0 +1,37 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Franchises;
+@(Html.Kendo().PanelBar().Name("search-bar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text(String.Format(T("Common.ReportParameters").Text, T("Report.DNRListReport").Text))
+            .Expanded(true)
+            .Content(@<div class="panel">
+                <br />
+                <label>@T("Common.Company"): </label>
+                @(Html.Kendo().DropDownList().Name("CompanyId").HtmlAttributes(new { style = "width:400px" })
+                    .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                    .DataSource(source => source.Read(read => { read.Action("GetCascadeCompanies", "Common"); }))
+                )
+                          @Html.Label("RefDate1", "Effective From:")
+                          @Html.Kendo().DatePicker().Name("RefDateStart").Value(DateTime.Today.ToString("yyyy-MM-dd")).HtmlAttributes(new { type = "text" })
+                          @Html.Label("RefDate2", "Effective To:")
+                          @Html.Kendo().DatePicker().Name("RefDateEnd").Value(DateTime.Today.ToString("yyyy-MM-dd")).HtmlAttributes(new { type = "text" })
+                <div style="text-align: center">
+                    <br />@(Html.Kendo().Button().Name("loadReport").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text))<br /><br />
+                </div>
+            </div>);
+    })
+)
+<div id="report" />
+<script type="text/javascript">
+    $("#loadReport").bind("click", function () { loadReport(); });
+    function loadReport() {
+        var companyId = $("#CompanyId").val();
+        $("#report").load("_DNRListReport", {
+            companyId: companyId,
+            refDateStart: $('#RefDateStart').val(),
+            refDateEnd: $('#RefDateEnd').val()
+        });
+    }
+</script>

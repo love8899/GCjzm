@@ -1,0 +1,198 @@
+﻿@{
+    Layout = "";
+}
+@model Wfm.Plugin.Widgets.NivoSlider.Models.ConfigurationModel
+@using Wfm.Web.Framework;
+@Html.Action("FranchiseScopeConfiguration", "Setting", new { area = "Admin" })
+@using (Html.BeginForm())
+{
+    <fieldset>
+        <legend><strong>@T("Plugins.Widgets.NivoSlider.Picture1")</strong></legend>
+        <table class="adminContent">
+            <tr>
+                <td class="adminTitle">
+                @Html.OverrideFranchiseCheckboxFor(model => model.Picture1Id_OverrideForFranchise, model => model.Picture1Id, Model.ActiveFranchiseScopeConfiguration)
+                    @Html.WfmLabelFor(model => model.Picture1Id):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.Picture1Id)
+                    @Html.ValidationMessageFor(model => model.Picture1Id)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                @Html.OverrideFranchiseCheckboxFor(model => model.Text1_OverrideForFranchise, model => model.Text1, Model.ActiveFranchiseScopeConfiguration)
+                    @Html.WfmLabelFor(model => model.Text1):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.Text1)
+                    @Html.ValidationMessageFor(model => model.Text1)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                @Html.OverrideFranchiseCheckboxFor(model => model.Link1_OverrideForFranchise, model => model.Link1, Model.ActiveFranchiseScopeConfiguration)
+                    @Html.WfmLabelFor(model => model.Link1):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.Link1)
+                    @Html.ValidationMessageFor(model => model.Link1)
+                </td>
+            </tr>
+        </table>
+    </fieldset>
+    <br />
+    
+    <fieldset>
+        <legend><strong>@T("Plugins.Widgets.NivoSlider.Picture2")</strong></legend>
+        <table class="adminContent">
+            <tr>
+                <td class="adminTitle">
+                @Html.OverrideFranchiseCheckboxFor(model => model.Picture2Id_OverrideForFranchise, model => model.Picture2Id, Model.ActiveFranchiseScopeConfiguration)
+                    @Html.WfmLabelFor(model => model.Picture2Id):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.Picture2Id)
+                    @Html.ValidationMessageFor(model => model.Picture2Id)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                @Html.OverrideFranchiseCheckboxFor(model => model.Text2_OverrideForFranchise, model => model.Text2, Model.ActiveFranchiseScopeConfiguration)
+                    @Html.WfmLabelFor(model => model.Text2):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.Text2)
+                    @Html.ValidationMessageFor(model => model.Text2)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                @Html.OverrideFranchiseCheckboxFor(model => model.Link2_OverrideForFranchise, model => model.Link2, Model.ActiveFranchiseScopeConfiguration)
+                    @Html.WfmLabelFor(model => model.Link2):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.Link2)
+                    @Html.ValidationMessageFor(model => model.Link2)
+                </td>
+            </tr>
+        </table>
+    </fieldset>
+    <br />
+    
+    <fieldset>
+        <legend><strong>@T("Plugins.Widgets.NivoSlider.Picture3")</strong></legend>
+        <table class="adminContent">
+            <tr>
+                <td class="adminTitle">
+                @Html.OverrideFranchiseCheckboxFor(model => model.Picture3Id_OverrideForFranchise, model => model.Picture3Id, Model.ActiveFranchiseScopeConfiguration)
+                    @Html.WfmLabelFor(model => model.Picture3Id):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.Picture3Id)
+                    @Html.ValidationMessageFor(model => model.Picture3Id)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                @Html.OverrideFranchiseCheckboxFor(model => model.Text3_OverrideForFranchise, model => model.Text3, Model.ActiveFranchiseScopeConfiguration)
+                    @Html.WfmLabelFor(model => model.Text3):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.Text3)
+                    @Html.ValidationMessageFor(model => model.Text3)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                @Html.OverrideFranchiseCheckboxFor(model => model.Link3_OverrideForFranchise, model => model.Link3, Model.ActiveFranchiseScopeConfiguration)
+                    @Html.WfmLabelFor(model => model.Link3):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.Link3)
+                    @Html.ValidationMessageFor(model => model.Link3)
+                </td>
+            </tr>
+        </table>
+    </fieldset>
+    <br />
+    <fieldset>
+        <legend><strong>@T("Plugins.Widgets.NivoSlider.Picture4")</strong></legend>
+        <table class="adminContent">
+            <tr>
+                <td class="adminTitle">
+                @Html.OverrideFranchiseCheckboxFor(model => model.Picture4Id_OverrideForFranchise, model => model.Picture4Id, Model.ActiveFranchiseScopeConfiguration)
+                    @Html.WfmLabelFor(model => model.Picture4Id):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.Picture4Id)
+                    @Html.ValidationMessageFor(model => model.Picture4Id)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                @Html.OverrideFranchiseCheckboxFor(model => model.Text4_OverrideForFranchise, model => model.Text4, Model.ActiveFranchiseScopeConfiguration)
+                    @Html.WfmLabelFor(model => model.Text4):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.Text4)
+                    @Html.ValidationMessageFor(model => model.Text4)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                @Html.OverrideFranchiseCheckboxFor(model => model.Link4_OverrideForFranchise, model => model.Link4, Model.ActiveFranchiseScopeConfiguration)
+                    @Html.WfmLabelFor(model => model.Link4):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.Link4)
+                    @Html.ValidationMessageFor(model => model.Link4)
+                </td>
+            </tr>
+        </table>
+    </fieldset>
+    <br />
+    <fieldset>
+        <legend><strong>@T("Plugins.Widgets.NivoSlider.Picture5")</strong></legend>
+        <table class="adminContent">
+            <tr>
+                <td class="adminTitle">
+                @Html.OverrideFranchiseCheckboxFor(model => model.Picture5Id_OverrideForFranchise, model => model.Picture5Id, Model.ActiveFranchiseScopeConfiguration)
+                    @Html.WfmLabelFor(model => model.Picture5Id):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.Picture5Id)
+                    @Html.ValidationMessageFor(model => model.Picture5Id)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                @Html.OverrideFranchiseCheckboxFor(model => model.Text5_OverrideForFranchise, model => model.Text5, Model.ActiveFranchiseScopeConfiguration)
+                    @Html.WfmLabelFor(model => model.Text5):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.Text5)
+                    @Html.ValidationMessageFor(model => model.Text5)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                @Html.OverrideFranchiseCheckboxFor(model => model.Link5_OverrideForFranchise, model => model.Link5, Model.ActiveFranchiseScopeConfiguration)
+                    @Html.WfmLabelFor(model => model.Link5):
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.Link5)
+                    @Html.ValidationMessageFor(model => model.Link5)
+                </td>
+            </tr>
+        </table>
+    </fieldset>
+    <br />
+    <table class="adminContent">
+        <tr>
+            <td colspan="2">
+                <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            </td>
+        </tr>
+    </table>
+}

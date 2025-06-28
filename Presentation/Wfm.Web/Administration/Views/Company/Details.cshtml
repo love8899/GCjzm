@@ -1,0 +1,255 @@
+﻿@using Wfm.Services.Security
+@using Wfm.Core.Domain.Accounts
+
+@model CompanyModel
+@{
+    ViewBag.Title = T("Admin.Companies.Company.CompanyDetails").Text;
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+     var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Companies.Company.CompanyDetails")
+        @if (!workContext.CurrentAccount.IsClientAdministrator())
+        {
+            @Html.ActionLink("(" + T("Admin.Companies.Company.BackToList") + ")", "Index")
+        }
+    </div>
+    @if (permissionService.Authorize("ManageCompanies"))
+    {
+        <div class="options">
+            @Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", "Company", new { guid = Model.CompanyGuid }, new { @class = "k-button" })
+        </div>
+    }
+</div>
+
+@Html.Kendo().TabStrip().Name("company-details-tabstrip").Items(x =>
+{
+    x.Add().Text(T("Common.BasicInformation").Text).Content(CompanyBasicInfoTab().ToHtmlString()).Selected(true);
+    if (permissionService.Authorize("ViewContacts"))
+    {
+        x.Add().Text(T("Admin.CompanyContacts").Text).LoadContentFrom(Url.Action("_TabCompanyContactList", new { companyGuid = Model.CompanyGuid }))
+                    .HtmlAttributes(new { id = "tab-contacts"}); // Tab is loaded on demand
+    }
+    if (!workContext.CurrentAccount.IsClientAdministrator())
+    {
+        if (permissionService.Authorize("ManageJobOrders"))
+        {
+            x.Add().Text(T("Common.JobOrders").Text).LoadContentFrom(Url.Action("_TabCompanyJobOrderList", "Company", new { companyGuid = Model.CompanyGuid }))
+                            .HtmlAttributes(new { id = "tab-jobOrders" }); // Tab is loaded on demand
+        }
+        if (permissionService.Authorize("ManageCandidatePlacement"))
+        {
+            x.Add().Text(T("Admin.Companies.Company.Placement").Text).LoadContentFrom(Url.Action("_TabCompanyPlacement", "Company", new { companyGuid = Model.CompanyGuid }))
+                .HtmlAttributes(new { id = "tab-placement" });
+        }
+        x.Add().Text(T("Admin.Companies.Company.DailyAttendance").Text).LoadContentFrom(Url.Action("_TabDailyAttendanceList", "Company", new { companyGuid = Model.CompanyGuid })); // Tab is loaded on demand
+        if (permissionService.Authorize("ManageCandidates"))
+        {
+            x.Add().Text(T("Admin.Companies.Company.Candidate").Text).LoadContentFrom(Url.Action("_TabCompanyCandidateList", "Company", new { companyGuid = Model.CompanyGuid }))  // Tab is loaded on demand
+                .HtmlAttributes(new { id = "tab-candidate" });
+        }
+    }
+    if (permissionService.Authorize("ManageOvertimeRule"))
+    {
+        x.Add().Text(T("Common.OvertimeRule").Text).LoadContentFrom(Url.Action("_TabCompanyOvertimeRule", "Company", new { companyGuid = Model.CompanyGuid }))    // Tab is loaded on demand
+            .HtmlAttributes(new { id = "tab-overtime-rule" });
+    }
+    if (permissionService.Authorize("ViewCompanyBillingRates") || permissionService.Authorize("ViewCompanyPayRates"))
+    {
+        x.Add().Text("Pay Rates").LoadContentFrom(Url.Action("_TabCompanyBillingRates", "Company", new { companyGuid = Model.CompanyGuid })).HtmlAttributes(new { id = "tab-billing-rate" });
+    }
+    if (permissionService.Authorize("ManageVendors")&&!workContext.CurrentAccount.IsVendor()&&commonSettings.DisplayVendor)
+    {
+        x.Add().Text(T("Admin.Vendors").Text).LoadContentFrom(Url.Action("_TabCompanyVendors", "Company", new { companyGuid = Model.CompanyGuid })).HtmlAttributes(new { id = "tab-vendors" });
+    }
+    if (permissionService.Authorize("ManageRecruiters"))
+    {
+        x.Add().Text(T("Admin.Companies.Company.Recruiters").Text).LoadContentFrom(Url.Action("_TabRecruiters", "Company", new { companyGuid = Model.CompanyGuid })).HtmlAttributes(new { id = "recruiter-tab" });
+    }
+    if (permissionService.Authorize("ManageFeatures"))
+    {
+        x.Add().Text(T("Admin.Features").Text).LoadContentFrom(Url.Action("_TabFeatures", "Company", new { companyGuid = Model.CompanyGuid })).HtmlAttributes(new { id = "tab-features" });
+    }
+    if (permissionService.Authorize("ManageCompanySettings"))
+    {
+        x.Add().Text(T("Admin.Settings").Text).Content(Html.Action("_TabSettings", new { companyGuid = Model.CompanyGuid }).ToHtmlString()).HtmlAttributes(new { id = "tab-settings" });
+    }
+    if (permissionService.Authorize("ManageCompanies"))
+    {
+        x.Add().Text(T("Common.Notification").Text).LoadContentFrom(Url.Action("_TabNotifications", "Company", new { companyGuid = Model.CompanyGuid })).HtmlAttributes(new { id = "tab-notifications" });
+        x.Add().Text(T("Common.CompanyActivity").Text).LoadContentFrom(Url.Action("_TabCompanyActivities", "Company", new { guid = Model.CompanyGuid })).HtmlAttributes(new { id = "tab-company-activities" });
+    }
+    x.Add().Text(T("Common.CompanyEmailTemplate").Text).LoadContentFrom(Url.Action("_TabCompanyEmailTemplate", "Company", new { guid = Model.CompanyGuid })).HtmlAttributes(new { id = "tab-company-email-template" });
+    x.Add().Text(T("Admin.Candidate.Attachments").Text).LoadContentFrom(Url.Action("_TabCompanyAttachment", "Company", new { guid = Model.CompanyGuid })).HtmlAttributes(new { id = "tab-company-attachment" });
+    if (permissionService.Authorize("SubmitMissingHour"))
+    {
+        x.Add().Text("Missing Hours").LoadContentFrom(Url.Action("_TabMissingHours", "Company", new { companyGuid = Model.CompanyGuid })).HtmlAttributes(new { id = "tab-missinghours" });
+    }
+}).Events(events => events.Select("onSelect"))
+
+@* Company Basic Tab View*@
+@helper CompanyBasicInfoTab()
+{
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Id)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.Id)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CompanyName)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CompanyName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.Label("CompanyStatusName", T("Admin.Configuration.CompanyStatus").Text)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CompanyStatusName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.WebSite)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.WebSite)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.IsHot)
+            </td>
+            <td class="adminData">
+              @{
+                  if (Model.IsHot)
+                  {
+                    <span class="k-icon k-i-tick"></span>
+                  }
+                  else
+                  {
+                    <span class="k-icon k-i-close"></span>
+                  }
+            }
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.IsActive)
+            </td>
+            <td class="adminData">
+                @{
+                    if ( Model.IsActive)
+                    {
+                        <span class="k-icon k-i-tick"></span>
+                    }
+                    else
+                    {
+                        <span class="k-icon k-i-close"></span>
+                    }
+                }
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.KeyTechnology)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.KeyTechnology)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.InvoiceIntervalId, T("Admin.Common.Invoice.Interval").Text)
+            </td>
+            <td class="adminData">
+                @ViewBag.InvoiceIntervalCode
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Note)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.Note)
+            </td>
+    </table>
+    <div id="loc-list"></div>
+    <div id="dept-list"></div>
+}
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        var tabId = '@(ViewBag.TabId)';
+        if (tabId)
+            tabIndex = $("#" + tabId).index();
+        else
+            tabIndex = 0;
+        $("#company-details-tabstrip").data("kendoTabStrip").select(tabIndex);
+
+        if (tabIndex === 0)
+            loadLocDeptList();
+    });
+
+    function onSelect(e) {
+        if ($(e.item).index() === 0)
+            loadLocDeptList();
+    }
+
+    function loadLocDeptList() {
+        if (!$('#loc-list').html().length)
+            $('#loc-list').load('_CompanyLocationList', 'companyGuid=@(Model.CompanyGuid)');
+
+        if (!$('#dept-list').html().length)
+            $('#dept-list').load('_CompanyDepartmentList', 'companyGuid=@(Model.CompanyGuid)');
+    }
+
+    $(function () { $("form").kendoValidator(); });
+
+    function onChange(e) {
+        if (e.action == "itemchange") {
+            if (e.field == "CountryId") {
+                var model = e.items[0];
+                model.set("StateProvinceId", 0);
+            }
+
+            if (e.field == "StateProvinceId") {
+                var model = e.items[0];
+                model.set("CityId", 0);
+            }
+        }
+    }
+
+    function getCurrentEditedModel() {
+        var grid = $("#companylocation-grid").data("kendoGrid");
+        var editRow = grid.tbody.find("tr:has(.k-edit-cell)");
+        return grid.dataItem(editRow);
+    }
+
+    function filterStateProvince() {
+        var model = getCurrentEditedModel();
+        return {
+            countryId: model.CountryId
+        };
+    }
+    function filterCities() {
+        var model = getCurrentEditedModel();
+        return {
+            stateProvinceId: model.StateProvinceId
+        };
+    }
+    function filterLocations() {
+        return {companyId:'@Model.Id'};
+    }
+</script>

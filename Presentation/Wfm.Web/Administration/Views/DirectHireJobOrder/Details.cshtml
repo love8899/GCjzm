@@ -1,0 +1,265 @@
+﻿@using Wfm.Core
+@using Wfm.Core.Domain.JobOrders
+@using Wfm.Services.DirectoryLocation
+@using Wfm.Services.Security
+@using Wfm.Core.Domain.Accounts
+
+@model DirectHireJobOrderModel
+
+@{
+    ViewBag.Title = T("Admin.JobOrder.JobOrder.JobOrderDetails").Text;
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    var _workContext = EngineContext.Current.Resolve<IWorkContext>();
+    ViewBag.SearchArea = "JobOrder";
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Common.DirectPlacement") - @Model.Id/@Model.JobTitle
+        @Html.ActionLink("(" + T("Admin.JobPosting.BackToList") + ")", "Index")
+        @Html.HiddenFor(m => m.Id, new { @id = "hidden-job-order-id" })
+    </div>
+    <div class="options">
+
+        @if (permissionService.Authorize(StandardPermissionProvider.UpdateJobOrder) && (_workContext.CurrentAccount.IsAdministrator() || _workContext.CurrentAccount.IsVendorAdmin() || _workContext.CurrentAccount.Id == Model.OwnerId || _workContext.CurrentAccount.Id == Model.RecruiterId))
+        {
+            @Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { guid = Model.JobOrderGuid }, new { @class = "k-button" })
+           
+        }
+
+    </div>
+</div>
+
+
+
+
+@* Tabs *@
+@Html.Kendo().TabStrip().Name("joborderdetailstabstrip").Items(x =>
+{
+    x.Add().Text(T("Common.BasicInformation").Text).Content(JobOrderBasicInfoTab().ToHtmlString()).Selected(true)
+        .HtmlAttributes(new { id = "tab-basic-info" });
+    x.Add().Text(T("Admin.JobOrder.JobOrder.PipelineInformation").Text).LoadContentFrom("_TabJobOrderPipeline","DirectHireJobOrder", new { guid =Model.JobOrderGuid})
+        .HtmlAttributes(new { id = "tab-pipeline" });
+   
+})
+
+
+
+@* Tab 1 : JobOrder basic info *@
+@helper JobOrderBasicInfoTab()
+{
+    var account = EngineContext.Current.Resolve<IWorkContext>();
+
+    <table class="adminContent">
+        <tr>
+            <td colspan="4">
+                <div class="statisticsTitle">
+                    @T("Common.CompanyInformation")
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CompanyId)
+            </td>
+            <td class="adminData">
+                @Html.ActionLink(Model.CompanyName, "Details", "Company", new { guid = Model.CompanyGuid }, new { target = "_blank" })
+            </td>
+
+        </tr>
+
+        <tr>
+            <td colspan="4">
+                <div class="statisticsTitle">
+                    @T("Admin.JobOrder.JobOrder.JobOrderDetails")
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Id)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.Id)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobOrderStatusId)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.Status)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobTitle)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.JobTitle)
+            </td>
+            @if (!account.CurrentAccount.IsVendor())
+            {
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.IsPublished)
+                </td>
+                <td class="adminData">
+                    @{
+                var isPublished = "~/Administration/Content/images/active-" + Model.IsPublished.ToString().ToLower() + ".png";
+                    }
+                    <img alt='Hot' src="@Url.Content(isPublished)" />
+                </td>
+            }
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobOrderTypeId)
+            </td>
+            <td class="adminData">
+                @Model.JobOrderTypeModel.JobOrderTypeName
+            </td>          
+
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobOrderCategoryId)
+            </td>
+            <td class="adminData">
+                @Model.JobOrderCategoryModel.CategoryName
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CompanyJobNumber)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CompanyJobNumber)
+            </td>
+
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.StartDate)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.StartDate)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.HiringDurationExpiredDate)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.HiringDurationExpiredDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobDescription)
+            </td>
+            <td class="adminData" colspan="3">
+                @Html.Raw(Model.JobDescription)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Note)
+            </td>
+            <td class="adminData" colspan="3">
+                @Html.DisplayTextFor(model => model.Note)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.RecruiterId)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.RecruiterName)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.OwnerId)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.OwnerName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.UpdatedOn)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.UpdatedOn)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CreatedOn)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CreatedOn)
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="4">
+                <div class="statisticsTitle">
+                    @T("Admin.JobOrder.JobOrder.JobOrderPaymentInformation")
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SalaryMin)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.SalaryMin)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SalaryMax)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.SalaryMax)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.FeeTypeName)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.FeeTypeName)
+            </td>
+            @if (Model.FeeTypeId == (int)(Wfm.Core.Domain.JobOrders.FeeTypeEnum.Percent))
+            {
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.FeePercent)
+                </td>
+                <td class="adminData">
+                    @Html.DisplayFor(model => model.FeePercent)
+                </td>
+            }
+        </tr>
+        @if (Model.FeeTypeId == (int)(Wfm.Core.Domain.JobOrders.FeeTypeEnum.Percent))
+        {
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.FeeMin)
+                </td>
+                <td class="adminData">
+                    @Html.DisplayFor(model => model.FeeMin)
+                </td>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.FeeMax)
+                </td>
+                <td class="adminData">
+                    @Html.DisplayFor(model => model.FeeMax)
+                </td>
+            </tr>
+        }
+        else
+        {
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.FeeAmount)
+                </td>
+                <td class="adminData">
+                    @Html.DisplayFor(model => model.FeeAmount)
+                </td>
+            </tr>
+        }
+
+    </table>
+}
+
+

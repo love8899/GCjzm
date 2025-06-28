@@ -1,0 +1,65 @@
+﻿@model String
+@using Wfm.Web.Framework.UI;
+@{
+    //we do not bundle this script file (does not work for some reasons in bundle)
+    //Html.AddScriptParts("~/Content/tinymce/tinymce.min.js", true);
+
+    //set useDefaultImagePlugin to 'true' if you want to move back to a standard image plugin 		    
+    bool useDefaultImagePlugin = false;
+    var imagePluginName = useDefaultImagePlugin ? "image" : "netadvimage";
+}
+<script src="@Url.Content("~/Content/tinymce/tinymce.min.js")" type="text/javascript"></script>
+<script type="text/javascript">
+
+    //Notes: autosave plugin is disabled
+    (function () {
+
+        tinymce.init({
+
+            selector: "textarea#@ViewData.TemplateInfo.GetFullHtmlFieldName(string.Empty)",
+            theme: "modern",
+            width: "100%",
+            height: "400",
+
+            plugins: [
+                 "advlist autolink link image lists charmap print preview hr anchor pagebreak spellchecker",
+                 "searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking",
+                 "save table contextmenu directionality emoticons template paste textcolor"
+            ],
+
+            // Example content CSS (should be your site CSS)
+            //content_css: "css/content.css",
+
+            // tool bar
+            toolbar: "fullscreen | insertfile undo redo | styleselect formatselect fontselect fontsizeselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | print preview media fullpage | forecolor backcolor emoticons",
+
+            // options
+            menubar: true,
+            toolbar_items_size: 'small',
+            browser_spellcheck: false,
+            // paste as text
+            paste_as_text: true,
+
+            // style
+            style_formats: [
+                 { title: 'Bold text', inline: 'b' },
+                 { title: 'Red text', inline: 'span', styles: { color: '#ff0000' } },
+                 { title: 'Red header', block: 'h1', styles: { color: '#ff0000' } },
+                 { title: 'Example 1', inline: 'span', classes: 'example1' },
+                 { title: 'Example 2', inline: 'span', classes: 'example2' },
+                 { title: 'Table styles' },
+                 { title: 'Table row 1', selector: 'tr', classes: 'tablerow1' }
+            ],
+            templates: [
+                { title: 'Test template 1', content: 'Test 1' },
+                { title: 'Test template 2', content: 'Test 2' }
+            ],
+            convert_urls: false
+        });
+
+    })();
+
+</script>
+@Html.TextArea(string.Empty, /* Name suffix */
+    ViewData.TemplateInfo.FormattedModelValue /* Initial value */
+)

@@ -1,0 +1,139 @@
+﻿<script>
+    function reloadRequestGrid(){ $('#timeoff-request-grid').data('kendoGrid').dataSource.read(); }
+</script>
+
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<Wfm.Shared.Models.Employees.EmployeeTimeoffBookingHistoryModel>()
+                .Name("timeoff-request-grid")
+                .Events(events => events.DataBound("onRequestDataBound"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.EmployeeId).Title(T("Common.BadgeId").Text).Width(80);
+                    columns.Bound(x => x.EmployeeName);
+                    columns.Bound(x => x.EmployeeTimeoffTypeName);
+                    columns.Bound(x => x.TimeOffStartDateTime).ClientTemplate("#=kendo.toString(TimeOffStartDateTime,'yyyy-MM-dd')#");
+                    columns.Bound(x => x.TimeOffEndDateTime).ClientTemplate("#=kendo.toString(TimeOffEndDateTime,'yyyy-MM-dd')#");
+                    columns.Bound(x => x.BookedTimeoffInHours);
+                    columns.Bound(x => x.LatestBalanceInHours);
+                    columns.Bound(x => x.Note);
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Hidden(true);
+
+                    columns.Command(command =>
+                    {
+                        command.Custom("Approve").Click("approveEntry").Text("");
+                        command.Custom("Reject").Click("rejectEntry").Text("");
+                    }).Title("Action").HtmlAttributes(new { align = "center" }).Width(160);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+                .Sortable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Model(model => { 
+                        model.Id(p => p.Id); 
+                        model.Field(p => p.EmployeeId); 
+                    })
+                    .Read(read => read.Action("_GetEmployeeTimeoffRequest", "Account"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+
+<script>
+
+    $(function () {
+    })
+
+    function onRequestDataBound() {
+        applyApprovalCommandIcons();
+    }
+
+    function applyApprovalCommandIcons() {
+        $(".k-grid-Approve").attr('title', 'Approve').html('<span class="fa fa-thumbs-up"></span>');
+        $(".k-grid-Reject").attr('title', 'Reject').html('<span class="fa fa-thumbs-down"></span>');
+    }
+
+    function approveEntry(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        $.ajax({
+            url: '@Url.Action("_ApproveTimeOffRequest", "Account")',
+            type: 'POST',
+            data: { id: dataItem.Id },
+            cache: false,
+            async: false,
+            success: function (result) {
+                if (result.Succeed)
+                    reloadRequestGrid();
+                else
+                    alert(result.Error);
+            },
+        });
+    }
+
+    function rejectEntry(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        $(document.body).append('<div id="rejection-note-win"></div>');
+        $("#rejection-note-win").kendoWindow({
+            title: "Reject",
+            modal: true,
+            resizable: false,
+            width: 480,
+            height: 240,
+            content: '@Url.Action("_TimeOffRejectionNote", "Account")',
+            close: function () {
+                setTimeout(function () {
+                    $('#rejection-note-win').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-cancel').click(function () {
+                    win.close();
+                })
+                $('#btn-reject').click(function () {
+                    var reason = $('#RejectionNote').val().trim();
+                    if (reason) {
+                        $.ajax({
+                            type: "POST",
+                            url: '@Url.Action("_RejectTimeOffRequest", "Account")',
+                            data: { id: dataItem.Id, reason: reason },
+                            success: function (result) {
+                                if (result.Succeed) {
+                                    win.close();
+                                    reloadRequestGrid();
+                                } else
+                                    alert(result.Error);
+                            }
+                        });
+                    } else
+                        alert("Reason must not be empty");
+                });
+            }
+        }).data('kendoWindow').center();
+    }
+
+</script>

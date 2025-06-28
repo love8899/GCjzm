@@ -1,0 +1,24 @@
+﻿@model LanguageModel
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.Languages.EditLanguageDetails").Text;
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "country-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Configuration.Languages.EditLanguageDetails") - @Model.Name @Html.ActionLink("(" + T("Admin.Configuration.Languages.BackToList") + ")", "Index")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />
+            <span id="language-delete" class="k-button">@T("Common.Delete")</span>
+        </div>
+    </div>
+
+    @Html.Partial("_CreateOrUpdate", Model)
+}
+
+@Html.DeleteConfirmation("language-delete")

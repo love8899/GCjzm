@@ -1,0 +1,26 @@
+﻿@model MessageModel
+
+<div>
+    <div id="subject" style="padding: 20px 20px 20px 20px;color:white">
+        @Html.DisplayFor(model => model.Subject)
+    </div>
+
+    <h4>Content</h4>
+    @Html.Raw(Model.Body)
+
+    @if (Model.AttachmentFileName != null)
+    {
+        <h4>Attachment</h4>
+        <a href='@(Url.Action("DownloadMessageAttachment", "Home", new { id = Model.Id }))'><span>@Model.AttachmentFileName</span></a>
+        <br />
+    }
+    <br />
+    <h4>Note</h4>
+    @Html.Raw(Model.Note)
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#subject').addClass('notification-' + '@(Model.MessageCategory)'.replace(" ", ""));
+    });
+</script>

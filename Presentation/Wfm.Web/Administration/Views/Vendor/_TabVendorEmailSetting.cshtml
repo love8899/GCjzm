@@ -1,0 +1,133 @@
+﻿@using Wfm.Services.Security
+@{
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    
+}
+<div class="section-header">
+    <div class="title">
+        @T("Common.Email") @T("Admin.Settings")
+    </div>
+    <div class="options">
+        @if(permissionService.Authorize(StandardPermissionProvider.ManageVendorEmailSetting))
+        {     
+        <button id="create-email-setting" class="k-button">@T("Common.Add").Text</button>
+        }
+    </div>
+</div>
+
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<PayrollEmailSettingModel>()
+                .Name("email-setting-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Code).Width("10%");
+                    columns.Bound(x => x.EmailSubject).Width("30%");
+                    columns.Bound(x => x.EmailBody).Width("60%");
+                    columns.Bound(x => x).Filterable(false).Sortable(false)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .ClientTemplate("<a class='k-button'  title='" + T("Common.Edit").Text + "'onclick=\"return editEmailSetting('#=Code#')\"><span class='k-icon k-i-pencil'></span></a>" )
+                        .Width(60)
+                        .Title(T("Admin.Common.Edit").Text);
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .Read(read => read.Action("_TabVendorEmailSetting", "Vendor", new { vendorGuid = ViewBag.VendorGuId }))
+                    .PageSize(20)
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+<div id="create-edit-email-setting-dialog"></div>
+
+<script type="text/javascript">
+    function editEmailSetting(code)
+    {
+        showDialog("Edit Email Setting",code);
+    }
+
+    function showDialog(title,code)
+    {
+        var dialog = $("#create-edit-email-setting-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#create-edit-email-setting-dialog").kendoWindow({
+                title: title,
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 650,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    var win = this;
+                    $('#close-email-setting').click(function () {
+                        dialog.close();
+                    });
+                    $('#save-email-setting').click(function () {
+                        var form = $('#email-setting-form');
+                        if (form.valid()) {
+                            $.ajax({
+                                url: '@Url.Action("_SaveEmailSetting")',
+                                type: 'POST',
+                                data: $('#email-setting-form').serialize(),
+                                dataType: 'Json',
+                                success: function (result) {
+                                    if (result.Error) {
+                                        alert(result.Message);
+                                    }
+                                    else {
+                                        dialog.close();
+                                        $('#email-setting-grid').data('kendoGrid').dataSource.read();
+                                        $('#email-setting-grid').data('kendoGrid').refresh();
+                                        $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+                                        $(".messageBox").text(result.Message);
+                                    }
+                                }
+                            });
+                        }
+                    })
+                }
+            });
+            dialog = $("#create-edit-email-setting-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.open();
+            dialog.title(title);
+        }
+        dialog.refresh({
+            url: '@Url.Action("_CreateOrUpdateEmailSetting")',
+            data: { guid: '@ViewBag.VendorGuid',code:code }
+        });
+        dialog.center();
+        return false;
+    }
+
+    $("#create-email-setting").bind("click", function (e) {
+
+        showDialog("Create New Email Setting",null);
+
+    });
+</script>

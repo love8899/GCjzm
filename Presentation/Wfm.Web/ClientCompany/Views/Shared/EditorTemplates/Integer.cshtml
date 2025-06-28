@@ -1,0 +1,6 @@
+@model int?
+
+@(Html.Kendo().IntegerTextBoxFor(m => m).Spinners((bool?)ViewData["Spinners"] ?? true)
+      .Min((int?)ViewData["Min"] ?? int.MinValue)
+      .Max((int?)ViewData["Max"] ?? int.MaxValue)
+)

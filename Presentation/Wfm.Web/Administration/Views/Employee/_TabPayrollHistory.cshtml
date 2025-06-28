@@ -1,0 +1,248 @@
+﻿@{
+    Layout = null;
+}
+<script type="text/javascript">
+    function onDataBound(e) {
+    }
+
+    function gridParameter() {
+        return {
+            guid: '@(ViewBag.CandidateGuid)',
+            year: $('#history-year').val()
+        };
+    }
+</script>
+
+<div class="section-header">
+    <div class="title">
+    </div>
+    <div class="options">
+        <label>Year:&nbsp;</label>
+        @(Html.Kendo().DatePicker().Name("history-year").HtmlAttributes(new { type = "text", style = "width:150px", onkeydown = "javascript:return false;" })
+            .Depth(CalendarView.Decade).Start(CalendarView.Decade).Format("yyyy")
+            .Value(DateTime.Today).Max(DateTime.Today.AddYears(1))
+           )
+        <input type="button" id="ShowDetails" class="k-button" value="Details" />
+        <input type="button" id="EditNote" class="k-button" value="Add/Edit Note" />
+        <input type="button" id="PreviewPaystub" class="k-button" value="Preview Paystub" />
+        <input type="button" id="PrintPaystub" class="k-button" value="Print Paystub" />
+        <input type="button" id="SendPaystub" class="k-button" value="Email Paystub" />
+    </div>
+</div>
+<br />
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<Wfm.Core.Domain.Candidates.PaymentHistory>()
+                .Name("payrollhistory-grid")
+                .Events(events => events.DataBound("onDataBound"))
+                .Columns(columns =>
+                {
+                    columns.Bound(p => p.Company);
+                    columns.Bound(p => p.PayGroup).Hidden();
+                    columns.Bound(p => p.PayPeriodStart).Format("{0:yyyy-MM-dd}");
+                    columns.Bound(p => p.PayPeriodEnd).Format("{0:yyyy-MM-dd}");
+                    columns.Bound(p => p.PaymentDate).Format("{0:yyyy-MM-dd}");
+
+                    columns.Bound(p => p.ChequeNumber).Title("Cheque #").HtmlAttributes(new { style = "text-align:center" });
+                    columns.Bound(p => p.DirectDepositNumber).Title("Bank File #").HtmlAttributes(new { style = "text-align:center" });
+
+                    columns.Bound(p => p.ProvinceCode).Title("Province").Width(80);
+
+                    columns.Bound(p => p.IsEmailed).Width(70).HtmlAttributes(new { style = "text-align:center" })
+                        .ClientTemplate("#if (IsEmailed == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#");
+                    columns.Bound(p => p.IsPrinted).Width(70).HtmlAttributes(new { style = "text-align:center" })
+                        .ClientTemplate("#if (IsPrinted == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#");
+
+                    columns.Bound(p => p.GrossPay).Format("{0:c}").HtmlAttributes(new { style = "text-align: right" });
+                    columns.Bound(p => p.TotalDeductions).Format("{0:c}").HtmlAttributes(new { style = "text-align: right" }).Hidden();
+                    columns.Bound(p => p.NetPay).Format("{0:c}").HtmlAttributes(new { style = "text-align: right" });
+
+                    columns.Bound(p => p.Note).Title("Memo").Hidden(false);
+                })
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("_EmployeePayrollHistory", "Employee").Data("gridParameter"))
+                    .Sort(sorts =>
+                    {
+                        sorts.Add(x => x.PaymentDate).Descending();
+                        sorts.Add(x => x.PayPeriodStart).Descending();
+                    })
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+
+    $(function () {
+        $('#history-year').on('change', function () {
+            refreshGrid("#payrollhistory-grid");
+        });
+        $('#ShowDetails').click(showDetails);
+        $('#EditNote').click(editNote);
+        $('#PreviewPaystub').click(previewPaystub);
+        $('#PrintPaystub').click(printPaystub);
+        $('#SendPaystub').click(sendPaystub);
+    });
+
+    function getSelectedModel() {
+        var model = null;
+        var grid = $("#payrollhistory-grid").data("kendoGrid");
+        var row = grid.select();
+        if (row)
+            model = grid.dataItem(row);
+
+        return model;
+    }
+
+    function trimModel(model) {
+        var data = model.toJSON();
+        data.PayPeriodStart = kendo.toString(model.PayPeriodStart, 'yyyy-MM-dd');
+        data.PayPeriodEnd = kendo.toString(model.PayPeriodEnd, 'yyyy-MM-dd');
+        data.PaymentDate = kendo.toString(model.PaymentDate, 'yyyy-MM-dd');
+        data.Paystub = [];
+        return data;
+    }
+
+    function showDetails(e) {
+        var model = getSelectedModel();
+        if (!model)
+            alert('Please select a record');
+        else {
+            e.preventDefault();
+            $(document.body).append('<div id="payment-details-popup"></div>');
+            $("#payment-details-popup").kendoWindow({
+                title: 'Payment details',
+                modal: true,
+                resizable: false,
+                width: 960,
+                height: 800,
+                close: function () {
+                    setTimeout(function () {
+                        $('#payment-details-popup').kendoWindow('destroy');
+                    }, 200);
+                },
+            }).data('kendoWindow').center();
+            $.post('@Url.Action("_ShowPaymentDetails", "Employee")', { paymentHistory: trimModel(model) })
+                .done(function (response) { $("#payment-details-popup").html(response); });
+        }
+    }
+
+    function editNote(e) {
+        var model = getSelectedModel();
+        if (!model)
+            alert('Please select a record');
+        else {
+            $(document.body).append('<div id="note-popup"></div>');
+            $("#note-popup").kendoWindow({
+                title: "Pay Stub Memo",
+                modal: true,
+                resizable: false,
+                width: 480,
+                height: 280,
+                content: '@Url.Action("_AddPaymentNote", "Employee")' + '?note=' + model.Note,
+                close: function () { setTimeout(function () { $('#note-popup').kendoWindow('destroy'); }, 200); },
+                refresh: function (e) {
+                    var win = this;
+                    $('#btn-cancel').click(function () { win.close(); })
+                    $('#btn-save').click(function () {
+                        $.ajax({
+                            type: "POST",
+                            url: '@Url.Action("_UpdatePaymentNote", "Employee")',
+                            data: { historyId: model.PaymentHistory_Id, note: $('#PaymentNote').val() },
+                            success: function (response) {
+                                if (response.Result) {
+                                    refreshGrid("#payrollhistory-grid");
+                                    alert("Payment note is added/updated.");
+                                    win.close();
+                                }
+                                else
+                                    alert(response.ErrorMessage);
+                            }
+                        });
+                    });
+                }
+            }).data('kendoWindow').center();
+        }
+    }
+
+    function previewPaystub(e) {
+        var model = getSelectedModel();
+        if (!model)
+            alert('Please select a record');
+        else {
+            e.preventDefault();
+            var url = '@Url.Action("_PaystubPdf", "Employee", new { id = "__id__" })';
+            window.open(url.replace('__id__', model.PaymentHistory_Id));
+        }
+    }
+
+    function printPaystub(e) {
+        var model = getSelectedModel();
+        if (!model)
+            alert('Please select a record');
+        else {
+            e.preventDefault();
+            var url = '@Url.Action("_PaystubPdfPrint", "Employee", new { id = "__id__" })';
+            window.open(url.replace('__id__', model.PaymentHistory_Id));
+            // TODO: check if print finish
+        }
+    }
+
+    function sendPaystub(e) {
+        var model = getSelectedModel();
+        if (!model)
+            alert('Please select a record');
+        else {
+            e.preventDefault();
+            payPeriodStart = kendo.toString(model.PayPeriodStart, 'yyyy-MM-dd');
+            payPeriodEnd = kendo.toString(model.PayPeriodEnd, 'yyyy-MM-dd');
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("_SendPaystub", "Employee")',
+                data: { historyId: model.PaymentHistory_Id, employeeId: model.CandidateId, payPeriodStart: payPeriodStart, payPeriodEnd: payPeriodEnd },
+                success: function (response) {
+                    if (response.Result) {
+                        alert("Paystub is sent to the employee");
+                    }
+                    else {
+                        alert(response.ErrorMessage);
+                    }
+                }
+            });
+        }
+    }
+
+</script>
+
+<style>
+    #payment-details-popup td .adminTitle {
+        width: 12%;
+    }
+    #payment-details-popup td .adminData {
+        width: 18%;
+    }
+    #payment-details-popup td .k-textbox {
+        width: 100px;
+    }
+</style>

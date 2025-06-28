@@ -1,0 +1,246 @@
+﻿@model Wfm.Client.Models.Rescheduling.ReschedulingModel
+@{
+    Layout = "_Wizard.cshtml";
+    ViewBag.Layout = "_ClientPopupLayout.cshtml";
+    ViewBag.Steps = new Tuple<string, string, string, object>[]
+    {
+        Tuple.Create<string, string, string, object>("basic-info", T("Common.BasicInformation").Text, "_BasicInfo", Model),
+        Tuple.Create<string, string, string, object>("placement", T("Admin.Companies.Company.Placement").Text, "_Placement", Model),
+        Tuple.Create<string, string, string, object>("confirmation", T("Common.Confirmation").Text, "_Confirmation", Model)
+    };
+    ViewBag.FormName = "move-form";
+    var popupBsClass = "sm";
+    var inputClasses = new string[] { String.Format("col-{0}-3", popupBsClass), String.Format("col-{0}-9", popupBsClass) };
+    ViewBag.PopupBsClass = popupBsClass;
+
+    var postionService = EngineContext.Current.Resolve<Wfm.Services.Common.IPositionService>();
+    var locationService = EngineContext.Current.Resolve<Wfm.Services.Companies.ICompanyDivisionService>();
+    var departmentService = EngineContext.Current.Resolve<Wfm.Services.Companies.ICompanyDepartmentService>();
+    var location = locationService.GetCompanyLocationById(Model.LocationId);
+    var department = departmentService.GetCompanyDepartmentById(Model.DepartmentId);
+    var position = postionService.GetPositionById(Model.PositionId);
+}
+
+@section Hidden {
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.OrigId)
+    @Html.HiddenFor(model => model.CandidateId)
+    @Html.HiddenFor(model => model.FranchiseId)
+    @Html.HiddenFor(model => model.JobOrderGuid)
+    @Html.HiddenFor(model => model.CompanyId)
+    @Html.HiddenFor(model => model.EmployeeId)
+    @Html.HiddenFor(model => model.PunchIn)
+    @Html.HiddenFor(model => model.WorkTimeId)
+}
+
+@section scripts {<script type="text/javascript">
+
+    var form = $('#@(ViewBag.FormName)');
+
+    $(function () {
+        $.validator.addMethod('minStrict', function (value, el, param) { return value > param; });
+
+        addClass2FormLines('@(ViewBag.FormName)', @Html.Raw(Json.Encode(inputClasses)));
+
+        // store the model's data in session storage
+        sessionStorage.setItem("JobOrderGuid", '@Model.JobOrderGuid.ToString()');
+    });
+
+    function onNext(steps, step) {
+        if (step === steps[1])
+            matchJobOrder();
+        else if (step === steps[steps.length - 1])
+            finalReview();
+    }
+
+    function onBack(steps, step) {
+        if (step === steps[0] && !$('#JobOrderId').val())
+            $('#JobOrderId').data('kendoDropDownList').value(@Model.JobOrderId);    // reset to original value
+    }
+
+    function onFinishing() {
+        justPost('@Url.Action("_SaveSchedule", "Rescheduling")', form.serialize(), undefined,
+            function (result) {
+                displayAdminNotification(result.Message, 'success');
+                window.close();
+                opener.onDone();
+            }
+        );
+    }
+
+    function matchJobOrder() {
+        resetNewPayRate();
+        $("#JobOrderId").data("kendoDropDownList").dataSource.read();
+        justPost('@Url.Action("_Recalculate", "Rescheduling")', form.serialize(), undefined, function (result) {
+            if (result.Succeed) {
+                switch (result.MatchingResult) {
+                    case "NoChange":
+                        toggleJobOrderBlock(true,
+                            "You have not modified any of the original schedule parameters for this employee. You can select a different job order form the following Job Order list to move the employee to another placement.",
+                            result);
+                        break;
+                    case "ExistingJO":
+                        toggleJobOrderBlock(true,
+                            "We found some existing job orders that match the new schedule parameters. Please select the appropriate job order form the following Job Order list to move the employee to your intended placement.",
+                            result);
+                        break;
+                    case "NewJO":
+                        toggleJobOrderBlock(false,
+                            "We didn't find any job orders that match the new schedule parameters. We need more information to create new job order for this placement.",
+                            result);
+                        break;
+                }
+            } else {
+                $("#matchingResult").text("You cannot proceed with rescheduling for this employee. Please review your scheduling parameters and try to resolve the issue or contact our recruiters.");
+                $("#wizard_messages").html('<div class="messageBox messageBoxError"></div><div class="clear"></div>');
+                $(".messageBox").text(result.Error);
+            }
+        });
+    }
+
+    function finalReview() {
+        applyCustomRules();
+        compareAndSetColor("#LocationName", '@location.LocationName');
+        compareAndSetColor("#DepartmentName", '@department.DepartmentName');
+        compareAndSetColor("#PositionName", '@position.Name');
+        compareAndSetColor("#newEndDate", '@Model.EndDate.ToShortDateString()');
+        compareAndSetColor("#newStartTime", '@Model.StartTime.ToShortTimeString()');
+        compareAndSetColor("#newEndTime", '@Model.EndTime.ToShortTimeString()');
+        compareAndSetColor("#newJobOrder", '@Model.JobOrderId');
+        compareAndSetColor("#SupervisorName", '@Model.Supervisor');
+        compareAndSetColor('#NewPayRateTxt', '@Model.PayRate');
+    }
+
+    function compareAndSetColor(name, oldValue) {
+        var newValue = $(name).text();
+        $(name).css('color', oldValue != newValue ? 'red' : 'black');
+    }
+
+    function applyCustomRules() {
+        $("#JobOrderId").rules("remove", "required minStrict");
+        if ($("#jobOrderBlock").is(":visible")) {
+            $("#JobOrderId").rules("add", {
+                required: true,
+                minStrict: 0,
+                messages: {
+                    required: "Job Order is required.",
+                    minStrict: jQuery.validator.format("Job Order is required.")
+                }
+            });
+        }
+    }
+
+    function filterDepartments() { return { locationId: $("#LocationId").val(), addNone: false }; }
+
+    function filterSupervisors() { return { locationId: $('#LocationId').val(), departmentId: $('#DepartmentId').val() }; }
+
+    function filterJobOrders() {
+        return {
+            locationId: $('#LocationId').val(),
+            departmentId: $('#DepartmentId').val(),
+            positionId: $('#PositionId').val(),
+            dateString: $('#StartDate').val().toLocaleString(),
+            startTime: $('#StartTime').val().toLocaleString(),
+            endTime: $('#EndTime').val().toLocaleString()
+        };
+    }
+
+    function onJobOrderChange(e) {
+        var jobOrderId = this.value();
+        if (jobOrderId) {
+            justPost('@Url.Action("_GetJobOrderInfo", "Rescheduling")',
+                { jobOrderId: this.value(), refDate: $('#StartDate').val().toLocaleString() },
+                function (result) {
+                    updateJobOrder($("#JobOrderId").val());
+                    updatePosition(result.PositionId);
+                    updateSupervisor(result.CompanyContactId);
+                    updateNewPayRate(result.PayRate);
+                    checkPayRate(result.PayRate , @Model.PayRate );
+                }
+            );
+        }
+    }
+
+    function onShiftChange(e) {
+        if ($("#jobOrderBlock").is(":visible"))  // don't do anything if the joborder list is displayed because it means the rate is managed by job order
+            return;
+        justPost('@Url.Action("_GetPayRateByShift", "Rescheduling")',
+            { shiftId: this.value(), positionId: $('#PositionId').val(), locationId: $('#LocationId').val(), franchiseId: @Model.FranchiseId, refDate: $('#StartDate').val().toLocaleString() },
+            function (result) {
+                updateNewPayRate(result.PayRate);
+                checkPayRate(result.PayRate , @Model.PayRate );
+            }
+        )
+    }
+
+    function onLocationChange(e) {
+        updateSelectField('LocationId', null, 'LocationName');
+        $("#DepartmentName").text("Not defined");
+    }
+
+    function onDepartmentChange(e) { updateSelectField('DepartmentId', null, 'DepartmentName'); }
+
+    function onPositionChange(e) { updatePosition(null); }
+    function updatePosition(positionId) { updateSelectField('PositionId', positionId, 'PositionName'); }
+
+    function onSupervisorChange(e) { updateSupervisor(null); }
+    function updateSupervisor(supervisorId) { updateSelectField('CompanyContactId', supervisorId, 'SupervisorName'); }
+
+    function updateSelectField(inputName, value, textName) {
+        var list = $('#' + inputName).data('kendoDropDownList');
+        if (list) {
+            if (value != null)
+                list.value(value);
+            var text = list.text();
+            $('#' + textName).text(text ? text : 'Not defined');
+        }
+    }
+
+    function updateShift(shiftId) { $("#ShiftId").data('kendoDropDownList').value(shiftId); }
+
+    function onStartDateChange(e) { $("#newStartDate").text($("#StartDate").data("kendoDatePicker").value().toLocaleDateString()); }
+    function onEndDateChange(e) { $("#newEndDate").text($("#EndDate").data("kendoDatePicker").value().toLocaleDateString()); }
+    function onStartTimeChange(e) { $("#newStartTime").text($("#StartTime").data("kendoTimePicker").value().toLocaleTimeString()); }
+    function onEndTimeChange(e) { $("#newEndTime").text($("#EndTime").data("kendoTimePicker").value().toLocaleTimeString()); }
+
+    function checkPayRate(newRate, originalRate )
+    {
+        if (originalRate != newRate )
+            showValidationError("NewPayRate", "Employee's pay rate & billing rate will be affected!");
+        else
+            clearValidationError("NewPayRate");
+    }
+
+    function toggleJobOrderBlock(enable, prompt, jobOrder) {
+        if (enable)
+            $("#jobOrderBlock").show();
+        else
+            $("#jobOrderBlock").hide();
+        $("#ShiftId").data("kendoDropDownList").readonly(enable);
+        $("#CompanyContactId").data("kendoDropDownList").readonly(enable);
+        $("#matchingResult").text(prompt);
+        if (jobOrder.MatchingResult != "NoChange") {
+            updateJobOrder(jobOrder.JobOrderId);
+            updateShift(jobOrder.ShiftId);
+            updateSupervisor(jobOrder.CompanyContactId);
+            updateNewPayRate(jobOrder.PayRate);
+            checkPayRate(jobOrder.PayRate, @Model.PayRate);
+        }
+    }
+
+    function updateJobOrder(jobOrderId) {
+        $("#JobOrderId").data('kendoDropDownList').value(jobOrderId);
+        $("#newJobOrder").text(jobOrderId ? jobOrderId : "New Job Order will be created");
+    }
+
+    function updateNewPayRate(newPayRate) {
+        $('#NewPayRate').val(newPayRate);
+        $('#NewPayRateTxt').text(newPayRate);
+    }
+
+    function resetNewPayRate() {
+        updateNewPayRate('@Model.PayRate');
+        clearValidationError("NewPayRate");
+    }
+
+</script>}

@@ -1,0 +1,14 @@
+﻿@using Wfm.Web.Framework.HtmlHelpers
+<div class="block block-category-navigation side-navigation-menu">
+    <div class="title">
+        <strong>Contact Us</strong>
+    </div>
+    <div class="listbox menu-item-box">
+        <ul class="list">
+            <li class="@Html.SideBarMenuLink("Contact Us", "ContactUs", "Home")">@Html.ActionLink("Contact Us", "ContactUs", "Home")</li>
+            <li class="@Html.SideBarMenuLink("Office Locations", "Locations", "Home")">@Html.ActionLink("Office Locations", "Locations", "Home")</li>
+            <li class="@Html.SideBarMenuLink("Franchise Opportunities", "FranchiseOpportunities", "Home")">@Html.ActionLink("Franchise Opportunities", "FranchiseOpportunities", "Home")</li>
+            <li class="@Html.SideBarMenuLink("Blog", "List", "Blog")">@Html.ActionLink("Blog", "List", "Blog")</li>
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,133 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Common;
+@using Wfm.Services.DirectoryLocation;
+@{
+    var today = DateTime.Today;
+    var startDate = today.AddDays(-14);
+    var endDate = today;
+}
+
+<style type="text/css">
+    .k-multiselect.k-header {
+        float: none;
+        vertical-align: middle;
+        display: inline-block;
+        margin-left: 10px;
+        margin-right: 20px;
+    }
+</style>
+
+<div id="search-source">
+    <br />
+    <label class="first-label">Source: </label>
+    <ul class="fieldlist" style="padding-left: 10px">
+        <li>
+            @(Html.Kendo().RadioButton().Name("Global")
+                .Checked(true).HtmlAttributes(new { @name = "Source" }).Label("Global Pool"))
+        </li>
+        <li>
+            @(Html.Kendo().RadioButton().Name("Pool")
+                .HtmlAttributes(new { @name = "Source" }).Label("Company Pool"))
+        </li>
+        <li>
+            @(Html.Kendo().RadioButton().Name("Pipeline").HtmlAttributes(new { @name = "Source" }).Label(T("Web.JobOrder.JobOrder.Fields.Pipeline").Text))
+        </li>
+        <li>
+            @(Html.Kendo().RadioButton().Name("Other")
+                .Enable(false).HtmlAttributes(new { @name = "Source" }).Label("Other"))
+        </li>
+    </ul>
+</div>
+
+<div id="candidate-profile">
+    @Html.Partial("_CandidateProfile")
+</div>
+
+<div id="pool-profile" style="display:none"></div>
+<div id="pipeline-profile" style="display:none"></div>
+
+<div style="text-align: center">
+    <br />
+    @(Html.Kendo().Button().Name("Search")
+        .HtmlAttributes(new { type = "submit" }).Content("Search"))
+</div>
+<br />
+
+<script type="text/javascript">
+
+    $("input[name='Source']:radio").change(function (e) {
+        if ($("#Global").attr("checked"))
+            $("#candidate-profile").show();
+        else
+            $("#candidate-profile").hide();
+        if ($("#Pool").attr("checked")) {
+            if (!$.trim($('#Pool').html()).length)
+                $("#pool-profile").load('@Url.Action("_PoolProfile","Candidate")');
+            $("#pool-profile").show();
+        }
+        else
+            $("#pool-profile").hide();
+        if ($("#Pipeline").attr("checked")) {
+            if (!$.trim($('#Pipeline').html()).length)
+                $("#pipeline-profile").load('@Url.Action("_PipelineProfile","Candidate")');
+            $("#pipeline-profile").show();
+        }
+        else
+            $("#pipeline-profile").hide();
+    });
+
+    //$("#ClearSearchKeys").click(function () {
+    //    $("#search-bar").find(':input').each(function () {
+    //        switch (this.type) {
+    //            case 'password':
+    //            case 'select-multiple':
+    //            case 'select-one':
+    //            case 'text':
+    //            case 'textarea':
+    //            case 'number':
+    //                $(this).val('');
+    //                break;
+    //            case 'checkbox':
+    //            case 'radio':
+    //                this.checked = false;
+    //        }
+    //    });
+    //    $("#Global").checked = true;
+    //    $("#Global").attr('checked', 'checked');
+    //    $("#candidate-profile").show();
+    //    $("#pool-profile").hide();
+    //    $("#pipeline-profile").hide();
+    //    $("#IsActive").checked = true;
+    //    $("#IsActive").attr('checked', 'checked');
+    //    $("[data-role='multiselect']").each(function (e) {
+    //        var multi = $(this).data("kendoMultiSelect");
+    //        multi.value("");
+    //        multi.input.blur();
+    //    });
+    //    //var panelBar = $("#search-bar").data("kendoPanelBar")
+    //    //panelBar.reload(".panel");
+    //})
+
+    $("#Search").click(function () {
+        var IsPool = $("#Pool").attr("checked") == "checked";
+        var IsPipeline = $("#Pipeline").attr("checked") == "checked";
+        if (IsPool && !IsPoolProfileComplete())
+            alert("Please select at least one company.");
+        else if (IsPipeline && !IsPipelineProfileComplete())
+            alert("Please make sure job order, and start & end date are given.")
+        else
+            refreshGrid('#candidate-grid', 1);
+    });
+
+    function onRead(e) {
+        var IsGlobal = $("#Global").attr("checked") == "checked";
+        var IsPool = $("#Pool").attr("checked") == "checked";
+        var IsPipeline = $("#Pipeline").attr("checked") == "checked";
+        return {
+            candidateProfile: IsGlobal ? GetCandidateProfile() : null,
+            poolProfile: IsPool ? GetPoolProfile() : null,
+            pipelineProfile: IsPipeline ? GetPipelineProfile() : null,
+        };
+    }
+
+</script>

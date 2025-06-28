@@ -1,0 +1,167 @@
+﻿@using Wfm.Core
+@using Wfm.Core.Domain.Accounts;
+@using Wfm.Services.Common
+@using Wfm.Services.Franchises
+
+
+@{
+    var genderService = EngineContext.Current.Resolve<IGenderService>();
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+
+    var genders = genderService.GetAllGenders();
+    var franchises = franchiseService.GetAllFranchises();
+}
+
+
+<script type="text/javascript">
+
+    function onRead(e) { return { searchKey: $('#searchKey').val() }; }
+
+</script>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<SimpleCandidateModel>()
+                .Name("candidate-search-grid")
+                .Events(events => { events.DataBound("onDataBound"); })
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x).Filterable(false).Sortable(false)
+                        .ClientTemplate("<input type='checkbox' name='checkedRecords' value='#= Id #' class='checkboxGroups'/>")
+                        .Title("<input id='mastercheckbox' type='checkbox'/>")
+                        .Width(25);
+
+                    columns.Bound(x => x.Id)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        .ClientTemplate("#= kendo.toString(Id, '00000000') #")
+                        .Width(120);
+
+                    if (!workContext.CurrentAccount.IsVendor())
+                    {
+                        columns.ForeignKey(x => x.FranchiseId, franchises, "Id", "FranchiseName").Title(T("Common.Vendor").Text).Width(180);
+                    }
+
+                    columns.Bound(x => x.EmployeeId).Width(150)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+
+                    columns.Bound(x => x.FirstName).Width(120)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Template(x => Html.ActionLink(x.FirstName, "Details", new { x.CandidateGuid }, new { }))
+                        .ClientTemplate(@Html.ActionLink("#=FirstName #", "Details", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString());
+
+                    columns.Bound(x => x.LastName).Width(120)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Template(x => Html.ActionLink(x.LastName, "Details", new { x.CandidateGuid }, new { }))
+                        .ClientTemplate(@Html.ActionLink("#=LastName #", "Details", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString());
+
+                    columns.ForeignKey(x => x.GenderId, genders, "Id", "GenderName").Width(80).Hidden();
+
+                    columns.Bound(x => x.BirthDate).Width(100);
+
+                    columns.Bound(x => x.SocialInsuranceNumber).Title(T("Common.SIN").Text)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate("#= prettySocialInsuranceNumber(SocialInsuranceNumber) #")
+                        .Width(100)
+                        .Hidden(false);
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(10)
+                    .Read(read => read.Action("CandidateListBySearch", "Candidate").Data("onRead"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+
+<script type="text/javascript">
+
+    function onDataBound(e) {
+        $('#candidate-search-grid input[type=checkbox][id!=mastercheckbox]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds);
+            //set checked based on if current checkbox's value is in selectedIds.
+            $(this).attr('checked', checked > -1);
+        });
+        updateMasterCheckbox();
+    }
+
+    function updateMasterCheckbox() {
+        var numChkBoxes = $('#candidate-search-grid input[type=checkbox][id!=mastercheckbox]').length;
+        var numChkBoxesChecked = $('#candidate-search-grid input[type=checkbox][checked][id!=mastercheckbox]').length;
+        $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+
+    var selectedIds = [];
+    $(function () {
+        $('#mastercheckbox').click(function () {
+            $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+        });
+
+        //wire up checkboxes.
+        $('#candidate-search-grid').on('change', 'input[type=checkbox][id!=mastercheckbox]', function (e) {
+            var $check = $(this);
+            if ($check.is(":checked") == true) {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked == -1) {
+                    //add id to selectedIds.
+                    selectedIds.push($check.val());
+                }
+            }
+            else {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked > -1) {
+                    //remove id from selectedIds.
+                    selectedIds = $.grep(selectedIds, function (item, index) {
+                        return item != $check.val();
+                    });
+                }
+            }
+            updateMasterCheckbox();
+        });
+
+    });
+
+    $("#Search").click(function () {
+        if (!$('#searchKey').val())
+            alert("Search key cannot be empty!");
+        else
+            reloadGrid();
+    });
+
+    $("#searchKey").keyup(function (event) {
+        if (event.keyCode == 13) {
+            $("#Search").click();
+        }
+    });
+
+    function reloadGrid() {
+        var grid = $("#candidate-search-grid").data("kendoGrid");
+        grid.dataSource.page(1);
+        grid.dataSource.read();
+        selectedIds = [];
+    }
+
+</script>

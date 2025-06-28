@@ -1,0 +1,160 @@
+﻿@model QueuedEmailModel
+
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.WfmLabelFor(model => model.Priority):
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.Priority)
+            @Html.WfmValidationMessageFor(model => model.Priority)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.WfmLabelFor(model => model.From):
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.From)
+            @Html.WfmValidationMessageFor(model => model.From)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.WfmLabelFor(model => model.FromName):
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.FromName)
+            @Html.WfmValidationMessageFor(model => model.FromName)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.WfmLabelFor(model => model.To):
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.To)
+            @Html.WfmValidationMessageFor(model => model.To)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.WfmLabelFor(model => model.ToName):
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.ToName)
+            @Html.WfmValidationMessageFor(model => model.ToName)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.WfmLabelFor(model => model.ReplyTo):
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.ReplyTo)
+            @Html.WfmValidationMessageFor(model => model.ReplyTo)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.WfmLabelFor(model => model.ReplyToName):
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.ReplyToName)
+            @Html.WfmValidationMessageFor(model => model.ReplyToName)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.WfmLabelFor(model => model.CC):
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.CC)
+            @Html.WfmValidationMessageFor(model => model.CC)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.WfmLabelFor(model => model.Bcc):
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.Bcc)
+            @Html.WfmValidationMessageFor(model => model.Bcc)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.WfmLabelFor(model => model.Subject):
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.Subject)
+            @Html.WfmValidationMessageFor(model => model.Subject)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.WfmLabelFor(model => model.Body):
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.Body, "RichEditor2")
+            @Html.WfmValidationMessageFor(model => model.Body)
+        </td>
+    </tr>
+    @if (!String.IsNullOrEmpty(Model.AttachmentFilePath))
+    {
+        <tr>
+            <td class="adminTitle">
+                @Html.WfmLabelFor(model => model.AttachmentFilePath):
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.AttachmentFilePath)
+            </td>
+        </tr>
+    }
+    <tr>
+        <td class="adminTitle">
+            @Html.WfmLabelFor(model => model.CreatedOn):
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.CreatedOn)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.WfmLabelFor(model => model.SentTries):
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.SentTries)
+            @Html.WfmValidationMessageFor(model => model.SentTries)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.WfmLabelFor(model => model.SentOn):
+        </td>
+        <td class="adminData">
+            @if (Model.SentOn.HasValue)
+            {
+                @Html.DisplayFor(model => model.SentOn)
+            }
+            else
+            {
+                <text>Not sent yet</text>
+            }
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.WfmLabelFor(model => model.EmailAccountName):
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.EmailAccountName)
+        </td>
+    </tr>
+</table>

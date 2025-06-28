@@ -1,0 +1,95 @@
+﻿@using Wfm.Services.Common
+
+
+@{
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var positionService = EngineContext.Current.Resolve<IPositionService>();
+    
+    var shifts = shiftService.GetAllShifts();
+    var positions = positionService.GetAllPositions();
+    
+    var shiftsDropDownList = new List<SelectListItem>();
+    foreach (var c in shifts)
+    {
+        var item = new SelectListItem()
+        {
+            Text = c.ShiftName,
+            Value = c.Id.ToString()
+        };
+        shiftsDropDownList.Add(item);
+    }
+
+    var positionsDropDownList = new List<SelectListItem>();
+    foreach (var c in positions)
+    {
+        var item = new SelectListItem()
+        {
+            Text = c.Name,
+            Value = c.Id.ToString()
+        };
+        positionsDropDownList.Add(item);
+    }
+}
+
+
+<script type="text/javascript">
+
+    function filterLocations() { return { companyId: $("#CompanyId").val() }; }
+
+    function filterDepartments() { return { locationId: $("#LocationId").val() }; }
+
+    function filterJobOrders() {
+        return {
+            companyId: $('[name="CompanyId"]').val(),
+            locationId: $('[name="LocationId"]').val(),
+            departmentId: $('[name="DepartmentId"]').val(),
+            startDateString: $('[name="start"]').val(),
+            endDateString: $('[name="end"]').val()
+        };
+    }
+
+    function GetPoolProfile() {
+        var companyList = $("#Companies").val();
+        var shiftList = $("#PreferedShift").val();
+        var positonList = $("#PreferedPosition").val();
+        var refDate = $("#refDate").data("kendoDatePicker").value();
+        return {
+            CompanyIds: companyList == null ? [] : companyList.map(Number),
+            ShiftIds: shiftList == null ? [] : shiftList.map(Number),
+            PositionIds: positonList == null ? [] : positonList.map(Number),
+            RefDate: refDate == null ? null : refDate.toISOString().split('T')[0],
+        };
+    }
+
+    function IsPoolProfileComplete() {
+        var profile = GetPoolProfile();
+        return profile.CompanyIds != "";
+    }
+
+</script>
+
+<br />
+
+<label class="first-label">Companies: </label>
+@(Html.Kendo().MultiSelect().Name("Companies")
+        .DataSource(source => source.Read(read => read.Action("GetCascadeCompanies", "JobOrder")).ServerFiltering(false))
+        .DataTextField("Text").DataValueField("Value")
+        .HtmlAttributes(new { style = "width:720px" }).MaxSelectedItems(10))
+
+<br /><br />
+<label class="first-label">Shift: </label>
+@(Html.Kendo().MultiSelect().Name("PreferedShift")
+    .BindTo(shiftsDropDownList).DataTextField("Text").DataValueField("Value")
+    .Value(shiftsDropDownList.Where(x => x.Value == "1"))
+    .HtmlAttributes(new { style = "width:480px" }).MaxSelectedItems(5))
+
+
+<label>Positon: </label>
+@(Html.Kendo().MultiSelect().Name("PreferedPosition")
+        .BindTo(positionsDropDownList).DataTextField("Text").DataValueField("Value")
+        //.Value(positionsDropDownList.Where(x => x.Value == "1"))
+        .HtmlAttributes(new { style = "width:480px" }).MaxSelectedItems(5))
+
+<br /><br />
+<label class="first-label">Ref Date: </label>
+@Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("refDate").Value(DateTime.Today)

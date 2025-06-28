@@ -1,0 +1,77 @@
+﻿@{
+    var dNRReasonService = EngineContext.Current.Resolve<Wfm.Services.Common.IDNRReasonService>();
+    var reasons = dNRReasonService.GetAllDNRReasonsForDropDownList();
+}
+<script type="text/javascript">
+    function onChange() {
+        var choice = $("#choices").data("kendoDropDownList").value();
+        if (choice == 1) {
+            $("#banned-reason").hide();
+            //$("#client-field").hide();
+            $("#banned-note").hide();
+        }
+        if (choice == 2 || choice == 3) {
+            $("#banned-reason").show();
+            //$("#client-field").show();
+            $("#banned-note").show();
+        }
+    }
+    $("#reason").change(function () {
+        var reason = $("#reason").data("kendoDropDownList").text();
+        if (reason == 'DNR by Client Request') {
+            $("#client-field").show();
+        }
+        else {
+            $("#client-field").hide();
+        }
+    });
+</script>
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            Action:
+        </td>
+        <td class="adminData required">
+            @Html.Kendo().DropDownList().Name("choices").Items(x => {
+                    x.Add().Text("Other").Value("1");
+                    x.Add().Text("Add to to Company DNR list").Value("2");
+                    x.Add().Text("Add to Global DNR list").Value("3");
+                }).Events(e=>e.Change("onChange"))
+            
+        </td>
+    </tr>
+    <tr id="banned-reason" hidden>
+        <td class="adminTitle" style="vertical-align: top">
+            Reason
+        </td>
+        <td class="adminData required">
+            @Html.Kendo().DropDownList().Name("reason").OptionLabel("-- Select --").BindTo(reasons).DataValueField("Text").DataTextField("Text")
+        </td>
+    </tr>
+    <tr id="client-field" hidden>
+        <td class="adminTitle">
+            Client name
+        </td>
+        <td class="adminData required">
+            @Html.Kendo().TextBox().Name("clientName")
+        </td>
+    </tr>
+    <tr id="banned-note" hidden>
+        <td class="adminTitle" style="vertical-align: top">
+            Note
+        </td>
+
+        <td class="adminData">
+            @Html.TextArea("note", new { style = "width:330px;height:90px", maxlength = 255 })
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+        </td>
+        <td class="adminData">
+            <input type="submit" value="Save" name="submit" class="k-button" id="SaveChoice" />
+        </td>
+    </tr>
+
+</table>
+

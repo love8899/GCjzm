@@ -1,0 +1,58 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Testimonials";
+    //var description = "What our employees have to say about " + siteTitle + ".";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Testimonials</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            <b>What our employees have to say about @siteTitle. </b>
+        </p>
+
+        <br />
+        <p class="testimonial">
+            "I have been working for GC Employment for about six months now. Within that time I have established some great relationships with some of the hiring representatives, and we have become good friends. They are always available to talk to me when I call, and from day one they have always made me feel like an important member of the team."
+        </p>
+        <p>
+            - Judy S.
+        </p>
+
+        <br />
+        <p class="testimonial">
+            "In the past I have done work for several other agencies. After working with @siteTitle I soon realized that they are the best that Toronto has to offer, period. Not only do they have 'connections' to leading companies, but they always call me and keep me up to date with the latest job openings."
+        </p>
+
+        <p>
+            - Roger M.
+        </p>
+
+        <br />
+        <p class="testimonial">
+            "I want to thank @siteTitle Employment for giving me my life's career. When I first came to Canada, I didn't know what I was going to do. I applied for jobs at several different companies and several job agencies. I received no response from anyone! As soon as I applied for a job at @siteTitle, I received a phone call the next day for a temporary assignment, and I accepted the job. Now, that 'temporary' assignment is my permanent, long-term career."
+        </p>
+        <p>
+            - Juan S.
+        </p>
+    </div>
+</div>

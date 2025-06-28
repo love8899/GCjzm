@@ -1,0 +1,55 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Staffing Solution";
+    //var description = siteTitle + " provides 24/7 service and responds to client concerns within ten minutes at any time (including weekends and holidays)";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Staffing Solutions</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            <b>Full service staffing solutions for every resourcing need</b>
+        </p>
+        <p>
+            At @siteTitle we understand that good recruitment is critical to a company's
+            success. We know how difficult it can be for you to dedicate quality time to what
+            can be a very demanding process. We also know how expensive it can be to get it
+            wrong - both in terms of wasted time and dollars spent. That's where we come in.
+            We'll manage the entire recruitment process for you effectively and efficiently.
+        </p>
+        <p>
+            @siteTitle offers permanent, contract and temporary personnel based on your
+            needs. Whether you are looking for sales and marketing personnel, financial and
+            accounting staff, IT support, manufacturing or supply chain personnel, or administrative
+            staff, our commitment is to provide you with the best qualified, talented and punctual
+            hard workers that will get the job done right. @siteTitle provides 24/7 service
+            and responds to client concerns within ten minutes at any time (including weekends
+            and holidays).
+        </p>
+        <p>
+            Utilizing our unique skill-assessment and job-matching tools, each employee is interviewed
+            by our hiring experts and carefully selected through a multi-level screening process,
+            including reference checks to ensure the right candidates are chosen for the job.
+            We will also fulfill any other specific requirements your company may have.
+        </p>
+    </div>
+</div>

@@ -1,0 +1,51 @@
+﻿@{
+    Layout = null;
+
+    var countryService = EngineContext.Current.Resolve<Wfm.Services.DirectoryLocation.ICountryService>();
+    var provinceService = EngineContext.Current.Resolve<Wfm.Services.DirectoryLocation.IStateProvinceService>();
+    var provinces = provinceService.GetAllStateProvincesByCountryId(countryService.GetCountryIdByName("Canada"));
+    provinces.Add(new StateProvince() { Abbreviation = "CA", StateProvinceName = "Federal" });
+}
+
+
+<script>
+    function refreshOverview() { $('#td1-overview').data('kendoGrid').dataSource.read(); }
+    function filterTD1s() { return { candidateGuid: '@(ViewBag.CandidateGuid)', year: $("#td1-year").val() }; }
+</script>
+
+
+<div class="section-header">
+    <div>
+        @(Html.Kendo().DatePicker().Name("td1-year").HtmlAttributes(new { type = "text", style = "width:150px" })
+            .Depth(CalendarView.Decade).Start(CalendarView.Decade).Format("yyyy")
+            .Value(DateTime.Today).Max(DateTime.Today.AddYears(1))
+            .Events(e => e.Change("refreshOverview")))
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<Wfm.Admin.Models.Employee.EmployeeTD1Model>()
+                .Name("td1-overview")
+                .Events(e => e.DataBound("onDataBound").Change("onSelect"))
+                .Columns(columns =>
+                {
+                    columns.ForeignKey(x => x.Province_Code, provinces, "Abbreviation", "StateProvinceName").Title("Province").HtmlAttributes(new { @class="ProvinceName"});
+                    columns.Bound(x => x.Basic_Amount).Title("Basic Amount").Format("{0:n2}").HtmlAttributes(new { style = "text-align:right" });
+                    columns.Bound(x => x.TotalCredit).Title("Total Credit").Format("{0:n2}").HtmlAttributes(new { style = "text-align:right" });
+                })
+                .Selectable()
+                .DataSource(ds => ds
+                    .Ajax()
+                    .Model(model =>
+                    {
+                        model.Id(x => x.EmployeeTD1_Id);
+                        model.Field(x => x.Province_Code).Editable(false);
+                    })
+                    .Read(read => read.Action("_EmployeeTD1Overview", "Employee").Data("filterTD1s"))
+                )
+            )
+        </td>
+    </tr>
+</table>

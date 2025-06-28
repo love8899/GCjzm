@@ -1,0 +1,67 @@
+﻿@using Wfm.Web.Framework.HtmlHelpers;
+@using Wfm.Core.Infrastructure
+@using Wfm.Core.Domain.Common
+@{
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    ViewBag.Title = "Leading Staffing and Job Agency – "+siteTitle+" Employment | Jobs in Toronto, Oakville, Markum, Mississauga, Brampton, Burlington, Calgary and across Canada and United States.";
+    ViewBag.Description = siteTitle+" Employment is one of Leading Employment Agencies. We offer leading jobs in Toronto, Markham, Mississauga, Brampton, Burlington and throughout Ontario.";
+    ViewBag.Keywords = siteTitle+" Employment,Jobs in Toronto,Ontario,Markham,Mississauga,Brampton,Newmarket,North York,Brampton,Burlington,Temporary Staffing,Call Centre,General Labour,Warehouse,Accounting Jobs,Customer Service,Marketing Jobs";
+
+    Layout = "~/Views/Shared/_ColumnsOne.cshtml";
+}
+
+<div class="side-navigation-left">
+
+    @Html.Partial("_AboutUsSideBarMenu")
+
+    <div class="clearBoth"></div>
+
+    @Html.Partial("_CandidateLoginBox")
+
+</div>
+
+
+<div class="content-column-spacer"> &nbsp; </div>
+
+
+<div class="main-content">
+
+    <h3>About Us</h3>
+
+    <p>
+        <b>Connecting great companies with great people</b>
+    </p>
+
+    <div class="content-image">
+        <img src="@Url.Content("~/Content/images/cms/inside/inside_img_01.jpg")" alt="About @siteTitle Employment Services" />
+    </div>
+
+    <p>
+        @siteTitle is one of Ontario’s most successful full cycle employment services
+        agencies. Our reputation has been built upon our ability to successfully place permanent,
+        contract and temporary staff of the highest calibre across a growing number of specialist
+        sectors. Our experience in diverse placements is a competitive advantage, not only
+        for @siteTitle, but also for our clients and employees. As a result, we are
+        a preferred staffing partner for Fortune 500 and other industry leading companies,
+        as well as enterprising local firms.
+        <br />
+        <br />
+        We provide superior 24/7 customer service and leading-edge technology in the staffing
+        industry.
+        <br />
+        <br />
+        @siteTitle’ team of highly-qualified consultants has diverse expertise and
+        industry experience. This breadth of experience enables our industry professionals
+        to accurately assess each project's staffing requirements and place the right candidates
+        to ensure a great connection.
+        <br />
+        <br />
+        With our first-rate recruitment process, industry network of recruiting experts,
+        as well as our exceptional track record of providing highly-dependable employees,
+        we take the risk out of our clients’ human resource decisions. @siteTitle
+        strives excellence to commit the highest quality standard being achieved. As an
+        ISO 9001:2008 Certified organization, our quality is regularly measured and assessed
+        to ensure continuous improvement.
+    </p>
+</div>

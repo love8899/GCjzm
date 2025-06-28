@@ -1,0 +1,63 @@
+﻿@model JobPostingModel
+@using Wfm.Shared.Models.JobPosting
+@using Wfm.Services.Common
+@using Wfm.Services.Companies
+@{
+    var locationService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+    var location = locationService.GetCompanyLocationById(Model.CompanyLocationId);
+    var locationName = location?.LocationName;
+
+    var deptName = string.Empty;
+    if (Model.CompanyDepartmentId > 0)
+    {
+        var departmentService = EngineContext.Current.Resolve<ICompanyDepartmentService>();
+        deptName = departmentService.GetCompanyDepartmentById(Model.CompanyDepartmentId.Value).DepartmentName;
+    }
+
+    var positionService = EngineContext.Current.Resolve<IPositionService>();
+    var position = positionService.GetPositionById(Model.PositionId);
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var shift = shiftService.GetShiftById(Model.ShiftId);
+}
+
+
+<div class="box box-info">
+    <div class="box-header with-border" data-widget="collapse" id="search-box">
+        <i class="fa fa-minus" style="display: none;"></i>
+        <h3 class="box-title pull-left">
+            <i class="fa fa-search"></i>
+            <span class="search-icon">@T("Admin.JobPosting.Overview")</span>
+        </h3>
+    </div>
+    <div class="box-body" style="display: none;">
+        <div class="row">
+            <div class="col-md-6">
+                @Html.LineFor(m => m.CompanyLocationId, locationName)
+                @Html.LineFor(m => m.CompanyDepartmentId, deptName)
+                @Html.LineFor(m => m.JobTitle)
+                @Html.LineFor(m => m.PositionId, position.Name)
+                @Html.DisplayLineFor(m => m.LabourType, T("Admin.JobOrder.LabourType").Text, display: Model.LabourTypeName)
+                @Html.LineFor(m => m.ShiftId, shift.ShiftName)
+                @Html.LineFor(m => m.StartTime)
+                @Html.LineFor(m => m.EndTime)
+            </div>
+            <div class="col-md-6">
+                @Html.LineFor(m => m.StartDate)
+                @Html.LineFor(m => m.EndDate)
+                @Html.DisplayLineFor(m => m.NumberOfOpenings, style: "color:mediumseagreen")
+                @*@Html.LineFor(m => m.CreatedOn)*@
+                @Html.LineFor(m => m.UpdatedOn)
+                @if (Model.IsSubmitted)
+                {
+                    @Html.LineFor(m => m.SubmittedOn)
+                    @Html.LineFor(m => m.SubmittedBy)
+                }
+                @if (Model.IsPublished)
+                {
+                    @Html.LineFor(m => m.IsPublished, display: "<span class='k-icon k-i-tick' />")
+                    @Html.LineFor(m => m.PublishedOn)
+                }
+            </div>
+        </div>
+    </div>
+</div>

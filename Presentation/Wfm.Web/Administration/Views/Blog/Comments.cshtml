@@ -1,0 +1,66 @@
+﻿@model IEnumerable<BlogCommentModel>
+
+@{
+   
+    //page title
+    ViewBag.Title = T("Admin.ContentManagement.Blog.Comments").Text;
+
+    int? filterByBlogPostId = ViewBag.FilterByBlogPostId;
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.ContentManagement.Blog.Comments")
+        @Html.ActionLink("(" + T("Admin.ContentManagement.Blog.BackToList") + ")", "List", "Blog")
+    </div>
+    <div class="options">
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<BlogCommentModel>()
+                .Name("comments-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(60);
+                    columns.Bound(x => x.BlogPostTitle)
+                        .Width(200)
+                        .Template(x => Html.ActionLink(x.BlogPostTitle, "Edit", "Blog", new { id = x.BlogPostId }, new { }))
+                        .ClientTemplate("<a href=\"" + @Url.Content("~/Admin/Blog/Edit/") + "#= BlogPostId #\">#= BlogPostTitle #</a>");
+                    columns.Bound(x => x.AccountId)
+                        .Width(100)
+                        .Template(x => Html.ActionLink(x.AccountInfo, "Details", "Account", new { id = x.AccountId }, new { }))
+                        .ClientTemplate("<a href=\"" + @Url.Content("~/Admin/Account/Details/") + "#= AccountId #\">#= AccountInfo #</a>");
+                    columns.Bound(x => x.Comment)
+                        .Width(350)
+                        .Encoded(false);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    columns.Command(commands =>
+                    {
+                        commands.Destroy().Text(T("Common.Delete").Text);
+                    }).Title(T("Common.Delete").Text).Width(50);
+                })
+                .Pageable()
+                    //.DataSource(ds => ds
+                    //        .Ajax()
+                    //        .ServerOperation(true)
+                    //        .Read(read => read.Action("Comments", "Blog", new { filterByBlogPostId = filterByBlogPostId }))
+                    //        .PageSize(20)
+                    //    )
+                .DataSource(dataBinding => dataBinding
+                    .Ajax()
+                    .PageSize(20)
+                    .ServerOperation(true)
+                    .Model(model => model.Id(c => c.Id))
+                    .Read(read => read.Action("Comments", "Blog", new { filterByBlogPostId = filterByBlogPostId }))
+                    .Destroy(delete => delete.Action("CommentDelete", "Blog", new { filterByBlogPostId = filterByBlogPostId }))
+                )
+            )
+        </td>
+    </tr>
+</table>

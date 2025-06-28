@@ -1,0 +1,12 @@
+﻿@(Html.Kendo()
+    //.DropDownList()
+    .ComboBox()
+    .Name("CurrentJobOrderId")
+    //.OptionLabel("--Select--")
+    .DataTextField("Text")
+    .DataValueField("Value")
+    .DataSource(source => source
+        .Read(read => read.Action("GetActiveJobOrders", "Company").Data("filterJobOrders"))
+        .ServerFiltering(true))
+    .Enable(true)
+)

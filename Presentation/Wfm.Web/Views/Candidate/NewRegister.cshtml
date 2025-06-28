@@ -1,0 +1,418 @@
+﻿@model CreateEditCandidateModel
+@using reCAPTCHA.MVC
+@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@using Wfm.Services.Common
+@using Wfm.Web.Models.Candidate
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-registration-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    ViewBag.Title = "Registration - Job Seekers | " + siteTitle + " Employment";
+    ViewBag.Description = siteTitle + " Employment is one of Toronto’s Leading Employment Agencies. We offer leading jobs in Toronto, Markham, Mississauga, Brampton and throughout Ontario.";
+    ViewBag.Keywords = siteTitle + " Employment,Employment,Staffing,Jobs,Temporary,Permanent,Information Technology,Call Centre,General Labour,Warehouse,Accounting,Customer Service,Marketing,Skilled Trades,Manufacturing";
+
+    var shortDateFormat = "MM/dd/yyyy";
+
+    var skillService = EngineContext.Current.Resolve<ISkillService>();
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var genderService = EngineContext.Current.Resolve<IGenderService>();
+    var salutationService = EngineContext.Current.Resolve<ISalutationService>();
+    var transportationService = EngineContext.Current.Resolve<ITransportationService>();
+    var securityQuestionService = EngineContext.Current.Resolve<ISecurityQuestionService>();
+
+    var skillsDropDownList = skillService.GetAllSkills().Select(x => new SelectListItem()
+    {
+        Text = x.SkillName,
+        Value = x.SkillName
+    });
+
+    var shiftsDropDownList = shiftService.GetAllShifts().Where(x => x.EnableInRegistration == true).Select(x => new SelectListItem()
+    {
+        Text = x.ShiftName,
+        Value = x.Id.ToString()
+    });
+
+    var gendersDropDownList = genderService.GetAllGenders().Select(x => new SelectListItem()
+    {
+        Text = x.GenderName,
+        Value = x.Id.ToString()
+    });
+
+    var salutationsDropDownList = salutationService.GetAllSalutations().Select(x => new SelectListItem()
+    {
+        Text = x.SalutationName,
+        Value = x.Id.ToString()
+    });
+
+    var transportationsDropDownList = transportationService.GetAllTransportations().Select(x => new SelectListItem()
+    {
+        Text = x.TransportationName,
+        Value = x.Id.ToString()
+    });
+
+    var securityquestionsDropDownList = securityQuestionService.GetAllSecurityQuestions().Select(x => new SelectListItem()
+    {
+        Text = x.Question,
+        Value = x.Id.ToString()
+    });
+}
+
+
+@section left {
+    @Html.Partial("Layout/_AccountSideBar")
+}
+<div class="page registration-page">
+    <div class="page-title">
+        <h1>Registration</h1>
+    </div>
+    <div class="page-body">
+        @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "candidate-form" }))
+        {
+            var validationSummary = Html.ValidationSummary(false);
+            if (!MvcHtmlString.IsNullOrEmpty(validationSummary))
+            {
+                <div class="message-error">@validationSummary</div>
+            }
+            @Html.AntiForgeryToken()
+            <div class="fieldset">
+                @Html.HiddenFor(model => model.CandidateModel.SourceId)
+                @*<div class="form-fields">
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.SourceId)
+                        @Html.EditorFor(model => model.CandidateModel.SourceId)
+                        @Html.WfmValidationMessageFor(model => model.CandidateModel.SourceId)
+                    </div>
+                </div>*@
+                <div class="title">
+                    <strong>Your Personal Details</strong>
+                </div>
+                <div class="form-fields">
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.SalutationId, new { }, ":")
+                        @(Html.Kendo().DropDownList()
+                            .Name("CandidateModel.SalutationId")
+                            .OptionLabel("--Select--")
+                            .BindTo(salutationsDropDownList)
+                        )
+                        @Html.ValidationMessageFor(model => model.CandidateModel.SalutationId)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.FirstName, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.FirstName)
+                        @Html.ValidationMessageFor(model => model.CandidateModel.FirstName)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.LastName, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.LastName)
+                        @Html.ValidationMessageFor(model => model.CandidateModel.LastName)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.BirthDate, new { }, ":")
+                        @(Html.Kendo().DatePickerFor(model => model.CandidateModel.BirthDate)
+                            .HtmlAttributes(new { type = "text", placeholder = shortDateFormat })
+                            .Format(shortDateFormat).Start(CalendarView.Century)
+                            //.Min(DateTime.Now.AddYears(-80))
+                            .Max(DateTime.Now.AddYears(-10))
+                        )
+                        @Html.ValidationMessageFor(model => model.CandidateModel.BirthDate)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.Email)
+                        @Html.EditorFor(model => model.CandidateModel.Email)
+                        @Html.WfmValidationMessageFor(model => model.CandidateModel.Email)
+                    </div>
+                    <div class="inputs">
+                        @Html.Label("UserSameEmail", "Use email as username")
+                        @Html.CheckBox("UserSameEmail", true)
+                    </div>
+                </div>
+                <div class="title">
+                    <strong>Your Account Information</strong>
+                </div>
+                <div class="form-fields">
+                    <div class="inputs" id="username">
+                        @Html.LabelFor(model => model.CandidateModel.Username, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.Username)
+                        @Html.ValidationMessageFor(model => model.CandidateModel.Username)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.Password, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.Password)
+                        @Html.ValidationMessageFor(model => model.CandidateModel.Password)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.RePassword, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.RePassword)
+                        @Html.ValidationMessageFor(model => model.CandidateModel.RePassword)
+                    </div>
+                    @*<div class="inputs">
+                            @Html.LabelFor(model => model.CandidateModel.SecurityQuestion1Id, new { }, ":")
+                            @(Html.Kendo().DropDownList().Name("CandidateModel.SecurityQuestion1Id")
+                                .OptionLabel("--Select--").BindTo(securityquestionsDropDownList))
+                            @Html.ValidationMessageFor(model => model.CandidateModel.SecurityQuestion1Id)
+                        </div>
+                        <div class="inputs">
+                            @Html.LabelFor(model => model.CandidateModel.SecurityQuestion1Answer, new { }, ":")
+                            @Html.EditorFor(model => model.CandidateModel.SecurityQuestion1Answer)
+                            @Html.ValidationMessageFor(model => model.CandidateModel.SecurityQuestion1Answer)
+                        </div>
+                        <div class="inputs">
+                            @Html.LabelFor(model => model.CandidateModel.SecurityQuestion2Id, new { }, ":")
+                            @(Html.Kendo().DropDownList().Name("CandidateModel.SecurityQuestion2Id")
+                                .OptionLabel("--Select--").BindTo(securityquestionsDropDownList))
+                            @Html.ValidationMessageFor(model => model.CandidateModel.SecurityQuestion2Id)
+                        </div>
+                        <div class="inputs">
+                            @Html.LabelFor(model => model.CandidateModel.SecurityQuestion2Answer, new { }, ":")
+                            @Html.EditorFor(model => model.CandidateModel.SecurityQuestion2Answer)
+                            @Html.ValidationMessageFor(model => model.CandidateModel.SecurityQuestion2Answer)
+                        </div>*@
+                </div>
+                <div class="title">
+                    <strong>Your Contact Details</strong>
+                </div>
+                <div class="form-fields">
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.HomePhone, new { }, ":")
+                        @(Html.Kendo().MaskedTextBoxFor(model => model.CandidateModel.HomePhone)
+                            .Mask("(999) 000-0000").HtmlAttributes(new { type = "tel" }))
+                        @Html.ValidationMessageFor(model => model.CandidateModel.HomePhone)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.MobilePhone, new { }, ":")
+                        @(Html.Kendo().MaskedTextBoxFor(model => model.CandidateModel.MobilePhone)
+                            .Mask("(999) 000-0000").HtmlAttributes(new { type = "tel" }))
+                        @Html.ValidationMessageFor(model => model.CandidateModel.MobilePhone)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.EmergencyPhone, new { }, ":")
+                        @(Html.Kendo().MaskedTextBoxFor(model => model.CandidateModel.EmergencyPhone)
+                            .Mask("(999) 000-0000").HtmlAttributes(new { type = "tel" }))
+                        @Html.ValidationMessageFor(model => model.CandidateModel.EmergencyPhone)
+                    </div>
+                </div>
+                <div class="title">
+                    <strong>Your Home Address</strong>
+                </div>
+                <div class="form-fields">
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.AddressLine1, new { }, ":")
+                        @Html.EditorFor(model => model.AddressLine1)
+                        @Html.ValidationMessageFor(model => model.AddressLine1)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CountryId)
+                        @(Html.Kendo().DropDownList().Name("CountryId")
+                                    .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                                    .DataSource(src => src.Read(read => read.Action("GetCascadeCountries", "Common")))
+                        )
+                        @Html.ValidationMessageFor(model => model.CountryId)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.StateProvinceId)
+                        @(Html.Kendo().DropDownList().Name("StateProvinceId")
+                                    .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                                    .DataSource(src => src.Read(read => read.Action("GetCascadeStateProvinces", "Common").Data("filterStateProvinces")).ServerFiltering(true))
+                                    .Enable(false).AutoBind(false).CascadeFrom("CountryId")
+                        )
+                        @Html.ValidationMessageFor(model => model.StateProvinceId)
+                        <script>function filterStateProvinces() { return { countryId: $("#CountryId").val() }; }</script>
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CityId)
+                        @(Html.Kendo().DropDownList().Name("CityId")
+                                    .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                                    .DataSource(src => src.Read(read => read.Action("GetCascadeCities", "Common").Data("filterCities")).ServerFiltering(true))
+                                    .Enable(false).AutoBind(false).CascadeFrom("StateProvinceId")
+                        )
+                        @Html.ValidationMessageFor(model => model.CityId)
+                        <script>function filterCities() { return { stateProvinceId: $("#StateProvinceId").val() }; }</script>
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.PostalCode, new { }, ":")
+                        @(Html.Kendo().MaskedTextBoxFor(model => model.PostalCode).Mask("L0L 0L9"))
+                        @Html.ValidationMessageFor(model => model.PostalCode)
+                    </div>
+                    @*<div class="inputs">
+                            @Html.LabelFor(model => model.CandidateModel.MajorIntersection1, new { }, ":")
+                            @Html.EditorFor(model => model.CandidateModel.MajorIntersection1)
+                            @Html.ValidationMessageFor(model => model.CandidateModel.MajorIntersection1)
+                        </div>
+                        <div class="inputs">
+                            @Html.LabelFor(model => model.CandidateModel.MajorIntersection2, new { }, ":")
+                            @Html.EditorFor(model => model.CandidateModel.MajorIntersection2)
+                            @Html.ValidationMessageFor(model => model.CandidateModel.MajorIntersection2)
+                        </div>*@
+                </div>
+                <div class="title">
+                    <strong>Your Education & Skills</strong>
+                </div>
+                <div class="form-fields">
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.Education, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.Education)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.KeySkill1, new { }, ":")
+                        @(Html.Kendo().DropDownList().Name("KeySkill1")
+                                    .OptionLabel("Enter your key skill").DataTextField("Text").DataValueField("Value")
+                                    .BindTo(skillsDropDownList)
+                        )
+                        @Html.ValidationMessageFor(model => model.KeySkill1)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.YearsOfExperience1, new { }, ":")
+                        @Html.EditorFor(model => model.YearsOfExperience1)
+                        @Html.ValidationMessageFor(model => model.YearsOfExperience1)
+                    </div>
+                    @Html.HiddenFor(model => model.LastUsedDate1)
+                    @*<div class="inputs">
+                        @Html.LabelFor(model => model.LastUsedDate1, new { }, ":")
+                        @(Html.Kendo().DatePickerFor(model => model.LastUsedDate1)
+                                    .HtmlAttributes(new { type = "text", placeholder = shortDateFormat })
+                                    .Format(shortDateFormat).ParseFormats(new string[] { shortDateFormat })
+                                    .Min(DateTime.Today.AddYears(-20)).Max(DateTime.Today.AddDays(-1))
+                        )
+                        @Html.ValidationMessageFor(model => model.LastUsedDate1)
+                    </div>*@
+                    <div class="inputs">
+                        @Html.Label("Resume")
+                        @(Html.Kendo().Upload().Name("attachments").Multiple(false).Async(async => async.AutoUpload(false)))
+                    </div>
+                </div>
+                <div class="title">
+                    <strong>Your Work Preference</strong>
+                </div>
+                <div class="form-fields">
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.ShiftId, new { }, ":")
+                        @(Html.Kendo().DropDownList().Name("CandidateModel.ShiftId").OptionLabel("--Select--").BindTo(shiftsDropDownList))
+                        @Html.ValidationMessageFor(model => model.CandidateModel.ShiftId)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.PreferredWorkLocation, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.PreferredWorkLocation)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.TransportationId, new { }, ":")
+                        @(Html.Kendo().DropDownList().Name("CandidateModel.TransportationId")
+                                                    .OptionLabel("--Select--").BindTo(transportationsDropDownList))
+                        @Html.ValidationMessageFor(model => model.CandidateModel.TransportationId)
+                    </div>
+                    <div class="inputs" id="licence-plate">
+                        @Html.LabelFor(model => model.CandidateModel.LicencePlate)
+                        @Html.EditorFor(model => model.CandidateModel.LicencePlate)
+                        @Html.WfmValidationMessageFor(model => model.CandidateModel.LicencePlate)
+                    </div>
+                </div>
+                <div class="title">
+                    <strong>Ready to go</strong>
+                </div>
+                <div class="form-fields">
+                    <div class="inputs">
+                        @Html.Label("Are you a human?")
+                        <div class="captcha-box" style="display:inline-block">
+                            @Html.reCaptcha()
+                        </div>
+                        @Html.ValidationMessage("ReCaptcha")
+                    </div>
+                </div>
+                <div class="form-fields">
+                    <div class="inputs">
+                        @Html.Label(" ")
+                        @Html.EditorFor(model => model.CandidateModel.Entitled)
+                        <p class="entitled">
+                            Yes. I agree to the <a href="../application-agreement" target="_blank"><span style='color:blue'><b>Application Agreement</b></span></a> and <a href="../terms-of-use" target="_blank"><span style='color:blue'><b>Term of Use</b></span></a>.
+                        </p>
+                        @Html.WfmValidationMessageFor(model => model.CandidateModel.Entitled)
+                    </div>
+                </div>
+            </div>
+            <div class="buttons">
+                <input type="submit" id="registration" name="registration" class="button-1 register-next-step-button" value="@T("Admin.Common.Submit")" />
+            </div>
+        }
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    function toggleLicencePlate() {
+        var tran = $("#CandidateModel_TransportationId").val();
+        if (tran == 1) {
+            $("#licence-plate").show();
+        }
+        else {
+            $("#licence-plate").hide();
+        }
+    }
+
+    function toggleUsername() {
+        var userNameInput = $("#CandidateModel_Username");
+        if ($("#UserSameEmail").attr('checked') == "checked") {
+            userNameInput.val($("#CandidateModel_Email").val()).prop('readonly', true);
+            if (userNameInput.val())
+                userNameInput.valid();  // reset previous validation error
+        }
+        else {
+            userNameInput.prop('readonly', false);
+        }
+    }
+
+    function onAdditionalData() { return { text: $("#CandidateModel.KeySkill1").val() }; }
+
+    $(document).ready(function () {
+
+        //var kendoValidator = $('#candidate-form').kendoValidator().data('kendoValidator');
+
+        toggleLicencePlate();
+        $("#CandidateModel_TransportationId").change(function () { toggleLicencePlate(); });
+
+        toggleUsername();
+        $("#UserSameEmail").change(function () { toggleUsername(); });
+        $("#CandidateModel_Email").bind("keyup", function () { toggleUsername(); });
+
+        $('#registration').click(function () {
+            if ($('#candidate-form').valid()) {
+                if ($('#CandidateModel_Entitled').is(':checked')) {
+                    return true;
+                }
+                else {
+                    //just show validation errors, dont post
+                    displayPopupNotification('@Html.Raw(HttpUtility.JavaScriptStringEncode(T("Web.Candidate.Candidate.Fields.Entitled.Required").Text))', 'error', true);
+                }
+            }
+            else {
+                //displayPopupNotification('Some fields missing or invalid. Please check and correct.', 'error', true);
+                window.scrollTo(0, 0);
+            }
+            return false;
+        });
+
+        $(".k-datepicker input").each(function () {
+            var picker = $('#' + $(this).attr('id')).data('kendoDatePicker');
+            var format = picker.options.format;
+            var min = kendo.toString(picker.options.min, format);
+            var max = kendo.toString(picker.options.max, format);
+            $(this).rules('add', { dateValue: [format, min, max] });
+            $(this).change(function () {
+                //  ignores invalid strings which occur after the year
+                var validDate = kendo.parseDate($(this).val(), format);
+                if (validDate instanceof Date)
+                    $(this).val(kendo.toString(validDate, format));
+            });
+        });
+    });
+
+    $.validator.addMethod('dateValue', function (value, element, param) {
+        if (value) {
+            var d = kendo.parseDate(value, param[0]);
+            return d instanceof Date && d >= new Date(param[1]) && d <= new Date(param[2]);
+        }
+        return true;
+    }, '@(T("Common.Date.Range").Text)');
+
+</script>

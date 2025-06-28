@@ -1,0 +1,101 @@
+﻿@{
+    Layout = ViewBag.Layout;
+
+    var formName = ViewBag.FormName;
+    var popupBsClass = ViewBag.PopupBsClass;
+    var steps = ViewBag.Steps as Tuple<string, string, string, object>[];
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { @id = formName }))
+{
+    @RenderSection("Hidden", false)
+
+    <div class="content-header clearfix">
+        <h1 class="pull-left">
+            Follow the steps below to reschedule the worker.
+        </h1>
+    </div>
+    <div class="content">
+        <div class="form-horizontal">
+            <div class="notification-wrapper" id="wizard_messages"></div>
+            <div class="row acc-wizard">
+                <div class="col-md-2" style="padding-left: 2em;">
+                    <ol class="acc-wizard-sidebar visible-md visible-lg">
+                        @for (var i = 0; i < steps.Length; i++)
+                        {
+                            var cls = "acc-wizard-todo" + (i == 0 ? " acc-wizard-active" : "");
+                            <li class="@cls">
+                                @if (i == 0)
+                                {
+                                    <a href="#@steps[i].Item1">@steps[i].Item2</a>
+                                }
+                                else
+                                {
+                                    <a href="#@steps[i].Item1" disabled>@steps[i].Item2</a>
+                                }
+                            </li>
+                        }
+                    </ol>
+                </div>
+                <div class="col-md-10" style="padding-right: 2em;">
+                    <div id="acc-reschedule" class="panel-group">
+                        @for (var i = 0; i < steps.Length; i++)
+                        {
+                            var cls = "panel-collapse collapse" + (i == 0 ? " in" : "");
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h4 class="panel-title">
+                                        @if (i == 0)
+                                        {
+                                            <button class="btn btn-link" type="button" data-parent="#acc-reschedule" data-toggle="collapse" data-target="#@steps[i].Item1">
+                                                <span class="hidden-md hidden-lg">Step @(i + 1): </span>@steps[i].Item2
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-link" type="button" data-parent="#acc-reschedule" data-toggle="collapse" data-target="#@steps[i].Item1" disabled>
+                                                <span class="hidden-md hidden-lg">Step @(i + 1): </span>@steps[i].Item2
+                                            </button>
+                                        }
+                                    </h4>
+                                </div>
+                                <div id="@steps[i].Item1" class="@cls">
+                                    <div class="panel-body">
+                                        @*<form id="form-@(steps[i].Item1)">*@
+                                        @Html.Partial(steps[i].Item3, steps[i].Item4, new ViewDataDictionary() { { "BsClass", popupBsClass } })
+                                        <div class="acc-wizard-step">
+                                            @if (i > 0)
+                                            {
+                                                <button class="btn" type="reset">Go Back</button>
+                                            }
+                                            @if (i < steps.Length - 1)
+                                            {
+                                                <button class="btn btn-primary" type="submit">Next Step</button>
+                                            }
+                                            else if (i == steps.Length - 1)
+                                            {
+                                                <button class="btn btn-primary" type="submit" onclick="onFinishing(event)">Finish</button>
+                                            }
+                                        </div>
+                                        @*</form>*@
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@RenderBody()
+
+<script type="text/javascript">
+    $(function () {
+        enableValidation('@formName');
+        initAccWizard(@Html.Raw(Json.Encode(steps.Select(x => x.Item1))), onNext, onBack);
+    });
+</script>
+
+@RenderSection("scripts", false)

@@ -1,0 +1,181 @@
+﻿@using Wfm.Core.Domain.Accounts
+@{
+    Layout = null;
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+<script type="text/javascript">
+    var selectedIdsForRecruiterGrid = [];
+    function updateMasterCheckboxForRecruiters() {
+        var numChkBoxes = $('#recruiters-grid input[type=checkbox][id!=mastercheckbox]').length;
+        var numChkBoxesChecked = $('#recruiters-grid input[type=checkbox][checked][id!=mastercheckbox]').length;
+        $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+    function onDataBoundForRecruiterGrid(e) {
+        $('#recruiters-grid input[type=checkbox][id!=mastercheckbox]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIdsForRecruiterGrid);
+            //set checked based on if current checkbox's value is in selectedIdsForRecruiterGrid.
+            $(this).attr('checked', checked > -1);
+        });
+
+        updateMasterCheckboxForRecruiters();
+    }
+</script>
+
+<div class="section-header">
+    <div class="options">
+        <a id="add-new-recruiter" class="k-button">@T("Admin.Company.AddNewRecruiter").Text</a>
+        <a id="delete-selected-recruiter" class="k-button">@T("Admin.Company.DeleteSeletedRecruiter").Text</a>
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<RecruiterCompanyModel>()
+              .Name("recruiters-grid")
+              .Columns(columns =>
+              {
+                  columns.Bound(x => x).Filterable(false).Sortable(false)
+                        .ClientTemplate("<input type='checkbox' name='checkedRecords' value='#= Id #' class='checkboxGroups'/>")
+                        .Title("<input id='mastercheckbox' type='checkbox'/>")
+                        .Width(25);
+                  columns.Bound(x => x.Id).Width(60).Hidden();
+                  columns.Bound(x => x.AccountId).Width(50).Hidden();
+                  columns.Bound(x => x.FirstName).Width("8%");
+                  columns.Bound(x => x.LastName).Width("8%");
+                  columns.Bound(x => x.Email);
+                  columns.Bound(x => x.WorkPhone).Width("10%").ClientTemplate("#= prettyPhone(WorkPhone) #");
+                  columns.Bound(x => x.MobilePhone).Width("10%").ClientTemplate("#= prettyPhone(MobilePhone) #");
+                  columns.Bound(x => x.HomePhone).Width(70).Hidden().ClientTemplate("#= prettyPhone(HomePhone) #");
+                  if (!workContext.CurrentAccount.IsVendor() && commonSettings.DisplayVendor)
+                  {
+                      columns.Bound(x => x.FranchiseId).Width(50).Hidden();
+                      columns.Bound(x => x.FranchiseName);
+                  }
+                  columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width("10%");
+                  columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                  columns.Bound(x => x.IsActive)
+                                .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                                .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                                .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsActive #.png' />")
+                                .Width("5%");
+              })
+        .EnableCustomBinding(true)
+        .Reorderable(reorder => reorder.Columns(true))
+        .Resizable(resize => resize.Columns(true))
+        .Filterable()
+        .Sortable()
+        .ColumnMenu()
+        .Selectable()
+        .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+        .DataSource(dataBinding => dataBinding
+                    .Ajax()
+                    .ServerOperation(false)
+                    .Read(read => read.Action("_TabRecruiters", "Company", new { companyGuid = ViewBag.CompanyGuid }))
+                    .PageSize(20)
+        )
+        .Filterable(filterable => filterable
+            .Extra(false)
+            .Operators(operators => operators
+                .ForString(str => str.Clear()
+                    .Contains("Contains")
+                    .IsEqualTo("Is equal to")
+                    .IsNotEqualTo("Is not equal to")
+                )
+            )
+        )
+        .Events(events => events.DataBound("onDataBoundForRecruiterGrid"))
+            )
+        </td>
+    </tr>
+</table>
+<div id="recruiter-window"></div>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#mastercheckbox').click(function () {
+            $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+        });
+
+        //wire up checkboxes.
+        $('#recruiters-grid').on('change', 'input[type=checkbox][id!=mastercheckbox]', function (e) {
+            //alert("hello!");
+            var $check = $(this);
+            if ($check.is(":checked") == true) {
+                var checked = jQuery.inArray($check.val(), selectedIdsForRecruiterGrid);
+                if (checked == -1) {
+                    //add id to selectedIdsForRecruiterGrid.
+                    selectedIdsForRecruiterGrid.push($check.val());
+                }
+            }
+            else {
+                var checked = jQuery.inArray($check.val(), selectedIdsForRecruiterGrid);
+                if (checked > -1) {
+                    //remove id from selectedIdsForRecruiterGrid.
+                    selectedIdsForRecruiterGrid = $.grep(selectedIdsForRecruiterGrid, function (item, index) {
+                        return item != $check.val();
+                    });
+                }
+            }
+            updateMasterCheckboxForRecruiters();
+        });
+
+    });
+
+    $("#delete-selected-recruiter").click(function () {
+        if (selectedIdsForRecruiterGrid.length > 0) {
+            var ids = selectedIdsForRecruiterGrid.join(",");
+            var link = '@Url.Action("_DeleteRecruiters", "Company")' + '?ids=' + ids;
+            $.ajax({
+                type: "POST",
+                url: link,
+                success: function () {
+                    $("#recruiters-grid").data("kendoGrid").dataSource.read();
+                }
+            });
+        }
+        else {
+            alert("No recruiter selected!")
+        }
+    });
+
+    $("#add-new-recruiter").click(function (e) {
+        e.preventDefault();
+        $("#recruiter-window").kendoWindow({
+            title: "Add A New Recruiter",
+            width: 350,
+            height: 150,
+            resizable: false,
+            content: '@Url.Action("_SelectRecruiters", "Company", new { companyGuid=ViewBag.CompanyGuid})',
+            refresh: function (e) {
+                var win = this;
+                $('#btn-cancel').click(function () {
+                    win.close();
+                })
+                $('#btn-save').click(function () {
+                    var form = $('#select-new-recruiter-form');
+                    var recruiterId = $('#Recruiter').val();
+                    if (recruiterId > 0) {
+                        var link = '@Url.Action("_SelectRecruiters", "Company")' + '?companyGuid=' + '@ViewBag.CompanyGuid' + '&recruiterId=' + recruiterId;
+                        $.ajax({
+                            type: "POST",
+                            url: link,
+                            data: form.serialize(),
+                            success: function () {
+                                $("#recruiters-grid").data("kendoGrid").dataSource.read();
+                                win.close();
+                            }
+                        });
+                    }
+                    else
+                    {
+                        alert("Please select at least one recruiter!");
+                    }
+                });
+            }
+        });
+        var dialog = $("#recruiter-window").data("kendoWindow");
+        dialog.open().center();
+    });
+</script>

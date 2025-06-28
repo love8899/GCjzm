@@ -1,0 +1,187 @@
+﻿@using System.Linq;
+@using Wfm.Services.Companies
+@using Wfm.Services.Common;
+@using Wfm.Shared.Models.Scheduling
+
+@{
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+    var editPermission = permissionService.Authorize("ManageClientScheduling");
+    
+    var companyService = EngineContext.Current.Resolve<ICompanyService>();
+    var deptService = EngineContext.Current.Resolve<ICompanyDepartmentService>();
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var contactService = EngineContext.Current.Resolve<ICompanyContactService>();
+
+    var departments = deptService.GetAllCompanyDepartmentsByAccount(workContext.CurrentAccount);
+    var jobRoles = companyService.GetAllJobRoles(ViewBag.CompanyId);
+    var shifts = shiftService.GetAllShifts();
+    var supervisors = contactService.GetAllCompanyContactsByAccountAsQueryable(workContext.CurrentAccount);
+}
+
+<script src="@Url.Content("~/Scripts/admin.common.js?version=1.8")" type="text/javascript"></script>
+<script type="text/javascript">
+
+    var editPermission = @Json.Encode(editPermission);
+
+    function onBound() {
+        customizeDayColumns();
+        reTitleButtons();
+    }
+
+    function customizeDayColumns() {
+        var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        var firstDate = firstWorkDay(new Date($("#weekCalendar").val()));
+        for (i = 0; i < days.length; i++) {
+            $("#demand-grid .day-date .k-link").eq(i).html(days[i].substring(0, 3) + "</br>" + firstDate.toISOString().split('T')[0].substring(5));
+            firstDate.setDate(firstDate.getDate() + 1);
+        }
+    }
+
+    function onEdit(e) {
+        var dayIndex = this.cellIndex(e.container);
+        var dayName = this.thead.find("th").eq(dayIndex + 2).data("field");
+        var editable = e.model[dayName] != -1;
+        if (!editPermission || !editable) {
+            var grid = $("#demand-grid").data("kendoGrid");
+            grid.closeCell();
+        }
+        else if (true || e.model.isNew()) {
+            ddl = $("#demand-grid tbody [data-role=dropdownlist]").data("kendoDropDownList");
+            if (ddl) {
+                ddl.options.optionLabel = "--Select--";
+                ddl.refresh();
+                ddl.value(!e.model.isNew() ? e.model.SupervisorId : "");
+            }
+        }
+    }
+
+    function onRead(e) {
+        var ids = $('#DepartmentId').val();
+        return {
+            refDate: $('#weekCalendar').val(),
+            locationId: $('#LocationId').val(),
+            deptIds: ids ? ids : []
+        };
+    }
+
+    function onUpdate(e) {
+        return {
+            refDate: $('#weekCalendar').val()
+        };
+    }
+
+    function onSync(e) {
+        refreshGrid('#demand-grid');
+    }
+
+    function gotoPlacement(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var shiftJobRoleId = dataItem.Id;
+        window.location.href = '@Url.Action("EmployeePlacement", new { id = "XXXX" })'.replace('XXXX', shiftJobRoleId.toString());
+    }
+
+</script>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<WeeklyDemandModel>()
+              .Name("demand-grid")
+              .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(80).Hidden();
+                    columns.ForeignKey("CompanyDepartmentId", departments, "Id", "DepartmentName").Title("Department").Width("10%");
+                    columns.ForeignKey("CompanyJobRoleId", jobRoles, "Id", "Name").Title("Job Role").Width("10%");
+                    columns.ForeignKey("ShiftId", shifts, "Id", "ShiftName").Title("Shift").Width("5%");
+                    columns.Bound(x => x.StartTime).Format("{0:HH:mm}").EditorTemplateName("Time").Width("10%");
+                    columns.Bound(x => x.LengthInHours).Width("5%");
+                    columns.ForeignKey("SupervisorId", supervisors, "Id", "FullName").Title("Supervisor").EditorTemplateName("SupervisorsByDepartment").Width("10%");
+                    columns.Bound(x => x.Sunday).HeaderHtmlAttributes(new { @class = "day-date" }).ClientTemplate("#if (Sunday >= 0) {# #=Sunday# #} else{# - #}#").Width("5%");
+                    columns.Bound(x => x.Monday).HeaderHtmlAttributes(new { @class = "day-date" }).ClientTemplate("#if (Monday >= 0) {# #=Monday# #} else{# - #}#").Width("5%");
+                    columns.Bound(x => x.Tuesday).HeaderHtmlAttributes(new { @class = "day-date" }).ClientTemplate("#if (Tuesday >= 0) {# #=Tuesday# #} else{# - #}#").Width("5%");
+                    columns.Bound(x => x.Wednesday).HeaderHtmlAttributes(new { @class = "day-date" }).ClientTemplate("#if (Wednesday >= 0) {# #=Wednesday# #} else{# - #}#").Width("5%");
+                    columns.Bound(x => x.Thursday).HeaderHtmlAttributes(new { @class = "day-date" }).ClientTemplate("#if (Thursday >= 0) {# #=Thursday# #} else{# - #}#").Width("5%");
+                    columns.Bound(x => x.Friday).HeaderHtmlAttributes(new { @class = "day-date" }).ClientTemplate("#if (Friday >= 0) {# #=Friday# #} else{# - #}#").Width("5%");
+                    columns.Bound(x => x.Saturday).HeaderHtmlAttributes(new { @class = "day-date" }).ClientTemplate("#if (Saturday >= 0) {# #=Saturday# #} else{# - #}#").Width("5%");
+
+                    //columns.Command(command => {
+                    //    command.Custom("Placement").Text(" ").HtmlAttributes(new { title = "Placement" }).Click("gotoPlacement");
+                    //}).Title("Actions").Width(110);
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Sortable()
+                .Selectable()
+                .ToolBar(toolBar => { toolBar.Save(); })
+                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .Batch(true)
+                    .ServerOperation(false)
+                    .Group(g => { g.Add(x => x.Department); g.Add(x => x.Shift); })
+                    .Sort(s => { s.Add(x => x.UpdatedOnUtc).Descending(); })
+                    .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                        model.Field(p => p.Id).Editable(false);
+                        model.Field(p => p.SchedulePeriodId).Editable(false);
+                        model.Field(p => p.CompanyDepartmentId).Editable(false);
+                        model.Field(p => p.CompanyJobRoleId).Editable(false);
+                        model.Field(p => p.ShiftId).Editable(false);
+                        model.Field(p => p.StartTime).Editable(false);
+                        model.Field(p => p.LengthInHours).Editable(false);
+                        model.Field(p => p.Sunday);
+                        model.Field(p => p.Monday);
+                        model.Field(p => p.Tuesday);
+                        model.Field(p => p.Wednesday);
+                        model.Field(p => p.Thursday);
+                        model.Field(p => p.Friday);
+                        model.Field(p => p.Saturday);
+                    })
+                    .Events(events => events.Error("error_handler").Sync("onSync"))
+                    .PageSize(20)
+                    .Read(read => read.Action("_WeeklyDemand", "Scheduling").Data("onRead"))
+                    .Update(update => update.Action("_EditWeeklyDemand", "Scheduling").Data("onUpdate"))
+                )
+                .Events(events => events.DataBound("onBound").Edit("onEdit"))
+            )
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        if (!editPermission) {
+            disableEdit();
+        }
+    });
+
+    function getLocationId() {
+        return { locationId : $('#LocationId').val() }
+    }
+
+    function getDepartmentId() {
+        var grid = $("#demand-grid").data("kendoGrid");
+        var editRow = grid.tbody.find("tr:has(.k-edit-cell)");
+        var model = grid.dataItem(editRow);
+        return { departmentId : model.CompanyDepartmentId }
+    }
+
+    function reTitleButtons() {
+        $('.k-grid-delete').html('<span class="fa fa-trash"></span>');
+        $('.k-grid-Placement').html('<span class="k-icon k-createTable"></span>');
+    }
+
+    function disableEdit() {
+        $('.k-grid-toolbar').hide();
+        // below will cause day columns customization disappear
+        //var grid = $('#demand-grid').data('kendoGrid');
+        //grid.setOptions({editable: false});
+    }
+</script>

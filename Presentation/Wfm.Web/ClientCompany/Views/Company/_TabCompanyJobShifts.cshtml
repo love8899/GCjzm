@@ -1,0 +1,221 @@
+﻿@using Wfm.Services.Common
+@using Wfm.Services.Companies
+@using Wfm.Core
+@using Wfm.Shared.Models.Companies
+
+@model IEnumerable<CompanyShiftModel>
+
+@{
+    Layout = "";
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var companyLocationService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+    var companyDepartementService = EngineContext.Current.Resolve<ICompanyDepartmentService>();
+    var companyLocations = companyLocationService.GetAllCompanyLocationsByAccount(workContext.CurrentAccount).OrderBy(x => x.LocationName);
+    var companyDepartments = companyDepartementService.GetAllCompanyDepartmentsByAccount(workContext.CurrentAccount).OrderBy(x => x.DepartmentName);
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var shifts = shiftService.GetAllShifts();
+}
+<div class="section-header">
+    <div class="title">
+        @T("Common.JobShift")
+    </div>
+    <div class="options">
+        <button id="add-shift" class="k-button">@T("Admin.Common.Add")</button>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CompanyShiftModel>()
+            .Name("company-shift-grid")
+            .Columns(columns =>
+            {
+                columns.Bound(x => x.Id).Hidden();
+                columns.ForeignKey(x => x.CompanyLocationId, companyLocations, "Id", "LocationName").Width(150);
+                columns.ForeignKey(x => x.CompanyDepartmentId, companyDepartments, "Id", "DepartmentName").Width(150);
+                columns.ForeignKey(x => x.ShiftId, shifts, "Id", "ShiftName").Width(150);
+                columns.Bound(x => x.EffectiveDate).ClientTemplate("#=kendo.toString(EffectiveDate,'yyyy-MM-dd')#").Width(120);
+                columns.Bound(x => x.ExpiryDate).ClientTemplate("#=(ExpiryDate == null) ? '' : kendo.toString(ExpiryDate,'yyyy-MM-dd')#").Width(120);
+                columns.Bound(x => x.Note).Width(200);
+                columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                    .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                    .ClientTemplate("<a class='k-button' onclick='return editJobShift(#= Id #)'><span class='fa fa-pencil'></span></a>")
+                    .Width(60)
+                    .Title(T("Common.Edit").Text);
+                columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                    .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                    .ClientTemplate("<a class='k-button' onclick='return editJobShiftRoles(#= Id #)'><span class='fa fa-tags'></a>")
+                    .Width(60)
+                    .Title("Roles");
+                columns.Command(commands =>
+                {
+                    commands.Destroy().Text("");
+                })
+                    .HtmlAttributes(new { style = "vertical-align:middle" })
+                    .Width(60)
+                    .Title(T("Common.Delete").Text);
+            })
+            .EnableCustomBinding(false)
+            .Reorderable(reorder => reorder.Columns(true))
+            .Filterable()
+            .Sortable()
+            .ColumnMenu()
+            .Selectable()
+            .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+            .DataSource(ds => ds
+                .Ajax()
+                .ServerOperation(false)
+                .PageSize(20)
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                })
+                .Read(read => read.Action("_TabCompanyJobShifts", "Company"))
+                .Destroy(update => update.Action("_RemoveJobShift", "Company"))
+            )
+            .Filterable(filterable => filterable
+                .Extra(false)
+                .Operators(operators => operators
+                    .ForString(str => str.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        .IsNotEqualTo("Is not equal to")
+                    )
+                )
+            )
+            .Events(events => events.DataBound("reTitleDelete"))
+            )
+        </td>
+    </tr>
+</table>
+<div id="create-edit-shift-dialog"></div>
+<div id="create-edit-shift-role-dialog"></div>
+<script type="text/javascript">
+    $(function () {
+        $("#add-shift").click(
+            function () {
+                addJobShift();
+            });
+    });
+    function bindDialogEvent(){
+        $('#close-shift-report').click(function () {
+            $("#create-edit-shift-dialog").data("kendoWindow").close();
+        });
+        $('#save-shift-report').click(function () {
+            var validator = $("#shift-report-form").kendoValidator().data("kendoValidator");                   
+            if (validator.validate()) {
+                $.ajax({
+                    url: '@Url.Action("_EditJobShift")',
+                    type: 'POST',
+                    data: $('#shift-report-form').serialize(),
+                    dataType: 'html',
+                    success: function (result) {
+                        if (result == 'done') {
+                            $("#create-edit-shift-dialog").data("kendoWindow").close();
+                            $('#company-shift-grid').data('kendoGrid').dataSource.read();
+                            $('#company-shift-grid').data('kendoGrid').refresh();
+                        }
+                        else{
+                            $('#shift-report-form').parent().html(result);
+                            bindDialogEvent();
+                        }
+                    }
+                });
+            }
+        })
+    }
+    function editJobShift(id) {
+        var dialog = $("#create-edit-shift-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#create-edit-shift-dialog").kendoWindow({
+                title: "Edit Job Shift",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 420,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    bindDialogEvent();
+                }
+            });
+            dialog = $("#create-edit-shift-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.title("Edit Job Shift");
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_EditJobShift")',
+            data: { jobShiftId: id }
+        });
+        dialog.center();
+        return false;
+    }
+
+    function addJobShift() {
+        var dialog = $("#create-edit-shift-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#create-edit-shift-dialog").kendoWindow({
+                title: "New Job Shift",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 460,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    bindDialogEvent();
+                }
+            });
+            dialog = $("#create-edit-shift-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.title("New Job Shift");
+            dialog.open();
+
+        }
+        dialog.refresh({
+            url: '@Url.Action("_NewJobShift")'
+        });
+        dialog.center();
+        return false;
+    }
+
+    function editJobShiftRoles(id){
+        var dialog = $("#create-edit-shift-role-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#create-edit-shift-role-dialog").kendoWindow({
+                title: "Edit Job Shift Roles",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 370,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                }
+            });
+            dialog = $("#create-edit-shift-role-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.title("Edit Job Shift Roles");
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_EditJobShiftRoles")',
+            data: { jobShiftId: id }
+        });
+        dialog.center();
+        return false;
+    }
+</script>
+
+

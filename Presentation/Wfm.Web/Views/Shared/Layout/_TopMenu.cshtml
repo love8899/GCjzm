@@ -1,0 +1,67 @@
+﻿<ul class="top-menu">
+    <li>
+        @Html.ActionLink("Job seekers", "JobSeekers", "JobSeekers")
+        @Html.Partial("Layout/_JobSeekerMenu", new ViewDataDictionary
+        {
+            { "Parent", "TopMenu" },
+            { "L1Toggle", false},
+        })
+    </li>
+    <li>
+        @Html.ActionLink("Employers", "Employers", "Employers")
+        @Html.Partial("Layout/_EmployerMenu", new ViewDataDictionary
+        {
+            { "Parent", "TopMenu" },
+            { "L1Toggle", false},
+        })
+    </li>
+    <li>
+        @Html.ActionLink("Associates", "Associates", "Associate")
+    </li>
+    <li>
+        @Html.ActionLink("About us", "Index", "AboutUs")
+    </li>
+    <li>
+        @Html.ActionLink("Contact us", "ContactUs", "Home")
+    </li>
+</ul>
+<div class="menu-toggle">Menu</div>
+<ul class="top-menu mobile">
+    <li>
+        @Html.ActionLink("Job seekers", "JobSeekers", "JobSeekers")
+        <div class="sublist-toggle"></div>
+        @Html.Partial("Layout/_JobSeekerMenu", new ViewDataDictionary
+        {
+            { "Parent", "TopMenu" },
+            { "L1Toggle", true},
+        })
+    </li>
+    <li>
+        @Html.ActionLink("Employers", "Employers", "Employers")
+        <div class="sublist-toggle"></div>
+        @Html.Partial("Layout/_EmployerMenu", new ViewDataDictionary
+        {
+            { "Parent", "TopMenu" },
+            { "L1Toggle", true},
+        })
+    </li>
+    <li>
+        @Html.ActionLink("Associates", "Associates", "Associate")
+    </li>
+    <li>
+        @Html.ActionLink("About us", "AboutUs", "Home")
+    </li>
+    <li>
+        @Html.ActionLink("Contact us", "ContactUs", "Home")
+    </li>
+</ul>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.menu-toggle').click(function () {
+            $(this).siblings('.top-menu.mobile').slideToggle('slow');
+        });
+        $('.top-menu.mobile .sublist-toggle').click(function () {
+            $(this).siblings('.sublist').slideToggle('slow');
+        });
+    });
+</script>

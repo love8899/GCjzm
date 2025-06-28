@@ -1,0 +1,85 @@
+﻿@model IEnumerable<FranchiseModel>
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Vendors").Text;
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Vendors")
+    </div>
+    <div class="options">
+        @Html.ActionLink(T("Common.Add").Text, "Create", null, new { @class = "k-button" })
+        @Html.ActionLink(T("Admin.Vendors.MassEmail").Text, "MassEmail", null, new { @class = "k-button", target = "_blank" })
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<FranchiseModel>()
+              .Name("vendor-grid")
+              .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(60);
+                    //columns.Bound(x => x.FranchiseId);
+                    
+                    columns.Bound(x => x.FranchiseName)
+                        .Template(x => Html.ActionLink(x.FranchiseName, "Details", new { guid = x.FranchiseGuid }, new { }))
+                        .ClientTemplate(@Html.ActionLink("#=FranchiseName#", "Details", new { guid = "#=FranchiseGuid#" }).ToHtmlString());
+
+                    columns.Bound(x => x.WebSite);
+
+                    columns.Bound(x => x.IsActive).Width(80)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#");
+
+                    if (commonSettings.DisplayVendor)
+                    {
+                        columns.Bound(x => x.IsDefaultManagedServiceProvider).Title("Default MSP").Width(80)
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                           .ClientTemplate("#if (IsDefaultManagedServiceProvider == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#");
+                    }
+                    
+                    columns.Bound(x => x.Description).Hidden();
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { guid = x.FranchiseGuid }))
+                        .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/Vendor/Edit?guid=") + "#= FranchiseGuid #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                        .Width(80)
+                        .Title(T("Admin.Common.Edit").Text);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                })
+            .EnableCustomBinding(true)
+            .Reorderable(reorder => reorder.Columns(true))
+            .Resizable(resize => resize.Columns(true))
+            .Filterable()
+            .Sortable()
+            .ColumnMenu()
+            .Selectable()
+            .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+            .DataSource(ds => ds
+                .Ajax()
+                .ServerOperation(true)
+                .PageSize(20)
+                .Read(read => read.Action("Index", "Vendor"))
+            )
+            .Filterable(filterable => filterable
+                .Extra(false)
+                .Operators(operators => operators
+                    .ForString(str => str.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        .IsNotEqualTo("Is not equal to")
+                    )
+                )
+            )
+)
+        </td>
+    </tr>
+</table>

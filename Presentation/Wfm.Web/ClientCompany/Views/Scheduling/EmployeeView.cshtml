@@ -1,0 +1,196 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Companies
+@using Wfm.Services.Scheduling
+@using Wfm.Shared.Mapping
+@using Wfm.Shared.Models.Scheduling
+
+@{
+    var context = EngineContext.Current.Resolve<IWorkContext>();
+    var scheduleDemandingService = EngineContext.Current.Resolve<ISchedulingDemandService>();
+    var schedulePeriods = scheduleDemandingService.GetAllSchedulePeriods(context.CurrentAccount.CompanyId).OrderByDescending(x => x.PeriodStartUtc).ToModels().ToArray();
+}
+<script>
+    function addSchedulePeriodId() {
+        return { schedulePeriodId: $("#schedule-period").data("kendoDropDownList").value() };
+    }
+    function reloadGrid() {
+        var grid = $("#employee-schedule-grid").data("kendoGrid");
+        grid.dataSource.page(1);
+        grid.dataSource.read();
+    }
+</script>
+<div class="section-header">
+    <div class="title">
+        @T("Common.ScheduleEmployeeView")
+    </div>
+    <div class="options">
+        @Html.Label(T("Common.SchedulePeriod").Text, new { @for = "SchedulePeriod" })
+        @(Html.Kendo().DropDownList().Name("SchedulePeriod").BindTo(schedulePeriods
+            .Select(x => new SelectListItem { Text = string.Format("{0:yyyy-MM-dd} to {1:yyyy-MM-dd}{2}", x.PeriodStartDate,
+            x.PeriodEndDate, x.LocationText), Value = x.Id.ToString() }))
+            .Events(evt => evt.Change("reloadGrid"))
+            .HtmlAttributes(new { id = "schedule-period", style = "width:500px; text-align:left;" }))
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            <h2>@T("Common.EmployeeToSchedule")</h2>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<EmployeeScheduleModel>()
+                .Name("employee-schedule-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Hidden(true);
+                    columns.Bound(x => x.EmployeeId)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("equals")))
+                        .ClientTemplate("#= kendo.toString(kendo.parseInt(EmployeeId), '00000000') #")
+                        .Width(100);
+
+                    columns.Bound(x => x.FirstName)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Template(x => Html.ActionLink(x.FirstName, "Details", new { x.CandidateGuid }, new { }))
+                        .ClientTemplate("<span>" + Html.ActionLink("#=FirstName #", "Details", "Employee", new { guid = "#=CandidateGuid#" }, null).ToHtmlString() + "</span>")
+                        .Width(125);
+
+                    columns.Bound(x => x.LastName)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Template(x => Html.ActionLink(x.LastName, "Details", new { x.CandidateGuid }, new { }))
+                        .ClientTemplate("<span>" + Html.ActionLink("#=LastName #", "Details", "Employee", new { guid = "#=CandidateGuid#" }, null).ToHtmlString() + "</span>")
+                        .Width(125);
+
+                    columns.Bound(x => x.EmployeeType)
+                        .Width(80);
+                    columns.Bound(x => x.Email)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Width(120)
+                        .Hidden(true);
+                    columns.Bound(x => x.PreferredWorkLocation)
+                        .Width(120);
+                    columns.Bound(x => x.HomePhone)
+                       .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                       .ClientTemplate("#= prettyPhone(HomePhone) #")
+                       .Width(110);
+                    columns.Bound(x => x.MobilePhone)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate("#= prettyPhone(MobilePhone) #")
+                        .Width(115);
+                    columns.Bound(x => x.JobTitle)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Width(90);
+                    columns.Bound(x => x.ScheduledShiftName)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Width(120);
+                    columns.Bound(x => x.ScheduledJobRoleName)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Width(120);
+
+                    columns.Bound(x => x.UpdatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        .ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120).Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        .ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120)
+                        .Hidden(true);
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { x.Id }))
+                        .ClientTemplate("<a class='k-button' title='Schedule' onclick='return scheduleEmployee(\"#= CandidateGuid #\")'><span class='k-icon k-i-calendar'></span></a>")
+                        .Width(120)
+                        .Title("");
+                })
+            .EnableCustomBinding(true)
+            .Reorderable(reorder => reorder.Columns(true))
+            .Resizable(resize => resize.Columns(true))
+            .ColumnMenu(d => d.Sortable(true))
+            .Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+            .Sortable()
+            .Selectable(configurator => configurator.Mode(GridSelectionMode.Multiple))
+            .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+            .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("GetEmployeeSchedules", "Scheduling").Data("addSchedulePeriodId"))
+            )
+            .Filterable(filterable => filterable
+                .Extra(false)
+                .Operators(operators => operators
+                    .ForString(str => str.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        .IsNotEqualTo("Is not equal to")
+                    )
+                )
+            ))
+        </td>
+    </tr>
+</table>
+<div id="schedule-employee-window"></div>
+<script>
+    function bindDialogEvent() {
+        $('#close-schedule-employee').click(function () {
+            $("#schedule-employee-window").data("kendoWindow").close();
+        });
+        $('#schedule-employee-save').click(function () {
+            var form = $('#schedule-employee-form');
+            if (form.valid()) {
+                $.ajax({
+                    url: '@Url.Action("_EditScheduleEmployee")',
+                    type: 'POST',
+                    data: $('#schedule-employee-form').serialize(),
+                    dataType: 'json',
+                    success: function (result) {
+                        if (result.ErrorAndWarnings) {
+                            // temp solution, will make nice summary panel later
+                            var text = '';
+                            result.ErrorAndWarnings.forEach(function (entry) {
+                                text += entry.LevelOrError == 0 ? 'Error' : 'Warning'  + ' ' + entry.ErrorMessage + '\r';
+                            });
+                            alert(text);
+                        }
+                        if (result.Success) {
+                            $("#schedule-employee-window").data("kendoWindow").close();
+                            reloadGrid();
+                        }
+                    }
+                });
+            }
+        })
+    }
+    function scheduleEmployee(employeeId) {
+        var schedulePeriodId = $("#schedule-period").data("kendoDropDownList").value();
+        var dialog = $("#schedule-employee-window").data("kendoWindow");
+        if (!dialog) {
+            $("#schedule-employee-window").kendoWindow({
+                title: "Schedule Employee " + $("#schedule-period").data("kendoDropDownList").text(),
+                modal: true,
+                resizable: false,
+                width: 1000,
+                height: 800,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    bindDialogEvent();
+                }
+            });
+            dialog = $("#schedule-employee-window").data("kendoWindow");
+        }
+        else {
+            dialog.title("Schedule Employee" + $("#schedule-period").data("kendoDropDownList").text());
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_ScheduleEmployee")',
+            data: { employeeGuid: employeeId, schedulePeriodId: schedulePeriodId }
+        });
+        dialog.center();
+        return false;
+    }
+</script>

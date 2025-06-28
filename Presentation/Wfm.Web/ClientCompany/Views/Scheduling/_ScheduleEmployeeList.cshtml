@@ -1,0 +1,81 @@
+﻿@using Wfm.Shared.Models.Scheduling
+@(Html.Kendo().Grid<EmployeeScheduleModel>()
+                .Name("employee-schedule-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Hidden(true);
+                    columns.Bound(x => x.EmployeeId)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("equals")))
+                        .ClientTemplate("<input type ='button' value='#= kendo.toString(kendo.parseInt(EmployeeId), '00000000') #' onclick='scheduleEmployee(#=EmployeeId#)' />")
+                        .Width(60);
+
+                    columns.Bound(x => x.FirstName)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Template(x => Html.ActionLink(x.FirstName, "Details", new { x.CandidateGuid }, new { }))
+                        .ClientTemplate("<span>" + Html.ActionLink("#=FirstName #", "Details", "Employee", new { guid = "#=CandidateGuid#" }, null).ToHtmlString() + "</span>")
+                        .Width(85);
+
+                    columns.Bound(x => x.LastName)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Template(x => Html.ActionLink(x.LastName, "Details", new { x.CandidateGuid }, new { }))
+                        .ClientTemplate("<span>" + Html.ActionLink("#=LastName #", "Details", "Employee", new { guid = "#=CandidateGuid#" }, null).ToHtmlString() + "</span>")
+                        .Width(85);
+
+                    columns.Bound(x => x.EmployeeType)
+                        .Width(80).Hidden(true);
+                    columns.Bound(x => x.Email)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Width(120)
+                        .Hidden(true);
+                    columns.Bound(x => x.PreferredWorkLocation)
+                        .Width(120).Hidden(true);
+                    columns.Bound(x => x.HomePhone)
+                       .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                       .ClientTemplate("#= prettyPhone(HomePhone) #")
+                       .Width(110).Hidden(true);
+                    columns.Bound(x => x.MobilePhone)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate("#= prettyPhone(MobilePhone) #")
+                        .Width(115).Hidden(true);
+                    columns.Bound(x => x.JobTitle)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Width(90).Hidden(true);
+                    columns.Bound(x => x.ScheduledShiftName)
+                        .Width(60);
+                    columns.Bound(x => x.ScheduledJobRoleName)
+                        .Width(60);
+
+                    columns.Bound(x => x.UpdatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        .ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120).Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        .ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120)
+                        .Hidden(true);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(true))
+                .Sortable()
+                .Selectable(configurator => configurator.Mode(GridSelectionMode.Multiple))
+                .Pageable(x => x.PageSizes(false).Refresh(true).Numeric(false))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(true)
+                        .PageSize(25)
+                        .Read(read => read.Action("GetEmployeeSchedules", "Scheduling").Data("filterShiftSchedule"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                ))
+

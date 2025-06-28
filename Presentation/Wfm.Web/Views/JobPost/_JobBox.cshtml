@@ -1,0 +1,24 @@
+﻿@model JobOrderModel
+@using Wfm.Web.Models.JobOrder
+
+@{
+    var ApplyStr = "/Candidate/ApplyJob?JobOrderId=" + Model.Id;
+}
+<div class="product-item" data-productid="@Model.Id">
+    <div class="details">
+        <h2 class="product-title">
+            <a href="@(String.Format("/jobs/{0}/{1}", Model.Id, Html.ToSeoUrl(Model.JobTitle)))">@(Model.JobTitle)</a>
+        </h2>
+        <div class="add-info">
+            <div class="buttons">
+                <input type="button" value="Apply" title="Apply to this job" class="button-2 product-box-add-to-cart-button" onclick="window.location.href='@ApplyStr';return false;" />
+                <input type="button" value="Forward" title="Email a friend" class="button-2 add-to-wishlist-button" onclick="emailFriend();return false;" />
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function emailFriend() {
+        popupContentFromUrl('emailFriendPopup', '@Url.Action("EmailJobOrderAFriend", "JobPost", new { jobOrderId = Model.Id })', 'Email a friend', true, 540, 480);
+    }
+</script>

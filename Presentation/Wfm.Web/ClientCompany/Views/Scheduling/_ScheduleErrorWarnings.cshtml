@@ -1,0 +1,39 @@
+﻿@using Wfm.Services.Scheduling
+@model IEnumerable<IScheduleDetailErrorModel>
+
+<div class="k-widget k-grid">
+    <table class="k-selectable system-warnings">
+        <thead>
+            <tr>
+                <th width="15%">@T("Common.Level").Text</th>
+                <th width="20%">@T("Common.Scope").Text</th>
+                <th>@T("Common.Message").Text</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var entry in Model)
+        {
+            <tr class="@(entry.LevelOfError == Wfm.Core.Domain.Scheduling.ScheduleWarningLevel.Error? "fail" : "warning")">
+                <td>
+                    @entry.LevelOfError.ToString()
+                </td>
+                <td>@entry.Scope.ToString()</td>
+                <td>@entry.ErrorMessage</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+<script>
+    function highLightWarningEmployees () {
+    @foreach (var entry in Model)
+        {
+            if (entry.EmployeeId.HasValue)
+            {
+                <text>
+            $('.teamMate span[data-employee-id=@entry.EmployeeId]').parent().addClass('warning-employee');
+                </text>
+            }
+        }
+    }
+</script>

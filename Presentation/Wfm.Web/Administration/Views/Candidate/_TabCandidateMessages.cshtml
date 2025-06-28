@@ -1,0 +1,96 @@
+﻿<div class="section-header">
+    <div class="title">
+        @T("Admin.Messages.MessageHistory")
+    </div>
+</div>
+<script type="text/javascript">
+    function onChange(e) {
+        var grid = $("#candidate-message-grid").data("kendoGrid");
+        var selectedItem = grid.dataItem(grid.select());
+        showMessage(selectedItem.Id);
+    }
+</script>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<Wfm.Admin.Models.Messages.MessageModel>()
+                .Name("candidate-message-grid")
+                .Events(events => events.Change("onChange"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Subject)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+                    columns.Bound(x => x.AttachmentFileName).Title("Attachment").IncludeInMenu(false).Width(120)
+                        .Sortable(false).Filterable(false)
+                        .HtmlAttributes(new { align = "center"})
+                        .ClientTemplate("#if (AttachmentFileName != null) {# <span class='fa fa-paperclip'></span> #}else{# #}#");
+                    columns.Bound(x => x.CreatedOn).Title(@T("Common.Date").Text)
+                        .Filterable(false)
+                        .Format("{0:yyyy-MM-dd HH:mm}").Width(120);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                //.Filterable()
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(true)
+                        .PageSize(10)
+                        .Read(read => read.Action("_TabCandidateMessageList", "Candidate", new { candidateGuid = ViewBag.CandidateGuid }))
+                        .Sort(s => s.Add(x => x.CreatedOn).Descending())
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+<div id="message-dialog"></div>
+
+<script type="text/javascript">
+    function showMessage(id) {
+        var dialog = $("#message-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#message-dialog").kendoWindow({
+                title: "Message",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 480,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                }
+            });
+            dialog = $("#message-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_CandidateMessageDetails")',
+            data: { messageId: id }
+        });
+        dialog.center();
+        return false;
+    }
+
+    function getCategoryClass(data) {
+        return data.MessageCategory.replace(" ", "");
+    }
+</script>

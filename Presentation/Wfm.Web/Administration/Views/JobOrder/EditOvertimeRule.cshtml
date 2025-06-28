@@ -1,0 +1,20 @@
+﻿@model JobOrderOvertimeRuleModel
+
+@{
+    ViewBag.Title = T("Admin.JobOrders.JobOrderOvertimeRule.EditOvertimeRule").Text;
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "overtimerule-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.JobOrders.JobOrderOvertimeRule.EditOvertimeRule")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            @Html.ActionLink("Cancel", "Details", new { guid = Model.JobOrderGuid, tabId = "tab-overtime-rule" }, new { @class = "k-button" })
+        </div>
+    </div>
+
+    @Html.Partial("_CreateOrUpdateOvertimeRule", Model)
+}

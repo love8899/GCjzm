@@ -1,0 +1,46 @@
+﻿@model ResumeModel
+
+<div>
+    <div style="float:left;width:30%">
+        <table width="100%">
+            <tr>
+                <td width="20%" align="left"><button id="go2prev" class="k-button">&lt; Prev</button></td>
+                <td width="40%" align="center">@(ViewBag.CurrIndex + 1) of @(ViewBag.Total)</td>
+                <td width="20%" align="right"><button id="go2next" class="k-button">Next &gt;</button></td>
+            </tr>
+        </table>
+    </div>
+    <div style="float:right">
+        <a id="go2grid" class="k-button" onclick="back2Grid()">Back To List</a>
+    </div>
+</div>
+
+<div>
+    @Html.Partial("_MessageHeader")
+</div>
+<div>
+    @Html.Partial("_MessageContent")
+</div>
+
+<input type="hidden" id="prevMsgId" name="prevMsgId" value="0" />
+<input type="hidden" id="currMsgId" name="msgId" value="0" />
+<input type="hidden" id="nextMsgId" name="nextMsgId" value="0" />
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#prevMsgId').val('@(ViewBag.PrevMsgId)');
+        $('#currMsgId').val('@(ViewBag.CurrMsgId)');
+        $('#nextMsgId').val('@(ViewBag.NextMsgId)');
+
+        $('#go2prev').click(function () { loadMsg($('#prevMsgId').val()); });
+        $('#go2next').click(function () { loadMsg($('#nextMsgId').val()); });
+
+        if ($('#prevMsgId').val() == '0')
+            $('#go2prev').attr('disabled', 'disabled');
+
+        if ($('#nextMsgId').val() == '0')
+            $('#go2next').prop('disabled', true);
+    });
+
+</script>

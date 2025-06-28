@@ -1,0 +1,13 @@
+﻿@{
+    Layout = "~/Views/Shared/Layout/_Root.cshtml";
+}
+<div id="notification-wrapper" class="notification-wrapper">
+    <span class="close" title="@T("Common.Close")">&nbsp;</span>
+    @*for notifications in page*@
+</div>
+<div class="side-2">
+    @RenderSection("left")
+</div>
+<div class="center-2">
+    @RenderBody()
+</div>

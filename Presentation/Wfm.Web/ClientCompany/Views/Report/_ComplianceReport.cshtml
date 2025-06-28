@@ -1,0 +1,13 @@
+﻿@{
+    Layout = "_ReportViewerLayout";
+    ViewBag.ReportFile = "ComplianceReport";
+
+    ViewBag.ReportParameters = new
+    {
+        FromDate = ViewBag.StartDate,
+        ToDate = ViewBag.EndDate,
+        CompanyId = ViewBag.CompanyId,
+        CompanyName = ViewBag.CompanyName,
+        franchiseId = 0
+    };
+}

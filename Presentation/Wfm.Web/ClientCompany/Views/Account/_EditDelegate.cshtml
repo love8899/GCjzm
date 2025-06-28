@@ -1,0 +1,47 @@
+﻿@model Wfm.Client.Models.Accounts.AccountDelegateModel
+@{ 
+    var panelName = ViewBag.PanelName ?? "addDelegate";
+    var formName = ViewBag.FormName ?? "delegate-form";
+}
+
+@using (Ajax.BeginForm("UpdateDelegate", "Account", new { panelName = panelName, returnViewOnErr = true },
+    new AjaxOptions { OnSuccess = "onSuccess" },
+    new { @id = formName }))
+{
+    <div class="panel-heading">
+        <b>@(Model.Id == 0 ? "Add new delegate" : "Update delegate")</b>
+        <div class="pull-right">
+            <button type="submit" name="save" class="k-button">
+                <i class="fa fa-floppy-o"></i>@T("Admin.Common.Save")
+            </button>
+            <button type="button" class="k-button" onclick="removeForm(event);">
+                <i class="fa fa-ban"></i>@T("Admin.Common.Cancel")
+            </button>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div class="message-error">
+            @Html.ValidationSummary(true)
+        </div>
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.Id)
+        @Html.HiddenFor(model => model.AccountId)
+        @Html.HiddenFor(model => model.CreatedOnUtc)
+        @Html.HiddenFor(model => model.UpdatedOnUtc)
+
+        @Html.Partial("_DelegateFields", Model)
+    </div>
+    <script type="text/javascript" language=javascript>
+        enableValidation('@formName');
+        function onSuccess(response) {
+            if (response.Succeed) {
+                reloadGridByName();
+                $('#@panelName').collapse('hide');
+                displayAdminNotification('Delgate is ' + '@(Model.Id == 0 ? "added" : "updated")', 'success');
+            }
+            else
+                $('#@panelName').html(response);
+        }
+        function removeForm(e) { $('#@panelName').collapse('hide').empty(); }
+    </script>
+}

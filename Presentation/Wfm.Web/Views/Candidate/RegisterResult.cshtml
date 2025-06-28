@@ -1,0 +1,27 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-registration-result-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    ViewBag.Title = "Your account has been registered successfully";
+    ViewBag.Description = "Register new account at " + siteTitle + " Employment";
+    ViewBag.Keywords = siteTitle + " Employment,GC,Jobs,Job Agency,Employment Agency,Staffing,Temporary Staffing,Permanent Staffing,Mass Recruitment Services,Temporary Foreign Worker Program";
+}
+
+@section left {
+    @Html.Partial("Layout/_AccountSideBar")
+}
+<div class="page registration-page">
+    <div class="page-title">
+        <h1>Registration</h1>
+    </div>
+    <div class="page-body">
+        <h3 style="color:red">Almost done...</h3>
+        <p>
+            @ViewBag.Message
+        </p>
+    </div>
+</div>

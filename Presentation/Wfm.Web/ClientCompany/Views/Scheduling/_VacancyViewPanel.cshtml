@@ -1,0 +1,563 @@
+﻿@using System.Web.Script.Serialization
+@using Wfm.Services.Scheduling
+@model IEnumerable<Wfm.Services.Scheduling.IVacancyViewModel>
+@{
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+    var editPermission = permissionService.Authorize("ManageSchedulingPlacement");
+
+    var jss = new JavaScriptSerializer();
+    var scheduleDemandingService = EngineContext.Current.Resolve<ISchedulingDemandService>();
+    const int percentageOfJobRoles = 80;
+}
+<style>
+    table.fixed-layout {
+        table-layout: fixed;
+        width: 100%;
+        vertical-align: top;
+        text-align: left;
+    }
+
+        table.fixed-layout tbody {
+            /*height: 900px;*/
+            overflow-y: scroll;
+        }
+
+        table.fixed-layout .k-button {
+            padding: 2px 2px;
+            margin: 2px 2px;
+            font-weight: 300;
+        }
+
+        table.fixed-layout tr:nth-child(even) {
+            background-color: #F3F3F3;
+        }
+
+    .teamMate h2 {
+        font-size: 1.1em;
+        font-weight: bold;
+        padding-top: 5px;
+    }
+
+    .teamMate h3 {
+        font-size: 1.1em;
+        font-weight: normal;
+        padding-top: 5px;
+    }
+
+    .teamMate h4 {
+        font-size: 1em;
+        font-weight: normal;
+        padding-top: 0px;
+    }
+
+    .teamMate td {
+        vertical-align: top;
+    }
+
+    .teamMate .scheduled-date {
+        font-weight: 400;
+        font-style:italic;
+        text-decoration:underline;
+        color: darkmagenta;
+    }
+
+    .teamMate .date {
+        padding-right: 5px;
+    }
+
+    .teamMate p {
+        margin: 0;
+    }
+
+    .teamMate img {
+        float: left;
+        margin: 5px 15px 5px 5px;
+        border: 1px solid #ccc;
+        border-radius: 50%;
+    }
+
+    .teamMate input[type=button] {
+        font-size: 0.8em;
+    }
+
+    .teamMate .schedule-button,
+    .teamMate .auto-fill-btn {
+        background-color: lightblue;
+        text-transform: none;
+        text-align: left;
+    }
+
+    .teamMate .job-order-button,
+    .teamMate .publish-btn {
+        background-color: #2196F3;
+        color: white;
+        text-transform: none;
+        text-align: left;
+    }
+
+    .teamMate .reset-btn {
+        background-color: lightgoldenrodyellow;
+        text-transform: none;
+        text-align: left;
+    }
+
+    .teamMate .warning-employee {
+        background-color: antiquewhite;
+    }
+
+    .employee-utilization {
+        font-size: smaller;
+        color: #777;
+    }
+
+    .vacation-employee {
+        background-color: seashell;
+    }
+    .k-calendar table tr {
+        background-color: white !important;
+    }
+    .radial-gauge-text {
+        position: relative;
+        top: -50px;
+        left: 53px;
+        font-size: 0.7em;
+    }
+    .gauge-value {
+        position: relative;
+        top: -14px;
+        font-size: 0.7em;
+        width: 100%;
+        text-align: center;
+        display: inline-block;
+    }
+</style>
+<div>
+    @if (Model.Any())
+    {
+        var roleCols = Model.SelectMany(s => s.RoleVacancy.Where(r => r.Vacancy > 0 || r.ScheduledEmployees.Count() > 0)
+       .Select(r => r.JobRole.Name)).Distinct();
+        var roleColDictionary = new Dictionary<string, int>();
+        int startCol = 0;
+
+        <table class="fixed-layout">
+            <thead>
+                <tr>
+                    <th width="10%">@T("Common.JobShift").Text</th>
+                    <th width="10%">@T("Common.Schedule").Text</th>
+                    @*<th width="10%">@T("Common.Dates").Text</th>*@
+                    @foreach (var role in roleCols)
+                    {
+                        <th width="@((int)(percentageOfJobRoles/roleCols.Count()))%">@role</th>
+                        roleColDictionary.Add(role, startCol);
+                        startCol++;
+                    }
+                </tr>
+            </thead>
+        </table>
+        <div style="height:75vh; overflow-y:scroll">
+            <table class="fixed-layout">
+                <thead>
+                    <tr style="height:1px;">
+                        <th width="10%"></th>
+                        <th width="10%"></th>
+                        @*<th width="10%"></th>*@
+                        @foreach (var role in roleCols)
+                        {
+                            <th width="@((int)(percentageOfJobRoles/roleCols.Count()))%"></th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var shift in Model)
+                    {
+                        var grp = shift.ScheduledDates.GroupBy(d => d.DayOfWeek);
+                        var scheduleDatsJSON = jss.Serialize(shift.ScheduledDates.Select(x => x.ToShortDateString()).ToArray());
+                        var totalPlannedManHours = shift.Shift.TotalHours * shift.RoleVacancy.Sum(x => x.ScheduledEmployees.Count() + x.Vacancy);
+                        var totalScheduledManHours = shift.RoleVacancy.Sum(r => r.PlannedHours.Sum(p => p.Value));
+                        var fulfillmentPercentage = totalPlannedManHours > 0 ? Convert.ToDouble(totalScheduledManHours * 100 / totalPlannedManHours) : 0;
+                        var published = !shift.RoleVacancy.Any(r => !r.Published);
+                        <tr class="teamMate">
+                            <td>
+                                <h2>@shift.Shift.CompanyShift.Shift.ShiftName</h2>
+                                <h4>@(totalPlannedManHours) man hours planned for all positions @(string.Format("{0:N2}%", fulfillmentPercentage)) scheduled</h4>
+                                @*@(Html.Kendo().RadialGauge()
+                                    .Name("gauge-" + shift.Shift.CompanyShift.Shift.ShiftName)
+                                    .Pointer(pointer => pointer.Value(fulfillmentPercentage))
+                                    .Scale(scale => scale
+                                        .MinorUnit(10)
+                                        .StartAngle(-30)
+                                        .EndAngle(210)
+                                        .Max(100))
+                                        .HtmlAttributes(new { style = "margin-bottom: -24px;", title = string.Format("{0:N2}%", fulfillmentPercentage) })
+                                        )*@
+                                @*<em class="radial-gauge-text">Fulfillment rate(%)</em>*@
+                            </td>
+                            <td>
+                                <h3>@string.Join(", ", grp.OrderBy(g => g.Key).Select(g => g.Key.ToString()))</h3>
+                                <h4>@shift.Shift.StartTimeOfDay.ToString("c") to @shift.Shift.EndTimeOfDay.ToString("c")</h4>
+                                @if (editPermission && !published)
+                                {
+                                    if (shift.RoleVacancy.Any(r => r.UnplannedHours > 0))
+                                    {
+                                        <a class="k-button auto-fill-btn" data-shift-id="@shift.Shift.CompanyShiftId">@T("Common.AutoFill").Text</a>
+                                    }
+                                    if (shift.RoleVacancy.Any(r => r.ScheduledEmployees.Any()))
+                                    {
+                                        <a class="k-button reset-btn" data-shift-id="@shift.Shift.CompanyShiftId">@(T("Admin.Common.Clear").Text + ' ' + T("Common.Employee").Text)</a>
+                                        <a class="k-button publish-btn" data-shift-id="@shift.Shift.CompanyShiftId">@T("Common.Finalize").Text</a>
+                                    }
+                                }
+                            </td>
+                            @{
+                                var shuffledRoles = new IRoleScheduleViewModel[roleCols.Count()];
+                                foreach (var role in shift.RoleVacancy.Where(r => r.Vacancy > 0 || r.ScheduledEmployees.Count() > 0))
+                                {
+                                    shuffledRoles[roleColDictionary[role.JobRole.Name]] = role;
+                                }
+
+                            }
+                            @for (int i = 0; i < shuffledRoles.Length; i++)
+                            {
+                                var role = shuffledRoles[i];
+                                var plannedHours = role != null ? role.PlannedHours.Sum(x => x.Value) : 0m;
+                                <td class='@(role != null && role.UnplannedHours > 0 ? "drop-target" : string.Empty)' data-role-id='@(role != null ? role.JobRole.Id  : 0)' data-shift-id='@shift.Shift.CompanyShiftId'>
+                                    @if (role != null)
+                                    {
+                                        var totalHours = Convert.ToDouble(plannedHours + role.UnplannedHours);
+                                        var jobOrder = scheduleDemandingService.FindJobOrder(shift.Shift.SchedulePeriodId, shift.Shift.CompanyShiftId, role.JobRole.Id);
+                                        var gaugeValue = Convert.ToDouble(plannedHours) / totalHours * 100;
+                                        <em>Fulfillment rate(%)</em>
+                                        <div>
+                                            @(Html.Kendo().LinearGauge()
+                                            .Name("gauge-" + shift.Shift.Id.ToString() + "-" + role.JobRole.Id.ToString())
+                                            .Pointer(pointer => pointer
+                                                .Value(gaugeValue)
+                                                .Shape(GaugeLinearPointerShape.Arrow)
+                                            )
+                                            .Scale(scale => scale
+                                                .MajorUnit(20)
+                                                .MinorUnit(10)
+                                                .Max(100)
+                                                .Labels(labels => labels
+                                                    .Font("0.7em Arial,Helvetica,sans-serif"))
+                                                .Vertical(false))
+                                                .HtmlAttributes(new { title = string.Format("{0:N2}%", gaugeValue), @class = "line-gauge gauge" })
+                                            )
+                                            <em class="gauge-value"></em>
+                                        </div>
+                                        if (!role.Published && role.UnplannedHours > 0)
+                                        {
+                                            <a class='k-button schedule-button' data-role-id='@role.JobRole.Id' data-shift-id='@shift.Shift.CompanyShiftId'>@(T("Common.Add").Text + ' ' + T("Common.Employee").Text)</a>
+                                        }
+                                        //TODO: use other permission or remove the button
+                                        if (jobOrder != null)
+                                        {
+                                            <a class='k-button job-order-button' data-job-order-id='@jobOrder.Id'>
+                                                @(T("Common.JobOrder").Text + " #" + jobOrder.Id)
+                                            @if (role.Published)
+                                            {
+                                                <span class='k-icon k-i-tick'></span>
+                                            }
+                                            </a>
+                                        }
+                                        <div>
+                                            @foreach (var emp in role.ScheduledEmployees.OrderBy(e => e.FirstName + e.LastName))
+                                            {
+                                                var empPlannedHours = role.PlannedHours.Where(x => x.Key == emp.Id).Sum(x => x.Value);
+                                                var averageHours = (role.ScheduledEmployees.Count() + role.Vacancy == 0) ? int.MaxValue : ((plannedHours + role.UnplannedHours) / (role.ScheduledEmployees.Count() + role.Vacancy));
+                                                var fullyUtilized = empPlannedHours >= averageHours;
+                                                <a class='k-button @(!editPermission || role.Published? string.Empty : "draggable") @(fullyUtilized? string.Empty : "vacation-employee") employee-button' data-role-id='@role.JobRole.Id' data-shift-id='@shift.Shift.CompanyShiftId' data-employee-id='@emp.CandidateGuid'>
+                                                    @(emp.FirstName + " " + emp.LastName)
+                                                    <span class="employee-utilization"><em>(@empPlannedHours hrs.)</em></span>
+                                                    @if (editPermission && !role.Published)
+                                                    {
+                                                        <span class='fa fa-trash remove-button' data-role-id='@role.JobRole.Id' data-shift-id='@shift.Shift.CompanyShiftId' data-employee-id='@emp.CandidateGuid'></span>
+                                                    }
+                                                </a>
+                                            }
+                                        </div>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+}
+</div>
+<script>
+    function bindDialogEvent() {
+        $('#close-schedule-employee').click(function () {
+            $("#schedule-employee-window").data("kendoWindow").close();
+        });
+        $('#schedule-employee-save').click(function () {
+            var form = $('#schedule-employee-form');
+            if (form.valid()) {
+                $.ajax({
+                    url: '@Url.Action("_EditScheduleEmployee")',
+                    type: 'POST',
+                    data: $('#schedule-employee-form').serialize(),
+                    dataType: 'json',
+                    success: function (result) {
+                        if (result.Popup) {
+                            showMessage(result.Popup);
+                        }
+                        if (result.Success) {
+                            $("#schedule-employee-window").data("kendoWindow").close();
+                        }
+                        reloadPanel();
+                    }
+                });
+                hideActions();
+            }
+        });
+    }
+    function selectEmployee(data) {
+        var dialog = $("#schedule-employee-window").data("kendoWindow");
+        if (!dialog) {
+            $("#schedule-employee-window").kendoWindow({
+                title: "Schedule Employee " + $("#schedule-period").data("kendoDropDownList").text(),
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 220,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    bindDialogEvent();
+                }
+            });
+            dialog = $("#schedule-employee-window").data("kendoWindow");
+        }
+        else {
+            dialog.title("Schedule Employee" + $("#schedule-period").data("kendoDropDownList").text());
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_ScheduleEmployeeFromVacancy")',
+            type: 'POST',
+            cache: false,
+            data: data
+        });
+        dialog.center();
+        return false;
+    }
+    function scheduleEmployee(data) {
+        window.location.href = '@Url.Action("EmployeePlacementFromPlanner", "Scheduling")?schedulePeriodId=' + data.schedulePeriodId
+            + '&companyShiftId=' + data.companyShiftId + '&jobRoleId=' + data.jobRoleId;
+        return false;
+    }
+    //
+    function processJobOrderResult(result, form) {
+        if (result == 'done') {
+            $("#schedule-job-order-window").data("kendoWindow").close();
+        }
+        else {
+            $(form).parent().html(result);
+            bindJobOrderDialogEvent();
+        }
+    }
+    function bindJobOrderDialogEvent() {
+        $('#close-schedule-job-order').click(function () {
+            $("#schedule-job-order-window").data("kendoWindow").close();
+        });
+        $('#schedule-job-order-save').click(function () {
+            var form = $('#schedule-job-order-form');
+            $.ajax({
+                url: '@Url.Action("_EditScheduleJobOrder")',
+                type: 'POST',
+                data: $(form).serialize(),
+                dataType: 'json',
+                success: function (result) {
+                    processJobOrderResult(result, form);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    processJobOrderResult(jqXHR.responseText, form);
+                }
+            });
+        });
+    }
+    function editScheduleJobOrder(data) {
+        var dialog = $("#schedule-job-order-window").data("kendoWindow");
+        if (!dialog) {
+            $("#schedule-job-order-window").kendoWindow({
+                title: "Schedule Job Order ",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 570,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    bindJobOrderDialogEvent();
+                }
+            });
+            dialog = $("#schedule-job-order-window").data("kendoWindow");
+        }
+        else {
+            dialog.title("Schedule Job Order");
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_ScheduleJobOrder")',
+            type: 'POST',
+            cache: false,
+            data: data
+        });
+        dialog.center();
+        return false;
+    }
+    //
+    $(function () {
+        $('.remove-button').click(function (event) {
+            var data = { employeeId: $(this).attr("data-employee-id"), schedulePeriodId: $("#schedule-period").data("kendoDropDownList").value(), companyShiftId: $(this).attr('data-shift-id') };
+            event.preventDefault();
+            gridDelete(function () {
+                $.ajax({
+                    url: '@Url.Action("_DeleteEmployeeSchedule")',
+                    type: 'POST',
+                    data: data,
+                    dataType: 'html',
+                    success: function (result) {
+                        reloadPanel();
+                    }
+                })
+                hideActions();
+            });
+            return false;
+        });
+        $('.employee-button').click(function (event) {
+            var data = { schedulePeriodId: $("#schedule-period").data("kendoDropDownList").value(), companyShiftId: $(this).attr('data-shift-id'), jobRoleId: $(this).attr('data-role-id') };
+            event.preventDefault();
+            scheduleEmployee(data);
+            return false;
+        });
+        $('.schedule-button').click(function (event) {
+            var data = { schedulePeriodId: $("#schedule-period").data("kendoDropDownList").value(), companyShiftId: $(this).attr('data-shift-id'), jobRoleId: $(this).attr('data-role-id') };
+            event.preventDefault();
+            selectEmployee(data);
+            return false;
+        });
+        $('.auto-fill-btn').click(function () {
+            var schedulePeriodId = $("#schedule-period").data("kendoDropDownList").value();
+            var companyShiftId = $(this).attr('data-shift-id');
+            $.ajax({
+                url: '@Url.Action("_AutoFillVacancy")',
+                data: { schedulePeriodId: schedulePeriodId, companyShiftId: companyShiftId },
+                type: 'POST',
+                dataType: 'json',
+                success: function (result) {
+                    if (result.Popup) {
+                        showMessage(result.Popup);
+                    }
+                    if (result.Success) {
+                        reloadPanel();
+                    }
+                }
+            });
+            hideActions();
+        });
+        $('.reset-btn').click(function () {
+            var schedulePeriodId = $("#schedule-period").data("kendoDropDownList").value();
+            var companyShiftId = $(this).attr('data-shift-id');
+            gridDelete(function () {
+                $.ajax({
+                    url: '@Url.Action("_ResetEmployeeSchedule")',
+                    data: { schedulePeriodId: schedulePeriodId, companyShiftId: companyShiftId },
+                    type: 'POST',
+                    dataType: 'html',
+                    success: function (result) {
+                        reloadPanel();
+                    }
+                });
+                hideActions();
+            })
+        });
+        $('.publish-btn').click(function () {
+            var schedulePeriodId = $("#schedule-period").data("kendoDropDownList").value();
+            var companyShiftId = $(this).attr('data-shift-id');
+            confirmAction('Confirm you want publish this schedule to Job Orders?',
+                function () {
+                    $.ajax({
+                        url: '@Url.Action("_PublishEmployeeSchedule")',
+                        data: { schedulePeriodId: schedulePeriodId, companyShiftId: companyShiftId },
+                        type: 'POST',
+                        dataType: 'html',
+                        success: function (result) {
+                            reloadPanel();
+                        }
+                    });
+                    hideActions();
+                });
+        });
+        $('.teamMate .k-footer').remove();
+        //
+        $('.draggable').kendoDraggable({
+            hint: function (element) {
+                return element.clone();
+            },
+            dragstart: draggableOnDragStart,
+            dragend: draggableOnDragEnd
+        });
+        $('.drop-target').kendoDropTarget({
+            drop: function (e) {
+                var schedulePeriodId = $("#schedule-period").data("kendoDropDownList").value();
+                var fromCompanyShiftId = e.draggable.element.attr('data-shift-id');
+                var fromCompanyRoleId = e.draggable.element.attr('data-role-id');
+                var employeeId = e.draggable.element.attr('data-employee-id');
+                var toCompanyShiftId = e.dropTarget.attr('data-shift-id');
+                var toCompanyRoleId = e.dropTarget.attr('data-role-id');
+                $.ajax({
+                    url: '@Url.Action("_MoveEmployeeSchedule")',
+                    data: {
+                        schedulePeriodId: schedulePeriodId, fromCompanyShiftId: fromCompanyShiftId, fromCompanyRoleId: fromCompanyRoleId,
+                        employeeId: employeeId, toCompanyShiftId: toCompanyShiftId, toCompanyRoleId: toCompanyRoleId
+                    },
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function (result) {
+                        if (result.Popup) {
+                            showMessage(result.Popup);
+                        }
+                        if (result.Success) {
+                            reloadPanel();
+                        }
+                    }
+                });
+                hideActions();
+            }
+        });
+        $('.job-order-button').click(function () {
+            var jobOrderId = $(this).attr('data-job-order-id');
+            editScheduleJobOrder({
+                jobOrderId: jobOrderId
+            });
+        })
+        $('.line-gauge').each(function () {
+            $(this).parent().find(".gauge-value").text($(this).attr('title')).end();
+        })
+    });
+
+    if ('@(ViewBag.Populateable)' === 'True')
+        $('#btnPopulateWorktime').show();
+    else
+        $('#btnPopulateWorktime').hide();
+
+    function hideActions() {
+        $('#panel-container .publish-btn').hide();
+        $('#panel-container .auto-fill-btn').hide();
+        $('#panel-container .reset-btn').hide();
+        $('#panel-container .schedule-button').hide();
+        $('#panel-container .remove-button').hide();
+    }
+    //
+    function draggableOnDragStart(e) {
+        $('.drop-target').css('border', '1px solid red');
+    }
+    function draggableOnDragEnd(e) {
+        $('.drop-target').css('border', '0px solid red')
+    }
+</script>

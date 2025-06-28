@@ -1,0 +1,89 @@
+﻿<script>
+    function filterTimeoffHistory() { return { year: $("#history-year").val() }; }
+    function reloadHistoryGrid() { $('#timeoff-history-grid').data('kendoGrid').dataSource.read(); }
+    function onHistoryDataBound() { showOrHideHistoryButton(); }
+</script>
+
+<div class="section-header">
+    <div class="options">
+        @(Html.Kendo().DatePicker().Name("history-year").HtmlAttributes(new { type = "text" })
+            .Depth(CalendarView.Decade).Start(CalendarView.Decade).Format("yyyy")
+            .Value(DateTime.Today).Max(DateTime.Today.AddYears(1))
+            .Events(e => e.Change("reloadHistoryGrid")))
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<Wfm.Shared.Models.Employees.EmployeeTimeoffBookingHistoryModel>()
+                .Name("timeoff-history-grid")
+                .Events(events => events.DataBound("onHistoryDataBound"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.EmployeeId).Title(T("Common.BadgeId").Text).Width(80);
+                    columns.Bound(x => x.EmployeeName);
+                    columns.Bound(x => x.EmployeeTimeoffTypeName);
+                    columns.Bound(x => x.TimeOffStartDateTime).ClientTemplate("#=kendo.toString(TimeOffStartDateTime,'yyyy-MM-dd')#");
+                    columns.Bound(x => x.TimeOffEndDateTime).ClientTemplate("#=kendo.toString(TimeOffEndDateTime,'yyyy-MM-dd')#");
+                    columns.Bound(x => x.BookedTimeoffInHours);
+                    columns.Bound(x => x.IsRejected).Title("Is Approved").HtmlAttributes(new { style = "text-align:center" }).Width(100)
+                        .ClientTemplate("#if (ApprovedTimeoffInHours) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#");
+                    columns.Bound(x => x.ApprovedTimeoffInHours).Title("Hours Approved").Hidden()
+                        .ClientTemplate("#if (ApprovedTimeoffInHours) {# #=ApprovedTimeoffInHours# #}else{# #}#");
+                    columns.Bound(x => x.Note);
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Hidden(true);
+
+                    columns.Command(command => command.Destroy().Text(" ").HtmlAttributes(new { title = T("Common.Delete").Text }))
+                        .Title("Action").HtmlAttributes(new { align = "center" }).Width(160);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+                .Sortable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Model(model => { 
+                        model.Id(p => p.Id); 
+                        model.Field(p => p.EmployeeId); 
+                    })
+                    .Read(read => read.Action("_GetEmployeeTimeoffHistory", "Account").Data("filterTimeoffHistory"))
+                    .Destroy(update => update.Action("_DeleteEmployeeTimeoffBook", "Account"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+
+<script>
+
+    function showOrHideHistoryButton() {
+        var grid = $("#timeoff-history-grid").data("kendoGrid");
+        var data = grid.dataSource.data();
+        for (var i = 0; i < data.length; i++) {
+            var currentData = data[i];
+            var theRow = grid.tbody.find(">tr:not(.k-grouping-row)").eq(i);
+            // rejected
+            if (currentData.IsRejected)
+                theRow.find(".k-grid-delete").remove();
+        }
+    }
+
+</script>

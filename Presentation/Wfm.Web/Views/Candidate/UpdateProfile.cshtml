@@ -1,0 +1,223 @@
+﻿@model CandidateUpdateProfileModel
+@using Wfm.Core.Infrastructure
+@using Wfm.Services.Common
+@using Wfm.Web.Models.Candidate
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var salutationService = EngineContext.Current.Resolve<ISalutationService>();
+    var transportationService = EngineContext.Current.Resolve<ITransportationService>();
+    var securityQuestionService = EngineContext.Current.Resolve<ISecurityQuestionService>();
+
+    var salutationsDropDownList = salutationService.GetAllSalutations().Select(x => new SelectListItem()
+    {
+        Text = x.SalutationName,
+        Value = x.Id.ToString()
+    });
+
+    var transportationsDropDownList = transportationService.GetAllTransportations().Select(x => new SelectListItem()
+    {
+        Text = x.TransportationName,
+        Value = x.Id.ToString()
+    });
+
+    var securityquestionsDropDownList = securityQuestionService.GetAllSecurityQuestions().Select(x => new SelectListItem()
+    {
+        Text = x.Question,
+        Value = x.Id.ToString()
+    });
+}
+
+<div class="page registration-page">
+    <div class="page-title">
+        <h1>Profile</h1>
+    </div>
+    <div class="page-body">
+        @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "candidate-form" }))
+        {
+            var validationSummary = Html.ValidationSummary(true);
+            if (!MvcHtmlString.IsNullOrEmpty(validationSummary))
+            {
+                <div class="message-error">@validationSummary</div>
+            }
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(model => model.Id)
+            @Html.HiddenFor(model => model.CandidateGuid)
+            @Html.HiddenFor(model => model.ShowSecurityQuestions)
+            @Html.HiddenFor(model => model.CreatedOnUtc)
+            @Html.HiddenFor(model => model.UpdatedOnUtc)
+            <div class="fieldset">
+                <div class="form-fields">
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.EmployeeId)
+                        @Html.TextBoxFor(model => model.EmployeeId, new { @readonly = "readonly" })
+                    </div>
+                </div>
+                <div class="title">
+                    <strong>Your Personal Details</strong>
+                </div>
+                <div class="form-fields">
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.SalutationId, new { }, ":")
+                        @(Html.Kendo().DropDownList().Name("SalutationId")
+                            .OptionLabel("--Select--")
+                            .BindTo(salutationsDropDownList)
+                        )
+                        @Html.ValidationMessageFor(model => model.SalutationId)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.FirstName)
+                        @Html.TextBoxFor(model => model.FirstName, new { @readonly = "readonly" })
+                        @*@Html.WfmValidationMessageFor(model => model.FirstName)*@
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.LastName)
+                        @Html.TextBoxFor(model => model.LastName, new { @readonly = "readonly" })
+                        @Html.WfmValidationMessageFor(model => model.LastName)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.BirthDate)
+                        @Html.TextBoxFor(model => model.BirthDate, "{0:MM/dd/yyyy}", new { @readonly = "readonly" })
+                        @Html.WfmValidationMessageFor(model => model.BirthDate)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.Email)
+                        @Html.EditorFor(model => model.Email)
+                        @Html.WfmValidationMessageFor(model => model.Email)
+                    </div>
+                </div>
+                @if (Model.ShowSecurityQuestions)
+                {
+                    <div class="title">
+                        <strong>Your Account Information</strong>
+                    </div>
+                    <div class="form-fields">
+                        <div class="inputs">
+                            @Html.LabelFor(model => model.SecurityQuestion1Id, new { }, ":")
+                            @(Html.Kendo().DropDownList().Name("SecurityQuestion1Id")
+                                .OptionLabel("--Select--").BindTo(securityquestionsDropDownList))
+                            @Html.ValidationMessageFor(model => model.SecurityQuestion1Id)
+                        </div>
+                        <div class="inputs">
+                            @Html.LabelFor(model => model.SecurityQuestion1Answer, new { }, ":")
+                            @Html.EditorFor(model => model.SecurityQuestion1Answer)
+                            @Html.ValidationMessageFor(model => model.SecurityQuestion1Answer)
+                        </div>
+                        <div class="inputs">
+                            @Html.LabelFor(model => model.SecurityQuestion2Id, new { }, ":")
+                            @(Html.Kendo().DropDownList().Name("SecurityQuestion2Id")
+                                .OptionLabel("--Select--").BindTo(securityquestionsDropDownList))
+                            @Html.ValidationMessageFor(model => model.SecurityQuestion2Id)
+                        </div>
+                        <div class="inputs">
+                            @Html.LabelFor(model => model.SecurityQuestion2Answer, new { }, ":")
+                            @Html.EditorFor(model => model.SecurityQuestion2Answer)
+                            @Html.ValidationMessageFor(model => model.SecurityQuestion2Answer)
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    @Html.HiddenFor(model => model.SecurityQuestion1Id)
+                    @Html.HiddenFor(model => model.SecurityQuestion1Answer)
+                    @Html.HiddenFor(model => model.SecurityQuestion2Id)
+                    @Html.HiddenFor(model => model.SecurityQuestion2Answer)
+                }
+                <div class="title">
+                    <strong>Your Contact Details</strong>
+                </div>
+                <div class="form-fields">
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.HomePhone, new { }, ":")
+                        @(Html.Kendo().MaskedTextBoxFor(model => model.HomePhone)
+                            .Mask("(999) 000-0000").HtmlAttributes(new { type = "tel" }))
+                        @Html.ValidationMessageFor(model => model.HomePhone)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.MobilePhone, new { }, ":")
+                        @(Html.Kendo().MaskedTextBoxFor(model => model.MobilePhone)
+                            .Mask("(999) 000-0000").HtmlAttributes(new { type = "tel" }))
+                        @Html.ValidationMessageFor(model => model.MobilePhone)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.EmergencyPhone, new { }, ":")
+                        @(Html.Kendo().MaskedTextBoxFor(model => model.EmergencyPhone)
+                            .Mask("(999) 000-0000").HtmlAttributes(new { type = "tel" }))
+                        @Html.ValidationMessageFor(model => model.EmergencyPhone)
+                    </div>
+                </div>
+                <div class="title">
+                    <strong>Other Information</strong>
+                </div>
+                <div class="form-fields">
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.Education, new { }, ":")
+                        @Html.EditorFor(model => model.Education)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.MajorIntersection1, new { }, ":")
+                        @Html.EditorFor(model => model.MajorIntersection1)
+                        @Html.ValidationMessageFor(model => model.MajorIntersection1)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.MajorIntersection2, new { }, ":")
+                        @Html.EditorFor(model => model.MajorIntersection2)
+                        @Html.ValidationMessageFor(model => model.MajorIntersection2)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.TransportationId, new { }, ":")
+                        @(Html.Kendo().DropDownList().Name("TransportationId")
+                            .OptionLabel("--Select--").BindTo(transportationsDropDownList)
+                            .Events(e => e.Change("toggleLicencePlate")))
+                        @Html.ValidationMessageFor(model => model.TransportationId)
+                    </div>
+                    <div class="inputs" id="licence-plate">
+                        @Html.LabelFor(model => model.LicencePlate)
+                        @Html.EditorFor(model => model.LicencePlate)
+                        @Html.WfmValidationMessageFor(model => model.LicencePlate)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.PreferredWorkLocation, new { }, ":")
+                        @Html.EditorFor(model => model.PreferredWorkLocation)
+                    </div>
+                </div>
+            </div>
+            <div class="buttons">
+                <input type="submit" id="save" name="save" class="button-1" value="@T("Common.Save")" />
+                <button class="button-1"  onclick="window.location.href='@Url.Action("ViewProfile", "Candidate")';return false;">@T("Admin.Common.Cancel")</button>
+            </div>
+        }
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    function toggleLicencePlate() {
+        var tran = $("#TransportationId").val();
+        if (tran == 1) {
+            $("#licence-plate").show();
+        }
+        else {
+            $("#licence-plate").hide();
+        }
+    }
+
+    $(function () {
+
+        toggleLicencePlate();
+
+        $('#save').click(function () {
+            var validator = $("#candidate-form").validate();
+            if ($('#candidate-form').valid())
+                return true;
+            else {
+                console.log("validation errors:", validator.errorList);
+                displayPopupNotification('Some fields missing or invalid. Please check and correct.', 'error', true);
+            }
+            return false;
+        });
+
+    });
+
+</script>

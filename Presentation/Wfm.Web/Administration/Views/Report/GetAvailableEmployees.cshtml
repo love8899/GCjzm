@@ -1,0 +1,43 @@
+﻿@{
+    var refDate = DateTime.Today;
+}
+
+
+@(Html.Kendo().PanelBar().Name("search-bar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text(String.Format(T("Common.ReportParameters").Text, T("Admin.Report.AvailableEmployees").Text))
+            .Expanded(true)
+            .Content(@<div class="panel">
+                <br />
+                @Html.Label("RefDate", "Date: ")
+                @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("RefDate").Value(refDate.ToString("yyyy-MM-dd"))
+                <div style="text-align: center">
+                    <br />@(Html.Kendo().Button().Name("loadReport").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text))<br /><br />
+                </div>
+            </div>);
+}))
+
+<div id="report" />
+
+
+<script type="text/javascript">
+
+    $("#loadReport").bind("click", function () {
+        loadReport();
+    });
+    function loadReport() {
+        var refDate = $("#RefDate").val();
+        if (refDate == null) {
+            //ids = "";
+            alert("Please select date!");
+        } else {
+            $("#report").load("_AvailableEmployeesReport", {
+                refDate: $("#RefDate").val()
+            });
+        }
+    }
+
+</script>
+

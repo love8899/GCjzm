@@ -1,0 +1,161 @@
+﻿@using Wfm.Core.Domain.Companies
+
+@model CompanyEmailTemplateModel
+
+
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.CompanyId)
+@Html.HiddenFor(model => model.CompanyGuid)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.IsDeleted)
+@Html.HiddenFor(model => model.AttachmentFile)
+@Html.HiddenFor(model => model.AttachmentFileName)
+@Html.HiddenFor(model => model.AttachmentTypeId)
+@Html.HiddenFor(model => model.AttachmentFile2)
+@Html.HiddenFor(model => model.AttachmentFileName2)
+@Html.HiddenFor(model => model.AttachmentTypeId2)
+@Html.HiddenFor(model => model.AttachmentFile3)
+@Html.HiddenFor(model => model.AttachmentFileName3)
+@Html.HiddenFor(model => model.AttachmentTypeId3)
+@{
+    var types = CompanyEmailTemplateType.Confirmation.ToSelectList(true).ToList();
+}
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Type)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList()
+                .Name("Type")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(types)
+                .Enable(true)
+            )
+            @Html.WfmValidationMessageFor(model => model.Type)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyLocationId,T("Common.Location").Text)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().DropDownList()
+                .Name("CompanyLocationId")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                        {
+                            read.Action("GetCascadeCompanyLocationsWithDefaultRow", "Common").Data("filterLocations").Type(HttpVerbs.Post);
+                        })
+                        .ServerFiltering(true);
+                })
+                .Enable(true)
+                .CascadeFrom("CompanyId")
+            )
+            <script> function filterLocations() { return { companyid: $("#CompanyId").val() }; } </script>
+            @Html.WfmValidationMessageFor(model => model.CompanyLocationId)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyDepartmentId, T("Common.Department").Text)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().DropDownList()
+                .Name("CompanyDepartmentId")
+                    //.OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetCascadeDepartments", "Common").Data("filterCompanyDepartments").Type(HttpVerbs.Post);
+                    })
+                        .ServerFiltering(true);
+                })
+                .Enable(false)
+                .CascadeFrom("CompanyLocationId")
+            )
+            <script> function filterCompanyDepartments() { return { locationId: $("#CompanyLocationId").val() }; } </script>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Subject)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.Subject)
+            @Html.WfmValidationMessageFor(model => model.Subject)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Body)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.Body, "RichEditor2")
+            @Html.WfmValidationMessageFor(model => model.Body)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.Label(T("Admin.Candidate.CandidateAttachment").Text)
+        </td>
+        <td class="adminData">
+            @if (!String.IsNullOrEmpty(Model.AttachmentFileName))
+            {
+                <div>
+                    @Html.CheckBoxFor(model => model.KeepFile1)
+                    <span id="attachment1">@Model.AttachmentFileName</span>
+                </div>
+            }
+            @if (!String.IsNullOrEmpty(Model.AttachmentFileName2))
+            {
+                <div>
+                    @Html.CheckBoxFor(model => model.KeepFile2)
+                    <span id="attachment2">@Model.AttachmentFileName2</span>
+                </div>
+            }
+            @if (!String.IsNullOrEmpty(Model.AttachmentFileName3))
+            {
+                <div>
+                    @Html.CheckBoxFor(model => model.KeepFile3)
+                    <span id="attachment3">@Model.AttachmentFileName3</span>
+                </div>
+            }
+            @(Html.Kendo().Upload()
+                .Name("files")
+                .Multiple(true)
+            )
+
+        </td>
+    </tr>
+
+</table>
+<script type="text/javascript">
+    $("#KeepFile1").change(function () {
+        duringChange("#KeepFile1", "#attachment1");
+    });
+    $("#KeepFile2").change(function () {
+        duringChange("#KeepFile2", "#attachment2");
+    });
+    $("#KeepFile3").change(function () {
+        duringChange("#KeepFile3", "#attachment3");
+    });
+    function duringChange(keep,attachmentId)
+    {
+        if (!$(keep).attr("checked")) {
+            $(attachmentId).css('text-decoration', 'line-through');
+        } else if ($(keep).attr("checked")) {
+            $(attachmentId).css('text-decoration', 'none');
+        }
+    }
+</script>

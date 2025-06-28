@@ -1,0 +1,187 @@
+﻿@using Wfm.Core.Domain.TimeSheet;
+
+@model IEnumerable<CandidateWorkTimeModel>
+
+@{
+    ViewBag.Title = T("Admin.TimeSheet.CandidateWorkTime").Text;
+    int[] excludedStatusIds = null;   // new int[] { (int)CandidateWorkTimeStatus.Matched, };
+    var availableWorkTimeStatus = CandidateWorkTimeStatus.PendingApproval.ToSelectList(false, excludedStatusIds).ToList();
+}
+
+@(Html.Kendo().Window()
+    .Name("calculatecandidateworktime-window")
+    .Title(T("Admin.TimeSheet.CalculateCandidateWorkTime.Calculate").Text)
+    .Content(@<text>@Html.Partial("CalculateCandidateWorkTime")</text>)
+    .Width(700)
+    .Draggable(true)
+    .Modal(true)
+    .Visible(false)
+    .Actions(actions => actions.Minimize().Maximize().Close())
+)
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.TimeSheet.CandidateWorkTimeMatch")
+    </div>
+    <div class="options">
+        @*<button id="calculate-worktime" class="k-button"><span class="k-icon k-i-refresh"></span>@T("Admin.TimeSheet.CalculateCandidateWorkTime.Calculate")</button>
+        <a id="importexcel" class="k-button">@T("Admin.Common.ImportFromExcel").Text</a>
+        <a id="exportexcel-selected" class="k-button">@T("Admin.Common.ExportToExcel.Selected").Text</a>*@
+    </div>
+</div>
+
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateWorkTimeModel>()
+                .Name("worktimematch-grid")
+                .Events(events => events.DataBound("onDataBound"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(60).Hidden(true);
+
+                    columns.Bound(x => x.EmployeeId)
+                        .ClientTemplate(@Html.ActionLink("#=EmployeeId#", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString())
+                        .Width(90);
+
+                    columns.Bound(x => x.EmployeeLastName).Title("Last Name")
+                        .ClientTemplate("#if (CandidateWorkTimeStatusId != 13 && NetWorkTimeInHours<=1){# <span class='worktime-warning'>#=EmployeeLastName#</span> #}else{# #=EmployeeLastName# #}#")
+                        .Width(90);
+                    columns.Bound(x => x.EmployeeFirstName).Title("First name")
+                        .ClientTemplate("#if (CandidateWorkTimeStatusId != 13 && NetWorkTimeInHours<=1){# <span class='worktime-warning'>#=EmployeeFirstName#</span> #}else{# #=EmployeeFirstName# #}#")
+                        .Width(90);
+
+                    columns.Bound(x => x.JobOrderId).Title("Job Order")
+                        .ClientTemplate(@Html.ActionLink("#=JobOrderId#", "Details", "JobOrder", new { guid = "#=JobOrderGuid#" }, new { target = "_blank" }).ToHtmlString())
+                        .Width(60);
+
+                    columns.Bound(x => x.CompanyName).Title("Company");
+                    columns.Bound(x => x.LocationName).Hidden(true);
+                    columns.Bound(x => x.DepartmentName).Hidden(true);
+                    columns.Bound(x => x.ContactName).Hidden(false);
+                    columns.Bound(x => x.JobTitle).Hidden(false);
+
+                    columns.Bound(x => x.JobStartDateTime).Title("Start Time").Format("{0:yyyy-MM-dd HH:mm}").Width(120);
+                    columns.Bound(x => x.JobEndDateTime).Title("End Time").Format("{0:yyyy-MM-dd HH:mm}").Width(120).Hidden(true);
+
+                    columns.Bound(x => x.ClockIn).Format("{0:yyyy-MM-dd HH:mm}").Width(120)
+                        .ClientTemplate("#if (ClockIn != null) {# #=kendo.toString(ClockIn,'yyyy-MM-dd HH:mm')# #}else{# #}#");
+                    columns.Bound(x => x.ClockOut).Format("{0:yyyy-MM-dd HH:mm}").Width(120)
+                        .ClientTemplate("#if (ClockOut != null) {# #=kendo.toString(ClockOut,'yyyy-MM-dd HH:mm')# #}else{# #}#");
+
+                    columns.Bound(x => x.JobOrderDurationInHours)
+                        .HtmlAttributes(new { align = "right" }).Format("{0:n2}").Width(60);
+
+                    columns.Bound(x => x.ClockTimeInHours)
+                        .ClientTemplate("#if (ClockTimeInHours<=1){# <span class='worktime-warning'>#= kendo.format('{0:n2}',ClockTimeInHours) #</span> #}else{# #= kendo.format('{0:n2}',ClockTimeInHours) # #}#")
+                        .HtmlAttributes(new { align = "right" }).Width(60);
+
+                    columns.Bound(x => x.GrossWorkTimeInHours)
+                        .HtmlAttributes(new { align = "right" }).Format("{0:n2}").Width(60);
+
+                    columns.ForeignKey(x => x.CandidateWorkTimeStatusId, availableWorkTimeStatus, "Value", "Text")
+                        .Width(105);
+
+                    columns.Command(command =>
+                    {
+                        command.Custom("Select").Click("confirmWorkTime");
+                    }).Title("Action").Width(100);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(
+                    dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(30)
+                    .Read(read => read.Action("CandidateWorkTimeMatch", "TimeSheet").Data("gridParameter"))
+                    .Group(grp => { grp.Add(x => x.EmployeeId); grp.Add(x => x.ClockIn); })
+                    .Sort(sorts => sorts.Add(x => x.JobStartDateTime))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+
+<script>
+
+    function onDataBound(e) {
+        showOrHideButton(e)
+    }
+
+    function showOrHideButton(e) {
+        var grid = $("#worktimematch-grid").data("kendoGrid");
+        var data = grid.dataSource.data();
+        var currentRow = 0;
+        var l1Num = data.length;
+        for (var i = 0; i < l1Num; i++) {
+            var l2Num = data[i].items.length;
+            for (var j = 0; j < l2Num; j++) {
+                var l3Num = data[i].items[j].items.length;
+                for (var k = 0; k < l3Num; k++)
+                {
+                    var currentData = data[i].items[j].items[k];
+                    var theRow = grid.tbody.find(">tr:not(.k-grouping-row)").eq(currentRow);
+                    if (currentData.CandidateWorkTimeStatusId == 11)
+                        theRow.find(".k-grid-Select").remove();
+                    currentRow++;
+                }
+            }
+        }
+    }
+
+    function gridParameter() {
+        return {
+            guid: '@ViewBag.CandidateGuid',
+            clockInOut: '@ViewBag.ClockInOut'
+        };
+    }
+
+    function confirmWorkTime(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var url = '@Url.Action("CandidateWorkTime", "TimeSheet")' + '?candidateId=' + dataItem.CandidateId + '&jobStartDate=' + dataItem.JobStartDateTime.toLocaleDateString();
+        $.ajax({
+            url: '@Url.Action("ConfirmWorkTime", "Timesheet")',
+            type: 'POST',
+            data: { id: dataItem.Id },
+            cache: false,
+            async: false,
+            success: function (result) {
+                if (result.Succeed) {
+                    reloadGrid();
+                    window.location.href = url;
+                }
+                else {
+                    alert(result.Error);
+                }
+            },
+        });
+    }
+
+    function reloadGrid() {
+        var grid = $("#worktimematch-grid").data("kendoGrid");
+        grid.dataSource.page(1);
+        grid.dataSource.read();
+        selectedIds = [];
+    }
+
+</script>

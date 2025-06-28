@@ -1,0 +1,57 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Financial and Accounting";
+    //var description = "Using our strong connections with Fortune 500 and other industry leading companies, our consultants can help you find the best jobs that fit your skillset.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower() + " jobs";
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Financial and Accounting</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            Are you the strong financial type and looking for a change? Don’t leave finding
+            your next position to chance, let professionals help you along your career path.
+            Using our strong connections with Fortune 500 and other industry leading companies,
+            our consultants can help you find the best jobs that fit your skillset.
+        </p>
+
+        <p>
+            We have placed a broad spectrum of specialist staff from bookkeepers and bank tellers
+            through to senior qualified accountants and finance managers. @siteTitle
+            can help you secure permanent, contract and temporary appointments across a wide
+            variety of finance and accounting roles, including:
+        </p>
+
+        <ul>
+            <li>Accountants</li>
+            <li>Bank tellers</li>
+            <li>Controllers</li>
+            <li>Cost accountants</li>
+            <li>Finance managers</li>
+            <li>Financial analysts</li>
+            <li>Loan officers</li>
+            <li>Payroll specialists</li>
+            <li>Staff accountants</li>
+            <li>Senior accountants</li>
+            <li>Tax managers</li>
+        </ul>
+    </div>
+</div>

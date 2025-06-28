@@ -1,0 +1,38 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Scheduling
+@using Wfm.Shared.Models.Scheduling
+
+
+@{
+    List<SelectListItem> periods = ViewBag.ExistingPeriods;
+}
+
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "copy-form" }))
+{
+    <br />
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle" width="30%">
+                Previous Period
+            </td>
+            <td class="adminData" width="70%">
+                @(Html.Kendo().DropDownList()
+                .Name("SchedulePeriod")
+                .OptionLabel("--- Select ---")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(periods)
+                .HtmlAttributes(new { style = "width: 240px" })
+                )
+        
+            </td>
+        </tr>
+    </table>
+
+    <br /><br />
+    <div style="text-align: center">
+        <input type="button" id="submit-copy" class="k-button" value="Copy" style="text-align:center" />
+        <input type="button" id="submit-cancel" class="k-button" value="Cancel" style="text-align:center" />
+    </div>
+}

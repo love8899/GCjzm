@@ -1,0 +1,26 @@
+﻿
+@model Wfm.Admin.Models.Announcements.AnnouncementModel
+
+@using (Html.BeginForm())
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Common.Edit") @Html.ActionLink("(" + T("Common.Back") + ")", "Index")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />           
+            <span id="announcement-delete" class="k-button">@T("Common.Delete")</span>
+        </div>
+    </div>
+
+    @Html.Partial("_CreateOrUpdate", Model)
+}
+
+@Html.DeleteConfirmation("announcement-delete")
+
+<script type="text/javascript">
+    $('form input[type=submit]').click(function () {
+        tinyMCE.triggerSave();
+    });
+</script>

@@ -1,0 +1,148 @@
+﻿@using Wfm.Services.Common
+@using Wfm.Services.Companies
+@using Wfm.Services.Policies
+@using Wfm.Shared.Models.Companies
+
+@model CompanyShiftModel
+@{ 
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    var companyLocationService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+    var companyLocations = companyLocationService.GetAllCompanyLocationsByAccount(workContext.CurrentAccount)
+        .Select(x => new SelectListItem
+        {
+            Text = x.LocationName,
+            Value = x.Id.ToString(),
+        }).ToArray();
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var shifts = shiftService.GetAllShifts()
+        .Select(x => new SelectListItem
+        {
+            Text = x.ShiftName,
+            Value = x.Id.ToString(),
+        }).ToArray();
+
+    var schedulePolicyService = EngineContext.Current.Resolve<ISchedulePolicyService>();
+    var schedulePolicies = schedulePolicyService.GetSchedulePoliciesByCompanyId(Model.CompanyId).Where(x => x.IsActive && !x.IsDeleted)
+                           .Select(x => new SelectListItem { Text = x.Name, Value = x.Id.ToString() });
+}
+<script>
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+</script>
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "shift-report-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @(Model.Id > 0 ? T("Admin.Configuration.Shift.EditShiftDetails").Text : T("Admin.Common.Details").Text)
+        </div>
+        <div class="options">
+            <input type="button" name="save" id="save-shift-report" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" name="close" id="close-shift-report" class="k-button" value="@T("Common.Close")" />
+        </div>
+    </div>
+
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.CompanyId)
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+    @Html.HiddenFor(model => model.UpdatedOnUtc)
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CompanyLocationId)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                .Name("CompanyLocationId")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(companyLocations)
+                )
+                @Html.WfmValidationMessageFor(model => model.CompanyLocationId)
+                <script> function filterDepartments() { return { locationid: $("#CompanyLocationId").val() }; } </script>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CompanyDepartmentId)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                .Name("CompanyDepartmentId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .DataSource(source => source.Read(read => { read.Action("GetCascadeDepartments", "Common").Data("filterDepartments"); }).ServerFiltering(true))
+                .Enable(false)
+                .AutoBind(false)
+                .CascadeFrom("CompanyLocationId")
+                )
+                @Html.WfmValidationMessageFor(model => model.CompanyDepartmentId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.ShiftId)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                .Name("ShiftId")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(shifts)
+                )
+                @Html.WfmValidationMessageFor(model => model.ShiftId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EffectiveDate)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePickerFor(model => model.EffectiveDate)
+                .Format("yyyy-MM-dd")
+                .Start(CalendarView.Month))
+                @Html.WfmValidationMessageFor(model => model.EffectiveDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.ExpiryDate)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DatePickerFor(model => model.ExpiryDate)
+                .Format("yyyy-MM-dd")
+                .Start(CalendarView.Month))
+                @Html.WfmValidationMessageFor(model => model.ExpiryDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Note)
+            </td>
+            <td class="adminData">
+                @Html.TextAreaFor(model => model.Note, new { id = "Note", style = "height:50px;width:80%;" })
+                @Html.WfmValidationMessageFor(model => model.Note)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SchedulePolicyId)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownListFor(model => model.SchedulePolicyId)
+                    .OptionLabel("--Select--")
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .BindTo(schedulePolicies)
+                    .Value(schedulePolicies.Count() == 1 ? schedulePolicies.First().Value : Model.SchedulePolicyId.ToString())
+                )
+                @Html.WfmValidationMessageFor(model => model.SchedulePolicyId)
+            </td>
+        </tr>
+    </table>
+}

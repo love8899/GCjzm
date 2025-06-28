@@ -1,0 +1,10 @@
+﻿@model int
+@{ var isEnabled = ViewData["isEnabled"] != null ? (bool)ViewData["isEnabled"] : true; }
+
+@(Html.Kendo().DropDownListFor(m => m)
+        .OptionLabel("Please select source...")
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .DataSource(dataSource => dataSource.Read(read => read.Action("GetAllSources", "Common").Type(HttpVerbs.Post)).ServerFiltering(true))
+        .Enable(isEnabled)
+)

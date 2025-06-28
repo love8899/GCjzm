@@ -1,0 +1,26 @@
+﻿@model CandidateActivationModel
+@using Wfm.Web.Models.Candidate
+
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    Html.AddTitleParts(T("PageTitle.CandidateActivation").Text);
+}
+
+<div class="page account-activation-page">
+    <div class="page-title">
+        <h1>@T("Web.Candidate.Candidate.Activation")</h1>
+    </div>
+    <div class="page-body">
+        @if (!String.IsNullOrEmpty(Model.Result))
+        {
+            <div class="result">
+                @Model.Result
+            </div>
+        }
+        <br />
+        Click @Html.ActionLink("My account", "SignIn", "Candidate") to log in now.
+        <br />
+    </div>
+</div>

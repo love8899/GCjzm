@@ -1,0 +1,168 @@
+﻿@using Wfm.Services.Messages;
+@using Wfm.Services.Accounts;
+@model MessageTemplateModel
+@{
+    var messageCategoryService = EngineContext.Current.Resolve<IMessageCategoryService>();
+    var messageCategoriesList = messageCategoryService.GetAllMessageCategories(true)
+                                .Select(x => new SelectListItem() { Text = x.CategoryName, Value = x.Id.ToString() });
+    var emailAccountService = EngineContext.Current.Resolve<IEmailAccountService>();
+    var emails = emailAccountService.GetAllEmailAccounts().Select(x => new SelectListItem() { Value = x.Id.ToString(), Text = x.Email });
+
+    var accountRoleService = EngineContext.Current.Resolve<IAccountService>();
+    var accountRoles = new SelectList(accountRoleService.GetAllAccountRoles().OrderBy(x => x.AccountRoleName).ToArray(),
+                   "Id", "AccountRoleName");
+
+    
+}
+
+
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EmailAccountId,T("Common.Email").Text)
+        </td>
+        <td class="adminData required">
+            @Html.Kendo().DropDownListFor(model=>model.EmailAccountId).BindTo(emails).DataTextField("Text").DataValueField("Value")
+            @Html.WfmValidationMessageFor(model => model.TagName)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.TagName)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.TagName)
+            @Html.WfmValidationMessageFor(model => model.TagName)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CCEmailAddresses)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.CCEmailAddresses)
+            @Html.WfmValidationMessageFor(model => model.CCEmailAddresses)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.BccEmailAddresses)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.BccEmailAddresses)
+            @Html.WfmValidationMessageFor(model => model.BccEmailAddresses)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Subject)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.Subject)
+            @Html.WfmValidationMessageFor(model => model.Subject)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Body)
+        </td>
+        <td class="adminData required">
+            @*@{
+                    Html.Kendo().Editor()
+                        .Name("Body")
+                        .HtmlAttributes(new {style = "height:350px"})
+                        .Encode(false)
+                        .Value(@<text></text>)
+                        .Render();
+                }*@
+            @Html.EditorFor(model => model.Body, "RichEditor2")
+            @Html.WfmValidationMessageFor(model => model.Body)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.PossibleVariables)
+        </td>
+        <td class="adminData">
+            @{
+                Html.Kendo().Editor()
+                    .Name("PossibleVariables")
+                    .HtmlAttributes(new { style = "height:200px" })
+                    .Encode(false)
+                    .Value(@<text></text>)
+                    .Render();
+            }
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.MessageCategoryId)
+        </td>
+      
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList()
+                                .Name("MessageCategoryId")
+                        .OptionLabel("--Select--")
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                        .BindTo(messageCategoriesList)
+            )
+            @Html.WfmValidationMessageFor(model => model.MessageCategoryId)      
+
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.AccountRolesIds)
+        </td>
+        <td class="adminData">        
+       
+            @(Html.Kendo().MultiSelect()
+                          .Name("AccountRolesIds")
+                  .Placeholder("Select roles...")
+                  .DataTextField("Text")
+                  .DataValueField("Value")
+                  .BindTo(accountRoles)
+                  .Value(Model.AccountRolesIds))
+        
+        </td>
+    </tr>
+
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsActive)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.IsActive)
+        </td>
+    </tr>  
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsGeneral, T("Common.General").Text)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.IsGeneral)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Note)
+        </td>
+        <td class="adminData">
+            @{
+                Html.Kendo().Editor()
+                    .Name("Note")
+                    .HtmlAttributes(new { style = "height:200px" })
+                    .Encode(false)
+                    .Value(@<text></text>)
+                    .Render();
+            }
+        </td>
+    </tr>
+</table>

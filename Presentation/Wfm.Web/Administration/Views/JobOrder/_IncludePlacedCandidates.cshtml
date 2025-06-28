@@ -1,0 +1,42 @@
+﻿@using Wfm.Shared.Models.Accounts
+@model AccountLoginModel
+<div class="user-login">
+
+    @using (Html.BeginForm("IncludePlacedCandidates", "JobOrder", new { guid=@ViewBag.JobOrderGuid }, FormMethod.Post, new { id = "authenticate-admin-form" }))
+    {
+        <table class="web-content">
+            <tr>
+                <td colspan="2">
+                    <div class="message-error">@Html.ValidationSummary(true, T("Account.AccountLogin.Unsuccessful").Text)</div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => m.Username)
+                </td>
+                <td>
+                    @Html.EditorFor(m => m.Username, new { @class = "input-box" })
+                    @Html.WfmValidationMessageFor(m => m.Username)
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.LabelFor(m => m.Password)
+                </td>
+                <td>
+                    @Html.EditorFor(m => m.Password, new { @class = "input-box" })
+                    @Html.WfmValidationMessageFor(m => m.Password)
+                                  
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <input type="submit" id="btnAuthenticate" class="k-button" value="@T("Admin.Common.Submit")" />
+                    <input type="button" id="btnCancelAuthenticate" class="k-button" value="@T("Admin.Common.Cancel")" />
+                </td>
+            </tr>
+        </table>
+    }
+</div>
+

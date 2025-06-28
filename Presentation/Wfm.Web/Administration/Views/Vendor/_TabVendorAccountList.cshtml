@@ -1,0 +1,91 @@
+﻿@using Wfm.Services.Security
+@model IEnumerable<AccountsViewModel>
+@{
+    Layout = "";
+    ViewBag.Title = T("Admin.Accounts.Accounts").Text;
+
+    var vendorGuId = ViewBag.VendorGuid;
+    var returnPath = ViewBag.ReturnPath;
+
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Accounts.Accounts")
+    </div>
+    <div class="options">
+        @if (permissionService.Authorize("ManageAccounts"))
+        {
+            @Html.ActionLink(T("Common.Add").Text, "Create", "AccountManager", new { returnPath = returnPath, vendorGuId = vendorGuId }, new { @class = "k-button" })
+        }
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<AccountsViewModel>()
+                  .Name("vendoraccount-grid")
+                  .Columns(columns =>
+                    {
+                        columns.Bound(x => x.Id).Width(60).Hidden(true);
+
+                        columns.Bound(x => x.LastName).Width(100)
+                            .Template(x => Html.ActionLink(x.LastName, "Details", "AccountManager", new { guid = x.AccountGuid, returnPath = returnPath }, new { }))
+                            .ClientTemplate(@Html.ActionLink("#=LastName#", "Details", "AccountManager", new { guid = "#=AccountGuid#", returnPath = returnPath }, new { }).ToHtmlString());
+                        columns.Bound(x => x.FirstName).Width(100)
+                            .Template(x => Html.ActionLink(x.FirstName, "Details", "AccountManager", new { guid = x.AccountGuid, returnPath = returnPath }, new { }))
+                            .ClientTemplate(@Html.ActionLink("#=FirstName#", "Details", "AccountManager", new { guid = "#=AccountGuid#", returnPath = returnPath }, new { }).ToHtmlString());
+
+                        columns.Bound(x => x.AccountRoleSystemName).Width(180);
+                        columns.Bound(x => x.Username).Width(100);
+
+                        columns.Bound(x => x.Email).Hidden();
+
+                        columns.Bound(x => x.WorkPhone).ClientTemplate("#= prettyPhone(WorkPhone) #").Width(150);
+                        columns.Bound(x => x.MobilePhone).ClientTemplate("#= prettyPhone(MobilePhone) #").Width(110);
+
+                        columns.Bound(x => x.IsActive)
+                             .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                            .Width(80);
+
+                        columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                        columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                        columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                            .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { x.Id }))
+                            .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/AccountManager/Edit?guid=") + "#= AccountGuid #" + "&returnPath=" + returnPath + "\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                            .Title(T("Admin.Common.Edit").Text)
+                            .Width(80);
+                    })
+            .EnableCustomBinding(true)
+            .Reorderable(reorder => reorder.Columns(true))
+            .Resizable(resize => resize.Columns(true))
+            .ColumnMenu(d => d.Sortable(false))
+            .Filterable()
+            .Sortable()
+            .Selectable()
+            .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+            .DataSource(ds => ds
+                .Ajax()
+                .ServerOperation(true)
+                .PageSize(20)
+                .Read(read => read.Action("Index", "AccountManager", new { vendorGuId = vendorGuId }))
+                .Sort(sorts => sorts.Add(x => x.UpdatedOnUtc).Descending() )
+            )
+            .Filterable(filterable => filterable
+                .Extra(false)
+                .Operators(operators => operators
+                    .ForString(str => str.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        .IsNotEqualTo("Is not equal to")
+                    )
+                )
+            )
+            )
+        </td>
+    </tr>
+</table>

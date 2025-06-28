@@ -1,0 +1,123 @@
+﻿@model IEnumerable<CandidateModel>
+
+@{
+    ViewBag.Title = T("Admin.TimeClocks.CandidateSmartCards").Text;
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.TimeClocks.CandidateSmartCards")
+     </div>
+    <div class="options">
+        @Html.ActionLink(T("Admin.TimeClocks.CandidateSmartCard.BackToList").Text, "Index", null, new { @class = "k-button" })
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateModel>()
+                .Name("candidate-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Title(@T("Common.Id").Text).Width(160);
+
+                    columns.Bound(x => x.EmployeeId)
+                        .Width(160).Hidden(false);
+
+                    if (permissionService.Authorize("ManageCandidates"))
+                    {
+                        columns.Bound(x => x.LastName)
+                            .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                            .Template(x => Html.ActionLink(x.LastName, "Details", "Candidate", new { x.CandidateGuid }, new { }))
+                            .ClientTemplate(@Html.ActionLink("#=LastName #", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { }).ToHtmlString());
+                        columns.Bound(x => x.FirstName)
+                            .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                            .Template(x => Html.ActionLink(x.FirstName, "Details", "Candidate", new { x.CandidateGuid }, new { }))
+                            .ClientTemplate(@Html.ActionLink("#=FirstName #", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { }).ToHtmlString());
+                    }
+                    else {
+                        columns.Bound(x => x.LastName).Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+                        columns.Bound(x => x.FirstName).Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+                    }
+                    
+                    columns.Bound(x => x.HomePhone)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate("#= prettyPhone(HomePhone) #")
+                        .Width(180);
+                    columns.Bound(x => x.MobilePhone)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate("#= prettyPhone(MobilePhone) #")
+                        .Width(180).Hidden(true);
+                    columns.Bound(x => x.EmergencyPhone)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate("#= prettyPhone(EmergencyPhone) #")
+                        .Width(180).Hidden(true);
+                    columns.Bound(x => x.SocialInsuranceNumber)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate("#= prettySocialInsuranceNumber(SocialInsuranceNumber) #")
+                        .Width(180).Hidden(true);
+
+                    columns.Bound(x => x.HavingSmartCard).Filterable(false).Sortable(false)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.HavingSmartCard.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= HavingSmartCard #.png' />")
+                        //.HeaderHtmlAttributes(new { style = "text-align:center" })
+                        .HtmlAttributes(new { style = "text-align:center" })
+                        .Width(100);
+
+                    columns.Bound(x => x.CandidateSmartCardId).Sortable(false).Filterable(false)
+                        .Title(T("Admin.TimeClocks.CandidateSmartCards").Text);
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false).Title(T("Common.Add").Text).Width(100)
+                        .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/SmartCard/Create?guid=") + "#= CandidateGuid #\"><span class='k-icon k-i-plus'></span>" + "</a>")
+                        //.HeaderHtmlAttributes(new { style = "text-align:center" })
+                        .HtmlAttributes(new { style = "text-align:center" });
+                    
+                    columns.Bound(x => x.Note)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+
+                    columns.Bound(x => x.IsActive).Filterable(false).Sortable(false).Hidden(true)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsActive #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80);
+                    columns.Bound(x => x.IsHot).Filterable(false).Sortable(false).Hidden(true)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsHot.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsHot #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80);
+                    columns.Bound(x => x.IsBanned).Filterable(false).Sortable(false).Hidden(true)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsBanned.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsBanned #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80);
+
+                    columns.Bound(x => x.UpdatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120);
+                    columns.Bound(x => x.CreatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120).Hidden(true);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(true)
+                        .PageSize(20)
+                        .Read(read => read.Action("AddSmartCard", "SmartCard"))
+                )
+            )
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,47 @@
+﻿@{
+    Layout = null;
+
+    var formName = ViewBag.FormName ?? "reject-form";
+
+    var reasonDropDownList = new List<SelectListItem>();
+    reasonDropDownList.Add(new SelectListItem() { Text = "Banned (in DNR list)" });
+    reasonDropDownList.Add(new SelectListItem() { Text = "Other" });
+}
+
+@using (Html.BeginForm("_RejectPlacement", "Timesheet", FormMethod.Post, new { id = formName }))
+{
+    @Html.Hidden("refDate", (string)ViewBag.RefDate)
+    <div class="fieldset">
+        <div class="form-fields">
+            <div class="inputs">
+                @Html.Label(@T("Common.Reason").Text)
+                @Html.Kendo().DropDownList().Name("reason").OptionLabel("--Select--").BindTo(reasonDropDownList)
+                @Html.RequiredHint()
+            </div>
+            <div class="inputs">
+                @Html.Label(@T("Common.Comment").Text)
+                @Html.TextArea("comment", new { placeholder = "Any comments?" })
+                @Html.RequiredHint()
+            </div>
+        </div>
+    </div>
+    <div class="buttons">
+        <input type="button" class="k-button btn-save" value="@T("Admin.Common.Save")" />
+        <input type="button" class="k-button btn-cancel" value="@T("Admin.Common.Cancel")" />
+    </div>
+}
+
+<script type="text/javascript">
+    function preValidate() {
+        var result = false;
+        var reason = $("#reason").val();
+        var comment = $("#comment").val();
+        if (!reason)
+            popupNotification("Please give a reason!", 'error');
+        else if (!comment)
+            popupNotification("Comment is required!", 'error');
+        else
+            result = true;
+        return result;
+    }
+</script>

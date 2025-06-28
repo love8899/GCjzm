@@ -1,0 +1,90 @@
+﻿@model TestCategoryModel
+
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+@Html.HiddenFor(model => model.DisplayOrder)
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.TestCategoryName)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.TestCategoryName)
+            @Html.WfmValidationMessageFor(model => model.TestCategoryName)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.PassScore)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().NumericTextBox<int>()
+                .Name("PassScore")
+                .Format("#")
+                .Min(0)
+                .Step(1)
+            )
+            @Html.WfmValidationMessageFor(model => model.PassScore)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Description)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.Description)
+            @Html.WfmValidationMessageFor(model => model.Description)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Note)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.Note)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.TestUrl)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.TestUrl)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsActive)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.IsActive)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.Label("IsRequiredWhenRegistration", T("TestCategory.IsRequiredWhenRegistration").Text)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.IsRequiredWhenRegistration)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CreatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.CreatedOn)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.UpdatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.UpdatedOn)
+        </td>
+    </tr>
+</table>

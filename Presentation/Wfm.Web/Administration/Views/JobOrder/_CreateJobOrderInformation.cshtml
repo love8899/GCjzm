@@ -1,0 +1,130 @@
+﻿@using Wfm.Services.JobOrders;
+
+@model JobOrderModel
+
+<script src="@Url.Content("~/Content/tinymce/tinymce.min.js")" type="text/javascript"></script>
+<script type="text/javascript">
+
+    (function () {
+        tinymce.init({
+            selector: "#JobDescription",
+            theme: "modern",
+            width: "100%",
+            height: "200",
+            plugins: [
+                 "advlist autolink link lists charmap print preview hr anchor pagebreak spellchecker",
+                 "searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime nonbreaking",
+                 "save table contextmenu directionality template paste textcolor"
+            ],
+            toolbar: "fullscreen preview | undo redo | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link | print",
+            menubar: false,
+            toolbar_items_size: 'small',
+            browser_spellcheck: false,
+            force_br_newlines: false,
+            force_p_newlines: true,
+            paste_as_text: true
+        });
+    })();
+
+    $("#JobTitle").rules("add", { required: true });
+    $("#PositionId").rules("add", { required: true });
+    $("#JobDescription").rules("add", { required: true });
+
+    function getRefDate() {
+        var now = new Date();
+        now.setHours(0, 0, 0, 0);
+        var today = now.getTime();
+        var startDate = today;
+        var startDateInput = $("#StartDate").data("kendoDatePicker").value();
+        if (startDateInput)
+            startDate = startDateInput.getTime();
+        var endDate = Date.parse(@((Model.Id > 0 && Model.EndDate.HasValue ? Model.EndDate.Value : DateTime.MaxValue).ToString("yyyy-MM-dd"))) / 100;
+        return (new Date([startDate, today, endDate].sort()[1])).toLocaleDateString();
+    }
+
+    function setRateCode() {
+        var rateCode = null;
+        var ddl = $('#PositionId').data("kendoDropDownList");
+        var positionId = ddl.value();
+        if (positionId) {
+            var position_shift = ddl.text().split(' - ')[0];
+            var vendorId = $("#FranchiseData").attr("datauid");
+            rateCode = position_shift + ' / ' + vendorId;
+        }
+        $('#BillingRateCode').val(rateCode);
+    }
+
+    function filterBillingRateCodes() {
+        return {
+            companyId: $("#CompanyData").attr("datauid"),
+            locationId: $("#CompanyLocationId").val(),
+            vendorId: $("#FranchiseData").attr("datauid"),
+            refDate: getRefDate(),
+            shiftCode: $("#ShiftId").data("kendoDropDownList").text()
+        };
+    }
+
+    $('#IsPublished').rules("remove", "required");
+</script>
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.JobTitle)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.JobTitle)
+            @Html.WfmValidationMessageFor(model => model.JobTitle)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.JobDescription)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.JobDescription)
+            @Html.WfmValidationMessageFor(model => model.JobDescription)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.PositionId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList().Name("PositionId")
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .DataSource(ds =>
+                {
+                    ds.Read(r => r.Action("GetCascadePositionsWithRates", "JobOrder").Data("filterBillingRateCodes")).ServerFiltering(true);
+                })                
+                .Enable(false).AutoBind(false).CascadeFrom("CompanyGuid")
+                .Events(e => e.DataBound("setRateCode").Change("setRateCode"))
+            )       
+            @Html.WfmValidationMessageFor(model => model.PositionId)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.LabourType, T("Admin.JobOrder.LabourType").Text)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().DropDownList()
+                .Name("LabourType")
+                .OptionLabel("None")
+                .Items(item =>
+                {
+                    item.Add().Value("DL").Text("Direct Labour");
+                    item.Add().Value("IL").Text("Indirect Labour");
+                })
+            )
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsPublished)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.IsPublished)
+        </td>
+    </tr>
+</table>

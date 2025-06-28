@@ -1,0 +1,92 @@
+﻿@using Wfm.Services.Companies
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts
+@using Wfm.Core.Domain.TimeSheet;
+
+@{
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var companyService = EngineContext.Current.Resolve<ICompanyService>();
+    var companies = companyService.GetAllCompanies(workContext.CurrentAccount);
+    var mealBreakThresholfd = EngineContext.Current.Resolve<CandidateWorkTimeSettings>().MealBreakThreshold;
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Common.MealPolicy")
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<MealPolicyModel>()
+              .Name("mealPolicy-grid")
+              .Columns(columns =>
+                {
+                    if (!workContext.CurrentAccount.IsClientAdministrator())
+                    {
+                        columns.ForeignKey(x => x.CompanyId, companies, "Value", "Text");
+                    }
+
+                    columns.Bound(x => x.Name).Width(150);
+                    columns.Bound(x => x.MealTimeInMinutes).Width(150);
+                    columns.Bound(x => x.MinWorkHours).Width(150);
+                    columns.Bound(x => x.Note);
+                    columns.Bound(x => x.IsActive).Width(80)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsActive #.png' />");
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                })
+                .ToolBar(tool => { tool.Create(); tool.Save(); })
+                .EnableCustomBinding(true)
+                .Editable(edit => edit.Mode(GridEditMode.InCell))
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataBinding => dataBinding
+                    .Ajax()
+                    .Batch(true)
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Events(events => events.Error("error_handler"))
+                    .Read(read => read.Action("List", "MealPolicy"))
+                    .Create(create=>create.Action("Create","MealPolicy"))
+                    .Update(update => update.Action("Edit", "MealPolicy"))
+                    .Model(model =>
+                    {
+                        model.Id(x => x.Id);
+                        model.Field(x => x.CompanyId).Editable(true).DefaultValue(1);
+                        model.Field(x => x.Name).Editable(true);
+                        model.Field(x => x.MealTimeInMinutes).Editable(true);
+                        model.Field(x => x.MinWorkHours).Editable(true).DefaultValue(mealBreakThresholfd);
+                        model.Field(x => x.Note).Editable(true);
+                        model.Field(x => x.IsActive).Editable(true).DefaultValue(true);
+                        model.Field(x => x.IsDeleted).Editable(false);
+                        model.Field(x => x.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(x => x.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(x => x.CreatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        model.Field(x => x.UpdatedOn).Editable(false).DefaultValue(DateTime.Now);
+                    })
+                )
+
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

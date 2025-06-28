@@ -1,0 +1,132 @@
+﻿@{
+    Layout = (string)ViewBag.Layout ?? "_ClientLayout.cshtml";
+
+    var usingForm = (bool?)ViewBag.UsingForm ?? false;
+}
+
+@if (usingForm)
+{
+    using (Html.BeginForm())
+    {
+        @Panels(skipSearch: true)   // noway to use search form inside a form
+    }
+}
+else
+{
+    @Panels()
+}
+
+@RenderSection("Misc", false)
+
+@RenderSection("scripts", false)
+
+
+@helper Panels(bool skipSearch = false)
+{
+    var emptyHeader = (bool?)ViewBag.EmptyHeader ?? false;
+    <div class="content-header clearfix">
+        @if (!emptyHeader)
+        {
+            <h1 class="pull-left">
+                @ViewBag.PageTitle
+                @if (ViewBag.BackTo != null)
+                {
+                    <small><i class="fa fa-arrow-circle-left"></i>@ViewBag.BackTo</small>
+                }
+            </h1>
+            <div class="pull-right">
+                @RenderSection("Options", false)
+            </div>
+            if (ViewBag.Highlight != null)
+            {
+                <div class="highlight hidden-xxs">@ViewBag.Highlight</div>
+            }
+        }
+    </div>
+    <div class="content">
+        <div class="form-horizontal">
+            <div class="panel-group">
+                @if (ViewBag.CollapsePanelId != null)
+                {
+                    <div class="panel panel-default collapse" id="@ViewBag.CollapsePanelId"></div>
+                }
+                <div class="panel panel-default">
+                    @if (ViewBag.PanelTitle != null)
+                    {
+                        <div class="panel-heading">
+                            @ViewBag.PanelTitle
+                        </div>
+                    }
+                    <div class="panel-body">
+                        @if (!skipSearch)
+                        {
+                            @RenderSection("Search", false)
+                        }
+                        @RenderBody()
+                    </div>
+                    @*<div class="panel-footer"></div>*@
+                </div>
+                @if (IsSectionDefined("Panel2"))
+                {
+                    <div class="panel panel-default">
+                        @if (ViewBag.Panel2Title != null)
+                        {
+                            <div class="panel-heading">
+                                @ViewBag.Panel2Title
+                            </div>
+                        }
+                        <div class="panel-body">
+                            @RenderSection("Panel2", false)
+                        </div>
+                        @*<div class="panel-footer"></div>*@
+                    </div>
+                }
+                @if (IsSectionDefined("Panel3"))
+                {
+                    <div class="panel panel-default">
+                        @if (ViewBag.Panel3Title != null)
+                        {
+                            <div class="panel-heading">
+                                @ViewBag.Panel3Title
+                            </div>
+                        }
+                        <div class="panel-body">
+                            @RenderSection("Panel3", false)
+                        </div>
+                        @*<div class="panel-footer"></div>*@
+                    </div>
+                }
+                @if (IsSectionDefined("Panel4"))
+                {
+                    <div class="panel panel-default">
+                        @if (ViewBag.Panel4Title != null)
+                        {
+                            <div class="panel-heading">
+                                @ViewBag.Panel4Title
+                            </div>
+                        }
+                        <div class="panel-body">
+                            @RenderSection("Panel4", false)
+                        </div>
+                        @*<div class="panel-footer"></div>*@
+                    </div>
+                }
+                @if (IsSectionDefined("Panel5"))
+                {
+                    <div class="panel panel-default">
+                        @if (ViewBag.Panel5Title != null)
+                        {
+                            <div class="panel-heading">
+                                @ViewBag.Panel5Title
+                            </div>
+                        }
+                        <div class="panel-body">
+                            @RenderSection("Panel5", false)
+                        </div>
+                        @*<div class="panel-footer"></div>*@
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}

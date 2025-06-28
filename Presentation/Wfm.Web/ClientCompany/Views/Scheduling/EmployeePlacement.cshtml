@@ -1,0 +1,496 @@
+﻿@using Wfm.Shared.Models.Scheduling
+
+
+@model ShiftJobRoleModel
+
+
+@{
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+    var editPermission = permissionService.Authorize("ManageSchedulingPlacement");
+
+    var serializer = new System.Web.Script.Serialization.JavaScriptSerializer();
+}
+
+
+<style type="text/css">
+
+    .k-event {
+        background-color: lightsteelblue;
+    }
+
+    .k-grid {
+        font-size: 85% !important;
+    }
+
+    .k-scheduler-table {
+        font-size: 80% !important;
+    }
+
+    .k-event-template {
+        font-size: 80% !important;
+    }
+
+    .k-scheduler-footer {
+        display: none;
+    }
+
+    .k-scheduler-footer .k-link {
+        color: black !important;
+    }
+
+    .k-scheduler-times-all-day {
+        display: none;
+    }
+
+    .k-scheduler-header-all-day {
+        display: none;
+    }
+
+    .k-link {
+        color: white !important;
+    }
+
+    td[role='gridcell'] input {
+        font-size: 1em !important;
+    }
+
+    .k-event {
+        border-radius: 5px;
+        box-shadow: 5px 5px 2px #888888;
+    }
+
+    td[role='gridcell'] input {
+        font-size: 1em !important;
+    }
+
+    .k-event {
+        border-radius: 5px;
+        box-shadow: 5px 5px 2px #888888;
+    }
+
+</style>
+
+
+<script type="text/javascript">
+
+    var editPermission = @Json.Encode(editPermission);
+    var breakMarkerIsMoving = false;
+
+    function scheduler_dataBound(e) {
+        showProgress();
+        bindBreakDrag();
+        if (!editPermission)
+            $('.k-event-delete').hide();
+    }
+
+    function scheduler_moveStart(e) {
+        var scheduler = $('#scheduler').data('kendoScheduler');
+        if (scheduler.view().name == 'timelineWeek')
+            e.preventDefault();
+        else if (breakMarkerIsMoving)
+            e.preventDefault();
+    }
+
+    function scheduler_resizeStart(e) {
+        var scheduler = $('#scheduler').data('kendoScheduler');
+        if (scheduler.view().name == 'timelineWeek')
+            e.preventDefault();
+    }
+
+    function scheduler_edit(e) {
+        if (!editPermission) {
+            e.preventDefault();
+        } else if (!e.event.id) {
+            var startTime = new Date(e.event.start);
+            startTime.setTime(startTime.getTime() + @Model.StartTime.TimeOfDay.TotalMilliseconds);
+            var endTime = new Date(e.event.start);
+            endTime.setTime(endTime.getTime() + @Model.EndTime.TimeOfDay.TotalMilliseconds);
+            var breakTime = new Date(startTime);
+            breakTime.setTime(breakTime.getTime() + (endTime - startTime) / 2);
+            $("#start").data("kendoDateTimePicker").value(startTime);
+            $("#BreakTimeDisplay").data("kendoTimePicker").value(breakTime);
+            $("#end").data("kendoDateTimePicker").value(endTime);
+            e.event.start = new Date(startTime);
+            e.event.BreakTimeDisplay = new Date(breakTime);
+            e.event.end = new Date(endTime);
+        }
+    }
+
+    function scheduler_save(e) {
+        setTimeout(function () {
+            refreshScheduler();
+        }, 200);
+    }
+
+    function scheduler_cancel(e) {
+        refreshScheduler();
+    }
+
+    function scheduler_remove(e) {
+        if (!editPermission) {
+            alert('No permission!');
+            e.preventDefault();
+        }
+    }
+
+    function refreshScheduler() {
+        var scheduler = $('#scheduler').data('kendoScheduler');
+        scheduler.dataSource.read();
+        if (scheduler.view())
+            scheduler.view(scheduler.view().name);
+    }
+
+    function errNotification(s) {
+        $(".notification-wrapper").html('<div class="messageBox messageBoxError"></div><div class="clear"></div>');
+        $(".messageBox").text(s);
+    }
+
+    function onError(e) {
+        if (e.errors) {
+            alert(e.errors);
+        }
+    }
+
+</script>
+
+
+<div class="section-header">
+    <div class="title">
+        @Model.Department - @Model.JobRole - @Model.Shift (@Model.StartTime.ToString("t") ~ @Model.EndTime.ToString("t"))
+    </div>
+
+    <div class="options">
+        @if (editPermission)
+        {
+            @Html.Kendo().Button().Name("addEmployee").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Add").Text + " " + @T("Common.Employee").Text)
+        }
+    </div>
+</div>
+
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Scheduler<EmployeeSchedulePreviewModel>()
+                .Name("scheduler")
+                .Date(Model.PeriodStart)
+                .StartTime(Model.PeriodStart)
+                .MajorTick(60)
+                .Selectable(true)
+                .Views(views =>
+                {
+                    views.TimelineWeekView(timeline => timeline.EventHeight(64).WorkDayCommand(false).EventTemplateId("event-template-weekly"))
+                        .Title("Weekly").ColumnWidth(10).MajorTick(60 * 24).MinorTickCount(1);
+                    if (editPermission)
+                    {
+                        views.TimelineView(timeline =>
+                        {
+                            timeline.Title("Daily");
+                            timeline.EventHeight(25);
+                            timeline.WorkDayStart(Model.StartTime.Hour, Model.StartTime.Minute, Model.StartTime.Second);
+                            timeline.WorkDayEnd(Model.EndTime.Hour, Model.EndTime.Minute, Model.EndTime.Second);
+                            //timeline.StartTime(Model.StartTime.AddHours(Math.Max(-4, -Model.StartTime.Hour)));
+                            //timeline.EndTime(Model.EndTime.AddHours(+4));
+                            timeline.MajorTick(60);
+                            timeline.MinorTickCount(4);
+                            timeline.ColumnWidth(12);
+                            timeline.EventTemplateId("event-template-daily");
+                            timeline.Editable(e => e.Create(false));
+                        });
+                    }
+                })
+                .DateHeaderTemplate("#= kendo.toString(date, 'yyyy-MM-dd') #")
+                .MajorTimeHeaderTemplate("#= kendo.toString(date, 'h tt') #")
+                .Editable(editable => editable.TemplateName("PlacementEditorTemplate").Move(true).Resize(true))
+                .Group(group => group.Resources("Employees").Orientation(SchedulerGroupOrientation.Vertical))
+                .Resources(resource =>
+                {
+                    resource.Add(m => m.EmployeeId)
+                        .Title("Employee")
+                        .Name("Employees")
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                        .DataSource(ds => ds.Read(read => read.Action("_GetPlacedEmployees", "Scheduling").Data("getShiftId").Type(HttpVerbs.Post)).Events(e => e.Change("refreshScheduler")).ServerFiltering(true)
+                    );
+                })
+                .DataSource(d => d
+                    .Model(m =>
+                    {
+                        m.Id(f => f.EmployeeScheduleId);
+                        m.Field(f => f.CompanyJobRoleId).DefaultValue(Model.CompanyJobRoleId);
+                        //m.Field(f => f.Start).DefaultValue(DateTime.Now);
+                        //m.Field(f => f.End).DefaultValue(DateTime.Now);
+                        m.Field(f => f.IsAllDay).DefaultValue(false);
+                        //if (permissionService.Authorize("ManageCandidatePlacement") && ViewBag.IsActive && ViewBag.OnBoarded)
+                        //    m.Field(f => f.ReadOnly).DefaultValue(false);
+                        //else
+                        //    m.Field(f => f.ReadOnly).DefaultValue(true);
+                    })
+                    .Read(read => read.Action("_ReadShiftSchedulePreview", "Scheduling").Data("getSchedulePeriodId"))
+                    .Create(create => create.Action("_CreateShiftSchedulePreview", "Scheduling").Data("getSchedulePeriodId"))
+                    .Update(update => update.Action("_UpdateShiftSchedulePreview", "Scheduling"))
+                    .Destroy(delete => delete.Action("_DeleteEmployeeScheduleDaily", "Scheduling"))
+                    .Events(e => e.Error("onError"))
+                )
+                .Events(e =>
+                {
+                    e.DataBinding("onBinding");
+                    e.DataBound("scheduler_dataBound");
+                    //e.Change("scheduler_change");
+                    e.Save("scheduler_save");
+                    e.Remove("scheduler_remove");
+                    e.Cancel("scheduler_cancel");
+                    e.Edit("scheduler_edit");
+                    //e.Add("scheduler_add");
+                    e.MoveStart("scheduler_moveStart");
+                    //e.Move("scheduler_move");
+                    //e.MoveEnd("scheduler_moveEnd");
+                    e.ResizeStart("scheduler_resizeStart");
+                    //e.Resize("scheduler_resize");
+                    //e.ResizeEnd("scheduler_resizeEnd");
+                    e.Navigate("onNavigate");
+                })
+            )
+        </td>
+    </tr>
+</table>
+
+
+<script id="event-template-weekly" type="text/x-kendo-template">
+    <div>
+        <div class="k-event-template">Start: #: kendo.toString(start, "t") #</div>
+        <div class="k-event-template">Break: #: BreakTimeDisplay #</div>
+        <div class="k-event-template">End: #: kendo.toString(end, "t") #</div>
+        <div class="k-event-template">Hours: #: TotalHours #</div>
+    </div>
+</script>
+
+
+<script id="event-template-daily" type="text/x-kendo-template">
+    @*<div>
+        <div class="k-event-template">From #: kendo.toString(start, "t") # to #: kendo.toString(end, "t") #</div>
+        <div class="k-event-template">Break: #: BreakTimeDisplay #</div>
+        <div class="k-event-template">Hours: #: TotalHours #</div>
+    </div>*@
+    <div class="task-template">
+        # for (var i = 0; i < BreakTimeDisplayNotNull.length; i++) { # 
+        <span class='break-marker' data-index='#=i#' title='Break at #= BreakTimeDisplayNotNull[i] #' style='left: #= BreakTimePosition[i] #%;'></span>
+        # }#
+        <div title="#= kendo.toString(start, 'hh:mm tt') # - #: kendo.toString(end, 'hh:mm tt') #">
+            <strong>#= description #</strong>
+        </div>
+    </div>
+</script>
+
+
+<script>
+
+    var planned = @serializer.Serialize(Model.Planned);
+
+    $(document).ready(function () {
+        $('#addEmployee').click(function (e) { addEmployee(e); });
+    });
+
+    function onBinding() {
+        var scheduler = $('#scheduler').data('kendoScheduler');
+        customizeNavigation(scheduler.view().name);
+        setIsAllDay(scheduler.view().name);
+        setEditable(scheduler.view().name);
+    }
+
+    function onNavigate(e) {
+        if (e.date < new Date('@(Model.PeriodStart)') || e.date > new Date('@(Model.PeriodEnd)')) {
+            alert('Out of date range!');
+            e.preventDefault();
+        }
+        setEditable(e.view);
+    }
+
+    function customizeNavigation(view) {
+        if (view == 'timelineWeek') {
+            $('.k-nav-today').hide();
+            $('.k-nav-prev').hide();
+            $('.k-nav-next').hide();
+            $('.k-nav-current .k-i-calendar').hide();
+        } else if (view == 'timeline') {
+            $('.k-nav-today').show();
+            $('.k-nav-prev').show();
+            $('.k-nav-next').show();
+            $('.k-nav-current .k-i-calendar').show();
+        }
+    }
+
+    function setIsAllDay(view) {
+        var scheduler = $('#scheduler').data('kendoScheduler');
+        var events = scheduler.dataSource._data;
+        if (view == 'timeline') {
+            scheduler.dataSource._data.forEach(function (eventDetails) {
+                eventDetails['isAllDay'] = false;
+            });
+        } else if (view == 'timelineWeek') {
+            scheduler.dataSource._data.forEach(function (eventDetails) {
+                eventDetails['isAllDay'] = true;
+            });
+        }
+    }
+
+    function setEditable(view) {
+        var scheduler = $('#scheduler').data('kendoScheduler');
+        if (view == 'timeline') {
+            scheduler.options.editable.move = true;
+            scheduler.options.editable.resize = true;
+        } else if (view == 'timelineWeek') {
+            scheduler.options.editable.move = false;
+            scheduler.options.editable.resize = false;
+        }
+    }
+
+    function addEmployee(e) {
+        var title = 'Add Employee ' + '(@Model.PeriodStart.ToString("yyyy-MM-dd") ~ @Model.PeriodEnd.ToString("yyyy-MM-dd"))';
+        var link = '/' + '@(Model.Id)' + '?schedulePeriodId=' + '@(Model.SchedulePeriodId)' +
+                   '&jobRoleId=' + '@(Model.CompanyJobRoleId)' + '&companyShiftId=' + '@(Model.CompanyShiftId)';
+        $(document.body).append('<div id="add-employee-window"></div>');
+        $("#add-employee-window").kendoWindow({
+            title: title,
+            modal: true,
+            resizable: false,
+            width: 600,
+            height: 300,
+            content: '@Url.Action("_AddEmployee")' + link,
+            close: function () {
+                setTimeout(function () {
+                    $('#add-employee-window').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#add-employee-close').click(function () {
+                    win.close();
+                });
+                $('#add-employee-save').click(function () {
+                    var employeeId = $('#employeeId').val();
+                    var data = $('#add-employee-form').serialize();
+                    if (employeeId > 0) {
+                        var form = $('#add-employee-form');
+                        if (form.valid()) {
+                            $.ajax({
+                                url: '@Url.Action("_PlaceEmployee")',
+                                type: 'POST',
+                                data: $('#add-employee-form').serialize(),
+                                dataType: 'json',
+                                success: function (result) {
+                                    if (result.Popup) {
+                                        showMessage(result.Popup);
+                                    }
+                                    if (result.Success) {
+                                        win.close();
+                                        refreshResources();
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    else
+                        alert('Please select employee!');
+                });
+            }
+        }).data('kendoWindow').center();
+        return false;
+    }
+
+    function getShiftId() {
+        return {
+            companyShiftId: '@(Model.CompanyShiftId)',
+        };
+    }
+
+    function getSchedulePeriodId() {
+        return {
+            schedulePeriodId: '@(Model.SchedulePeriodId)',
+            companyShiftId: '@(Model.CompanyShiftId)',
+        };
+    }
+
+    function refreshResources() {
+        var scheduler = $('#scheduler').data('kendoScheduler');
+        scheduler.resources[0].dataSource.read();
+    }
+
+    function showProgress() {
+        var scheduler = $('#scheduler').data('kendoScheduler');
+        var startDateStart = new Date('@((Model.PeriodStart + Model.StartTime.TimeOfDay).AddHours(-4))');
+        var startDateEnd = new Date('@((Model.PeriodStart + Model.StartTime.TimeOfDay).AddSeconds((Model.EndTime - Model.StartTime).TotalSeconds).AddHours(4 + 4))');
+        $.each($('.k-scheduler-timelineWeekview > tbody > tr:nth-child(1) .k-scheduler-table tr:nth-child(2) .k-slot-cell'), function (index, val) {
+            var currDateStart = addDays(startDateStart, index);
+            var currDateEnd = addDays(startDateEnd, index);
+            var occurrences = scheduler.occurrencesInRange(currDateStart, currDateEnd);
+            var placed = occurrences.length;
+            $(this).text(occurrences.length + ' of ' + planned[index]);
+        });
+    }
+
+    function addDays(date, days) {
+        var result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    }
+
+    function bindBreakDrag() {
+        var scheduler = $("#scheduler").data("kendoScheduler");
+        $('.break-marker').draggable({
+            containment: 'parent',
+            axis: 'x',
+            start: function (e) {
+                breakMarkerIsMoving = true;
+            },
+            stop: function (e) {
+                breakMarkerIsMoving = false;
+                var element = $(e.target); 
+                var kEvent = $(element).parents('.k-event');
+                var event = scheduler.occurrenceByUid(kEvent.data("uid"));
+                var breakTimePosition = Math.round(e.target.offsetLeft * 100 / parseInt(kEvent.css('width').replace('px', '')));
+                var breakIndex = $(element).attr('data-index');
+                for (var i = 0; i < event.BreakTimePosition.length; i++ ) {
+                    if (i == breakIndex) event.BreakTimePosition[breakIndex] = breakTimePosition;
+                }
+                $.ajax({
+                    url: '@Url.Action("_UpdateEmployeeBreakTimePosition", "Scheduling")',
+                    type: 'POST',
+                    dataType: 'html',
+                    data: {
+                        employeeScheduleId: event.EmployeeScheduleId,
+                        scheduleDate: event.start.toDateString(),
+                        breakIndex: breakIndex,
+                        breakTimePosition: breakTimePosition,
+                    },
+                    success: function (result) {
+                        for (var i = 0; i < event.BreakTimeDisplay.length; i++ ) {
+                            if (i == breakIndex) event.BreakTimeDisplay[breakIndex] = result;
+                        }
+                        $(element).attr('title', result);
+                    }
+                })
+            }
+        });
+    }
+
+    function showMessage(html) {
+        var kendoWindow = $("<div />").kendoWindow({
+            title: "Errors and Warnings",
+            resizable: false,
+            width: 800,
+            height: 600,
+            modal: true
+        });
+        kendoWindow.data("kendoWindow").content(html).center().open();
+        return false;
+    }
+
+    function filterEmployees() { 
+        return { 
+            schedulePeriodId: '@(Model.SchedulePeriodId)', 
+            companyShiftId: '@(Model.CompanyShiftId)'
+        }
+    }
+
+</script>

@@ -1,0 +1,372 @@
+﻿@using Wfm.Core
+@using Wfm.Services.Security
+
+@model CandidateModel
+@{
+    ViewBag.Title = T("Admin.Candidate.CandidateDetails").Text;
+
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+}
+<div class="section-header">
+    <div class="title">
+        @Model.Id / @Model.FirstName @Model.LastName
+        @Html.ActionLink("(" + T("Admin.Candidate.Candidate.BackToList") + ")", "Index")
+    </div>
+    <div class="options">
+        @Html.ActionLink("Edit", "Edit", new { guid = Model.CandidateGuid }, new { @class = "k-button" })
+
+        @if (Model.IsActive && !Model.IsBanned && !Model.UseForDirectPlacement)
+        {
+            <button id="btnAddToCompaniesPool" class="k-button">Add to Company Pool</button>
+            if (!Model.IsEmployee)
+            { 
+                if (Model.OnboardingStatus == "NoStatus" || Model.OnboardingStatus == "Canceled")
+                {
+                    <button id="btn-start-onboarding" class="k-button">Start Onboarding</button>
+                }
+                else if (Model.OnboardingStatus == "Started")
+                {
+                    <button id="btn-cancel-onboarding" class="k-button">Cancel Onboarding</button>
+                }
+            }
+
+            if ( permissionService.Authorize(StandardPermissionProvider.ManageCandidateBlacklist))
+            {
+                <button id="btnAddToBlacklist" class="k-button">Add to DNR List</button>
+            }
+            if (permissionService.Authorize("ManageCandidatePlacement"))
+            {
+                <button id="btnSendConfirmationEmail" class="k-button">Send Confirmation</button>
+            }
+        }
+        @if(Model.IsActive && !Model.IsBanned && permissionService.Authorize(StandardPermissionProvider.AllowResetCandidatePassword))
+        {
+            <button id="btnResetPassword" class="k-button">Reset Password</button>
+        }
+    </div>
+</div>
+
+@Html.Kendo().TabStrip().Name("candidate-details-tabstrip").Items(x =>
+{
+    x.Add().Text(T("Common.BasicInformation").Text).Content(CandidateBasicInfoTab().ToHtmlString()).Selected(true)
+        .HtmlAttributes(new { id = "tab-basic" });
+
+    x.Add().Text(T("Admin.CandidateBankAccounts").Text).LoadContentFrom(Url.Action("_TabBankAccounts", "Candidate", new { guid = Model.CandidateGuid }));
+
+    if (Model.IsActive && !Model.IsBanned && (Model.IsEmployee || Model.OnboardingStatus == "Started" || Model.OnboardingStatus == "Finished") && !Model.UseForDirectPlacement)
+    {
+        x.Add().Text("Schedule").LoadContentFrom(Url.Action("_TabSchedule", "Candidate", new { candidateGuid = Model.CandidateGuid, refDate = ViewBag.RefDate }))
+            .HtmlAttributes(new { id = "tab-schedule" });
+    }
+    if (!Model.UseForDirectPlacement)
+    {
+        x.Add().Text(T("Common.WorkHistory").Text).LoadContentFrom(Url.Action("_TabCandidateJobOrderList", "Candidate", new { candidateGuid = Model.CandidateGuid })); // Tab is loaded on demand
+        x.Add().Text(T("Admin.Candidate.JobStatusHistory").Text).LoadContentFrom(Url.Action("_TabCandidateJobOrderStatusHistoryList", "Candidate", new { candidateGuid = Model.CandidateGuid })); // Tab is loaded on demand
+        x.Add().Text("Pay history").LoadContentFrom(Url.Action("_TabPayHistory", "Candidate", new { candidateGuid = Model.CandidateGuid })); // Tab is loaded on demand
+    }
+    x.Add().Text(T("Admin.Candidate.KeySkills").Text).LoadContentFrom(Url.Action("_TabCandidateKeySkillList", "Candidate", new { candidateGuid = Model.CandidateGuid })); // Tab is loaded on demand
+    x.Add().Text(T("Admin.Candidate.TestResults").Text).LoadContentFrom(Url.Action("_TabCandidateTestResultList", "Candidate", new { candidateGuid = Model.CandidateGuid })); // Tab is loaded on demand
+
+    x.Add().Text(T("Admin.Candidate.Attachments").Text).LoadContentFrom(Url.Action("_TabCandidateAttachmentList", "Candidate", new { candidateGuid = Model.CandidateGuid }))
+            .HtmlAttributes(new { id = "tab-attachment" });
+
+    x.Add().Text(T("Admin.Candidate.Pictures").Text).LoadContentFrom(Url.Action("_TabCandidatePictureList", "Candidate", new { candidateGuid = Model.CandidateGuid })); // Tab is loaded on demand
+    if (!Model.UseForDirectPlacement)
+    {
+        //x.Add().Text("Placement").LoadContentFrom(Url.Action("_TabPlacement", "Candidate", new { candidateGuid = Model.CandidateGuid }));
+        x.Add().Text(T("Admin.Candidate.Incidents").Text).LoadContentFrom(Url.Action("_TabCandidateIncidents", "Candidate", new { candidateGuid = Model.CandidateGuid }));
+        x.Add().Text(T("Admin.TimeClocks.CandidateSmartCards").Text).LoadContentFrom(Url.Action("_TabCandidateSmartCards", "Candidate", new { candidateGuid = Model.CandidateGuid })).HtmlAttributes(new { id = "tab-smart-cards" });
+        x.Add().Text(T("Admin.HandTemplates").Text).LoadContentFrom(Url.Action("_TabHandTemplates", "Candidate", new { candidateGuid = Model.CandidateGuid })).HtmlAttributes(new { id = "tab-hands" });
+    }
+    x.Add().Text(T("Common.Message").Text).LoadContentFrom(Url.Action("_TabCandidateMessages", "Candidate", new { candidateGuid = Model.CandidateGuid })).HtmlAttributes(new {id="tab-messages"});
+})
+<div id="candidate-note"></div>
+@*Candidate Basic Tab View*@
+@helper CandidateBasicInfoTab()
+{
+    @Html.Partial("_BasicInfo", Model)
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Candidate.CandidateAddress")
+        </div>
+    </div>
+    @Html.Action("_AddressList", new { candidateGuid = Model.CandidateGuid })
+    <script>
+        $(function () { $("form").kendoValidator(); });
+    </script>
+}
+<script type="text/javascript">
+    $("#btn-start-onboarding").bind("click", function () {
+        var candidateGuid = '@Model.CandidateGuid';
+        $(document.body).append('<div id="start-onboarding"></div>');
+        $("#start-onboarding").kendoWindow({
+            title: "Start onboarding",
+            modal: true,
+            resizable: true,
+            width: 1000,
+            height: 600,
+            content: '@Url.Action("StartOnboarding", "Candidate")' + '?guid=' + candidateGuid,
+            close: function () {
+                setTimeout(function () {
+                    $('#start-onboarding').kendoWindow('destroy');
+                }, 200);
+            }
+        }).data('kendoWindow').center();
+    });
+
+    $("#btn-cancel-onboarding").bind("click", function () {
+        var candidateGuid = '@Model.CandidateGuid';
+        $(document.body).append('<div id="cancel-onboarding"></div>');
+        $("#cancel-onboarding").kendoWindow({
+            title: "Cancel onboarding",
+            modal: true,
+            resizable: false,
+            width: 360,
+            height: 210,
+            content: '@Url.Action("CancelOnboarding", "Candidate")' + '?guid=' + candidateGuid,
+            close: function () {
+                setTimeout(function () {
+                    $('#cancel-onboarding').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-no').click(function () {
+                    win.close();
+                })
+                $('#btn-yes').click(function () {
+                    var form = $('#cancel-onboarding-form');
+                    if (form.valid()) {
+                        var link = '@Url.Action("CancelOnboarding", "Candidate")';
+                        $.ajax({
+                            type: "POST",
+                            url: link,
+                            data: form.serialize(),
+                            success: function (response) {
+                                if (response.Result) {
+                                    $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+                                    $(".messageBox").text("Onboarding is canceled.");
+                                    win.close();
+                                    setTimeout(5000);
+                                    location.reload();
+                                }
+                                else {
+                                    alert(response.ErrorMessage);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }).data('kendoWindow').center();
+    });
+
+    $(document).ready(function () {
+        var tabId = '@(ViewBag.TabId)';
+        if (tabId)
+            tabIndex = $("#" + tabId).index();
+        else
+            tabIndex = 0;
+        $("#candidate-details-tabstrip").data("kendoTabStrip").select(tabIndex);
+
+        $('#btnAddToCompaniesPool').click(function (e) {
+            e.preventDefault();
+
+            var candidateGuid = '@Model.CandidateGuid';
+            var routes = '?guid=' + candidateGuid;
+
+            $(document.body).append('<div id="add-candidate-to-pool"></div>');
+            $("#add-candidate-to-pool").kendoWindow({
+                title: "Add candidate to pool",
+                modal: true,
+                resizable: false,
+                width: 500,
+                height: 200,
+                content: '@Url.Action("_AddCandidateToCompaniesPool", "Candidate")' + routes,
+                close: function () {
+                    setTimeout(function () {
+                        $('#add-candidate-to-pool').kendoWindow('destroy');
+                    }, 200);
+                },
+                refresh: function (e) {
+                    var win = this;
+                    $('#submit-addtocompaniespool').click(function (e) {
+                        addToCompaniesPool(e);
+                    })
+                }
+            }).data('kendoWindow').center();
+
+            return false;
+        });
+
+        $('#btnAddToBlacklist').click(function (e) {
+            e.preventDefault();
+
+            var candidateGuid = '@Model.CandidateGuid';
+            var routes = '?guid=' + candidateGuid;
+
+            $(document.body).append('<div id="add-to-blacklist"></div>');
+            $("#add-to-blacklist").kendoWindow({
+                title: 'Add candidate to "Do Not Return" list',
+                modal: true,
+                resizable: false,
+                width: 540,
+                height: 480,
+                content: '@Url.Action("_AddCandidateToBlacklist", "Candidate")' + routes,
+                close: function () {
+                    setTimeout(function () {
+                        $('#add-to-blacklist').kendoWindow('destroy');
+                    }, 200);
+                },
+                refresh: function (e) {
+                    var win = this;
+                    $('#submit-addtoblacklist').click(function () {
+                        if (validateInput()) {
+                            var form = $('#addtoblacklist-form');
+                            var link = '@Url.Action("_AddCandidateToBlacklist", "Candidate")';
+                            $.ajax({
+                                type: "POST",
+                                url: link,
+                                data: form.serialize(),
+                                success: function (response) {
+                                    if (response.Result) {
+                                        var startDate = $("#startDate").data("kendoDatePicker").value();
+                                        var companyName = $("#clientId").data("kendoDropDownList").text();
+                                        ShowNotification("Candidate is banned effective " + startDate.toISOString().split('T')[0] + ", for " + companyName + ".");
+                                        win.close();
+                                    }
+                                    else {
+                                        alert(response.ErrorMessage);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            }).data('kendoWindow').center();
+
+            return false;
+        });
+
+        $('#btnResetPassword').click(function (e) {
+            e.preventDefault();
+            $(document.body).append('<div id="reset-password"></div>');
+            $("#reset-password").kendoWindow({
+                title: "Reset Password",
+                modal: true,
+                resizable: false,
+                width: 500,
+                height: 150,
+                content: '@Url.Action("_ResetPassword", "Candidate", new { guid = Model.CandidateGuid})',
+                close: function () {
+                    setTimeout(function () {
+                        $('#reset-password').kendoWindow('destroy');
+                    }, 200);
+                },
+                refresh: function (e) {
+                    var win = this;
+                    $('#submit-reset-password').click(function () {
+                        var newPassword = $("#newPassword").val();
+                        var reEnterPassword = $("#reEnterPassword").val();
+                        if (newPassword == "") {
+                            $("#error-message-password").html("Password cannot be empty");
+                            $("#error-message-password").show();
+                        }
+                        else {
+                            $("#error-message-password").html("");
+                            $("#error-message-password").hide();
+                            if (newPassword != reEnterPassword) {
+                                $("#error-message").html("Passwords don't match!");
+                                $("#error-message").show();
+                            }
+                            else {
+                                $("#error-message").html("");
+                                $("#error-message").hide();
+                                $.ajax({
+                                    type: "POST",
+                                    url: '@Url.Action("_ResetPassword", "Candidate")' + '?guid=' + '@Model.CandidateGuid' + '&password=' + newPassword,
+                                    success: function (response) {
+                                        if (!response.Error) {
+                                            $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+                                            $(".messageBox").text("Password has been reset sucessfully!");
+                                            win.close();
+                                            setTimeout(5000);
+                                        }
+                                        else {
+                                            alert(response.Message);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    })
+
+                }
+            }).data('kendoWindow').center();
+
+            return false;
+        });
+
+    });
+    $(document).ready(function () {
+        if ('@String.IsNullOrWhiteSpace(Model.Note)' == "False") {
+            var win = $("#candidate-note").data("kendoWindow");
+            if (!win) {
+                $("#candidate-note").kendoWindow({
+                    title: "Note",
+                    modal: true,
+                    resizable: true,
+                    width: 300,
+                    height: 100,
+                    close: function () {
+                        setTimeout(function () {
+                            $('#candidate-note').kendoWindow('close');
+                        }, 200);
+                    },
+                    refresh: function (e) {
+                        win.center().open();
+                    },
+                });
+                win = $("#candidate-note").data("kendoWindow");
+            }
+            else {
+                win.open();
+            }
+            win.refresh({
+                url: '@Url.Action("CandidateNote","Candidate")',
+                data: { guid: '@Model.CandidateGuid' }
+            });
+            win.center();
+            return false;
+        }
+    });
+    function ShowNotification(msg) {
+        $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+        $(".messageBox").text(msg);
+    }
+
+    $("#btnSendConfirmationEmail").click(function () {
+        var from = new Date();
+        $(document.body).append('<div id="send-confirmation-email-window"></div>');
+        $("#send-confirmation-email-window").kendoWindow({
+            title: "Send Confirmation Email",
+            modal: true,
+            resizable: true,
+            width: 800,
+            height: 400,
+            content: '@Url.Action("_EmailJobOrderConfirmation", "Company")' + '?candidateGuid=' + '@Model.CandidateGuid' + '&from=' + kendo.toString(from, 'yyyy-MM-dd'),
+            close: function () {
+                setTimeout(function () {
+                    $('#send-confirmation-email-window').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#cancel-email2').click(function () {
+                    $("#send-confirmation-email-window").kendoWindow('destroy');
+                });                
+            }
+        }).data('kendoWindow').center();
+    });
+</script>

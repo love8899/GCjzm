@@ -1,0 +1,673 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.0\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.0\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{8FAE071B-3DE7-4382-83C5-F84F36FC3733}</ProjectGuid>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Wfm.Client</RootNamespace>
+    <AssemblyName>Wfm.Client</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <MvcBuildViews>false</MvcBuildViews>
+    <UseIISExpress>false</UseIISExpress>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>4.0</OldToolsVersion>
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
+    <TargetFrameworkProfile />
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <UseGlobalApplicationHostFile />
+    <Use64BitIISExpress />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Autofac">
+      <HintPath>..\..\..\packages\Autofac.3.5.2\lib\net40\Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="AutoMapper, Version=4.1.1.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\AutoMapper.4.1.1\lib\net45\AutoMapper.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="FluentValidation, Version=6.2.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\FluentValidation.6.2.1.0\lib\Net45\FluentValidation.dll</HintPath>
+    </Reference>
+    <Reference Include="FluentValidation.Mvc, Version=5.5.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\FluentValidation.MVC5.5.5.0.0\lib\Net45\FluentValidation.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="Kendo.Mvc">
+      <HintPath>..\..\..\packages\KendoUI\Kendo.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.0\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Data.Linq" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="Microsoft.CSharp">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="System.Web.Entity" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Abstractions" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Libraries\Wfm.Services\bin\Debug\System.Web.Helpers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Mvc, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\Microsoft.AspNet.Mvc.5.2.3\lib\net45\System.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Optimization, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\Microsoft.AspNet.Web.Optimization.1.1.3\lib\net40\System.Web.Optimization.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\Microsoft.AspNet.Razor.3.2.3\lib\net45\System.Web.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Routing" />
+    <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="WebGrease, Version=1.6.5135.21930, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\VersionInfo.cs">
+      <Link>VersionInfo.cs</Link>
+    </Compile>
+    <Compile Include="ClientAreaRegistration.cs" />
+    <Compile Include="Controllers\CandidatePictureController.cs" />
+    <Compile Include="Controllers\CommonController.cs" />
+    <Compile Include="Controllers\CompanyContactController.cs" />
+    <Compile Include="Controllers\EmployeeController.cs" />
+    <Compile Include="Controllers\IncidentController.cs" />
+    <Compile Include="Controllers\JobOrderController.cs" />
+    <Compile Include="Controllers\ClientController.cs" />
+    <Compile Include="Controllers\BaseClientController.cs" />
+    <Compile Include="Controllers\CompanyController.cs" />
+    <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\JobPostingController.cs" />
+    <Compile Include="Controllers\PreferencesController.cs" />
+    <Compile Include="Controllers\QuickSearchController.cs" />
+    <Compile Include="Controllers\ReportController.cs" />
+    <Compile Include="Controllers\ReschedulingController.cs" />
+    <Compile Include="Controllers\SchedulingController.cs" />
+    <Compile Include="Controllers\SecurityController.cs" />
+    <Compile Include="Controllers\TimeSheetController.cs" />
+    <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Infrastructure\AutoMapperStartupTask.cs" />
+    <Compile Include="Infrastructure\Cache\ModelCacheEventConsumer.cs" />
+    <Compile Include="Infrastructure\DependencyRegistrar.cs" />
+    <Compile Include="Infrastructure\RouteProvider.cs" />
+    <Compile Include="Extensions\MappingExtensions.cs" />
+    <Compile Include="Models\Accounts\AccountDelegateHistoryModel.cs" />
+    <Compile Include="Models\Accounts\AccountDelegateModel.cs" />
+    <Compile Include="Models\Accounts\Accounts_BL.cs" />
+    <Compile Include="Models\Accounts\SignaturePadModel.cs" />
+    <Compile Include="Models\Candidate\CandidateAddressModel.cs" />
+    <Compile Include="Models\Candidate\CandidateBasicInfoModel.cs" />
+    <Compile Include="Models\Candidate\CandidatePlacementModel.cs" />
+    <Compile Include="Models\Candidate\CandidateTestResultModel.cs" />
+    <Compile Include="Models\ClockTime\CandidateClockTime_BL.cs" />
+    <Compile Include="Models\Common\AddressModel.cs" />
+    <Compile Include="Models\Candidate\CandidateJobOrderModel.cs" />
+    <Compile Include="Models\Candidate\CandidateJobOrderStatusModel.cs" />
+    <Compile Include="Models\Candidate\CandidateKeySkillModel.cs" />
+    <Compile Include="Models\Candidate\CandidateModel.cs" />
+    <Compile Include="Models\Candidate\SearchCandidateModel.cs" />
+    <Compile Include="Models\Common\ClientHeaderLinksModel.cs" />
+    <Compile Include="Models\Common\LanguageSelectorModel.cs" />
+    <Compile Include="Models\Common\SystemWarningModel.cs" />
+    <Compile Include="Models\Companies\CompanyBillingRate_BL.cs" />
+    <Compile Include="Models\Companies\CompanyDepartmentModel.cs" />
+    <Compile Include="Models\Companies\CompanyShiftWithColor.cs" />
+    <Compile Include="Models\Companies\CompanyVendorModel.cs" />
+    <Compile Include="Models\CompanyContact\CompanyContactViewModel.cs" />
+    <Compile Include="Models\Candidate\EthnicTypeModel.cs" />
+    <Compile Include="Models\Candidate\ShiftModel.cs" />
+    <Compile Include="Models\Candidate\SkillModel.cs" />
+    <Compile Include="Models\Common\CityModel.cs" />
+    <Compile Include="Models\Common\CountryModel.cs" />
+    <Compile Include="Models\Common\StateProvinceModel.cs" />
+    <Compile Include="Models\CompanyBilling\CompanyBillingRateModel.cs" />
+    <Compile Include="Models\CompanyBilling\CompanyBillingPositionModel.cs" />
+    <Compile Include="Models\CompanyBilling\CompanyBillingShiftModel.cs" />
+    <Compile Include="Models\Companies\CompanyLocationModel.cs" />
+    <Compile Include="Models\Companies\CompanyModel.cs" />
+    <Compile Include="Models\Employees\EmployeeAvailabilityModel.cs" />
+    <Compile Include="Models\Franchises\VendorCertificateModel.cs" />
+    <Compile Include="Models\Incident\Incident_BL.cs" />
+    <Compile Include="Models\Incident\IncidentReportTemplateModel.cs" />
+    <Compile Include="Models\JobOrder\BudgetForcastingModel.cs" />
+    <Compile Include="Models\JobOrder\BudgetForcastingModel_BL.cs" />
+    <Compile Include="Models\Logging\LogModel.cs" />
+    <Compile Include="Models\Rescheduling\ReschedulingModel.cs" />
+    <Compile Include="Models\Rescheduling\EmployeeRescheduling_BL.cs" />
+    <Compile Include="Models\Settings\SettingModel.cs" />
+    <Compile Include="Models\Franchises\FranchiseAddressModel.cs" />
+    <Compile Include="Models\Franchises\FranchiseModel.cs" />
+    <Compile Include="Models\JobOrder\JobOrderCategoryModel.cs" />
+    <Compile Include="Models\JobOrder\JobOrderModel.cs" />
+    <Compile Include="Models\JobOrder\JobOrderStatusModel.cs" />
+    <Compile Include="Models\JobOrder\JobOrderTypeModel.cs" />
+    <Compile Include="Models\Logging\AccessLogModel.cs" />
+    <Compile Include="Models\Candidate\CandidateAttachmentModel.cs" />
+    <Compile Include="Models\Media\AttachmentTypeModel.cs" />
+    <Compile Include="Models\QuickSearch\QuickSearchModel.cs" />
+    <Compile Include="Models\Report\ReportInfo.cs" />
+    <Compile Include="Models\Security\PermissionMappingModel.cs" />
+    <Compile Include="Models\Security\PermissionRecordModel.cs" />
+    <Compile Include="Models\ClockTime\CompanyClockDeviceModel.cs" />
+    <Compile Include="Models\ClockTime\CandidateClockTimeModel.cs">
+      <SubType>
+      </SubType>
+    </Compile>
+    <Compile Include="Models\TimeSheet\DailyAttendanceListModel.cs" />
+    <Compile Include="Models\TimeSheet\DailyTimeSheetModel.cs" />
+    <Compile Include="Models\TimeSheet\CandidateWorkTimeModel.cs" />
+    <Compile Include="Models\TimeSheet\EmployeeWorkTimeApprovalModel.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Validators\Accounts\AccountDelegateValidator.cs" />
+    <Compile Include="Validators\Candidate\CandidateValidator.cs" />
+    <Compile Include="Validators\Candidate\CandidateAttachmentValidator.cs" />
+    <Compile Include="Validators\Candidate\CandidateJobOrderValidator.cs" />
+    <Compile Include="Validators\Candidate\CandidateJobOrderStatusValidator.cs" />
+    <Compile Include="Validators\Candidate\ShiftValidator.cs" />
+    <Compile Include="Validators\Employees\EmployeeAvailabilityValidator.cs" />
+    <Compile Include="Validators\JobOrder\BudgetForcastingValidator.cs" />
+    <Compile Include="Validators\QuickSearch\QuickSearchValidator.cs" />
+    <Compile Include="Validators\Company\CompanyBillingRateValidator.cs" />
+    <Compile Include="Validators\Company\CompanyBillingPositionValidator.cs" />
+    <Compile Include="Validators\Company\CompanyBillingShiftValidator.cs" />
+    <Compile Include="Validators\Media\AttachmentTypeValidator.cs" />
+    <Compile Include="Validators\JobOrder\JobOrderValidator.cs" />
+    <Compile Include="Validators\Candidate\SkillValidator.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\images\1pix.gif" />
+    <Content Include="Content\images\active-false.png" />
+    <Content Include="Content\images\active-true.png" />
+    <Content Include="Content\images\admin-gvw-bg.gif" />
+    <Content Include="Content\images\admin-header-bg.gif" />
+    <Content Include="Content\images\admin-menu-bg.gif" />
+    <Content Include="Content\images\ajax-loading-100.gif" />
+    <Content Include="Content\images\ajax-loading-128.gif" />
+    <Content Include="Content\images\ajax-loading-80.gif" />
+    <Content Include="Content\images\ajax-loading.gif" />
+    <Content Include="Content\images\background.gif" />
+    <Content Include="Content\images\blue_button_bg.gif" />
+    <Content Include="Content\images\error-message.gif" />
+    <Content Include="Content\images\fileuploader-loading.gif" />
+    <Content Include="Content\images\google-maps.gif" />
+    <Content Include="Content\images\grey_button_bg.gif" />
+    <Content Include="Content\images\grid_header_back.png" />
+    <Content Include="Content\images\hot-false.png" />
+    <Content Include="Content\images\hot-true.png" />
+    <Content Include="Content\images\ico-banned.png" />
+    <Content Include="Content\images\ico-blacklist.png" />
+    <Content Include="Content\images\ico-coffee.png" />
+    <Content Include="Content\images\ico-configuration.png" />
+    <Content Include="Content\images\ico-cross-small.png" />
+    <Content Include="Content\images\ico-cross.png" />
+    <Content Include="Content\images\ico-error.png" />
+    <Content Include="Content\images\ico-exclamation-red.png" />
+    <Content Include="Content\images\ico-exclamation-yellow.png" />
+    <Content Include="Content\images\ico-help.gif" />
+    <Content Include="Content\images\ico-information.png" />
+    <Content Include="Content\images\ico-letter.png" />
+    <Content Include="Content\images\ico-meal.png" />
+    <Content Include="Content\images\ico-no.png" />
+    <Content Include="Content\images\ico-schedule.png" />
+    <Content Include="Content\images\ico-success.png" />
+    <Content Include="Content\images\ico-warning.png" />
+    <Content Include="Content\images\icon-required.gif" />
+    <Content Include="Content\images\icon-required2.gif" />
+    <Content Include="Content\images\icon-warnings.gif" />
+    <Content Include="Content\images\success-message.gif" />
+    <Content Include="Content\images\tempus_logo.png" />
+    <Content Include="Content\images\throbber-synchronizing.gif" />
+    <Content Include="Content\images\warnings-ajax-loader.gif" />
+    <Content Include="Content\images\warnings-cross.png" />
+    <Content Include="Content\images\warnings-tick.png" />
+    <Content Include="Content\images\warnings-warning.png" />
+    <Content Include="Content\styles.css" />
+    <Content Include="Content\tempus.css" />
+    <Content Include="sitemap.config">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Views\Account\Edit.cshtml" />
+    <Content Include="Views\Account\_CreateOrUpdate.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Password.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\String.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Currency.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Email.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\EmailAddress.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\GridForeignKey.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Integer.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Number.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Url.cshtml" />
+    <Content Include="Views\Company\_CompanyDepartmentList.cshtml" />
+    <Content Include="Views\Security\AccessDenied.cshtml" />
+    <Content Include="Views\Home\News.cshtml" />
+    <Content Include="Views\CompanyContact\Index.cshtml" />
+    <Content Include="Views\QuickSearch\Index.cshtml" />
+    <Content Include="Views\QuickSearch\JobOrdersResult.cshtml" />
+    <Content Include="Views\TimeSheet\EmployeeWorkTime.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\DepartmentList.cshtml" />
+    <Content Include="Views\TimeSheet\_AdjustCandidateWorkTime.cshtml" />
+    <Content Include="Views\TimeSheet\EmployeeWorkTimeApproval.cshtml" />
+    <Content Include="Views\TimeSheet\EmployeeTimeChartHistory.cshtml">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="Views\Account\AccountDelegate.cshtml" />
+    <Content Include="Views\Account\_AccountDelegatePopup.cshtml" />
+    <Content Include="Views\Incident\Index.cshtml" />
+    <Content Include="Views\Incident\_AddRemoveIncidentReportFile.cshtml" />
+    <Content Include="Views\Incident\_CreateOrUpdateIncident.cshtml" />
+    <Content Include="Views\Incident\DownloadTemplates.cshtml" />
+    <Content Include="Views\Company\_TabCompanyBillingRates.cshtml" />
+    <Content Include="Views\JobPosting\Index.cshtml" />
+    <Content Include="Views\JobPosting\CreateOrUpdate.cshtml" />
+    <Content Include="Views\Employee\Index.cshtml" />
+    <Content Include="Views\Employee\Details.cshtml" />
+    <Content Include="Views\JobPosting\_Submit.cshtml" />
+    <Content Include="Views\JobPosting\_Delete.cshtml" />
+    <Content Include="Views\Employee\EditorTemplates\_WorktimePreferenceEditor.cshtml" />
+    <Content Include="Views\Employee\_BasicInfo.cshtml" />
+    <Content Include="Views\Employee\_BookTimeOffPopup.cshtml" />
+    <Content Include="Views\Employee\_TabEmployeeTimeoff.cshtml" />
+    <Content Include="Views\Employee\_BasicInfoEdit.cshtml" />
+    <Content Include="Views\Employee\_TabEmployeeIncidents.cshtml" />
+    <Content Include="Views\Employee\_AddRemoveIncidentReportFile.cshtml" />
+    <Content Include="Views\Employee\_CreateOrUpdateIncident.cshtml" />
+    <Content Include="Views\Employee\Create.cshtml" />
+    <Content Include="Views\Employee\_TabWorktimePreference.cshtml" />
+    <Content Include="Views\Employee\_WorktimePreferencePopup.cshtml" />
+    <Content Include="Views\Company\_TabCompanyJobRoles.cshtml" />
+    <Content Include="Views\Company\_CreateEditJobRole.cshtml" />
+    <Content Include="Views\Employee\_TabEmployeeJobRole.cshtml" />
+    <Content Include="Views\Employee\_CreateEditJobRole.cshtml" />
+    <Content Include="Views\Company\_TabCompanyJobShifts.cshtml" />
+    <Content Include="Views\Company\_CreateEditJobShift.cshtml" />
+    <Content Include="Views\Company\_CreateEditJobShiftRoles.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\CompanyJobRoleDropdownModel.cshtml" />
+    <Content Include="Views\Scheduling\SchedulePeriod.cshtml" />
+    <Content Include="Views\Report\GetTurnoverChart.cshtml" />
+    <Content Include="Views\Report\_TurnoverChart.cshtml" />
+    <Content Include="Views\Scheduling\_CreateEditSchedulePeriod.cshtml" />
+    <Content Include="Views\Report\GetComplianceReport.cshtml" />
+    <Content Include="Views\Report\_ComplianceReport.cshtml" />
+    <Content Include="Views\JobPosting\Details.cshtml" />
+    <Content Include="Views\JobPosting\_Details.cshtml" />
+    <Content Include="Views\Scheduling\_EditScheduleShifts.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\CompanyShiftDropdownModel.cshtml" />
+    <Content Include="Views\Scheduling\_CopySchedulePeriod.cshtml" />
+    <Content Include="Views\Report\GetAttendanceReport.cshtml" />
+    <Content Include="Views\Report\_AttendanceReport.cshtml" />
+    <Content Include="Views\Scheduling\EmployeeView.cshtml" />
+    <Content Include="Views\Scheduling\ShiftView.cshtml" />
+    <Content Include="Views\Report\GetWeeklyReport.cshtml" />
+    <Content Include="Views\Report\_WeeklyCostReport.cshtml" />
+    <Content Include="Views\Scheduling\_ScheduleEmployee.cshtml" />
+    <Content Include="Views\Report\GetJobOrderFillInRate.cshtml" />
+    <Content Include="Views\Report\_JobOrderFillInRate.cshtml" />
+    <Content Include="Views\Scheduling\ShiftAndRoles.cshtml" />
+    <Content Include="Views\Common\_CandidateBasicInfo.cshtml" />
+    <Content Include="Views\Scheduling\_showDailyShiftSchedule.cshtml" />
+    <Content Include="Views\Scheduling\EditorTemplates\ScheduleEditor.cshtml" />
+    <Content Include="Views\Scheduling\_ScheduleEmployeeFromCalendar.cshtml" />
+    <Content Include="Views\Scheduling\VacancyView.cshtml" />
+    <Content Include="Views\Scheduling\_VacancyViewPanel.cshtml" />
+    <Content Include="Views\Scheduling\_ScheduleEmployeeFromVacancy.cshtml" />
+    <Content Include="Views\Scheduling\_ScheduleErrorWarnings.cshtml" />
+    <Content Include="Views\JobPosting\_Cancel.cshtml" />
+    <Content Include="Views\Scheduling\_ScheduleJobOrder.cshtml" />
+    <Content Include="Views\Report\GetEmployeesListReport.cshtml" />
+    <Content Include="Views\Report\_EmployeesListReport.cshtml" />
+    <Content Include="Views\Scheduling\_ScheduleEmployeeList.cshtml" />
+    <Content Include="Views\Scheduling\EditorTemplates\PlannerEditorTemplate.cshtml" />
+    <Content Include="Views\Scheduling\_PopulateWorkTime.cshtml" />
+    <Content Include="Views\Scheduling\WeeklyDemand.cshtml" />
+    <Content Include="Views\Scheduling\_CopyFromexistingSchedulePeriod.cshtml" />
+    <Content Include="Views\Scheduling\_WeeklyDemandPane.cshtml" />
+    <Content Include="Views\Scheduling\EmployeePlacement.cshtml" />
+    <Content Include="Views\Scheduling\_AddEmployeeForPlacement.cshtml" />
+    <Content Include="Views\Scheduling\EditorTemplates\PlacementEditorTemplate.cshtml" />
+    <Content Include="Views\Scheduling\EditorTemplates\SupervisorsByDepartment.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\AccountSelector.cshtml" />
+    <Content Include="Views\Company\_TabCompanyVendors.cshtml" />
+    <Content Include="Views\Report\_TotalHoursBySupervisor.cshtml" />
+    <Content Include="Views\Report\GetTotalHoursBySupervisor.cshtml" />
+    <Content Include="Views\Employee\_TabEmployeeSchedule.cshtml" />
+    <Content Include="Views\Report\GetEmployeesScheduleReport.cshtml" />
+    <Content Include="Views\Report\_EmployeesScheduleReport.cshtml" />
+    <Content Include="Views\Report\GetJobOrderReport.cshtml" />
+    <Content Include="Views\Report\_JobOrderReport.cshtml" />
+    <Content Include="Views\Employee\EditorTemplates\_EmployeeScheduleEditorTemplate.cshtml" />
+    <Content Include="Views\Report\GetDetailedCostReport.cshtml" />
+    <Content Include="Views\Report\_DetailedLabourCostReport.cshtml" />
+    <Content Include="Views\Scheduling\_ScheduleJobOrderPipeline.cshtml" />
+    <Content Include="Views\Scheduling\TeamSchedule.cshtml" />
+    <Content Include="Views\Home\_Announcements.cshtml" />
+    <Content Include="Views\Home\_TabAnnouncements.cshtml" />
+    <Content Include="Views\Rescheduling\Index.cshtml" />
+    <Content Include="Views\TimeSheet\DailyAttendanceList.cshtml" />
+    <Content Include="Views\TimeSheet\_RejectPlacement.cshtml" />
+    <Content Include="Views\TimeSheet\Punches.cshtml" />
+    <Content Include="Views\Report\GetBudgetForcastingReport.cshtml" />
+    <Content Include="Views\Rescheduling\_MoveForToday.cshtml" />
+    <Content Include="Views\Rescheduling\_MoveForFuture.cshtml" />
+    <Content Include="Views\Report\GetDNRListReport.cshtml" />
+    <Content Include="Views\Report\_DNRListReport.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\EmployeeAvailabilityTypeEditor.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\DayOfWeekDropDown.cshtml" />
+    <Content Include="Views\Rescheduling\_JobReschedule.cshtml" />
+    <Content Include="Views\Report\_DailyTimeSheetReport.cshtml" />
+    <Content Include="Views\Report\GetDailyTimeSheetReport.cshtml" />
+    <Content Include="Views\Layout\_ClientLayout.cshtml" />
+    <Content Include="Views\Layout\Menu.cshtml" />
+    <Content Include="Views\Layout\_TopMenu.cshtml" />
+    <Content Include="Views\Layout\_UserMenu.cshtml" />
+    <Content Include="Views\Layout\_MessagesMenu.cshtml" />
+    <Content Include="Views\Layout\_NotificationsMenu.cshtml" />
+    <Content Include="Views\Layout\_TasksMenu.cshtml" />
+    <Content Include="Views\Layout\_Notifications.cshtml" />
+    <Content Include="Views\Account\ChangeSecurityQuestions.cshtml" />
+    <Content Include="Views\Layout\_ClientPopupLayout.cshtml" />
+    <Content Include="Views\Account\DelegateWindow.cshtml" />
+    <Content Include="Views\Account\_DelegateFields.cshtml" />
+    <Content Include="Views\Account\_EditDelegate.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Web.config">
+      <SubType>Designer</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Libraries\Wfm.Core\Wfm.Core.csproj">
+      <Project>{6BDA8332-939F-45B7-A25E-7A797260AE59}</Project>
+      <Name>Wfm.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Libraries\Wfm.Data\Wfm.Data.csproj">
+      <Project>{ccd7f2c9-6a2c-4cf0-8e89-076b8fc0f144}</Project>
+      <Name>Wfm.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Libraries\Wfm.Services\Wfm.Services.csproj">
+      <Project>{210541AD-F659-47DA-8763-16F36C5CD2F4}</Project>
+      <Name>Wfm.Services</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Wfm.Shared\Wfm.Shared.csproj">
+      <Project>{523f2de7-9229-45f6-9cae-97b4f660dce7}</Project>
+      <Name>Wfm.Shared</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Wfm.Web.Framework\Wfm.Web.Framework.csproj">
+      <Project>{75fd4163-333c-4dd5-854d-2ef294e45d94}</Project>
+      <Name>Wfm.Web.Framework</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="packages.config">
+      <SubType>Designer</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Shared\Delete.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Date.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\DateNullable.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\DateTime.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\DateTimeNullable.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Decimal.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\DecimalNullable.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Double.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Int32.cshtml" />
+    <Content Include="Views\Shared\EditorTemplates\Time.cshtml" />
+    <Content Include="Views\_ViewStart.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Company\Details.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Company\_CompanyLocationList.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Account\Details.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Account\ResetPassword.cshtml">
+      <SubType>
+      </SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\PublishProfiles\" />
+    <Folder Include="Validators\Common\" />
+    <Folder Include="Validators\Security\" />
+    <Folder Include="Views\Shared\DisplayTemplates\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Shared\EditorTemplates\DropDownList.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\TimeSheet\_SearchTimeSheets.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Common\CandidateInfoWin.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Shared\EditorTemplates\CascadeDropDownList.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\TimeSheet\_ExportHistory.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\TimeSheet\_ExportTimeSheet.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\TimeSheet\_RejectCandidateWorkTime.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\TimeSheet\_SearchAttendance.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\TimeSheet\_ExportAttendance.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Incident\_AddIncident.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Incident\_SearchIncident.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Incident\_IncidentFields.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Report\_SearchBudget.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\JobPosting\_SearchJobPosting.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Shared\EditorTemplates\DropDownListRemote.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\JobPosting\_RejectPlacement.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Rescheduling\_SearchTimeSheets.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Rescheduling\_SearchAttendance.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Rescheduling\_BasicInfo.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Rescheduling\_Placement.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Rescheduling\_Confirmation.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Shared\EditorTemplates\StringDisplay.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Layout\_SearchLayout.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Layout\_PanelGroup.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Layout\_Wizard.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Shared\EditorTemplates\Text.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Layout\_TabStrip.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Shared\EditorTemplates\Masked.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Shared\EditorTemplates\DropDownList4Obj.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Shared\EditorTemplates\CascadeDropDownList4Obj.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Layout\_ReportLayout.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Shared\EditorTemplates\MultiSelect.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Layout\_ReportViewerLayout.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Account\SignaturePad.cshtml" />
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <Target Name="CleanFolders" AfterTargets="Clean">
+    <RemoveDir Directories="$(ProjectDir)bin" />
+    <RemoveDir Directories="$(ProjectDir)obj" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+	   Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target> -->
+  <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">
+    <AspNetCompiler VirtualPath="temp" PhysicalPath="$(WebProjectOutputDir)" />
+  </Target>
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>False</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>5231</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>
+          </IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.0\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.0\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
+  </Target>
+</Project>

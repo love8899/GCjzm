@@ -1,0 +1,38 @@
+﻿@using Wfm.Core.Domain.TimeSheet;
+
+@using (Html.BeginForm("PrintClientWorkTimesToPdf", "TimeSheet", FormMethod.Post, new { id = "printtopdf-selected-form" }))
+{
+
+    <input type="hidden" id="pdfWeekStartDate" name="weekStartDate" value="" />
+    <input type="hidden" id="pdfSubmittedOnly" name="submittedOnly" value="" />
+}
+<script type="text/javascript">
+    $(function () {
+        $('#printtopdf-selected').click(function (e) {
+            e.preventDefault();
+            var submittedOnly = remoteSearch.sf_CandidateWorkTimeStatusId == '@((int)CandidateWorkTimeStatus.PendingApproval)';
+            $('#printtopdf-selected-form #pdfWeekStartDate').val($("#sf_From").val());
+            $('#printtopdf-selected-form #pdfSubmittedOnly').val(submittedOnly);
+            $('#printtopdf-selected-form').submit();
+            return false;
+        });
+    });
+</script>
+
+@using (Html.BeginForm("ExportClientWorkTimesToExcel", "TimeSheet", FormMethod.Post, new { id = "exporttoxlsx-selected-form" }))
+{
+    <input type="hidden" id="excelWeekStartDate" name="weekStartDate" value="" />
+    <input type="hidden" id="excelSubmittedOnly" name="submittedOnly" value="" />
+}
+<script type="text/javascript">
+    $(function () {
+        $('#exportexcel-selected').click(function (e) {
+            e.preventDefault();
+            var submittedOnly = remoteSearch.sf_CandidateWorkTimeStatusId == '@((int)CandidateWorkTimeStatus.PendingApproval)';
+            $('#exporttoxlsx-selected-form #excelWeekStartDate').val($("#sf_From").val());
+            $('#exporttoxlsx-selected-form #excelSubmittedOnly').val(submittedOnly);
+            $('#exporttoxlsx-selected-form').submit();
+            return false;
+        });
+    });
+</script>

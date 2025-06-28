@@ -1,0 +1,80 @@
+﻿@{
+  
+    var startDate = DateTime.Today.Date.AddDays(-7);
+    var endDate = DateTime.Today;
+}
+
+
+@(Html.Kendo().PanelBar().Name("search-bar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text(String.Format(T("Common.ReportParameters").Text, T("Report.GetTurnoverChart").Text))
+            .Expanded(true)
+            .Content(@<div class="panel">
+                <br />
+                <label class="first-label">Company: </label>
+                @(Html.Kendo().ComboBox().Name("Company").HtmlAttributes(new { style = "width: 250px" })
+                .Placeholder("Select a company...")
+                .DataSource(ds => ds.Read("GetCascadeCompanies", "Common"))
+                .DataTextField("Text")
+                .DataValueField("Value")
+                )
+                <br />
+                <br />
+                <label class="first-label">From: </label>
+                @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("fromDate").Value(startDate.ToString("yyyy-MM-dd")).Events(e => e.Change("startDateChange"))
+                <label class="first-label">To: </label>
+                @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("toDate").Value(endDate.ToString("yyyy-MM-dd"))
+
+                <div style="text-align: center">
+                    <br />@(Html.Kendo().Button().Name("loadReport").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text))<br /><br />
+                </div>
+
+            </div>);
+    })
+)
+<div id="report" />
+
+
+<script type="text/javascript">
+
+    $("#loadReport").bind("click", function () {
+        loadReport();
+    });
+    function loadReport() {      
+        var fromDate = $("#fromDate").val();
+        var toDate = $("#toDate").val();
+        var companyId = $("#Company").val();
+        if (fromDate == null || fromDate == "") {
+            alert("Please select  start date!");
+        }
+        else if (toDate == null || toDate == "") {
+            alert("Please select  end date!");
+        }
+       
+       else if (!companyId) {
+            alert("Please select a company");
+        }
+
+        else  {
+            $("#report").load("_TurnoverChart", {
+                startDate: $("#fromDate").val(),
+                endDate: $("#toDate").val(),
+                companyId: companyId
+            });
+        }
+    }
+
+    function startDateChange() {
+        var startDate = this.value(),
+            endPicker = $("#toDate").data("kendoDatePicker"), endDate = endPicker.value();
+
+        if (startDate) {
+            startDate = new Date(startDate);
+            endPicker.min(startDate);
+        }
+    }
+
+</script>
+

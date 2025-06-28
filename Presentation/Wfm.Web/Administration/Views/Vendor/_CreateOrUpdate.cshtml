@@ -1,0 +1,181 @@
+﻿@model FranchiseModel
+@using Wfm.Core
+@{
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+}
+
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.FranchiseId)
+@Html.HiddenFor(model => model.FranchiseGuid)
+@Html.HiddenFor(model => model.IsDefaultManagedServiceProvider)
+@Html.HiddenFor(model => model.IsLinkToPublicSite)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+@Html.HiddenFor(model => model.IsDeleted)
+@Html.HiddenFor(model => model.OwnerId)
+@Html.HiddenFor(model => model.EnteredBy)
+@Html.HiddenFor(model => model.FranchiseLogoFileName)
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.FranchiseName)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.FranchiseName)
+            @Html.WfmValidationMessageFor(model => model.FranchiseName)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.ShortName)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.ShortName)
+            @Html.WfmValidationMessageFor(model => model.ShortName)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.PrimaryContactName)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.PrimaryContactName)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Email)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.Email)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.WebSite)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.WebSite)
+        </td>
+    </tr>
+    @if (commonSettings.DisplayVendor)
+    {
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Description)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.Description)
+            </td>
+        </tr>
+    }
+    else
+    {
+        @Html.HiddenFor(model => model.Description)
+    }
+    @if (workContext.CurrentAccount.Franchise.IsDefaultManagedServiceProvider)
+    {
+        if (commonSettings.DisplayVendor)
+        {
+            <tr>
+                <td class="adminTitle">
+                    @T("Admin.Franchises.Franchise.Fields.EnableStandAloneJobOrders")
+                </td>
+                <td class="adminData">
+                    @Html.CheckBoxFor(model => model.EnableStandAloneJobOrders)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.IsHot)
+                </td>
+                <td class="adminData">
+                    @Html.CheckBoxFor(model => model.IsHot)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.IsActive)
+                </td>
+                <td class="adminData">
+                    @Html.CheckBoxFor(model => model.IsActive)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.ReasonForDisabled)
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.ReasonForDisabled)
+                </td>
+            </tr>
+        }
+        else
+        {
+            @Html.HiddenFor(model => model.IsActive)
+            @Html.HiddenFor(model => model.IsHot)
+            @Html.HiddenFor(model => model.ReasonForDisabled)
+            @Html.HiddenFor(model => model.EnableStandAloneJobOrders)
+        }
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Note)
+            </td>
+            <td class="adminData">
+                @{ Html.Kendo().Editor()
+                    .Name("Note")
+                    .HtmlAttributes(new { style = "height:200px" })
+                     //.Encode(false)
+                    .Value(@<text></text>)
+                    .Render();
+                }
+            </td>
+        </tr>
+    }
+    else
+    {
+        @Html.HiddenFor(model => model.IsActive)
+        @Html.HiddenFor(model => model.IsHot)
+        @Html.HiddenFor(model => model.ReasonForDisabled)
+        @Html.HiddenFor(model => model.Note)
+        @Html.HiddenFor(model => model.EnableStandAloneJobOrders)
+    }
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.FranchiseLogo, T("Common.Logo").Text)
+        </td>
+        <td class="adminData">
+            @if (!String.IsNullOrEmpty(Model.FranchiseLogoFileName))
+            {
+                @Html.CheckBoxFor(model => model.KeepCurrentLogo)
+                <span id="franchise-logo-file-name">@Model.FranchiseLogoFileName</span>
+            }
+            @(Html.Kendo().Upload()
+                .Name("files")
+                .Multiple(false)
+                .HtmlAttributes(new { accept = "image/*" })
+            )
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EnteredName, T("Common.EnteredBy").Text)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.EnteredName)
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+    $("#KeepCurrentLogo").change(function () {
+        if (!$("#KeepCurrentLogo").attr("checked")) {
+            $("#franchise-logo-file-name").css('text-decoration', 'line-through');
+        } else if ($("#KeepCurrentLogo").attr("checked")) {
+            $("#franchise-logo-file-name").css('text-decoration', 'none');
+        }
+    });
+</script>

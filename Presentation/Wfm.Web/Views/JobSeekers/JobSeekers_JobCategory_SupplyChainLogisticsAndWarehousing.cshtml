@@ -1,0 +1,52 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Supply Chain, Logistics and Warehousing";
+    //var description = "Whether you’re looking for permanent, contract or temporary employment as an assembler, forklift operator, warehouse supervisor, or a number of other roles, " + siteTitle + " has opportunities waiting for you.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower() + " jobs";
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Supply Chain, Logistics and Warehousing</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            Whether you’re looking for permanent, contract or temporary employment as an assembler,
+            forklift operator, warehouse supervisor, or a number of other roles, @siteTitle
+            has opportunities waiting for you.
+        </p>
+        <p>
+            Our consultants have experience placing staff in a number of supply chain, logistics
+            and warehouse roles, including:
+        </p>
+        <ul>
+            <li>Assembly workers</li>
+            <li>General labour: packagers, sorters, etc.</li>
+            <li>Inventory control</li>
+            <li>Material handlers</li>
+            <li>Forklift operators</li>
+            <li>Shipper/Receivers</li>
+            <li>Warehouse supervisors</li>
+            <li>Distribution supervisors</li>
+            <li>AZ/DZ, G licensed drivers</li>
+            <li>Materials managers</li>
+            <li>Quality inspectors</li>
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,187 @@
+﻿@model Wfm.Admin.Models.TimeSheet.CandidateWorkTimeModel
+
+@{
+    var workTimeService = Wfm.Core.Infrastructure.EngineContext.Current.Resolve<Wfm.Services.TimeSheet.IWorkTimeService>();
+    var minWorkHours = workTimeService.GetMinWorkHoursForMealBreak(Model.JobOrderId);
+    var computedNetHours = Wfm.Core.CommonHelper.RoundUp(workTimeService.CalculateNetWorkTime(Model.GrossWorkTimeInMinutes, minWorkHours, Model.MealTimeInMinutes, Model.BreakTimeInMinutes, 0) / 60, 2);
+}
+
+
+<script>
+    function recalculateAdjustment() {
+        if (this.value() == null)
+            this.value(0);
+        var adjMinutes = (parseFloat(this.value()) - @computedNetHours) * 60;
+        var numerictextbox = $('#AdjustmentInMinutes').data('kendoNumericTextBox');
+        numerictextbox.value(adjMinutes);
+    }
+
+    function recalculateNet() {
+        if (this.value() == null)
+            this.value(0);
+        var newNetMinutes = @computedNetHours * 60 + parseFloat($('#AdjustmentInMinutes').val());
+        var numerictextbox = $('#NetWorkTimeInHours').data('kendoNumericTextBox');
+        numerictextbox.value(newNetMinutes / 60);
+    }
+</script>
+
+
+@using (Html.BeginForm("", "", FormMethod.Post, new { id = "worktime-form" }))
+{
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.CandidateWorkTimeStatusId)
+
+    <div class="section-header" style="padding:10px;">
+        <div class="title">
+        </div>
+        <div class="options">
+            <input type="button" id="btn-save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" id="btn-cancel" class="k-button" value="@T("Admin.Common.Cancel")" />
+        </div>
+    </div>
+
+    <table class="adminContent" style="padding:10px;">
+        <tr>
+            <td class="adminTitle" style="width:25%">
+                @Html.LabelFor(model => model.EmployeeId, "Employee ID")
+            </td>
+            <td class="adminData" style="width:75%">
+                @Html.DisplayFor(mode => Model.EmployeeId)
+                @Html.HiddenFor(mode => Model.CandidateId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Common.EmployeeName")
+            </td>
+            <td class="adminData">
+                @(Model.EmployeeFirstName + " " + Model.EmployeeLastName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CompanyName, "Company")
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CompanyName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobOrderId, "Job Order")
+            </td>
+            <td class="adminData">
+                @(Model.JobOrderId.ToString() + " - " + Model.JobTitle)
+                @Html.HiddenFor(model => model.JobOrderId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Common.Date")
+            </td>
+            <td class="adminData">
+                @Model.JobStartDateTime.ToString("yyyy-MMM-dd HH:mm")
+                @Html.HiddenFor(model => model.JobStartDateTime)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.ClockIn)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().TimePickerFor(model => model.ClockIn)
+                            .Format("HH:mm")
+                            .Enable(false)
+                            .HtmlAttributes(new { type = "text" })
+                )
+                @Html.WfmValidationMessageFor(model => model.ClockIn)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.ClockOut)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().TimePickerFor(model => model.ClockOut)
+                            .Format("HH:mm")
+                            .Enable(false)
+                            .HtmlAttributes(new { type = "text" })
+                )
+                @Html.WfmValidationMessageFor(model => model.ClockOut)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                Net Hours
+            </td>
+            <td class="adminData">
+                @computedNetHours.ToString()
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle"></td>
+            <td class="adminData">
+                @Html.Kendo().RadioButton().Name("adjust-by-minutes").HtmlAttributes(new { @name = "adjustment" }).Label("Adj. Minutes")
+                @Html.Kendo().RadioButton().Name("adjust-by-hours").HtmlAttributes(new { @name = "adjustment" }).Label("Adj. Net Hours").Checked(true)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.AdjustmentInMinutes)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().NumericTextBoxFor(model => model.AdjustmentInMinutes)
+                            .Name("AdjustmentInMinutes")
+                            .Format("#")
+                            .Decimals(0)
+                            .Step(1)
+                            .Events(config => config.Change("recalculateNet").Spin("recalculateNet"))
+                )
+                @Html.WfmValidationMessageFor(model => model.AdjustmentInMinutes)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                Final Hours
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().NumericTextBoxFor(model => model.NetWorkTimeInHours).Format("#.##").Step(0.01m)
+                            //.HtmlAttributes(new { id = "NetWorkTimeInHours" })
+                            .Events(config => config.Change("recalculateAdjustment").Spin("recalculateAdjustment"))
+                )
+                @Html.WfmValidationMessageFor(model => model.NetWorkTimeInHours)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle" style="vertical-align: top">
+                @Html.LabelFor(model => model.Note, "Reason")
+            </td>
+            <td class="adminData required">
+                @Html.TextAreaFor(model => model.Note, new { style = "height:80px;width:90%;", placeholder = "Please input the reason for adjustment." })
+                @Html.WfmValidationMessageFor(model => model.Note)
+            </td>
+        </tr>
+    </table>
+}
+
+
+@* for jQUery validation *@
+<script>
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+        $("#AdjustmentInMinutes").data("kendoNumericTextBox").readonly(true);
+        $("input[name=adjustment]:radio").change(function () {
+            if ($("#adjust-by-hours").attr("checked")) {
+                $("#AdjustmentInMinutes").data("kendoNumericTextBox").readonly(true);
+                $("#NetWorkTimeInHours").data("kendoNumericTextBox").readonly(false);
+            }
+            else {
+                $("#AdjustmentInMinutes").data("kendoNumericTextBox").readonly(false);
+                $("#NetWorkTimeInHours").data("kendoNumericTextBox").readonly(true);
+            }
+        });
+    });
+</script>
+

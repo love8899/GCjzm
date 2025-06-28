@@ -1,0 +1,14 @@
+﻿@model Guid
+@(Html.Kendo().DropDownListFor(m => m)
+        .AutoBind(false)
+        .OptionLabel("Select  a vendor...")
+        .DataTextField("Item3")
+        .DataValueField("Item2")
+        .DataSource(dataSource =>
+        {
+            dataSource.Read(read => read.Action("GetCascadeVendorsWithGuid", "Common").Data("getGuid").Type(HttpVerbs.Post))
+                    .ServerFiltering(true);
+        })
+
+)
+

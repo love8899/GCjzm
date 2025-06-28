@@ -1,0 +1,155 @@
+﻿@using Wfm.Shared.Models.Employees
+
+@model EmployeeTimeoffBookingModel
+    @{ 
+        
+    }
+<script>
+    function refreshTimeoffTotalHours() {
+        $.ajax({
+            url: '@Url.Action("GetHoursBetweenDates", "Employee")',
+            cache: false,
+            type: 'POST',
+            data: {
+                start: kendo.toString($('#TimeOffStartDateTime').data('kendoDatePicker').value(), "yyyy-MM-dd"),
+                end: kendo.toString($('#TimeOffEndDateTime').data('kendoDatePicker').value(), "yyyy-MM-dd"),
+                employeeId: @Model.EmployeeIntId,
+                thisBookingId: @Model.Id,
+                startHalf: $('#HalfDayStartDate').prop('checked'),
+                endHalf: $('#HalfDayEndDate').prop('checked'),
+            },
+            dataType: 'html',
+            success: function (result) {
+                $('#timeoff-total-hours').val(result);
+            }
+        });
+    }
+</script>
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "timeoff-booking-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @(Model.Id > 0 ? T("Admin.EmployeeTimeoff.Edit").Text : T("Admin.EmployeeTimeoff.New").Text) - @Model.EmployeeName
+        </div>
+        <div class="options">
+            <input type="button" name="save" id="save-timeoff-booking" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" name="close" id="close-timeoff-booking" class="k-button" value="@T("Common.Close")" />
+        </div>
+    </div>
+
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.EmployeeIntId)
+    @Html.HiddenFor(model => model.BookedByAccountId)
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+    @Html.HiddenFor(model => model.UpdatedOnUtc)
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EmployeeTimeoffTypeId)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                    .Name("EmployeeTimeoffTypeId")
+                    .OptionLabel("--Select--")
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .BindTo(Model.TimeoffTypeList)
+                )
+                @Html.WfmValidationMessageFor(model => model.EmployeeTimeoffTypeId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.TimeOffStartDateTime)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DatePickerFor(model => model.TimeOffStartDateTime)
+                .Format("yyyy-MM-dd")
+                .Start(CalendarView.Month)
+                .Events(evt =>
+                {
+                    evt.Change("refreshTimeoffTotalHours");
+                    //evt.Open("function() { $('.k-weekend a').bind('click', function() { return false; }); }");
+                }))
+                @Html.WfmValidationMessageFor(model => model.TimeOffStartDateTime)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.HalfDayStartDate)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().CheckBoxFor(model => model.HalfDayStartDate))
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.TimeOffEndDateTime)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DatePickerFor(model => model.TimeOffEndDateTime)
+                .Format("yyyy-MM-dd")
+                .Start(CalendarView.Month)
+                .Events(evt =>
+                {
+                    evt.Change("refreshTimeoffTotalHours");
+                    //evt.Open("function() { $('.k-weekend a').bind('click', function() { return false; }); }");
+                }))
+                @Html.WfmValidationMessageFor(model => model.TimeOffEndDateTime)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.HalfDayEndDate)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().CheckBoxFor(model => model.HalfDayEndDate))
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                <label for="timeoff-total-hours">Timeoff Total Hours</label>
+            </td>
+            <td class="adminData">
+                <input id="timeoff-total-hours" readonly type="text" class="k-widget k-input"/>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Note)
+            </td>
+            <td class="adminData">
+                @(Html.TextAreaFor(model => model.Note, new { @class = "k-widget k-input" }))
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CreatedOn)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CreatedOn)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.UpdatedOn)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.UpdatedOn)
+            </td>
+        </tr>
+    </table>
+}
+<script>
+    $(function () {
+        $('#HalfDayStartDate').change(function () {
+            refreshTimeoffTotalHours();
+        })
+        $('#HalfDayEndDate').change(function () {
+            refreshTimeoffTotalHours();
+        })
+        refreshTimeoffTotalHours();
+    })
+</script>

@@ -1,0 +1,96 @@
+﻿@model IEnumerable<CandidateWorkTimeModel>
+@using Wfm.Core.Domain.TimeSheet
+@using Wfm.Core.Infrastructure
+@using Wfm.Services.Companies
+@using Wfm.Web.Models.TimeSheet
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    ViewBag.Title = "Working Time";
+
+    var excludedStatusIds = new int[] { (int)CandidateWorkTimeStatus.Matched, };
+    var availableWorkTimeStatus = CandidateWorkTimeStatus.PendingApproval.ToSelectList(false, excludedStatusIds).ToList();
+
+    var companyService = EngineContext.Current.Resolve<ICompanyService>();
+    var companies = companyService.GetCompanyListForCandidate();
+}
+
+<div class="page candidate-page">
+    <div class="page-body">
+        <div class="section-header">
+            <div class="title hideable">
+                Time Sheets
+            </div>
+            <div class="options">
+                <label class="first-label">Week of:&nbsp;</label>
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("refDate")
+                    .Value(DateTime.Today).Format("MM/dd/yyyy")
+                    .Events(e => e.Change("onRefDateChange")))
+            </div>
+        </div>
+        @(Html.Kendo().Grid<CandidateWorkTimeModel>().Name("WorkTime-grid")
+            .Events(events => events.DataBound("onDataBound"))
+            .Columns(columns =>
+            {
+                columns.ForeignKey(x => x.CompanyId, companies, "Value", "Text").Title(T("Common.Company").Text);
+
+                columns.Bound(x => x.JobStartDateTime).Format("{0:MM/dd/yyyy}").Title(T("Common.Date").Text);
+
+                columns.Bound(x => x.ClockIn).Format("{0:yyyy-MM-dd HH:mm}").Title("Punch In");
+
+                columns.Bound(x => x.ClockOut).Format("{0:yyyy-MM-dd HH:mm}").Title("Punch Out");
+
+                columns.Bound(x => x.NetWorkTimeInHours).Format("{0:0.00}").Title("Hours");
+
+                columns.ForeignKey(x => x.CandidateWorkTimeStatusId, availableWorkTimeStatus, "Value", "Text").Title("Status");
+
+            })
+            //.EnableCustomBinding(true)
+            //.Filterable(filterable => filterable
+            //    .Extra(false)
+            //    .Operators(operators => operators
+            //    .ForString(str => str.Clear()
+            //        .IsEqualTo("Equal To")
+            //        .Contains("Contacins")
+            //        .IsNotEqualTo("Not Equal To")
+            //    ))
+            //)
+            //.ColumnMenu()
+            //.Selectable()
+            .Sortable()
+            .Pageable(x => x.PageSizes(new[] { 5, 10, 20 }).Refresh(true))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .ServerOperation(true)
+                .PageSize(10)
+                .Read(read => read.Action("WorkTimeByCandidateInWeb", "Candidate").Data("getParas"))
+            )
+        )
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    $(function () {
+        $("#refDate").attr("disabled", "disabled");
+    });
+
+    function onRefDateChange() {
+        if ($('#refDate').val())
+            $('#WorkTime-grid').data('kendoGrid').dataSource.read();
+        else
+            displayPopupNotification("Please select a date!", "error");
+    }
+
+    function getParas() {
+        return { refDate: $('#refDate').val() };
+    }
+
+    function onDataBound(e) {
+        // TODO: auto setup, upon bootstrap prefix
+        setGridColumnClass(e.sender, ["JobStartDateTime", "CandidateWorkTimeStatusId"], 'd-none d-sm-table-cell');
+        setGridColumnClass(e.sender, ["CompanyId"], 'd-none d-lg-table-cell');
+    }
+
+</script>

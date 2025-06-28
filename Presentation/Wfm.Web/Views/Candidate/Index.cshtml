@@ -1,0 +1,44 @@
+﻿@model CandidateModel
+@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@using Wfm.Web.Models.Candidate
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    ViewBag.Title = "Main Dashboard - Job Seekers | " + siteTitle + " Employment";
+    ViewBag.Description = siteTitle + " Employment is one of Toronto’s Leading Employment Agencies. We offer leading jobs in Toronto, Markham, Mississauga, Brampton and throughout Ontario.";
+    ViewBag.Keywords = siteTitle + " Employment,Employment,Staffing,Jobs,Temporary,Permanent,Information Technology,Call Centre,General Labour,Warehouse,Accounting,Customer Service,Marketing,Skilled Trades,Manufacturing";
+}
+
+<div class="page candidate-page">
+    <div class="page-body">
+        <div class="result">
+        </div>
+        <h4>Dear @Html.DisplayFor(model => model.FirstName),</h4>
+        <p>
+            Welcome to @Model.FranchiseName.
+        </p>
+        @if (String.IsNullOrWhiteSpace(@Model.SecurityQuestion1Answer))
+        {
+            <h5 style="color:red">You have not set up security questions for your account, Please click @Html.ActionLink("here", "ChangeSecurityQuestions", "Candidate") to set up security questions as this information is needed for password reset.</h5>
+        }
+        <p>
+            Please take a note for your @Model.FranchiseName's employee id : <b>@Model.EmployeeId</b>, which will be very important to track all your work history with us.
+            Save the barcode below to your phone, or print it on paper. You may use it to sign in & out.
+        </p>
+        <div>
+            @Html.GenerateQrCode((string)ViewBag.QrCodeStr, text: Model.Id.ToString("D8"))
+        </div>
+        <p>
+            As the @Model.FranchiseName' Mandatory Registration Process, please click below link to complete Health and Safety Awareness Training. After the training, please upload your training certificate to the Attachment section.
+            <br /><br />
+            <a href="https://www.labour.gov.on.ca/english/hs/elearn/worker/foursteps.php" target="_blank">Health and Safety Awareness Training</a>
+        </p>
+        <p>
+            Click @Html.ActionLink("here", "Announcements", "Candidate") to view Announcements.
+        </p>
+    </div>
+</div>

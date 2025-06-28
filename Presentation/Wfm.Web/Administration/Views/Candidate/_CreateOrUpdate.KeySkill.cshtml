@@ -1,0 +1,79 @@
+﻿@using System.Linq
+@using Wfm.Services.Common
+@model CandidateKeySkillModel
+@{
+    Layout = "";
+    ViewBag.Title = T("Admin.Candidate.CandidateKeySkill.EditCandidateKeySkillDetails").Text;
+    
+    var skillService = EngineContext.Current.Resolve<ISkillService>();
+    var skills = skillService.GetAllSkills();
+    var skillsDropDownList = new List<SelectListItem>();
+    foreach (var c in skills)
+    {
+        var item = new SelectListItem()
+        {
+            Text = c.SkillName,
+            Value = c.SkillName
+        };
+        skillsDropDownList.Add(item);
+    }
+}
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.CandidateId)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.CandidateGuid)
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.KeySkill)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().AutoComplete()
+                .Name("KeySkill")
+                .Placeholder("Enter your skill name")
+                .BindTo(skillsDropDownList.Select(s => s.Value))
+                )
+
+            @Html.WfmValidationMessageFor(model => model.KeySkill)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.YearsOfExperience)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().NumericTextBox<double>()
+                .Name("YearsOfExperience")
+                .Placeholder("Enter years of using the skill")
+                .Format("#.0")
+                .Step(0.5)
+                )
+
+            @Html.WfmValidationMessageFor(model => model.YearsOfExperience)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.LastUsedDate)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                .Name("LastUsedDate")
+                .Min(DateTime.Now.AddYears(-30))
+                .Max(DateTime.Now)
+                )
+            @Html.WfmValidationMessageFor(model => model.LastUsedDate)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Note)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.Note)
+            @Html.WfmValidationMessageFor(model => model.Note)
+        </td>
+    </tr>
+</table>

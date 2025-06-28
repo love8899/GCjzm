@@ -1,0 +1,79 @@
+﻿@using Wfm.Services.Candidates
+@using Wfm.Services.Accounts
+@model IEnumerable<CandidateJobOrderStatusHistoryModel>
+@{
+    Layout = "";
+    ViewBag.Title = T("Admin.Candidate.JobStatusHistory").Text;
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Candidate.JobStatusHistory")
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateJobOrderStatusHistoryModel>()
+                .Name("candidatejoborderstatushistory-grid")
+                .BindTo(Model)
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(80).Hidden();
+
+                    columns.Bound(x => x.JobOrderId).Title(T("Common.JobOrder").Text).Width(100)
+                        .ClientTemplate(@Html.ActionLink("#=JobOrderId#", "Details", "JobOrder", new { guid = "#=JobOrderGuid#" }, new { target = "_blank" }).ToHtmlString());
+                    columns.Bound(x => x.CompanyName).Title(T("Common.Company").Text);
+                    columns.Bound(x => x.JobTitle);
+
+                    columns.Bound(x => x.StartDate).ClientTemplate("#if(StartDate!=null){# #=kendo.toString(StartDate,'yyyy-MM-dd')# #}#").Width(120);
+                    columns.Bound(x => x.EndDate).ClientTemplate("#if(EndDate!=null){# #=kendo.toString(EndDate,'yyyy-MM-dd')# #}#").Width(120);
+                    
+                    columns.Bound(x=>x.StatusName).Title(T("Common.Status").Text).Width(110);
+
+
+                    columns.Bound(x => x.RatingValue).Width(110)
+                        .ClientTemplate("<div class=\"rating\"><div style=\"width: #= RatingValue/5*100 #%;\"></div></div>");
+
+                    columns.Bound(x => x.RatingComment)
+                        .HtmlAttributes(new { style = "white-space:normal;" });
+
+                    columns.Bound(x=>x.EnteredName).Title(T("Common.EnteredBy").Text).Width(110);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Sort(s =>
+                        {
+                            s.Add(x => x.UpdatedOn).Descending();
+
+                        })
+                        .ServerOperation(false)
+                        .PageSize(20)
+                        .Read(read => read.Action("_TabCandidateJobOrderStatusHistoryList", "Candidate", new { candidateGuid = ViewBag.CandidateGuid }))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

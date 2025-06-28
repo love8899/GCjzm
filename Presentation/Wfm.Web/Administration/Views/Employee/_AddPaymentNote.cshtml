@@ -1,0 +1,18 @@
+﻿<div class="section-header" style="padding:10px;">
+    <div class="options">
+        <input type="button" id="btn-save" class="k-button" value="@T("Admin.Common.Save")" />
+        <input type="button" id="btn-cancel" class="k-button" value="@T("Admin.Common.Cancel")" />
+    </div>
+</div>
+
+<br />
+<table class="adminContent" style="padding:10px;">
+    <tr>
+        <td class="adminTitle" style="width:20%;vertical-align:top">
+            Memo
+        </td>
+        <td class="adminData" style="width:80%">
+            @Html.TextArea("PaymentNote", (string)ViewBag.PaymentNote, new { @class = "k-input", maxlength = "255", style = "width:240px;height:120px;resize:none" })
+        </td>
+    </tr>
+</table>

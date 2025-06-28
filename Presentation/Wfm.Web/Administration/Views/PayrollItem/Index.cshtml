@@ -1,0 +1,52 @@
+﻿<script type="text/javascript">
+    var selectedIndex = 0;
+
+    function onDataBound(e) {
+        var grid = $("#payroll-items-grid").data("kendoGrid");
+        //grid.select(e.sender.tbody.find("tr:first"));
+        var row = e.sender.tbody.find("tr").eq(selectedIndex);
+        if (row.length == 1)
+            grid.select(row);
+        else
+            emptyDetails();
+    }
+
+    function onSelect(e) {
+        var row = this.select();
+        selectedIndex = row.index();
+        var model = this.dataItem(row);
+        loadDetails(model.ID);
+    }
+
+</script>
+<div class="section-header">
+    <div class="title">
+        @T("Payroll.PayrollItems")
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td width="25%" id="overview-cell" style="vertical-align:top">
+            @Html.Partial("_PayrollItem")
+        </td>
+        <td width="2%"></td>
+        <td width="73%" id="details-cell" style="vertical-align:top"></td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+    var tabIndex = 0;
+    function loadDetails(id) {
+        $('#details-cell').load('/PayrollItem/_PayrollItemDetails?id=' + id+'&tabIndex='+tabIndex);
+    }
+
+    function emptyDetails() {
+        $('#details-cell').html('No data');
+    }
+
+    function onTabChange(e)
+    {
+        tabIndex = $(e.item).index();
+    }
+</script>

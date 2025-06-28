@@ -1,0 +1,71 @@
+﻿@model Wfm.Shared.Models.Search.SearchAttendanceModel
+@{
+    var gridName = "placement-grid";
+    var serverOperation = true;
+}
+
+<script type="text/javascript">
+    function moveToJobOrder(e) {
+        var theRow = this.dataItem($(e.currentTarget).closest("tr"));
+        var url = '@Url.Action("_JobReschedule", "Rescheduling")' + '?placementId=' + theRow.Id + '&refDate=' + $('#startDate').val().toLocaleString();
+        newWindow(url, undefined, 800, 600);
+        window.onDone = function () { reloadGridByName('@gridName'); }
+    }
+</script>
+
+<div class="content">
+    <div class="form-horizontal">
+        <div class="panel-group">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    @Html.Partial("_SearchAttendance", Model, new ViewDataDictionary
+                    {
+                        { "GridName", gridName }
+                    })
+                    @(Html.Kendo().Grid<Wfm.Client.Models.Candidate.CandidatePlacementModel>().Name(gridName)
+                        .Events(e => e.DataBound("onDataBound"))
+                        .Columns(columns =>
+                        {
+                            columns.Bound(x => x.EmployeeId).Title("No.")
+                                .HeaderHtmlAttributes(new { title = "Employee number" })
+                                .HtmlAttributes(new { @class = "col-xs-1 cell-lg-1" })
+                                .ClientTemplate("<a onclick=getCandidateInfo('#=CandidateGuid#')>#=EmployeeId#</a>");
+                            //columns.Bound(x => x.EmployeeFirstName).Title(T("Common.FirstName").Text);
+                            //columns.Bound(x => x.EmployeeLastName).Title(T("Common.LastName").Text);
+                            columns.Bound(x => x.EmployeeFirstName).Title(T("Common.Name").Text)
+                                .ClientTemplate("#=EmployeeFirstName# #=EmployeeLastName#");
+
+                            //columns.Bound(x => x.JobOrderId).Hidden();
+                            columns.Bound(x => x.JobTitle)
+                                .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0" });
+
+                            //columns.Bound(x => x.LocationName)
+                            columns.ForeignKey(x => x.CompanyLocationId, Model.AvailableLocations, "Value", "Text")
+                                .HtmlAttributes(new { @class = "col-xxs-0" });
+                            //columns.Bound(x => x.DepartmentName)
+                            columns.ForeignKey(x => x.CompanyDepartmentId, Model.AvailableDepartments, "Value", "Text")
+                                .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0" });
+                            //columns.Bound(x => x.ContactName).Title("Supervisor")
+                            columns.ForeignKey(x => x.CompanyContactId, Model.AvailableContacts, "Value", "Text").Title("Supervisor")
+                                .HtmlAttributes(new { @class = "col-xxs-0" });
+
+                            columns.Bound(x => x.StartTime).Format("{0:HH:mm}").Title("Start")
+                                .HtmlAttributes(new { @class = "col-xxs-0 col-md-1 cell-lg-2" });
+                            columns.Bound(x => x.EndTime).Format("{0:HH:mm}").Title("End")
+                                .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0 cell-lg-2" });
+
+                            columns.Command(x => x.Custom("Move").Click("moveToJobOrder")).Title(T("Common.Action").Text)
+                                .HtmlAttributes(new { @class = "col-xs-1 cell-lg-1", align = "center" });
+                        })
+                        .Sortable()
+                        .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50 }).Refresh(true))
+                        .DataSource(ds => ds.Ajax().ServerOperation(serverOperation).PageSize(10)
+                            .Read(read => read.Action("_AllPlacementByDate", "Rescheduling").Data("onRead"))
+                            .Sort(x => x.Add(m => m.StartTime))
+                        )
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

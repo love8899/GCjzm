@@ -1,0 +1,422 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Companies
+@using Wfm.Services.Scheduling
+@using Wfm.Shared.Mapping
+@using Wfm.Shared.Models.Scheduling
+
+@model EmployeeScheduleModel
+
+@{
+    var context = EngineContext.Current.Resolve<IWorkContext>();
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+    var companyService = EngineContext.Current.Resolve<Wfm.Services.Companies.ICompanyService>();
+    var editPermission = permissionService.Authorize("ManageSchedulingPlacement");
+
+    var timelineTemplate =
+                        "<div class='task-template'>" +
+                        "# if (typeof BreakTimeDisplayNotNull !== 'undefined') { for (var i = 0; i < BreakTimeDisplayNotNull.length; i++) { # " +
+                            "<span class='break-marker' data-index='#=i#' title='Break at #= BreakTimeDisplayNotNull[i] #' style='left: #= BreakTimePosition[i] #%;'></span>" +
+                        "# } }#" +
+                            "<div>" +
+                                "<strong>#= description #</strong> <br />" +
+                                "<span class='sub-title'>#= kendo.toString(start, \"hh:mm tt\") # - #: kendo.toString(end, \"hh:mm tt\") #</span>" +
+                            "</div>" +
+                        "</div>";
+    var scheduleDemandingService = EngineContext.Current.Resolve<ISchedulingDemandService>();
+    var schedulePeriods = scheduleDemandingService.GetAllSchedulePeriods(context.CurrentAccount.CompanyId).OrderByDescending(x => x.PeriodStartUtc).ToModels().ToArray();
+    var startDate = (schedulePeriods.Any() ? schedulePeriods[0].PeriodStartDate.StartOfWeek(DayOfWeek.Sunday) : DateTime.Today); // show 8:00 AM as start
+                                                                                                                                 //var endDate = schedulePeriods.Any() && schedulePeriods[0].PeriodEndDate.HasValue? schedulePeriods[0].PeriodEndDate.Value : startDate.AddMonths(1);
+    var positions = companyService.GetAllJobRoles(context.CurrentAccount.CompanyId).Select(x => new SelectListItem
+    {
+        Text = x.Name,
+        Value = x.Id.ToString(),
+    });
+}
+
+<script>
+    var editPermission = @Json.Encode(editPermission);
+    var breakMarkerIsMoving = false;
+
+    function filterShiftSchedule() {
+        return { schedulePeriodId: $("#schedule-period").data("kendoDropDownList").value() };
+    }
+
+    var resourceFiltered = false;
+    function reloadScheduler() {
+        var scheduler = $("#shift-scheduler").data("kendoScheduler");
+        var startDate = new Date($("#schedule-period").data("kendoDropDownList").text().split(' ')[0].replace('-', ' '));
+        var endDate = new Date($("#schedule-period").data("kendoDropDownList").text().split(' ')[1].replace('-', ' '));
+        //scheduler.min(startDate);
+        //scheduler.max(endDate);
+        scheduler.date(startDate);
+        //
+        resourceFiltered = false;
+        var grid = $("#employee-schedule-grid").data("kendoGrid");
+        if (grid){
+            grid.dataSource.page(1);
+            grid.dataSource.read();
+        }
+    }
+
+    function selectFirstEvent() {
+        if (editPermission) {
+            var scheduler = $("#shift-scheduler").data("kendoScheduler");
+            //find event for selection:
+            //var event = scheduler.items()[0];
+            //event.scrollIntoView();
+            //
+            $('.break-marker').draggable({
+                containment: 'parent',
+                axis: 'x',
+                start: function (e) {
+                    breakMarkerIsMoving = true;
+                },
+                stop: function (e) {
+                    breakMarkerIsMoving = false;
+                    var element = $(e.target); 
+                    var kEvent = $(element).parents('.k-event');
+                    var event = scheduler.occurrenceByUid(kEvent.data("uid"));
+                    var breakTimePosition = Math.round(e.target.offsetLeft * 100 / parseInt(kEvent.css('width').replace('px', '')));
+                    var breakIndex = $(element).attr('data-index');
+                    for (var i = 0; i < event.BreakTimePosition.length; i++ ) {
+                        if (i == breakIndex) event.BreakTimePosition[breakIndex] = breakTimePosition;
+                    }
+                    $.ajax({
+                        url: '@Url.Action("_UpdateEmployeeBreakTimePosition", "Scheduling")',
+                        type: 'POST',
+                        dataType: 'html',
+                        data: {
+                            employeeScheduleId: event.EmployeeScheduleId,
+                            scheduleDate: event.ScheduelDate.toLocaleDateString(),
+                            breakIndex: breakIndex,
+                            breakTimePosition: breakTimePosition,
+                        },
+                        success: function (result) {
+                            for (var i = 0; i < event.BreakTimeDisplay.length; i++ ) {
+                                if (i == breakIndex) event.BreakTimeDisplay[breakIndex] = result;
+                            }
+                            $(element).attr('title', result);
+                        }
+                    })
+                }
+            });
+        } else 
+            $('.k-event-delete').hide();
+    }
+
+    function filterSchedulerResources(checked){
+        if (!resourceFiltered){
+            var filter = {
+                logic: "or",
+                filters: $.map(checked, function(value) {
+                    return {
+                        operator: "eq",
+                        field: "Value",
+                        value: value
+                    };
+                })
+            };
+
+            var scheduler = $("#shift-scheduler").data("kendoScheduler");
+            //filter the resource data source 
+            scheduler.resources[0].dataSource.filter(filter);  
+            scheduler.view(scheduler.view().name); //refresh the currunt view
+            resourceFiltered = true;
+        }
+    }
+    
+    function filterScheudlerResourcesBySelection(){
+        resourceFiltered = false;
+        var multiSelect = $("#Positions").data("kendoMultiSelect");
+        var checked = multiSelect.value();
+        filterSchedulerResources(checked);
+    }
+    function filterSchedulerResourcesBySchedulerPeriod(){
+        $.ajax({
+            url: '@Url.Action("_GetCompanyJobRoleIdsBySchedulePeriod")',
+            data: {schedulePeriodId : $("#schedule-period").data("kendoDropDownList").value()},
+            type: 'GET',
+            dataType: 'JSON',
+            success: function(result){
+                filterSchedulerResources(result.companyJobRoles);
+            }
+        })
+        selectFirstEvent();
+    }
+</script>
+
+<style scoped>
+    .k-widget.k-multiselect{
+        width: 500px;
+        vertical-align: middle;
+        display: inline-block;
+    }
+    .k-grid {
+        font-size: 85% !important;
+    }
+    .k-scheduler-table {
+        font-size: 80% !important;
+    }
+    .k-event-template {
+        font-size: 80% !important;
+    }
+    .k-scheduler-footer {
+        font-size: 80% !important;
+    }
+    .k-scheduler-times-all-day {
+        display: none;
+    }
+    .k-scheduler-header-all-day {
+        display: none;
+    }
+    .k-scheduler-footer {
+        background-color: white !important;
+    }
+    .k-scheduler-toolbar .k-link {
+        color: white !important;
+    }
+    .k-scheduler-footer .k-link {
+        color: black !important;
+    }
+    td[role='gridcell'] input {
+        font-size: 1em !important;
+    }
+    .k-event {
+        border-radius: 5px;
+        box-shadow: 5px 5px 2px #888888;
+    }
+    .k-scheduler-table th.k-slot-cell {
+        font-size: 1.1em;
+        font-family: cursive;
+    }
+</style>
+<div class="section-header">
+    <div class="title">
+        @T("Common.Schedule.ShiftView")
+    </div>
+    <div class="options">
+        @Html.Label(T("Common.SchedulePeriod").Text, new { @for = "SchedulePeriod" })
+        @(Html.Kendo().DropDownList().Name("SchedulePeriod").BindTo(schedulePeriods
+            .Select(x => new SelectListItem
+            {
+                Text = string.Format("{0:yyyy-MM-dd} to {1:yyyy-MM-dd} {2}", x.PeriodStartDate,
+                x.PeriodEndDate, x.LocationText),
+                Value = x.Id.ToString()
+            }))
+            .Events(evt => evt.Change("reloadScheduler"))
+            .HtmlAttributes(new { id = "schedule-period", style = "width:500px; text-align:left;" }))
+        <div>
+            @Html.Label(T("Admin.Configuration.Positions").Text, new { @for = "Positions" })
+            @Html.Kendo().MultiSelect().Name("Positions").BindTo(positions).DataTextField("Text").DataValueField("Value").Events(e =>
+            {
+                e.Change("filterScheudlerResourcesBySelection");
+            })
+        </div>
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Scheduler<EmployeeSchedulePreviewModel>()
+            .Name("shift-scheduler")
+            .Date(startDate)
+            .Editable(editable => {
+                editable.Create(true);
+                editable.TemplateName("PlannerEditorTemplate");
+            })
+            .Messages(m => m.Editor(b => b.EditorTitle("Scheduled Task")))
+            .MajorTick(120)
+            .MinorTickCount(2)
+            .Selectable(true)
+            //.Max(endDate)
+            //.Min(startDate)
+            //.Height(700) //  #=  # 
+            .Views(views =>
+            {
+                views.TimelineWeekView(timeline =>
+                {
+                    timeline.EventTemplate(timelineTemplate);
+                    timeline.EventHeight(45);
+                });
+                views.TimelineWorkWeekView(timeline =>
+                {
+                    timeline.EventTemplate(timelineTemplate);
+                    timeline.EventHeight(45);
+                });
+                views.TimelineView(timeline =>
+                {
+                    timeline.Selected(true);
+                    timeline.EventTemplate(timelineTemplate);
+                    timeline.EventHeight(45);
+                });
+            })
+            .DateHeaderTemplate("#= kendo.toString(date, 'yyyy-MM-dd') #")
+            .MajorTimeHeaderTemplate("#= kendo.toString(date, 'h tt') #")
+            .Group(group => group.Resources("Roles").Orientation(SchedulerGroupOrientation.Vertical))
+            .Resources(resource =>
+            {
+                resource.Add(m => m.CompanyJobRoleId)
+                .Name("Roles")
+                .BindTo(ViewBag.CompanyJobRoleList)
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .DataColorField("Color");
+            })
+            .DataSource(d => d
+                .Model(m =>
+                {
+                    m.Id(f => f.UniqueId );
+                })
+                .ServerOperation(true)
+                .Read(
+                    read =>
+                    {
+                        read.Action("_ReadShiftSchedulePreview", "Scheduling").Data("filterShiftSchedule");
+                    })
+                .Create(
+                    create =>
+                    {
+                        create.Action("_CreateShiftSchedulePreview", "Scheduling").Data("filterShiftSchedule");
+                    })
+                .Update(
+                    update =>
+                    {
+                        update.Action("_UpdateShiftSchedulePreview", "Scheduling");
+                    })
+                 .Destroy(
+                    delete =>
+                    {
+                        delete.Action("_DeleteEmployeeScheduleDaily", "Scheduling");
+                    })
+                )
+            .Events(e =>
+            {
+                e.DataBound("filterSchedulerResourcesBySchedulerPeriod");
+                e.Edit("onEdit");
+                e.MoveStart("moveStart");
+                e.ResizeStart("onResizeStart");
+                e.Add("onEdit");
+                e.Save("onSave");
+            })
+            )
+        </td>
+    </tr>
+</table>
+<div id="schedule-employee-window"></div>
+<script>
+    function bindDialogEvent() {
+        $('#close-schedule-employee').click(function () {
+            $("#schedule-employee-window").data("kendoWindow").close();
+        });
+        $('#schedule-employee-save').click(function () {
+            var form = $('#schedule-employee-form');
+            if (form.valid()) {
+                $.ajax({
+                    url: '@Url.Action("_EditScheduleEmployee")',
+                    type: 'POST',
+                    data: $('#schedule-employee-form').serialize(),
+                    dataType: 'json',
+                    success: function (result) {
+                        if (result.ErrorAndWarnings) {
+                            // temp solution, will make nice summary panel later
+                            var text = '';
+                            result.ErrorAndWarnings.forEach(function (entry) {
+                                text += entry.LevelOrError == 0 ? 'Error' : 'Warning'  + ' ' + entry.ErrorMessage + '\r';
+                            });
+                            alert(text);
+                        }
+                        if (result.Success) {
+                            $("#schedule-employee-window").data("kendoWindow").close();
+                            reloadScheduler();
+                        }
+                    }
+                });
+            }
+        })
+    }
+    function prepareNewAdhoc() {
+        var schedulePeriodId = $("#schedule-period").data("kendoDropDownList").value();
+        return new { SchedulePeriodId: schedulePeriodId };
+    }
+
+    function moveStart(event) {
+        if (!editPermission) {
+            event.preventDefault();
+        } else if (breakMarkerIsMoving)
+           event.preventDefault();
+    }
+
+    function onResizeStart(event) {
+        if (!editPermission)
+            event.preventDefault();
+    }
+
+    function onEdit(e) {
+        if (!editPermission) {
+            e.preventDefault();
+        }
+        else{
+            setTimeout(populateLengthInHours, 1500);
+        }
+    }
+    function onSave(e) {
+        e.event.SchedulePeriodId = $("#schedule-period").data("kendoDropDownList").value();
+        $.ajax({
+            url: '@Url.Action("_ValidateShiftSchedulePreview")',
+            async: false,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(e.event),
+            dataType: 'json',
+            success: function (result) {
+                if (result.Popup) {
+                    showMessage(result.Popup);
+                }
+                if (!result.Success) {
+                    e.preventDefault();
+                }
+            }
+        });
+    }
+
+    function filterEmployees() {
+        return {
+            schedulePeriodId: $("#schedule-period").data("kendoDropDownList").value(),
+        }
+    }
+    function showMessage(html) {
+        var kendoWindow = $("<div />").kendoWindow({
+            title: "Errors and Warnings",
+            resizable: false,
+            width: 800,
+            height: 600,
+            modal: true
+        });
+
+        kendoWindow.data("kendoWindow")
+            .content(html)
+            .center().open();
+        return false;
+    }
+    // below function is used in the editor temmplate
+    function populateLengthInHours() {
+        var schedulePeriodId = $("#schedule-period").data("kendoDropDownList").value();
+        var companyJobRoleId = $('#CompanyJobRoleId').data("kendoDropDownList").value();
+        $.ajax({
+            url: '@Url.Action("_GetDefaultLengthInHours")',
+            data: { schedulePeriodId: schedulePeriodId, companyJobRoleId: companyJobRoleId },
+            type: 'GET',
+            dataType: 'JSON',
+            success: function (result) {
+                if (result.defaultLengthInHours && result.defaultLengthInHours > 0) {
+                    var currentStart = $("#start").data("kendoTimePicker").value();
+                    var currentEnd = $("#end").data("kendoTimePicker").value();
+                    currentEnd.setTime(currentStart.getTime() + (result.defaultLengthInHours * 60 * 60 * 1000));
+                    $('#end').data("kendoTimePicker").value(currentEnd);
+                    //
+                    $('#editor-schedule-date').data("kendoDatePicker").value(currentStart);
+                }
+            }
+        })
+    }
+</script>

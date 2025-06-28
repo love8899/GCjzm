@@ -1,0 +1,110 @@
+﻿@model TestQuestionModel
+
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+@Html.HiddenFor(model => model.TestCategoryId)
+@Html.HiddenFor(model => model.DisplayOrder)
+
+<table class="adminContent">
+    <tr>
+        <td colspan="2">
+            <div class="statisticsTitle">
+                @T("Common.TestCategory") : @Model.TestCategoryName
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Question)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.Question)
+            @Html.WfmValidationMessageFor(model => model.Question)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Answers)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.Answers)
+            @Html.WfmValidationMessageFor(model => model.Answers)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Score)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().NumericTextBox<int>()
+                .Name("Score")
+                .Format("#")
+                .Min(0)
+                .Step(1)
+            )
+            @Html.WfmValidationMessageFor(model => model.Score)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.ImageFileLocation)
+        </td>
+        <td class="adminData">
+            @if (!string.IsNullOrWhiteSpace(@Model.ImageFileUrl))
+            {
+                <img alt="" src="@Model.ImageFileUrl" width="300" /> <br/>
+            }
+            @Html.EditorFor(model => model.ImageFileLocation)
+
+            @(Html.Kendo().Upload()
+                  .Name("attachments")
+                  .Multiple(true)
+                  .Async(async => async
+                      .AutoUpload(false)
+                  )
+              )
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsSingleChoice)
+        </td>
+        <td class="adminData">
+            @Html.CheckBoxFor(model => model.IsSingleChoice)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsMultipleChoice)
+        </td>
+        <td class="adminData">
+            @Html.CheckBoxFor(model => model.IsMultipleChoice)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsActive)
+        </td>
+        <td class="adminData">
+            @Html.CheckBoxFor(model => model.IsActive)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CreatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.CreatedOn)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.UpdatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.UpdatedOn)
+        </td>
+    </tr>
+</table>

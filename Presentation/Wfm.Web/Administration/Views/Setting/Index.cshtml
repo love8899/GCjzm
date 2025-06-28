@@ -1,0 +1,63 @@
+﻿@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.Settings").Text;
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration.Settings") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+    <div class="options">
+        @Html.ActionLink(T("Common.Add").Text, "Create", null, new { @class = "k-button" })
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<SettingModel>()
+                .Name("setting-grid")
+                .Columns(columns =>
+                {
+                    //columns.Bound(x => x.Id).Width(80);
+                    columns.Bound(x => x.Name);
+                    columns.Bound(x => x.Value);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { x.Id }))
+                        .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/Setting/Edit/") + "#= Id #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                        .Width(80)
+                        .Title(T("Admin.Common.Edit").Text);
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .Read(read => read.Action("Index", "Setting"))
+                    .PageSize(20)
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

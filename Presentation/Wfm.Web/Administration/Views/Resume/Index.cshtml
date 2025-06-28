@@ -1,0 +1,26 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Messages;
+@{
+    ViewBag.Title = T("Admin.Resumes").Text;
+    var messageCategoryService = EngineContext.Current.Resolve<IMessageCategoryService>();
+    var messageCategories = messageCategoryService.GetAllMessageCategories();
+}
+
+<div id="message-pane">
+    @Html.Partial("_MessageList")
+</div>
+
+<script type="text/javascript">
+
+    function loadMsg(id) {
+        if (id == '0')
+            alert('No more messages!');
+        else
+            $('#message-grid').load('Resume/_MessageDetails' + '/' + id, { criteria: getMessageCriteria() });
+    }
+
+    function back2Grid(e) {
+        $('#message-grid').load('Resume/_MessageGrid');
+    }
+
+</script>

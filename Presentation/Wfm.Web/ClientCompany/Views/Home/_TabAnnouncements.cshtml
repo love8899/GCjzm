@@ -1,0 +1,16 @@
+﻿<div id="viewAnnouncements"></div>
+
+<script type="text/javascript">
+    $(function () { LoadAnnouncements(); });
+    $('body').on('click', '.clsMarkAsRead', function () { markAnnouncementAsRead($(this).attr('announcementGuid')); });
+    function LoadAnnouncements() {
+        justPost('@(Url.Action("GetAnnouncementView", "Home"))', null, null, function (result) {
+            $("#viewAnnouncements").html(result);
+        });
+    }
+    function markAnnouncementAsRead(announcementguid) {
+        justPost('@(Url.Action("MarkAnnouncementAsRead", "Home"))', { announcementGuid: announcementguid }, null, function (result) {
+            LoadAnnouncements();
+        });
+    }
+</script>

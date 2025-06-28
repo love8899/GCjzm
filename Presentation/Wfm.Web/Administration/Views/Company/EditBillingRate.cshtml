@@ -1,0 +1,20 @@
+﻿@model CompanyBillingRateModel
+@{
+    ViewBag.Title = T("Common.NewBillingRate").Text;
+}
+
+@using (Html.BeginForm())
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Companies.CompanyBillingRate.EditCompanyBillingRateDetails")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />
+        </div>
+    </div>
+    @Html.Partial("_CreateOrUpdate.BillingRate", Model)
+}
+
+

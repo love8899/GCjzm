@@ -1,0 +1,43 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Job Search Resource";
+    //var description = "In addition to the professional advice and support offered by our consultants when you meet with them in person, we have posted the following resources to assist you with your search.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Job Search Resources</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            Searching for employment can seem like a fulltime job in itself. The job market
+            is dynamic, highly competitive and fast moving. You need to put your best foot forward
+            and ensure your application stands out from the rest. In addition to the professional
+            advice and support offered by our consultants when you meet with them in person,
+            we have posted the following resources to assist you with your search.
+        </p>
+        <ul>
+            <li>Preparing your résumé</li>
+            <li>Writing effective job search letters</li>
+            <li>Networking essentials</li>
+            <li>Interview preparation</li>
+        </ul>
+    </div>
+</div>

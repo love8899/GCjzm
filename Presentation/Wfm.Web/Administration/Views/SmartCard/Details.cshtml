@@ -1,0 +1,114 @@
+﻿@using Wfm.Core
+
+
+@model IEnumerable<CandidateSmartCardModel>
+
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.TimeClocks.CandidateSmartCards").Text;
+
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    int candidateId = ViewBag.CandidateId;
+}
+
+
+@( Html.Kendo().Window()
+    .Name("addsmartcard-window")
+        .Title(T("Common.Add").Text)
+    .Content(@<text>@Html.Partial("Create", new CandidateSmartCardModel { CandidateId = candidateId })</text>)
+    .Width(700)
+    .Draggable(true)
+    .Modal(true)
+    .Visible(false)
+    .Actions(actions => actions.Minimize().Maximize().Close())
+)
+
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.TimeClocks.CandidateSmartCard.Details") @Html.ActionLink("(" + T("Admin.TimeClocks.CandidateSmartCard.BackToList") + ")", "Index")
+    </div>
+    <div class="options">
+        @if (workContext.CurrentAccount.IsLimitedToFranchises == false)
+        {
+            @Html.ActionLink(T("Common.Add").Text, "Create", new { candidateId = candidateId }, new { @class = "k-button" })
+        }
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    $("#create-smartcard").bind("click", function () { $("#addsmartcard-window").data("kendoWindow").center().open(); });
+</script>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateSmartCardModel>()
+                .BindTo(Model)
+                .Name("smartcardlist-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(50);
+                    columns.Bound(x => x.SmartCardUid).Width(100);
+
+                    columns.Bound(x => x.CandidateId);
+                    columns.Bound(x => x.CandidateFirstName);
+                    columns.Bound(x => x.CandidateLastName);
+
+                    columns.Bound(x => x.IsActive)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsActive #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(100);
+
+                    columns.Bound(x => x.Note);
+
+
+                    columns.Bound(x => x.ReasonForDeactivation);
+
+                    columns.Bound(x => x.UpdatedOn).Format("{0:yyyy-MM-dd HH:mm}").Filterable(false).Sortable(false).Width(125);
+                    columns.Bound(x => x.CreatedOn).Format("{0:yyyy-MM-dd HH:mm}").Filterable(false).Sortable(false).Width(125);
+                    columns.Bound(x => x.UpdatedOnUtc).Format("{0:yyyy-MM-dd HH:mm}").Width(125).Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).Format("{0:yyyy-MM-dd HH:mm}").Width(125).Hidden(true);
+
+                    if (workContext.CurrentAccount.IsLimitedToFranchises == false)
+                    {
+                        columns.Bound(x => x.Id).Filterable(false).Sortable(false).Title(T("Admin.Common.Edit").Text).Width(70)
+                            .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { x.Id }))
+                            .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/SmartCard/Edit/") + "#= Id #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                            .HtmlAttributes(new { style = "text-align:center" });
+                    }
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new []{10,20,50,100}))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(20)
+                )
+                //.DataSource(dataSource => dataSource
+                //    .Ajax()
+                //    .PageSize(20)
+                //    .Read(read => read.Action("Details", "SmartCard")))
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

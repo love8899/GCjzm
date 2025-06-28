@@ -1,0 +1,80 @@
+﻿@using Wfm.Shared.Models.Accounts
+@using Wfm.Services.Accounts
+@model AccountModel
+@{
+    ViewBag.Title = T("Common.AccountDetails").Text;
+
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    var accountService = EngineContext.Current.Resolve<IAccountService>();
+    var isManager = accountService.isMangaer(workContext.CurrentAccount.Id);
+}
+<div class="tabordion" style="height:700px;">
+    <section id="section1">
+        <input type="radio" name="sections" id="basicInfo">
+        <label for="basicInfo">@T("Common.BasicInformation").Text</label>
+        <article>
+            <h2>@T("Common.BasicInformation").Text</h2>
+            @Html.Partial("Edit", Model)
+        </article>
+    </section>
+    <section id="section2">
+        <input type="radio" name="sections" id="password">
+        <label for="password">@T("Common.ChangePassword").Text</label>
+        <article>
+            <h2>@T("Common.ChangePassword").Text</h2>
+            @{
+                var passwordPolicyService = EngineContext.Current.Resolve<IAccountPasswordPolicyService>();
+                var resetPasswordModel_BL = new AccountResetPasswordModel_BL(passwordPolicyService, accountService);
+                var _model = resetPasswordModel_BL.GetResetPasswordModel(Model.AccountGuid);
+            }
+
+            @Html.Partial("ResetPassword", _model)
+        </article>
+    </section>
+    <section id="section3">
+        <input type="radio" name="sections" id="securityQuestions">
+        <label for="securityQuestions">@T("Web.Candidate.Candidate.ChangeSecurityQuestions").Text</label>
+        <article>
+            <h2>@T("Web.Candidate.Candidate.ChangeSecurityQuestions").Text</h2>
+            @Html.Partial("_ChangeSecurityQuestions", new AccountChangeSecuirtyQuestionsModel())
+        </article>
+    </section>
+  @*  <section id="section4">
+        <input type="radio" name="sections" id="timeOff">
+        <label for="timeOff">@T("Admin.Employee.Timeoff").Text</label>
+        <article>
+            <h2>@T("Admin.Employee.Timeoff").Text</h2>
+            @Html.Partial("_TimeOff", new ViewDataDictionary { { "EmployeeId", Model.EmployeeId } })
+        </article>
+    </section>*@
+    @if (isManager)
+    {
+        <section id="section5">
+            <input type="radio" name="sections" id="timeOffApproval">
+            <label for="timeOffApproval">@T("Admin.Employee.Timeoff").Text approval</label>
+            <article>
+                <h2>@T("Admin.Employee.Timeoff").Text approval</h2>
+                @Html.Partial("_TimeOffApproval", new ViewDataDictionary { { "EmployeeId", Model.EmployeeId } })
+            </article>
+        </section>
+    }
+    @*<section id="section6">
+        <input type="radio" name="sections" id="paystubs">
+        <label for="paystubs">@T("Common.PayStubs").Text</label>
+        <article>
+            <h2>@T("Common.PayStubs").Text</h2>
+        </article>
+    </section>*@
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var tabId = '@(ViewBag.TabId)';
+        if (tabId == '' || tabId == null)
+            tabId = 'basicInfo';
+
+        var $radios = $('input:radio[id='+tabId+']');
+        if ($radios.is(':checked') === false) {
+            $radios.prop('checked', true);
+        }
+    });
+</script>

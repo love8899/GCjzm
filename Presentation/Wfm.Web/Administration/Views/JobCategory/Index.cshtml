@@ -1,0 +1,80 @@
+﻿@model IEnumerable<JobOrderCategoryModel>
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.JobOrderCategories").Text;
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration.JobOrderCategories") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<JobOrderCategoryModel>()
+              .Name("jobcategory-grid")
+              .BindTo(Model)
+              .Columns(columns =>
+                {
+                    columns.Bound(x => x.CategoryName).Width(280);
+
+                    columns.Bound(x => x.IsActive)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Content/images/") + "active-#= IsActive #.png)'></div>")
+                        .Width(100);
+
+                    columns.Bound(x => x.DisplayOrder).HtmlAttributes(new { style = "text-align:center" }).Width(100);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                })
+                .ToolBar(tool => { tool.Create(); tool.Save(); })
+                .Editable(edit=>edit.Mode(GridEditMode.InCell))
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .Batch(true)
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Events(events => events.Error("error_handler"))
+                    .Read(read => read.Action("Index", "JobCategory"))
+                    .Create(create => create.Action("Create", "JobCategory"))
+                    .Update(update => update.Action("Edit", "JobCategory"))
+                    .Model(model =>
+                    {
+                        model.Id(x => x.Id);
+                        model.Field(x => x.Id).Editable(false);
+                        model.Field(x => x.CategoryName).Editable(true);
+                        model.Field(x => x.DisplayOrder).Editable(true).DefaultValue(0);
+                        model.Field(x => x.IsActive).Editable(true).DefaultValue(true);
+                        model.Field(x => x.IsDeleted).Editable(false).DefaultValue(false);
+                        model.Field(x => x.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(x => x.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(x => x.CreatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        model.Field(x => x.UpdatedOn).Editable(false).DefaultValue(DateTime.Now);
+                    })
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

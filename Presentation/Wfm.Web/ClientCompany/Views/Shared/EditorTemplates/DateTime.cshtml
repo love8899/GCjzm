@@ -1,0 +1,20 @@
+@model DateTime?
+@{
+    var value = ViewData["Value"];
+    var name = ViewData.TemplateInfo.GetFullHtmlFieldName(string.Empty);
+}
+
+@(Html.Kendo().DateTimePickerFor(m => m)
+    .Format((string)ViewData["Format"] ?? "MM/dd/yyyy hh:mm tt")
+    .Min((ViewData["Min"] ?? DateTime.MinValue).ToString())
+    .Max((ViewData["Max"] ?? DateTime.MaxValue).ToString())
+    .Events(e => e.Change((string)ViewData["OnChange"] ?? "doNothing"))
+    .Enable((bool?)ViewData["Enable"] ?? true)
+    .HtmlAttributes(Wfm.Core.CommonHelper.Merge(new { type = "text" }, ViewData["HtmlAttr"]))
+)
+<script>
+    $(function () {
+        if ('@value')   // set default value if present
+            $('#@name').data('kendoDatePicker').value(new Date('@value'));
+    })
+</script>

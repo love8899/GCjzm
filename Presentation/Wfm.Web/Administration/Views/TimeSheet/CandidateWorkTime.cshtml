@@ -1,0 +1,434 @@
+﻿@using Wfm.Core.Domain.TimeSheet;
+@using Wfm.Services.Franchises;
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts;
+@using Wfm.Services.Accounts;
+
+@model IEnumerable<CandidateWorkTimeModel>
+
+@{
+    ViewBag.Title = T("Admin.TimeSheet.CandidateWorkTime").Text;
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+
+    var franchises = franchiseService.GetAllFranchises();
+
+    var excludedStatusIds = new int[] { (int)CandidateWorkTimeStatus.Matched };
+    var availableWorkTimeStatus = CandidateWorkTimeStatus.PendingApproval.ToSelectList(false, excludedStatusIds).ToList();
+    var today = DateTime.Today;
+    var startDate = today.AddDays(-14);
+    var endDate = today;
+    if (ViewBag.JobStartDate != null)
+    {
+        startDate = ViewBag.JobStartDate;
+        endDate = startDate;
+    }
+
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+    var allowAdjustment = permissionService.Authorize("ApproveTimeSheet");
+}
+
+@(Html.Kendo().Window()
+    .Name("calculatecandidateworktime-window")
+    .Title(T("Admin.TimeSheet.CalculateCandidateWorkTime.Calculate").Text)
+    .Content(@<text>@Html.Partial("CalculateCandidateWorkTime")</text>)
+    .Width(700)
+    .Draggable(true)
+    .Modal(true)
+    .Visible(false)
+    .Actions(actions => actions.Minimize().Maximize().Close())
+)
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Menu.DailyTimeSheets")
+    </div>
+    <div class="options">
+        @Html.Label("startDate", T("Admin.Common.From").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("startDate").Max(today).Value(startDate).Events(e => e.Change("refreshGird"))
+        @Html.Label("endDate", T("Admin.Common.To").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("endDate").Max(today).Value(endDate).Events(e => e.Change("refreshGird"))
+        <button id="calculate-worktime" class="k-button">@T("Admin.TimeSheet.CalculateCandidateWorkTime.Calculate")</button>
+        @*<a id="importexcel" class="k-button">@T("Admin.Common.ImportFromExcel").Text</a>*@
+        <a id="exportexcel-selected" class="k-button">@T("Admin.Common.ExportToExcel.Selected").Text</a>
+        <a id="exportpdf-selected" class="k-button">@T("Admin.Common.ExportToPDF.Selected").Text</a>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $("#calculate-worktime").bind("click", function () { $("#calculatecandidateworktime-window").data("kendoWindow").center().open(); });
+</script>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateWorkTimeModel>()
+                .Name("candidateworktime-grid")
+                .Events(events => events.DataBound("onDataBound"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x).Filterable(false).Sortable(false)
+                        .HeaderTemplate("<input id='mastercheckbox' type='checkbox'/>")
+                        .ClientTemplate("<input type='checkbox' value='#=Id#' class='checkboxGroups'/>")
+                        .Width(25);
+
+                    columns.Bound(x => x.EmployeeId)
+                        .ClientTemplate(@Html.ActionLink("#=EmployeeId#", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString())
+                        .Width(90);
+
+                    columns.Bound(x => x.CandidateId).Title(T("Common.Id").Text);
+
+                    if (!workContext.CurrentAccount.IsVendor() && commonSettings.DisplayVendor)
+                    {
+                        columns.ForeignKey(x => x.FranchiseId, franchises, "Id", "FranchiseName").Title(T("Common.Vendor").Text).Hidden(true);
+                    }
+
+                    columns.Bound(x => x.EmployeeLastName)
+                        .ClientTemplate("#if (CandidateWorkTimeStatusId != 13 && NetWorkTimeInHours<=1){# <span class='worktime-warning'>#=EmployeeLastName#</span> #}else{# #=EmployeeLastName# #}#")
+                        .Width(100);
+                    columns.Bound(x => x.EmployeeFirstName)
+                        .ClientTemplate("#if (CandidateWorkTimeStatusId != 13 && NetWorkTimeInHours<=1){# <span class='worktime-warning'>#=EmployeeFirstName#</span> #}else{# #=EmployeeFirstName# #}#")
+                        .Width(100);
+
+                    columns.Bound(x => x.JobOrderId).Title(T("Common.JobOrder").Text)
+                        .ClientTemplate(@Html.ActionLink("#=JobOrderId#", "Details", "JobOrder", new { guid = "#=JobOrderGuid#" }, new { target = "_blank" }).ToHtmlString())
+                        .Width(60);
+
+                    columns.Bound(x => x.JobTitle).Hidden(true);
+
+                    columns.Bound(x => x.CompanyName).Title("Company");
+                    columns.Bound(x => x.LocationName).Hidden(true);
+                    columns.Bound(x => x.DepartmentName).Hidden(true);
+                    columns.Bound(x => x.ContactName);
+
+                    columns.Bound(x => x.Year).Width(60).Hidden(true);
+                    columns.Bound(x => x.WeekOfYear).ClientTemplate("#=WeekOfYear#").Width(60).Hidden(true);
+
+                    columns.Bound(x => x.JobStartDateTime).Title(T("Common.StartDate").Text).Format("{0:yyyy-MM-dd HH:mm}").Width(120).HtmlAttributes(new { id = "joborder-startdate" });
+                    columns.Bound(x => x.JobEndDateTime).Title(T("Common.EndDate").Text).Format("{0:yyyy-MM-dd HH:mm}").Width(120).HtmlAttributes(new { id = "joborder-enddate" }).Hidden(true);
+
+                    columns.Bound(x => x.ClockIn).Format("{0:yyyy-MM-dd HH:mm}").Width(120)
+                        .ClientTemplate("#if (ClockIn != null) {# #=kendo.toString(ClockIn,'yyyy-MM-dd HH:mm')# #}else{# #}#");
+                    columns.Bound(x => x.ClockOut).Format("{0:yyyy-MM-dd HH:mm}").Width(120)
+                        .ClientTemplate("#if (ClockOut != null) {# #=kendo.toString(ClockOut,'yyyy-MM-dd HH:mm')# #}else{# #}#");
+
+                    columns.Bound(x => x.ClockDeviceUid).Hidden(true);
+                    columns.Bound(x => x.SmartCardUid).Hidden(true);
+
+                    columns.Bound(x => x.Source).Hidden(true);
+
+                    columns.Bound(x => x.LateInTimeInMinutes).Width(50).HtmlAttributes(new { align = "right" }).Format("{0:n2}").Hidden(true);
+                    columns.Bound(x => x.EarlyOutTimeInMinutes).Width(50).HtmlAttributes(new { align = "right" }).Format("{0:n2}").Hidden(true);
+                    columns.Bound(x => x.RoundingIntervalInMinutes).Width(50).HtmlAttributes(new { align = "right" }).Format("{0:n2}").Hidden(true);
+                    columns.Bound(x => x.GracePeriodInMinutes).Width(50).HtmlAttributes(new { align = "right" }).Format("{0:n2}").Hidden(true);
+
+                    columns.Bound(x => x.MealTimeInMinutes).Width(50).HtmlAttributes(new { align = "right" }).Format("{0:n2}").Hidden(true);
+                    columns.Bound(x => x.BreakTimeInMinutes).Width(50).HtmlAttributes(new { align = "right" }).Format("{0:n2}").Hidden(true);
+                    columns.Bound(x => x.TotalAbsenceTimeInMinutes).Width(50).HtmlAttributes(new { align = "right" }).Format("{0:n2}").Hidden(true);
+
+                    columns.Bound(x => x.LateOutTimeInHours).HtmlAttributes(new { align = "right" }).Hidden(true)
+                        .ClientTemplate("#if (LateOutTimeInHours>=1){# <span class='overtime-warning'>#= kendo.format('{0:n2}',LateOutTimeInHours) #</span> #}else{# #= kendo.format('{0:n2}',LateOutTimeInHours) # #}#")
+                        .Width(50);
+
+                    columns.Bound(x => x.JobOrderDurationInHours)
+                        .HtmlAttributes(new { align = "right" }).Format("{0:n2}").Width(60);
+
+                    columns.Bound(x => x.ClockTimeInHours)
+                        .ClientTemplate("#if (ClockTimeInHours<1){# <span class='worktime-warning'>#= kendo.format('{0:n2}',ClockTimeInHours) #</span> #}else{# #= kendo.format('{0:n2}',ClockTimeInHours) # #}#")
+                        .HtmlAttributes(new { align = "right" }).Width(60);
+
+                    columns.Bound(x => x.GrossWorkTimeInHours)
+                        .HtmlAttributes(new { align = "right" }).Format("{0:n2}").Width(60);
+
+                    columns.Bound(x => x.AdjustmentInMinutes).HtmlAttributes(new { align = "right" })
+                        .Width(60);
+
+                    columns.Bound(x => x.NetWorkTimeInHours).HtmlAttributes(new { align = "right" })
+                        .HtmlAttributes(new { @class = "boldColumn" })
+                        .ClientTemplate("#if (NetWorkTimeInHours<=1){# <span class='worktime-warning'>#= kendo.format('{0:n2}',NetWorkTimeInHours) #</span> #}else if (AdjustmentInMinutes != 0 || ClockTimeInHours == 0) {# <span class='worktime-adjusted' title='#=Note#'>#=kendo.format('{0:n2}',NetWorkTimeInHours)#</span>#} else {# <span class='boldColumn'>#=kendo.format('{0:n2}',NetWorkTimeInHours)#</span> #}#")
+                        .Width(60);
+
+                    columns.ForeignKey(x => x.CandidateWorkTimeStatusId, availableWorkTimeStatus, "Value", "Text")
+                        .Width(105);
+
+                    columns.Bound(x => x.Note).Hidden(true);
+
+                    columns.Bound(x => x.ApprovedByName).Hidden(true);
+                    columns.Bound(x => x.ApprovedOnUtc)
+                        .ClientTemplate("#=kendo.toString(ApprovedOnUtc,'yyyy-MM-dd HH:mm')#")
+                        .Width(120).Hidden(true);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    columns.Command(command =>
+                    {
+                        command.Custom("Adjust").Click("adjustEntry").Text("");
+                        command.Custom("Status").Click("changeStatus").Text("");
+                    }).Title("Action").HtmlAttributes(new { align = "center" }).Width(120).Hidden(!allowAdjustment);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(
+                    dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(30)
+                    .Read(read => read.Action("CandidateWorkTime", "TimeSheet").Data("gridParameter"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+<script>
+    function onDataBound(e) {
+        $('#candidateworktime-grid input[type=checkbox][id!=mastercheckbox]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds);
+            //set checked based on if current checkbox's value is in selectedIds.
+            $(this).attr('checked', checked > -1);
+        });
+
+        updateMasterCheckbox();
+        applyCommandIcons(e);
+        showOrHideButton(e);
+    }
+
+    function updateMasterCheckbox() {
+        var numChkBoxes = $('#candidateworktime-grid input[type=checkbox][id!=mastercheckbox]').length;
+        var numChkBoxesChecked = $('#candidateworktime-grid input[type=checkbox][checked][id!=mastercheckbox]').length;
+        $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+
+    var selectedIds = [];
+
+    $('#mastercheckbox').click(function () {
+        $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+    });
+
+    //wire up checkboxes.
+    $('#candidateworktime-grid').on('change', 'input[type=checkbox][id!=mastercheckbox]', function (e) {
+        var $check = $(this);
+        if ($check.is(":checked") == true) {
+            var checked = jQuery.inArray($check.val(), selectedIds);
+            if (checked == -1) {
+                //add id to selectedIds.
+                selectedIds.push($check.val());
+            }
+        }
+        else {
+            var checked = jQuery.inArray($check.val(), selectedIds);
+            if (checked > -1) {
+                //remove id from selectedIds.
+                selectedIds = $.grep(selectedIds, function (item, index) {
+                    return item != $check.val();
+                });
+            }
+        }
+        updateMasterCheckbox();
+    });
+
+    function applyCommandIcons(e) {
+        $(".k-grid-Adjust").attr('title', 'Adjust').html('<span class="fa fa-pencil"></span>');
+        $(".k-grid-Status").attr('title', 'Status').html('<span class="fa fa-check-square-o"></span>');
+    }
+
+    function showOrHideButton(e) {
+        var grid = $("#candidateworktime-grid").data("kendoGrid");
+        var data = grid.dataSource.data();
+        for (var i = 0; i < data.length; i++) {
+            var currentData = data[i];
+            var theRow = grid.tbody.find(">tr:not(.k-grouping-row)").eq(i);
+            // too early (shift not end yet), or too late (paid)
+            if ((currentData.ClockOut == null && currentData.JobEndDateTime > new Date()) || (currentData.Payroll_BatchId != null && currentData.Payroll_BatchId > 0)) {
+                theRow.find(".k-grid-Adjust").remove();
+                theRow.find(".k-grid-Status").remove();
+            }
+            // approved
+            else if (currentData.CandidateWorkTimeStatusId == '@((int)(CandidateWorkTimeStatus.Approved))') {
+                theRow.find(".k-grid-Status").remove();
+            }
+            // voided
+            else if (currentData.CandidateWorkTimeStatusId == '@((int)(CandidateWorkTimeStatus.Voided))') {
+                theRow.find(".k-grid-Adjust").remove();
+            }
+        }
+    }
+
+    function gridParameter() {
+        var startDate = $("#startDate").val();
+        var endDate = $("#endDate").val();
+        return {
+            candidateId: '@ViewBag.CandidateId',
+            jobStartDate: startDate,
+            jobEndDate: endDate
+        };
+    }
+
+    function refreshGird() { $("#candidateworktime-grid").data("kendoGrid").dataSource.read(); }
+
+    function adjustEntry(e) {
+        e.preventDefault();
+
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var startDate = kendo.toString(dataItem.JobStartDateTime,'yyyy/MM/dd');
+        var routes = '?jobOrderGuid=' + dataItem.JobOrderGuid + '&candidateGuid=' + dataItem.CandidateGuid + '&startDate=' + startDate;
+
+        $(document.body).append('<div id="newWorktimeEntry"></div>');
+        $("#newWorktimeEntry").kendoWindow({
+            title: "Adjust Time Sheet",
+            modal: true,
+            resizable: false,
+            width: 650,
+            height: 550,
+            content: '@Url.Action("AdjustCandidateWorkTime", "TimeSheet")' + routes,
+            close: function () {
+                setTimeout(function () {
+                    $('#newWorktimeEntry').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-cancel').click(function () {
+                    win.close();
+                })
+                $('#btn-save').click(function () {
+                    var form = $('#worktime-form');
+                    if (form.valid()) {
+                        var link = '@Url.Action("SaveAdjustedWorkTime", "TimeSheet")';
+                        $.ajax({
+                            type: "POST",
+                            url: link,
+                            data: form.serialize(),
+                            success: function (response) {
+                                if (response.Result) {
+                                    showMsg("Time Sheet is adjusted.");
+                                    win.close();
+                                    refreshGird();
+                                }
+                                else {
+                                    alert(response.ErrorMessage);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }).data('kendoWindow').center();
+    }
+
+    function changeStatus(e) {
+        e.preventDefault();
+
+        var workTimeId = $(e.currentTarget).closest("tr").find(".checkboxGroups").val();
+        $(document.body).append('<div id="change-worktime-status"></div>');
+        $("#change-worktime-status").kendoWindow({
+            title: "Change Time Sheet Status",
+            modal: true,
+            resizable: false,
+            width: 480,
+            height: 420,
+            content: '@Url.Action("ChangeCandidateWorkTimeStatus", "TimeSheet")' + '/' + workTimeId,
+            close: function () {
+                setTimeout(function () {
+                    $('#change-worktime-status').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-cancel').click(function () {
+                    win.close();
+                })
+                $('#btn-save').click(function () {
+                    var form = $('#change-worktimestatus-form');
+                    if (form.valid()) {
+                        var link = '@Url.Action("ChangeCandidateWorkTimeStatus", "TimeSheet")' + '/' + workTimeId;
+                        $.ajax({
+                            type: "POST",
+                            url: link,
+                            data: form.serialize(),
+                            success: function (response) {
+                                if (response.Result) {
+                                    showMsg("Time Sheet Status is changed.");
+                                    win.close();
+                                    refreshGird();
+                                }
+                                else {
+                                    alert(response.ErrorMessage);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }).data('kendoWindow').center();
+    }
+
+    function showMsg(msg) {
+        $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+        $(".messageBox").text(msg);
+    }
+
+</script>
+
+
+@using (Html.BeginForm("ExportWorkTimesToXlsx", "TimeSheet", FormMethod.Post, new { id = "exporttoxlsx-selected-form" }))
+{
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#exportexcel-selected').click(function (e) {
+            e.preventDefault();
+            if (selectedIds.length == 0)
+                alert("Please select time sheet(s) to be exported.");
+            else {
+                var ids = selectedIds.join(",");
+                $('#exporttoxlsx-selected-form #selectedIds').val(ids);
+                $('#exporttoxlsx-selected-form').submit();
+            }
+            return false;
+        });
+    });
+</script>
+
+
+@using (Html.BeginForm("ExportWorkTimesToPdf", "TimeSheet", FormMethod.Post, new { id = "exporttopdf-selected-form" }))
+{
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#exportpdf-selected').click(function (e) {
+            e.preventDefault();
+            if (selectedIds.length == 0)
+                alert("Please select time sheet(s) to be exported.");
+            else {
+                var ids = selectedIds.join(",");
+                $('#exporttopdf-selected-form #selectedIds').val(ids);
+                $('#exporttopdf-selected-form').submit();
+            }
+            return false;
+        });
+    });
+</script>

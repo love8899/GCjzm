@@ -1,0 +1,75 @@
+﻿@{
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    var franchiseService = EngineContext.Current.Resolve<Wfm.Services.Franchises.IFranchiseService>();
+    var franchises = franchiseService.GetAllFranchisesAsSelectList(workContext.CurrentAccount);
+    var startDate = DateTime.Today.AddDays(DayOfWeek.Sunday - DateTime.Today.DayOfWeek - 7);
+    var endDate = startDate.AddDays(6);
+}
+
+@(Html.Kendo().PanelBar().Name("search-bar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text(String.Format(T("Common.ReportParameters").Text, T("Report.DailyTimeSheetReport").Text))
+            .Expanded(true)
+            .Content(@<div class="panel">
+                <br />
+                @Html.Label(T("Common.Vendor").Text + ": ")
+                @(Html.Kendo().DropDownList()
+                    .Name("FranchiseId").HtmlAttributes(new { style = "width: 300px" })
+                    .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                    .BindTo(franchises).Value(workContext.CurrentFranchise.Id.ToString()))
+                @Html.Label(T("Common.Company").Text + ": ")
+                @(Html.Kendo().ComboBox().Name("Company").HtmlAttributes(new { style = "width: 300px" })
+                    .Placeholder("Select a company...").DataTextField("Text").DataValueField("Value")
+                    .DataSource(ds => ds.Read("GetCascadeCompanies", "Common"))
+                )
+                <br />
+                <br />
+                @Html.Label("FromDate", "From: ")
+                @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("fromDate").Value(startDate.ToString("yyyy-MM-dd")).Events(e => e.Change("startDateChange"))
+                @Html.Label("ToDate", "To: ")
+                @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("toDate").Value(endDate.ToString("yyyy-MM-dd"))
+                <div style="text-align: center">
+                    <br />@(Html.Kendo().Button().Name("loadReport").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text))<br /><br />
+                </div>
+            </div>);
+    })
+)
+<div id="report" />
+
+<script type="text/javascript">
+    function startDateChange() {
+        var startDate = this.value();
+        var endPicker = $("#toDate").data("kendoDatePicker");
+        if (startDate) {
+            startDate = new Date(startDate);
+            endPicker.min(startDate);
+            var suggestedDt = new Date(startDate);
+            suggestedDt.setDate(suggestedDt.getDate() + 6);
+            endPicker.value(suggestedDt);
+        }
+    }
+    $("#loadReport").bind("click", function () {      
+        var franchiseId = $("#FranchiseId").val();
+        var companyId = $("#Company").val();
+        var startDate = $("#fromDate").val();
+        var endDate = $("#toDate").val();
+        if (!franchiseId)
+            alert("Please select a vendor");
+        else if (!companyId)
+            alert("Please select a company");
+        else if (!startDate == null)
+            alert("Please select a start date!");
+        else if (!endDate == null)
+            alert("Please select a end date!");
+        else {
+            $("#report").load("_DailyTimeSheetsWithRate", {
+                startDate: startDate,
+                endDate: endDate,
+                franchiseId: franchiseId,
+                companyId: companyId
+            });
+        }
+    }); 
+</script>

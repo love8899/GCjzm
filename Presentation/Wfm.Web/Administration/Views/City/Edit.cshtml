@@ -1,0 +1,22 @@
+﻿@model CityModel
+
+@{
+    //page title
+   // ViewBag.Title = T("Admin.Configuration.City.EditCityDetails").Text;
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "city-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Configuration.City.EditCityDetails") @Html.ActionLink("(" + T("Admin.Configuration.City.BackToList") + ")", "Index")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />
+            <span id="city-delete" class="delete-button k-button" data-url='@Url.Action("Delete", "City", new {id = Model.Id })'>@T("Common.Delete")</span>
+        </div>
+    </div>
+
+    @Html.Partial("_CreateOrUpdate", Model)
+}

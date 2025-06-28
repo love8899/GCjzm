@@ -1,0 +1,88 @@
+﻿@using Wfm.Web.Models.Candidate;
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    ViewBag.Title = "Tax Forms";
+    var lastYear = DateTime.Today.AddYears(-1);
+}
+
+<script>
+    function gridParameter() { return { year: $("#tax-year").val() }; }
+    function refresh() { $('#tax-form-grid').data('kendoGrid').dataSource.read(); }
+</script>
+
+<div class="page candidate-page">
+    <div class="page-body">
+        <div class="section-header">
+            <div class="title">
+                Tax Forms
+            </div>
+            <div class="options">
+                @T("Common.Year"):
+                @(Html.Kendo().DatePicker().Name("tax-year")
+                    .HtmlAttributes(new { type = "text", style = "width:150px" })
+                    .Depth(CalendarView.Decade).Start(CalendarView.Decade).Format("yyyy")
+                    .Value(lastYear).Min(new DateTime(2015, 1, 1)).Max(lastYear)
+                    .Events(e => e.Change("refresh")))
+            </div>
+        </div>
+        @(Html.Kendo().Grid<Wfm.Core.Domain.Payroll.TaxForm>().Name("tax-form-grid")
+            .Events(e => e.DataBound("onDataBound"))
+            .Columns(columns =>
+            {
+                columns.Bound(m => m.FormType).Title("Form").HtmlAttributes(new { @class = "col-3 col-sm-2 col-md-1" });
+                columns.Bound(m => m.Year).HtmlAttributes(new { @class = "col-md-1" });
+                columns.Bound(m => m.Province).HtmlAttributes(new { @class = "col-3 col-sm-2 col-md-1" });
+                columns.Bound(m => m.SlipType).Title("Type").HtmlAttributes(new { @class = "col-3 col-sm-2 col-md-1" });
+                columns.Bound(m => m.Income).Title("Total Income").Format("{0:c}")
+                    .HtmlAttributes(new { style = "text-align:right", @class = "col-sm-2 col-md-2" });
+                columns.Bound(m => m.Tax).Format("{0:c}")
+                    .HtmlAttributes(new { style = "text-align:right", @class = "col-sm-2 col-md-2" });
+                columns.Bound(m => m.IssueDate).Format("{0:yyyy-MM-dd HH:mm}")
+                    .HtmlAttributes(new { style = "text-align: center", @class = "col-md-2" });
+                columns.Bound(m => m.Id).Title(null).Title(T("Common.Action").Text)
+                    .Sortable(false).Filterable(false).IncludeInMenu(false)
+                    .ClientTemplate("<a class='k-button' href=\"" + @Url.Content("~/Candidate/DownloadOwnTaxForm/") + "#= Id #" + "?taxYear=" + "#= Year #" + "&type=" + "#= FormType #\"><span class='fa fa-download'></span></a>")
+                    .HtmlAttributes(new { style = "text-align:center", title = T("Common.Download").Text, @class = "col-3 col-sm-2 col-md-2" });
+            })
+            //.Reorderable(reorder => reorder.Columns(true))
+            //.Resizable(resize => resize.Columns(true))
+            //.ColumnMenu(d => d.Sortable(false))
+            //.Selectable()
+            .Sortable()
+            .Pageable(x => x.PageSizes(new[] { 5, 10, 20 }).Refresh(true))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .ServerOperation(true)
+                .PageSize(10)
+                .Sort(s => s.Add("Issuedate").Descending())
+                .Read(read => read.Action("_TaxForms", "Candidate").Data("gridParameter"))
+            )
+        //.Filterable(filterable => filterable
+        //    .Extra(false)
+        //    .Operators(operators => operators
+        //        .ForString(str => str.Clear()
+        //            .Contains("Contains")
+        //            .IsEqualTo("Is equal to")
+        //            .IsNotEqualTo("Is not equal to")
+        //        )
+        //    )
+        //)
+        )
+        <p style="color:red">
+            <br />
+            The format of the password is combined with 4 numbers of date of birth (month and date) and the last 3 digits of SIN, e.g. MMDDSSS.
+            <br />
+            For example, your SIN is XXX-XXX-123, and your date of birth is Dec 5, 1980. Then your password should be 1205123.
+        </p>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function onDataBound(e) {
+        // TODO: auto setup, upon bootstrap prefix
+        setGridColumnClass(e.sender, ["Income", "Tax"], 'd-none d-sm-table-cell');
+        setGridColumnClass(e.sender, ["Year", "IssueDate"], 'd-none d-md-table-cell');
+    }
+</script>

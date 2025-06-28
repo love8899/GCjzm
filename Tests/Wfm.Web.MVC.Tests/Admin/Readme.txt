@@ -1,0 +1,1 @@
+﻿This folder contains tests for Wfm.Admin project (admin area)

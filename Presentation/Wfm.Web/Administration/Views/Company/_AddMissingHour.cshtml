@@ -1,0 +1,206 @@
+﻿@using System.Linq
+@using Wfm.Services.Companies
+@using Wfm.Services.Common
+
+
+@model CandidateMissingHourModel
+@{ Layout = null; }
+
+
+<script>
+    function onSelect(e) {
+        var dataItem = this.dataItem(e.item.index());
+        $("#CandidateId").val(dataItem.Value);
+    }
+
+    function filterCandidates() { return { idString: $("#CandidateIdAndName").val(), maxNum: 100 }; }
+
+    function filterLocations() { return { companyId: '@(ViewBag.CompanyId)' }; }
+
+    function filterDepartments() { return { locationId: $("\#LocationId").val() }; }
+
+    function filterJobOrders() {
+        return {
+            companyId: '@(ViewBag.CompanyId)',
+            locationId: $('[name="LocationId"]').val(),
+            departmentId: $('[name="DepartmentId"]').val(),
+            startDateString: $('[name="WorkDate"]').val(),
+            endDateString: $('[name="WorkDate"]').val()
+        };
+    }
+
+    function onJobOrderChange() {
+        var candidateId = $('#CandidateId').val();
+        var jobOrderId = $('#JobOrderId').val();
+        var workDate = $('#WorkDate').val();
+        if (candidateId&&jobOrderId&&workDate)
+        {
+            $.ajax({
+                url: '@Url.Action("GetOrigHours")',
+                data: { candidateId: candidateId, jobOrderId: jobOrderId, workDate: workDate },
+                type: 'GET',
+                async: false,
+                success: function (result) {
+                    $('#OrigHours').html(result.OrigHours);
+                    if (result.Warning)
+                        alert("Warning: " + result.Warning);
+                }
+            });
+        }
+    }
+
+    function onNewHoursChange() {
+        var origHours = parseFloat($('#OrigHours').text());
+        var newHours = $('#NewHours').val();
+        $('#BillableHours').html(Math.round((newHours - origHours) * 100) / 100);
+    }
+</script>
+
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "addhour-form" }))
+{
+    @Html.ValidationSummary(true)
+
+    <div class="section-header">
+        <div class="title">
+        </div>
+        <div class="options">
+            <input type="button" id="btn-save" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+        </div>
+    </div>
+
+    <table class="adminContent" style="padding:10px;">
+        <tr>
+            <td class="adminTitle" width="20%">
+                <label>@T("Common.Employee")</label>
+            </td>
+            <td class="adminData required" width="80%">
+                @(Html.Kendo().AutoComplete().Name("CandidateIdAndName")
+                    .Events(events => events.Select("onSelect"))
+                    .DataTextField("Text").Value("")
+                    .Filter("contains")
+                    .MinLength(4)
+                    .Placeholder("Search by Candidate Id")
+                    .DataSource(source => source
+                        .Read(read => { read.Action("_GetAllCandidatesAsSelectList", "Candidate").Data("filterCandidates"); })
+                        .ServerFiltering(true)
+                    )
+                )
+                @Html.HiddenFor(model => model.CandidateId)
+                @Html.WfmValidationMessageFor(model => model.CandidateId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                <label>@T("Common.Date")</label>
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePickerFor(model => model.WorkDate)
+                    .Start(CalendarView.Month)
+                    .Value(DateTime.Today)
+                    .Max(DateTime.Today)
+                    .Format("yyyy-MM-dd")
+                )
+                @Html.WfmValidationMessageFor(model => model.WorkDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Common.Location")
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownList().Name("LocationId")
+                    //.HtmlAttributes(new { data_bind = "value:LocationId", style = "width: 250px" })
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .OptionLabel("Select a location...")
+                    .DataSource(source => source.Read(read => read.Action("GetCascadeLocations", "Common").Data("filterLocations")).ServerFiltering(true))
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Common.Department")
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownList().Name("DepartmentId")
+                    //.HtmlAttributes(new { data_bind = "value:DepartmentId", style = "width: 250px" })
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .OptionLabel("Select a department...")
+                    .DataSource(source => source.Read(read => read.Action("GetCascadeDepartments", "Common").Data("filterDepartments")).ServerFiltering(true))
+                    .Enable(false)
+                    .AutoBind(false)
+                    .CascadeFrom("LocationId")
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Common.JobOrders")
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownListFor(model => model.JobOrderId)
+                    .HtmlAttributes(new { data_bind = "value:JobOrderId", style = "width: 350px" })
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .OptionLabel("Select a job order...")
+                    .DataSource(source => source.Read(read => read.Action("GetCascadeJobOrders", "JobOrder").Data("filterJobOrders")).ServerFiltering(true))
+                    .Enable(false)
+                    .AutoBind(false)
+                    .CascadeFrom("DepartmentId")
+                    .Events(e => e.Change("onJobOrderChange"))
+                )
+                @Html.WfmValidationMessageFor(model => model.JobOrderId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.Label(T("Admin.TimeSheet.CandidateWorkTimeLogModel.Fields.OriginalHours").Text)
+            </td>
+            <td class="adminData" id="OrigHours">
+                @Html.DisplayFor(model => model.OrigHours)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.Label(T("Admin.TimeSheet.CandidateWorkTimeLogModel.Fields.NewHours").Text)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().NumericTextBoxFor(model => model.NewHours).Format("#.##")
+                    .Decimals(2)
+                    .Step(0.01m)
+                    .Events(e => e.Change("onNewHoursChange"))
+                )
+                @Html.WfmValidationMessageFor(model => model.NewHours)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.Label(T("Client.TimeSheet.CandidateWorkTime.BillableHours").Text)
+            </td>
+            <td class="adminData" id="BillableHours">
+                @Html.DisplayFor(model => model.BillableHours)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle" style="vertical-align: top">
+                @Html.LabelFor(model => model.Note)
+            </td>
+            <td class="adminData required">
+                @Html.TextAreaFor(model => model.Note, new { style = "height:115px;width:90%;", placeholder = "Please describe the reason for adding missing hour." })
+                @Html.WfmValidationMessageFor(model => model.Note)
+            </td>
+        </tr>
+    </table>
+}
+
+
+@* for jQUery validation *@
+<script>
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+</script>

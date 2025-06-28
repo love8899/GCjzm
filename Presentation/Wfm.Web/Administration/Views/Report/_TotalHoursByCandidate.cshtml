@@ -1,0 +1,27 @@
+﻿@using System.Drawing
+@using System.Web.UI.WebControls
+@using MvcReportViewer
+
+
+@{
+    var _workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+
+    var settings = new ControlSettings
+    {
+        SizeToReportContent = true,
+        ShowParameterPrompts = false,
+        ShowFindControls = true,
+        BackColor = Color.AliceBlue,
+        KeepSessionAlive = true,
+        AsyncRendering = false
+    };
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    var franchiseId = workContext.CurrentAccount.IsLimitedToFranchises ? workContext.CurrentFranchise.Id : 0;
+}
+
+
+@Html.MvcReportViewer(
+    "/WFMReports/TotalHoursByCandidateReport",
+    new { StartDate = ViewBag.StartDate, EndDate = ViewBag.EndDate, CompanyIds = ViewBag.CompanyIds, Threshold = ViewBag.Threshold, franchiseId = franchiseId },
+    new { style = "border: none ; height: 100%; width: 100%;min-height: 600px" }
+).ControlSettings(settings)

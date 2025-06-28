@@ -1,0 +1,48 @@
+﻿@using Wfm.Services.Common;
+@using Wfm.Services.DirectoryLocation;
+@using Wfm.Services.Franchises;
+@using Wfm.Services.Security
+@using Wfm.Shared.Models.Employees;
+
+@model EmployeeModel
+@{
+}
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Common.Add") @T("Common.Employee") 
+        @Html.ActionLink("(" + T("Admin.FulltimeEmployee.BackToList") + ")", "Index")
+    </div>
+    <div class="options">
+        <a class="k-button" id="save-employee-basic">@T("Admin.Common.Save")</a>
+        <a class="k-button" id="cancel-edit-employee-basic">@T("Admin.Common.Cancel")</a>
+    </div>
+</div>
+<div id="employee-basic-panel">
+    @Html.Partial("_BasicInfoEdit", Model)
+</div>
+<script>
+    $(function () {
+        $('#save-employee-basic').click(function () {
+            saveEmployeeBasic();
+        })
+        $('#cancel-edit-employee-basic').click(function () {
+            location.href = '@Url.Action("Index")';
+        })
+    })
+    function saveEmployeeBasic() {
+        $.ajax({
+            url: '@Url.Action("InsertEmployee")',
+            type: 'POST',
+            data: $('#employee-basic-form').serialize(),
+            dataType: 'html',
+            success: function (result) {
+                if (result == 'done') {
+                    location.href = '@Url.Action("Index")';
+                }
+                else {
+                    $('#employee-basic-panel').html(result);
+                }
+            }
+        });
+    }
+</script>

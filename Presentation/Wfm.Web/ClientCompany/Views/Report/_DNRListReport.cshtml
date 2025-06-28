@@ -1,0 +1,12 @@
+﻿@{
+    Layout = "_ReportViewerLayout";
+    ViewBag.ReportFile = "DNRListReport";
+
+    ViewBag.ReportParameters = new
+    {
+        company = ViewBag.CompanyId,
+        refDateStart = ViewBag.RefDateStart,
+        refDateEnd = ViewBag.RefDateEnd,
+        franchiseId = 0
+    };
+}

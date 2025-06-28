@@ -1,0 +1,93 @@
+﻿@using Wfm.Services.Companies
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts
+
+@{
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var companyService = EngineContext.Current.Resolve<ICompanyService>();
+    var companies = companyService.GetAllCompanies(workContext.CurrentAccount);
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Policy.RoundingPolicy")
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<RoundingPolicyModel>()
+              .Name("roundingPolicy-grid")
+              .Columns(columns =>
+                {
+
+                    if (!workContext.CurrentAccount.IsClientAdministrator())
+                    {
+                        columns.ForeignKey(x => x.CompanyId, companies, "Value", "Text");
+                    }
+
+                    columns.Bound(x => x.Name).Width(150);
+                    columns.Bound(x => x.IntervalInMinutes).Width(180);
+                    columns.Bound(x => x.GracePeriodInMinutes).Width(150);
+                    columns.Bound(x => x.Note);
+                    columns.Bound(x => x.IsActive)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsActive #.png' />")
+                        .Width(80);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                })
+                .ToolBar(tool => { tool.Create(); tool.Save(); })
+                .Editable(edit => edit.Mode(GridEditMode.InCell))
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataBinding => dataBinding
+                           .Ajax()
+                           .Events(events => events.Error("error_handler"))
+                           .Batch(true)
+                           .ServerOperation(true)
+                           .PageSize(20)
+                           .Read(read => read.Action("List", "RoundingPolicy"))
+                           .Create(create => create.Action("Create", "RoundingPolicy"))
+                           .Update(update => update.Action("Edit", "RoundingPolicy"))
+                           
+                           .Model(model =>
+                                        {
+                                            model.Id(x => x.Id);
+                                            model.Field(x => x.CompanyId).Editable(true).DefaultValue(1);
+                                            model.Field(x => x.Name).Editable(true).DefaultValue(string.Empty);
+                                            model.Field(x => x.GracePeriodInMinutes).Editable(true).DefaultValue(0);
+                                            model.Field(x => x.IntervalInMinutes).Editable(true).DefaultValue(0);
+                                            model.Field(x => x.Note).Editable(true);
+                                            model.Field(x => x.IsActive).Editable(true).DefaultValue(true);
+                                            model.Field(x => x.IsDeleted).Editable(false);
+                                            model.Field(x => x.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                                            model.Field(x => x.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                                            model.Field(x => x.CreatedOn).Editable(false).DefaultValue(DateTime.Now);
+                                            model.Field(x => x.UpdatedOn).Editable(false).DefaultValue(DateTime.Now);
+                                        })
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

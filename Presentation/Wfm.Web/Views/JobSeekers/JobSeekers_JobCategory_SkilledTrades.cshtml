@@ -1,0 +1,55 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Skilled Trades";
+    //var description = "From carpenters, electricians, and millwrights, to pipe fitters, welders, HVAC technicians and everything in between, " + siteTitle + " can help open doors within your trade and find you the job that’s right for you.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower() + " jobs";
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Skilled Trades</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            From carpenters, electricians, and millwrights, to pipe fitters, welders, HVAC technicians
+            and everything in between, @siteTitle can help open doors within your trade
+            and find you the job that’s right for you.
+        </p>
+        <p>
+            We can help you secure permanent, contract and temporary appointments across a wide
+            variety of roles, including:
+        </p>
+        <ul>
+            <li>Millwrights</li>
+            <li>PLC/Robotics Technicians</li>
+            <li>Electricians</li>
+            <li>Control Technicians</li>
+            <li>Painters</li>
+            <li>Welders</li>
+            <li>Tool & Die Makers</li>
+            <li>CNC Programmer/Setup/Operator</li>
+            <li>Construction workers</li>
+            <li>Construction site supervisors</li>
+            <li>Foremen</li>
+            <li>Masons</li>
+            <li>Plasterers</li>
+            <li>Plumbers</li>
+        </ul>
+    </div>
+</div>

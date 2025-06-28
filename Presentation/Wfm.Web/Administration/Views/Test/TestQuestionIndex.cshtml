@@ -1,0 +1,105 @@
+﻿@using Wfm.Services.Test
+@model IEnumerable<TestQuestionModel>
+@{
+    //page title
+    //ViewBag.Title = T("Admin.Configuration.TestQuestions").Text;
+
+    var testService = EngineContext.Current.Resolve<ITestService>();
+    var testCategories = testService.GetAllCategories();
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration.TestQuestions")  @Html.ActionLink("(" + T("Admin.Configuration.TestCategory.BackToList") + ")", "TestCategoryIndex", "Test")
+    </div>
+    <div class="options">
+        <a href="@Url.Action("TestQuestionCreate", new { testCategoryId = ViewBag.TestCategoryId })" class="k-button">@T("Common.Add")</a>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<TestQuestionModel>()
+              .Name("testquestion-grid")
+              .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(60);
+                    columns.ForeignKey(x => x.TestCategoryId, testCategories, "Id", "TestCategoryName");
+                    columns.Bound(x => x.Question);
+                    columns.Bound(x => x.ImageFileUrl).Locked()
+                        .Template(
+                        @<div>
+                            @if (!string.IsNullOrWhiteSpace(item.ImageFileLocation))
+                                {<img alt="" src="@Url.Content(item.ImageFileUrl)" />}
+                        </div>
+                        )
+                        .ClientTemplate("#if(ImageFileUrl != ''){# <img alt='#= Id #' src='#= ImageFileUrl #' height='50' /> #}#");
+
+                    columns.Bound(x => x.Answers).Width(80);
+                    columns.Bound(x => x.Score).Width(80);
+
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(x => Html.ActionLink(T("Admin.Configuration.TestQuestion.ViewChoices").Text, "TestChoiceIndex", new { testQuestionId = x.Id }))
+                        .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/Test/TestChoiceIndex?testQuestionId=") + "#= Id #\">" + T("Admin.Configuration.TestQuestion.ViewChoices").Text + " ( )</a>")
+                        .Width(120)
+                        .Title(T("Admin.Configuration.TestQuestion.ViewChoices").Text);
+
+                    columns.Bound(x => x.IsSingleChoice)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsSingleChoice.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsSingleChoice #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80);
+
+                    columns.Bound(x => x.IsMultipleChoice)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsMultipleChoice.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsMultipleChoice #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80)
+                        .Hidden();
+                    
+                    columns.Bound(x => x.IsActive).Hidden()
+                       .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                       .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsActive #.png' />")
+                       .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                       .Width(80);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden();
+
+                    columns.Bound(x => x.Id).Sortable(false).Filterable(false)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(x => Html.ActionLink("Edit", "TestCategoryEdit", new { x.Id }))
+                        .ClientTemplate("<a href=\"" + @Url.Content("~/Admin/Test/TestQuestionEdit/") + "#=Id#\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                        .Title(T("Admin.Common.Edit").Text)
+                        .Width(80);
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(20)
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

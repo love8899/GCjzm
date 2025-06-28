@@ -1,0 +1,107 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Companies
+@using Wfm.Services.Scheduling
+@using Wfm.Shared.Mapping
+@using Wfm.Shared.Models.Scheduling
+
+@{
+    var context = EngineContext.Current.Resolve<IWorkContext>();
+    var scheduleDemandingService = EngineContext.Current.Resolve<ISchedulingDemandService>();
+    var schedulePeriods = scheduleDemandingService.GetAllSchedulePeriods(context.CurrentAccount.CompanyId).OrderByDescending(x => x.PeriodStartUtc).ToModels().ToArray();
+}
+<script>
+    function addSchedulePeriodId() {
+        return { schedulePeriodId: $("#schedule-period").data("kendoDropDownList").value() };
+    }
+    function reloadPanel() {
+        $.ajax({
+            url: '@Url.Action("_GetVacancyViewPanels")',
+            cache: false,
+            type: 'POST',
+            data: addSchedulePeriodId(),
+            dataType: 'html',
+            success: function (result) {
+                $('#panel-container').html(result);
+                if (typeof highLightWarningEmployees == 'function') {
+                    highLightWarningEmployees();
+                }
+            }
+        })
+    }
+</script>
+<div class="section-header">
+    <div class="title">
+        @T("Common.Schedule.VacancyView")
+    </div>
+    <div class="options">
+        @Html.Label(T("Common.SchedulePeriod").Text, new { @for = "SchedulePeriod" })
+        @(Html.Kendo().DropDownList().Name("SchedulePeriod").BindTo(schedulePeriods
+            .Select(x => new SelectListItem
+            {
+                Text = string.Format("{0:yyyy-MM-dd} to {1:yyyy-MM-dd}{2}", x.PeriodStartDate,
+                    x.PeriodEndDate, x.LocationText),
+                Value = x.Id.ToString()
+            }))
+            .Events(evt => evt.Change("reloadPanel"))
+            .HtmlAttributes(new { id = "schedule-period", style = "width:500px; text-align:left;" }))
+        <button id="btnPopulateWorktime" class="k-button" style="display:none">Populate Worktime</button>
+    </div>
+</div>
+<div id="panel-container">
+</div>
+<div id="schedule-employee-window"></div>
+<div id="schedule-job-order-window"></div>
+<script>
+    $(function () {
+        reloadPanel();
+    })
+    function showMessage(html) {
+        var kendoWindow = $("<div />").kendoWindow({
+            title: "Errors and Warnings",
+            resizable: false,
+            width: 800,
+            height: 600,
+            modal: true
+        });
+
+        kendoWindow.data("kendoWindow")
+            .content(html)
+            .center().open();
+        return false;
+    }
+
+    $(document).ready(function () {
+
+        $('#btnPopulateWorktime').click(function (e) {
+            e.preventDefault();
+
+            var schedulePeriodId = $("#schedule-period").data("kendoDropDownList").value();
+            var routes = '?schedulePeriodId=' + schedulePeriodId;
+
+            $(document.body).append('<div id="populate-worktime"></div>');
+            $("#populate-worktime").kendoWindow({
+                title: "Populate time sheet",
+                modal: true,
+                resizable: false,
+                width: 500,
+                height: 180,
+                content: '@Url.Action("_PopulateWorkTime", "Scheduling")' + routes,
+                close: function () {
+                    setTimeout(function () {
+                        $('#populate-worktime').kendoWindow('destroy');
+                    }, 200);
+                },
+                refresh: function (e) {
+                    var win = this;
+                    $('#submit-populate').click(function () {
+                        populateWorkTime();
+                    })
+                }
+            }).data('kendoWindow').center();
+
+            return false;
+        });
+
+    });
+
+</script>

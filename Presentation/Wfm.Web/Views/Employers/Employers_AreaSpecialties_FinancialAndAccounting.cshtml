@@ -1,0 +1,57 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Financial and Accounting";
+    //var description = siteTitle + " places a broad spectrum of specialist staff from bookkeepers and bank tellers through to senior qualified accountants and finance managers on a permanent, temporary and interim basis.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Financial and Accounting</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            @siteTitle places a broad spectrum of specialist staff from bookkeepers and
+            bank tellers through to senior qualified accountants and finance managers on a permanent,
+            temporary and interim basis. We have an extensive database of candidates, all of
+            whom have been interviewed and many of whom are available for permanent, contract
+            or temporary assignments.
+        </p>
+        <p>
+            As an employment solution provider our philosophy is to get to know you, your business
+            needs, and your staffing requirements. To identify the skill sets required we carefully
+            assess your needs and goals to deliver a successful and effectively managed recruitment
+            campaign.
+        </p>
+        <p>
+            @siteTitle is your solution for all of your financial and accounting staffing
+            needs, including:
+        </p>
+        <ul>
+            <li>Accountants</li>
+            <li>Finance managers</li>
+            <li>Controllers</li>
+            <li>Financial analysts</li>
+            <li>Loan officers</li>
+            <li>Bank tellers</li>
+            <li>Tax associates</li>
+            <li>Clerical accounting staff</li>
+        </ul>
+    </div>
+</div>

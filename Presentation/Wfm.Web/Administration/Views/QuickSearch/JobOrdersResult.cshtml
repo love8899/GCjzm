@@ -1,0 +1,104 @@
+﻿@using Wfm.Services.Common
+@using Wfm.Services.DirectoryLocation
+@using Wfm.Services.JobOrders
+@using Wfm.Services.Companies
+@using Wfm.Services.Franchises
+@using Wfm.Core;
+
+@model IEnumerable<JobOrderModel>
+@{
+    //page title
+    ViewBag.Title = T("Admin.QuickSearch.JobOrderResult").Text;
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+
+    var jobOrderStatusService = EngineContext.Current.Resolve<IJobOrderStatusService>();
+    var jobOrderCategoryService = EngineContext.Current.Resolve<IJobOrderCategoryService>();
+    var jobOrderTypeService = EngineContext.Current.Resolve<IJobOrderTypeService>();
+    var companyService = EngineContext.Current.Resolve<ICompanyService>();
+    var companyDivisionService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var cityService = EngineContext.Current.Resolve<ICityService>();
+
+    var jobOrderStatus = jobOrderStatusService.GetAllJobOrderStatus();
+    var jobOrderCategories = jobOrderCategoryService.GetAllJobOrderCategories();
+    var jobOrderTypes = jobOrderTypeService.GetAllJobOrderTypes();
+    //var companies = companyService.GetAllCompanies(workContext.CurrentAccount);
+    var companyLocations = companyDivisionService.GetAllCompanyLocations();
+    var shifts = shiftService.GetAllShifts(companyId: null);
+    var franchises = franchiseService.GetAllFranchises();
+    var cities = cityService.GetAllCities();
+
+    ViewBag.SearchArea = "JobOrder";
+}
+<div class="section-header">
+    <div class="title">
+        @T("Common.JobOrders") search result for "@ViewBag.SearchKey"
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<JobOrderModel>()
+                .Name("joborder-grid")
+                .BindTo(Model)
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(70);
+
+                    columns.Bound(x => x.JobTitle)
+                        //.Template(x => Html.ActionLink(x.JobTitle, "Details", "JobOrder", new { x.Id }, new { target = "_blank" }))
+                        .ClientTemplate(@Html.ActionLink("#=JobTitle#", "Details", "JobOrder", new { guid = "#=JobOrderGuid#" }, new { target = "_blank" }).ToHtmlString());
+
+                    columns.Bound(x => x.CompanyName)
+                           //.Template(x => Html.ActionLink(x.CompanyModel.CompanyName, "Details", "Company", new { id = x.CompanyId }, new { target = "_blank" }))
+                           .ClientTemplate(@Html.ActionLink("#=CompanyModel.CompanyName#", "Details", "Company", new { guid = "#=CompanyModel.CompanyGuid#" }, new { target = "_blank" }).ToHtmlString());
+                    
+                    //columns.ForeignKey(x => x.CompanyId, companies, "Value", "Text")
+                    //    .Template(x => Html.ActionLink(x.CompanyModel.CompanyName, "Details", "Company", new { id = x.CompanyId }, new { target = "_blank" }))
+                    //    .ClientTemplate(@Html.ActionLink("#=CompanyModel.CompanyName#", "Details", "Company", new { Id = "#=CompanyModel.Id#" }, new { target = "_blank" }).ToHtmlString());
+
+                    columns.ForeignKey(x => x.CompanyLocationId, companyLocations, "Id", "AddressLine1").Title(T("Common.AddressLine1").Text);
+                    columns.ForeignKey(x => x.CompanyLocationModel.CityId, cities, "Id", "CityName").Title(T("Common.City").Text);
+                    columns.ForeignKey(x => x.JobOrderTypeId, jobOrderTypes, "Id", "JobOrderTypeName").Width(90);
+                    columns.ForeignKey(x => x.JobOrderCategoryId, jobOrderCategories, "Id", "CategoryName").Width(90).Hidden();
+                    columns.ForeignKey(x => x.ShiftId, shifts, "Id", "ShiftName").Width(120);
+
+                    columns.Bound(x => x.OpeningNumber).Title("Open").Width(70);
+
+                    columns.ForeignKey(x => x.JobOrderStatusId, jobOrderStatus, "Id", "JobOrderStatusName").Width(90);
+
+                    columns.Bound(x => x.StartDate).Format("{0:yyyy-MM-dd}").Width(80);
+                    columns.Bound(x => x.StartTime).Format("{0:HH:mm}").Width(70);
+                    columns.Bound(x => x.EndDate).Format("{0:yyyy-MM-dd}").Width(80);
+                    columns.Bound(x => x.EndTime).Format("{0:HH:mm}").Width(70);
+
+                    columns.Bound(x => x.CreatedOn).Format("{0:yyyy-MM-dd HH:mm}").Width(125);
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(20)
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

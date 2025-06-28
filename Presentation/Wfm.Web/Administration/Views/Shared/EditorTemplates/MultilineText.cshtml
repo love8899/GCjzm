@@ -1,0 +1,7 @@
+﻿@model string
+
+@Html.TextArea(
+    "multilinetext",
+    ViewData.TemplateInfo.FormattedModelValue.ToString(),
+    new { style = "height:200px;width:100%;" }
+)

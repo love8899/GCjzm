@@ -1,0 +1,464 @@
+﻿@using Wfm.Core.Domain.TimeSheet
+@using Wfm.Core
+@using Wfm.Core.Domain.Accounts
+
+@{
+    Layout = "";
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+    var invoiceIntervalSercie = EngineContext.Current.Resolve<Wfm.Services.Invoices.IInvoiceIntervalService>();
+    var intervals = invoiceIntervalSercie.GetAllInvoiceIntervals().Select(x => new SelectListItem() { Text = x.Code, Value = x.Id.ToString() });
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#termStartDate").keypress(function (evt) {
+            var keycode = evt.charCode || evt.keyCode;
+            if (keycode == 9) { //allow Tab through
+                return true;
+            } else {
+                // Allow the datepicker to open instead
+                var datePicker = $("#termStartDate").data("kendoDatePicker");
+                datePicker.open();
+                return false;
+            }
+        });
+    });
+
+    function onChangeDatePicker() {
+        var date = $("#termStartDate").data("kendoDatePicker").value();
+        if (date == null)
+            showError("Start date could not be null!");
+        else {
+            showError("");
+            reloadGrid();
+        }
+    }
+
+    function onDataBound(e) {
+        $('div[data-role="grid"] input[type=checkbox][id!=mastercheckbox]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds);
+            //set checked based on if current checkbox's value is in selectedIds.
+            $(this).attr('checked', checked > -1);
+        });
+        grid = this;
+        grid.tbody.find("tr[role='row']").each(function () {
+            var id = grid.dataItem(this).CompanyId + '_' + grid.dataItem(this).VendorId;
+
+            if (expanded.hasOwnProperty(id) && expanded[id]) {
+                grid.expandRow(this);
+            }
+        });
+        updateMasterCheckbox();
+        showOrHideButton(e);
+    }
+
+    function onDataBound2(e)
+    {
+        var id = e.sender.element[0].id;
+        var arr = id.split('_');
+        var companyId = arr[1];
+        var vendorId = arr[2];
+        //tbd
+        $('div[data-role="grid"] input[type=checkbox][class="checkboxGroups_'+companyId+'_'+vendorId+'"]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds);
+            //set checked based on if current checkbox's value is in selectedIds.
+            $(this).attr('checked', checked > -1);
+        });
+        updateDetailsMasterCheckbox(companyId,vendorId);
+    }
+    function sendReminder(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        $.ajax({
+            url: '@Url.Action("SendPendingApprovalReminder", "Timesheet")',
+            type: 'POST',
+            data: {
+                companyId: dataItem.CompanyId,
+                startDate: dataItem.StartDate.toISOString().split('T')[0], endDate: dataItem.EndDate.toISOString().split('T')[0],
+                supervisorId: dataItem.SupervisorId, vendorId: dataItem.VendorId
+            },
+            cache: false,
+            async: false,
+            success: function (result) {
+                if (result.Succeed) {
+                        alert(result.ErrorMessage);
+                    }
+                    else {
+                    alert(result.ErrorMessage);
+                }
+            },
+        });
+    }
+
+    function approveEntry(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        $.ajax({
+            url: '@Url.Action("ApproveTimeSheet", "Timesheet")',
+            type: 'POST',
+            data: {
+                companyId: dataItem.CompanyId, vendorId: dataItem.VendorId,
+                startDate: dataItem.StartDate.toISOString().split('T')[0], endDate: dataItem.EndDate.toISOString().split('T')[0],
+                supervisorId: dataItem.SupervisorId
+            },
+            cache: false,
+            async: false,
+            success: function (result) {
+                if (result.Succeed) {
+                    reloadGrid();
+                }
+                else {
+                    alert(result.Error);
+                }
+            },
+        });
+    }
+
+    function createInvoice(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        $('#exporttoxlsx-form #companyId').val(dataItem.CompanyId);
+        $('#exporttoxlsx-form #vendorId').val(dataItem.VendorId);
+        $('#exporttoxlsx-form #fromDate').val(dataItem.StartDate.toISOString().split('T')[0]);
+        $('#exporttoxlsx-form #toDate').val(dataItem.EndDate.toISOString().split('T')[0]);
+        $('#exporttoxlsx-form').submit();
+        return false;
+    }
+
+    function gridParameter() {
+        var interval = $("#InvoiceInterval").data("kendoDropDownList").text();
+        var startDate = $("#termStartDate").data("kendoDatePicker").value();
+        var endDate = getEndDate(startDate);
+        return {
+            interval: interval,
+            startdate: startDate,
+            endDate: endDate
+        };
+    }
+
+    function getEndDate(startDate) {
+        var interval = $("#InvoiceInterval").data("kendoDropDownList").text();
+        var endDate = new Date(startDate);
+        if (interval == "WEEKLY")
+            endDate.setDate(endDate.getDate() + 6);
+        else if (interval == "MONTHLY") {
+            endDate.setMonth(endDate.getMonth() + 1);
+            endDate.setDate(endDate.getDate() - 1);
+        }
+        return endDate.toISOString().split('T')[0];
+    }
+</script>
+
+<div class="section-header" style="padding-bottom:20px">
+    <div class="options">
+        <label class="first-label">@T("Admin.Common.Invoice.Interval"): </label>
+        @(Html.Kendo().DropDownList().Name("InvoiceInterval")
+            .BindTo(intervals).DataTextField("Text").DataValueField("Value").Value(ViewBag.Interval as string)
+                    .Events(e => e.Change("onIntervalChange")))
+
+        <label for="week-filter-selection"> @T("Common.StartDate"): </label>
+        @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("termStartDate")
+            .Format("yyyy-MM-dd")
+            .Events(e => e.Change("onChangeDatePicker"))
+            .Value(ViewBag.TermStartDate)
+        )
+        <a id="approve-selected" class="k-button">@T("Admin.Common.Approve.Selected").Text</a>
+        <a id="approve-all" class="k-button">@T("Admin.Common.Approve.All").Text</a>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<TimeSheetSummary>()
+                .Name("timesheetsummary-grid")
+                .Events(events => { events.DataBound("onDataBound"); })
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x).Filterable(false).Sortable(false)
+                        .ClientTemplate("<input type='checkbox' name='checkedRecords' value='#= CompanyId #/#= VendorId #' class='checkboxGroups'/>")
+                        .Title("<input id='mastercheckbox' type='checkbox'/>")
+                        .HtmlAttributes(new { style = "text-align:center" }).Width(30);
+
+                    columns.Bound(x => x.CompanyName).Title(T("Common.Company").Text);
+                    
+                    if (!workContext.CurrentAccount.IsVendor()&&commonSettings.DisplayVendor)
+                    {
+                        columns.Bound(x => x.VendorName).Title(T("Common.Vendor").Text);
+                    }
+
+                    columns.Bound(x => x.StartDate).Format("{0:yyyy-MM-dd}").Width(90);
+                    columns.Bound(x => x.EndDate).Format("{0:yyyy-MM-dd}").Width(90);
+
+                    columns.Bound(x => x.SubmittedHours).Title(T("Common.PendingApproval").Text).Format("{0:n}").HtmlAttributes(new { style = "text-align:right" });
+                    columns.Bound(x => x.ApprovedHours).Format("{0:n}").HtmlAttributes(new { style = "text-align:right" });
+                    columns.Bound(x => x.TotalHours).Format("{0:n}").HtmlAttributes(new { style = "text-align:right" });
+                    //columns.Bound(x => x.InvoicedHours).Format("{0:n}").HtmlAttributes(new { style = "text-align:right" })
+                    //    .ClientTemplate("#if (ApprovedHours == 0) {# #}else{# #=kendo.toString(InvoicedHours, 'n2')# #}#");
+                    //columns.Bound(x => x.NotInvoicedHours).Format("{0:n}").HtmlAttributes(new { style = "text-align:right" })
+                    //    .ClientTemplate("#if (ApprovedHours == 0) {# #}else{# #=kendo.toString(InvoicedHours, 'n2')# #}#");
+
+                    columns.Command(command =>
+                    {
+                        command.Custom("Remind").Click("sendReminder");
+                        command.Custom("Approve").Click("approveEntry");
+                        command.Custom("Invoice").Click("createInvoice");
+                    }).Title("Action").HtmlAttributes(new { style = "text-align:center" }).Width(280);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 20, 30, 50 }).Refresh(true))
+                .DataSource(
+                    dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("TimeSheetSummaryForInvoice", "TimeSheet").Data("gridParameter"))
+                    .Sort(x => x.Add(m => m.CompanyName))
+                    .Group(x => x.Add(m => m.VendorName))
+                )
+                .ClientDetailTemplateId("template")
+                        .Events(e => e.DetailExpand("detailExpand").DetailCollapse("detailCollapse"))
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+<script id="template" type="text/kendo-tmpl">
+    @(Html.Kendo().TabStrip()
+    .Name("timesheetdetail_#=CompanyId#_#=VendorId#")
+    .SelectedIndex(0)
+    .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+    .Items(items =>
+            {
+                items.Add().Text("Pending Approval").Content(@<text>
+                    @(Html.Kendo().Grid<TimeSheetDetails>()
+                        .Name("timesheetdetails_#=CompanyId#_#=VendorId#") // template expression, to be evaluated in the master context
+                        .Columns(columns =>
+                        {
+                            columns.Bound(x => x).Filterable(false).Sortable(false)
+                                .ClientTemplate("<input type='checkbox' name='checkedRecords1' value='#= CompanyId #/#= VendorId #/\\#=SupervisorId\\#' class='checkboxGroups_#=CompanyId#_#=VendorId#' onChange='detailCheckboxChange(this)'/>")
+                                .Title("<input id='mastercheckbox_#=CompanyId#_#=VendorId#' type='checkbox' onclick='selectAll(#= CompanyId #,#= VendorId #)' />")
+                                .HtmlAttributes(new { style = "text-align:center" })
+                                .HeaderHtmlAttributes(new { style = "text-align:center" }).Width(30);
+                            
+                            columns.Bound(x => x.Supervisor);
+                            columns.Bound(x => x.SubmittedHours).Format("{0:n}").HtmlAttributes(new { style = "text-align:right" }).Width(100);
+                            columns.Bound(x => x.ApprovedHours).Format("{0:n}").HtmlAttributes(new { style = "text-align:right" }).Width(100);
+                            columns.Bound(x => x.TotalHours).Format("{0:n}").HtmlAttributes(new { style = "text-align:right" }).Width(100);
+                            columns.Command(command =>
+                            {
+                                command.Custom("Remind2").Click("sendReminder").Text("Remind");
+                                command.Custom("Approve2").Click("approveEntry").Text("Approve");
+                            }).Title("Action").HtmlAttributes(new { style = "text-align:center" }).Width(250);
+                        })
+                        .Events(e => e.DataBound("onDataBound2"))
+                        .Pageable(x => x.PageSizes(new[] { 10, 20 }))
+                        .DataSource(dataSource => dataSource
+                            .Ajax()
+                            .ServerOperation(true)
+                            .Read(read => read.Action("TimeSheetDetailsForInvoice", "TimeSheet", new { companyId = "#=CompanyId#", vendorId = "#=VendorId#" }).Data("gridParameter"))
+                        )
+                        .ToClientTemplate())
+                </text>
+                );
+            })
+            .ToClientTemplate())
+</script>
+
+@using (Html.BeginForm("CreateInvoice", "TimeSheet", FormMethod.Post, new { id = "exporttoxlsx-form" }))
+{
+    <input type="hidden" id="companyId" name="companyId" value="" />
+    <input type="hidden" id="vendorId" name="vendorId" value="" />
+    <input type="hidden" id="fromDate" name="fromDate" value="" />
+    <input type="hidden" id="toDate" name="toDate" value="" />
+}
+
+<script type="text/javascript">
+    function updateDetailsMasterCheckbox(companyId, vendorId) {
+        var numChkBoxes = $('input[type=checkbox][class="checkboxGroups_' + companyId + '_' + vendorId + '"]').length;
+        var numChkBoxesChecked = $('input[type=checkbox][checked][class="checkboxGroups_' + companyId + '_' + vendorId + '"]').length;
+        $('#mastercheckbox_' + companyId + '_' + vendorId).attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+
+    function updateMasterCheckbox() {
+        var numChkBoxes = $('div[data-role="grid"] input[type=checkbox][class="checkboxGroups"]').length;
+        var numChkBoxesChecked = $('div[data-role="grid"] input[type=checkbox][checked][class="checkboxGroups"]').length;
+        $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+
+    function selectAll(companyId, vendorId) {
+        //alert("detail check box is clicked!");
+        $(".checkboxGroups_" + companyId + "_" + vendorId).attr('checked', $("#mastercheckbox_" + companyId + "_" + vendorId).is(':checked')).change();
+    }
+
+    function detailExpand(e) {
+        id = this.dataItem(e.masterRow).CompanyId + '_' + this.dataItem(e.masterRow).VendorId;
+        expanded[id] = true;
+    }
+
+    function detailCollapse(e) {
+        id = this.dataItem(e.masterRow).CompanyId + '_' + this.dataItem(e.masterRow).VendorId;
+        expanded[id] = false;
+    }
+    function detailCheckboxChange(e) {
+        var $check = $(e);
+        if ($check.is(":checked") == true) {
+            $check.attr('checked', true);
+            var checked = jQuery.inArray($check.val(), selectedIds);
+            if (checked == -1) {
+                //add id to selectedIds.
+                selectedIds.push($check.val());
+            }
+        }
+        else {
+            $check.attr('checked', false);
+            var checked = jQuery.inArray($check.val(), selectedIds);
+            if (checked > -1) {
+                //remove id from selectedIds.
+                selectedIds = $.grep(selectedIds, function (item, index) {
+                    return item != $check.val();
+                });
+            }
+        }
+        var arr = $(e).val().split('/');
+        updateDetailsMasterCheckbox(arr[0], arr[1]);
+    }
+
+    var selectedIds = [];
+    var expanded = {};
+    $(function () {
+        $('#mastercheckbox').click(function (e) {
+            $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+        });
+
+        //wire up checkboxes.
+        $('#timesheetsummary-grid').on('change', 'input[type=checkbox][class="checkboxGroups"]', function (e) {
+            var $check = $(this);
+            if ($check.is(":checked") == true) {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked == -1) {
+                    //add id to selectedIds.
+                    selectedIds.push($check.val());
+                }
+            }
+            else {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked > -1) {
+                    //remove id from selectedIds.
+                    selectedIds = $.grep(selectedIds, function (item, index) {
+                        return item != $check.val();
+                    });
+                }
+            }
+            updateMasterCheckbox();
+        });
+
+        $('#approve-selected').click(function (e) {
+            e.preventDefault();
+            var startDate = $("#termStartDate").val();
+            var endDate = getEndDate(startDate);
+            var ids = selectedIds.join(",");
+            //alert(ids);
+            $.ajax({
+                url: "@(Url.Action("ApproveTimeSheetForSelectedDateRangeAndCompanies", "TimeSheet"))",
+                data: { startDate: startDate, endDate: endDate, selectedIds: ids },
+                cache: false,
+                async: false,
+                type: 'GET',
+                success: function (result) {
+                    alert(result.ErrorMessage);
+                },
+                error: function (data) {
+                    alert(data.responseText);
+                }
+            });
+            reloadGrid();
+            return false;
+        });
+
+        $('#approve-all').click(function (e) {
+            e.preventDefault();
+            var interval = $("#InvoiceInterval").data("kendoDropDownList").text();
+            var startDate = $("#termStartDate").val();
+            var endDate = getEndDate(startDate);
+            if (confirm("Are you sure to approve all record?")) {
+                $.ajax({
+                    url: "@(Url.Action("ApproveTimeSheetForSelectedDateRange", "TimeSheet"))",
+                    data: { interval: interval, startDate: startDate, endDate: endDate },
+                    cache: false,
+                    async: false,
+                    type: 'GET',
+                    success: function (result) {
+                        alert(result.ErrorMessage);
+                    },
+                    error: function (data) {
+                        alert(data.responseText);
+                    }
+                });
+                reloadGrid();
+            }
+            return false;
+        });
+    });
+
+    function reloadGrid() {
+        var grid = $("#timesheetsummary-grid").data("kendoGrid");
+        grid.dataSource.read();
+        selectedIds = [];
+    }
+
+    function showOrHideButton(e) {
+        var grid = $("#timesheetsummary-grid").data("kendoGrid");
+        var data = grid.dataSource.data();
+        currentRow = 0;
+        var l1Num = data.length;
+        for (var i = 0; i < l1Num; i++) {
+            var l2Num = data[i].items.length;
+            for (var j = 0; j < l2Num; j++) {
+                var currentData = data[i].items[j];
+                var theRow = grid.tbody.find(">tr:not(.k-grouping-row):not(.k-detail-row)").eq(currentRow);
+                if (currentData.SubmittedHours == 0) {
+                    theRow.find(".k-grid-Remind").remove();
+                    theRow.find(".k-grid-Approve").remove();
+                    theRow.find(".checkboxGroups").remove();
+                }
+                if (currentData.ApprovedHours == 0) {
+                    theRow.find(".k-grid-Invoice").remove();
+                }
+                currentRow++;
+            }
+        }
+    }
+
+    function showError(message) {
+        if (message != "") {
+            $(".notification-wrapper").html('<div class="messageBox messageBoxError"></div><div class="clear"></div>');
+            $(".messageBox").text(message);
+        }
+        else {
+            $(".notification-wrapper").html('');
+        }
+    }
+
+    function onIntervalChange(e) {
+        reloadGrid();
+    }
+</script>

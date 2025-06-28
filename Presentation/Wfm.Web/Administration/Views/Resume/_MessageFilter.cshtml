@@ -1,0 +1,91 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Common;
+@using Wfm.Services.DirectoryLocation;
+
+@{
+    var today = DateTime.Today;
+    var startDate = today.AddMonths(-3);
+    var endDate = today;
+}
+
+<style type="text/css">
+
+    .simple-checkbox {
+        padding: 3px 30px 3px 0;
+    }
+
+</style>
+
+<div id="criteria">
+    <table>
+        <tr>
+            <td width="25%">
+                <span>@T("Admin.Common.From") </span>
+            </td>
+            <td width="75%">
+                @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text", style = "width:200px" }).Name("startDate").Value(startDate.ToString("yyyy-MM-dd"))
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span>@T("Admin.Common.To")</span>
+            </td>
+            <td>
+                @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text", style = "width:200px" }).Name("endDate").Value(endDate.ToString("yyyy-MM-dd"))
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2"><br /></td>
+        </tr>
+        <tr>
+            <td>
+                <span>Search</span>
+            </td>
+            <td>
+                @Html.RadioButton("byWords", "byAllWords", true, new { @id = "byAllWords" }) All Words
+                @Html.RadioButton("byWords", "byAnyOfWords", false, new { @id = "byAnyOfWords" }) Any of words
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                @Html.Kendo().TextBox().Name("searchWords").HtmlAttributes(new { style = "width:300px", placeholder = "key words" })
+            </td>
+        </tr>
+        <tr height="5px"></tr>
+        <tr>
+            <td colspan="2">
+                <span class="simple-checkbox "><input type="checkbox" class="search-scope" id="inSubject" checked="checked">&nbsp;&nbsp;Subject</span>
+                <span class="simple-checkbox "><input type="checkbox" class="search-scope" id="inBody" checked="checked">&nbsp;&nbsp;Email</span>
+                <span class="simple-checkbox "><input type="checkbox" class="search-scope" id="inAttachment">&nbsp;&nbsp;Resume</span>
+            </td>
+        </tr>
+    </table>
+</div>
+<br />
+<br />
+<div style="text-align: center">
+    <br />
+    @(Html.Kendo().Button().Name("Search")
+        .HtmlAttributes(new { type = "submit" }).Content("Filter Resumes"))
+</div>
+<br />
+
+<script type="text/javascript">
+
+    $("#Search").click(function () {
+        $('#MessageHistory').data('kendoGrid').dataSource.page(1);
+    });
+
+    function getMessageCriteria() {
+        return {
+            StartDate: $('#startDate').val(),
+            EndDate: $('#endDate').val(),
+            SearchWords: $('#searchWords').val(),
+            ByAllWords: $("#byAllWords").attr("checked") == "checked",
+            InSubject: $("#inSubject").attr("checked") == "checked",
+            InBody: $("#inBody").attr("checked") == "checked",
+            InAttachment: $("#inAttachment").attr("checked") == "checked",
+        }
+    }
+
+</script>

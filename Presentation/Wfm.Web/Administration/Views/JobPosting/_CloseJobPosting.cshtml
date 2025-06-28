@@ -1,0 +1,57 @@
+﻿@using Wfm.Core.Domain.JobOrders
+
+
+@{
+    var jobOrderCloseReasonCodes = JobOrderCloseReasonCode.Unknown.ToSelectList(false).ToList();
+}
+
+
+@using (Html.BeginForm("", "", FormMethod.Post, new { id = "close-jobposting-form" }))
+{
+    @Html.ValidationSummary(true)
+
+    <br /><br />
+    
+    <table style="text-align:left;">
+        <tr>
+            <td class="adminTitle" width="30%">
+                @T("Common.EndDate")
+            </td>
+            <td width="3%"></td>
+            <td class="adminData required" width="67%">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                    .Name("CloseDate")
+                    .Format("yyyy-MM-dd")
+                    .Min(ViewBag.StartDate)
+                    .Value(ViewBag.EndDate ?? DateTime.Today)
+                    .HtmlAttributes(new { style = "width:240px" })
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Admin.JobOrder.JobOrder.Fields.JobOrderCloseReason")
+            </td>
+            <td></td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                    .Name("CloseReason")
+                    .OptionLabel("--Select--")
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .BindTo(jobOrderCloseReasonCodes)
+                    .Value(ViewBag.JobOrderCloseReason ?? null)
+                    .HtmlAttributes(new { style = "width:240px" })
+                )
+            </td>
+        </tr>
+    </table>
+
+    <br /><br /><br />
+    
+    <div style="text-align: center">
+        <input type="button" id="btn-save" class="k-button" value="@T("Common.Save")" />
+        <input type="button" id="btn-cancel" class="k-button" value="@T("Common.Cancel")" />
+    </div>
+
+}

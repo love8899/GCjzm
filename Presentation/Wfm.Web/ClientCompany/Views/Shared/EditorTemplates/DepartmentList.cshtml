@@ -1,0 +1,18 @@
+﻿@model int
+@(Html.Kendo().DropDownList()
+    .Name("CompanyDepartmentId")
+    .OptionLabel("--Select--")
+    .DataTextField("Text")
+    .DataValueField("Value")
+    .DataSource(source =>
+    {
+        source.Read(read =>
+            {
+                read.Action("GetCascadeDepartments", "Company").Data("filterDepartments");
+            })
+            .ServerFiltering(true);
+    })
+    .Enable(true)
+    .AutoBind(false)
+    .CascadeFrom("CompanyLocationId")
+)

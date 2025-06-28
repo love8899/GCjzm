@@ -1,0 +1,16 @@
+﻿@{ 
+    Layout = null;
+}
+@using (Html.BeginForm())
+{
+    <div>
+        <p>
+            @(!String.IsNullOrWhiteSpace(ViewBag.YesOrNoText) ? ViewBag.YesOrNoText: "Yes to proceed, or No to cancel.")
+            <br /><br />
+        </p>
+    </div>
+    <div class="buttons">
+        <input type="button" class="k-button btn-save" value="Yes" />
+        <input type="button" class="k-button btn-cancel" value="No" />
+    </div>
+}

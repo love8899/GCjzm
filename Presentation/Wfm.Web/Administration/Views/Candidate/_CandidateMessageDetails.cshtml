@@ -1,0 +1,72 @@
+﻿@model MessageModel
+
+<div style="margin:10px">
+    <div>
+        <strong>From: </strong>
+        @Html.DisplayFor(model => model.FromName)
+        @if (Model.ByEmail)
+        {
+            <span>(@Html.DisplayFor(model => model.MailFrom))</span>
+        }
+        <br />
+        <strong>To: </strong>
+        @if (!String.IsNullOrWhiteSpace(Model.ToName))
+        {
+            @Html.DisplayFor(model => model.ToName)
+            if (Model.ByEmail)
+            {
+                <span>(@Html.DisplayFor(model => model.MailTo))</span>
+            }
+        }
+        else if (Model.ByEmail)
+        {
+            foreach (var r in Model.MailTo.Split(';'))
+            {
+                <span>@r</span> <br />
+            }
+        }
+
+        @if (Model.ByEmail && !String.IsNullOrWhiteSpace(Model.CC))
+        {
+            <br />
+            <strong>CC: </strong>
+            foreach (var r in Model.CC.Split(';'))
+            {
+                <span>@r</span> <br />
+            }
+        }
+
+        @if (Model.ByEmail && !String.IsNullOrWhiteSpace(Model.Bcc))
+        {
+            <br />
+            <strong>Bcc:</strong>
+            @Html.TextArea("Bcc", String.Join("\r\n", Model.Bcc.Split(';')), new { style = "width:100%;resize:none", rows = "10", disabled = "disabled" })
+        }
+        <br />
+        <strong>Date: </strong>
+        @Html.DisplayFor(model => model.CreatedOn, "LocalFullDateTime")
+    </div>
+
+    <div>
+        <div>
+            <br />
+            <strong>Subject:</strong>
+            @Html.DisplayFor(model => model.Subject)
+        </div>
+        <br />
+        <article contenteditable="false">
+            @Html.Raw(Model.Body)
+        </article>
+        @if (Model.AttachmentFileName != null)
+        {
+            <h4>Attachment</h4>
+            <a href='@(Url.Action("DownloadMessageAttachment", "Home", new { id = Model.Id }))'><span>@Model.AttachmentFileName</span></a>
+        }
+        @if (!String.IsNullOrWhiteSpace(Model.Note))
+        {
+            <br />
+            <strong>Note: </strong>
+            @Html.Raw(Model.Note)
+        }
+    </div>
+</div>

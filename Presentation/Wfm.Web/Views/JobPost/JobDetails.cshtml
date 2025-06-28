@@ -1,0 +1,46 @@
+﻿@model JobOrderModel
+@using Wfm.Web.Framework.HtmlHelpers;
+@using Wfm.Web.Framework.Seo;
+@using Wfm.Web.Framework.Seo.Keyword;
+@using Wfm.Web.Models.JobOrder
+
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var htmlToText = new HtmlToText();
+    var description = htmlToText.Convert(Model.JobDescription, 200) + "...";
+    var htmlToKeys = new HtmlToKeywords();
+    var keywords = htmlToKeys.Parse(Model.JobDescription);
+
+    var city = (Model.CompanyLocationModel != null) ? Model.CompanyLocationModel.CityModel.CityName : "Toronto";
+
+    ViewBag.Title = SeoHelper.ToSeoFriendlyString(Model.JobTitle) + " | GC Employment Staffing Agency";
+    ViewBag.Description = description.Replace(System.Environment.NewLine, " ");
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = "GC Employment Staffing Agency | jobs in " + city;
+
+    ViewBag.ReturnUrl = Request.UrlReferrer;
+
+    var ApplyStr = "/Candidate/ApplyJob?JobOrderId=" + Model.Id;
+}
+
+@section left {
+    @Html.Partial("Layout/_JobPostSideBar", Model)
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>@Model.JobTitle</h1>
+    </div>
+    <div class="page-body">
+        @Html.Raw(Model.JobDescription)
+        <div class="item-grid">
+            <div class="item-box" style="text-align:center; margin-bottom:0">
+                <input type="button" value="Apply" title="Apply to this job" class="button-2 product-box-add-to-cart-button" onclick="window.location.href='@ApplyStr';return false;" />
+                <input type="button" value="Forward" title="Email a friend" class="button-2 add-to-wishlist-button" onclick="emailFriend();return false;" />
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,55 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Call Centre and Customer Service";
+    //var description = siteTitle + " offers flexible solutions to manage your call centre and customer service staffing needs.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Call Centre and Customer Service</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            @siteTitle offers flexible solutions to manage your call centre and customer
+            service staffing needs. From data entry clerks, call centre agents and supervisors
+            to customer service representatives and managers, our qualified in-house staff ensures
+            that the staff we send you fit all of your criteria. Through our comprehensive interviewing
+            methods and skill testing specific to the job, @siteTitle will find you exactly
+            what you are looking for. We have a great track record of placing highly-qualified
+            staff in the following positions:
+        </p>
+        <ul>
+            <li>Inbound and outbound call centre agents</li>
+            <li>Call centre supervisors</li>
+            <li>Call centre or customer service training managers</li>
+            <li>Customer service representatives</li>
+            <li>Customer service managers</li>
+            <li>Data-entry operators</li>
+        </ul>
+        <p>
+            <b>We deliver </b>
+        </p>
+        <p>
+            Whether you need to staff for peak workloads due to the time of season, special
+            projects or events, or just to fill a temporary position to accommodate your employees
+            taking vacation time, @siteTitle delivers complete satisfaction.
+        </p>
+    </div>
+</div>

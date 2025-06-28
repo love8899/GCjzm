@@ -1,0 +1,1 @@
+﻿This folder contains tests for Wfm.Web project (public store)

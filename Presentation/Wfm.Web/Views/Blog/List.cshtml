@@ -1,0 +1,65 @@
+﻿@*@model IEnumerable<BlogPostModel>*@
+@model BlogPostListModel
+@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@using Wfm.Web.Models.Blogs
+@using Wfm.Web.Framework.HtmlHelpers
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-blog-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Blog";
+    //var description = "Check out latest blog and news at Great Connections Employment.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+
+    HtmlToText htmlToText = new HtmlToText();
+}
+
+
+@section left {
+    @Html.Partial("Layout/_ContactSideBar")
+}
+<div class="page blog-page">
+    <div class="page-title">
+        <h1>Blog</h1>
+    </div>
+    <div class="page-body">
+        <div class="blog-posts">
+            @foreach (var item in Model.BlogPosts)
+            {
+                <div class="post">
+                    <div class="post-head">
+                        <a class="post-title" href="@Url.RouteUrl("BlogPostSeo", new { blogPostId = item.Id, seoName = Html.ToSeoUrl(item.Title) })">@item.Title</a>
+                        <span class="post-date">@item.CreatedOn.Value.ToString("D")</span>
+                    </div>
+                    <div class="post-body">
+                        @Html.Raw(htmlToText.Convert(item.Body, 300) + " ...")
+                    </div>
+                    <div class="blog-details">
+                        <div class="buttons">
+                            <a class="read-more" href="@Url.RouteUrl("BlogPostSeo", new { blogPostId = item.Id, seoName = Html.ToSeoUrl(item.Title) })">Details</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        @{
+            var pager = Html.Pager(Model.PagingFilteringContext).QueryParam("pagenumber");
+        }
+        @if (!pager.IsEmpty())
+        {
+            <div class="pager">
+                @pager
+            </div>
+        }
+    </div>
+</div>

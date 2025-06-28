@@ -1,0 +1,50 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Features;
+
+@{
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var featureService = EngineContext.Current.Resolve<IFeatureService>();
+    List<string> features = featureService.GetAllFeatures().Select(x => x.Name).ToList();
+
+    //load sitemap
+    var siteMap = new Wfm.Web.Framework.Menu.XmlSiteMap("Admin", features);
+    siteMap.LoadFrom("~/Administration/sitemap.config");
+}
+@helper RenderMenuItem(Wfm.Web.Framework.Menu.SiteMapNode item)
+{
+    string url = null;
+    if (!string.IsNullOrEmpty(item.ControllerName) && !string.IsNullOrEmpty(item.ActionName))
+    {
+        url = Url.Action(item.ActionName, item.ControllerName, item.RouteValues, null, null);
+    }
+    else if (!string.IsNullOrEmpty(item.Url))
+    {
+        url = item.Url.StartsWith("~/", StringComparison.Ordinal) ? Url.Content(item.Url) : item.Url;
+    }
+    <li>
+        @if (!String.IsNullOrEmpty(url))
+        {<a href="@url">@item.Title</a>}
+        else
+        {@item.Title}
+        @if (item.ChildNodes.Any(x => x.Visible))
+        {
+        <ul>
+            @foreach (var childItem in item.ChildNodes.Where(x => x.Visible))
+            {
+                @RenderMenuItem(childItem)
+            }
+        </ul>
+        }
+    </li>
+}
+<ul id="admin-menu">
+    @foreach (var item in siteMap.RootNode.ChildNodes.Where(x => x.Visible))
+    {
+        @RenderMenuItem(item)
+    }
+</ul>
+<script>
+    $(document).ready(function () {
+        $("#admin-menu").kendoMenu();
+    });
+</script>

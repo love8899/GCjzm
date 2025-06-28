@@ -1,0 +1,9 @@
+﻿@model string
+
+@Html.TextBoxFor(m => m, new
+{
+    @Value = (string)ViewData["Value"],
+    @class = "k-textbox", @readonly = "readonly",
+    style = (string)ViewData["Style"] ?? string.Empty,
+    data_val_required = (bool?)ViewData["Required"] ?? false
+})

@@ -1,0 +1,13 @@
+﻿@{
+    Layout = "_ReportViewerLayout";
+    ViewBag.ReportFile = "DetailedLabourCostReport";
+
+    ViewBag.ReportParameters = new
+    {
+        StartDate = ViewBag.StartDate,
+        EndDate = ViewBag.EndDate,
+        CompanyId = ViewBag.CompanyId,
+        VendorIds = ViewBag.VendorIds,
+        CompanyName = ViewBag.CompanyName
+    };
+}

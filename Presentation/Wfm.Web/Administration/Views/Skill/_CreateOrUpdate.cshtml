@@ -1,0 +1,73 @@
+﻿@model SkillModel
+
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.SkillName)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.SkillName)
+            @Html.WfmValidationMessageFor(model => model.SkillName)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Description)
+        </td>
+        <td class="adminData">
+            @{ Html.Kendo().Editor()
+                        .Name("Description")
+                        .Encode(false)
+                        .Value(@<text></text>)
+                        .Render();
+            }
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsActive)
+        </td>
+        <td class="adminData">
+            @Html.CheckBoxFor(model => model.IsActive)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsDeleted)
+        </td>
+        <td class="adminData">
+            @Html.CheckBoxFor(model => model.IsDeleted)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.DisplayOrder)
+        </td>
+        <td class="adminData">
+            @Html.Kendo().IntegerTextBoxFor(model => model.DisplayOrder)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CreatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.CreatedOn)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.UpdatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.UpdatedOn)
+        </td>
+    </tr>
+
+</table>

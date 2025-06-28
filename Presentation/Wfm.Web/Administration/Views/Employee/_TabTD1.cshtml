@@ -1,0 +1,52 @@
+﻿@{
+    Layout = null;
+}
+
+
+<script type="text/javascript">
+
+    var selectedIndex = 0;
+
+    function onDataBound(e) {
+        var grid = $("#td1-overview").data("kendoGrid");
+        //grid.select(e.sender.tbody.find("tr:first"));
+        var row = e.sender.tbody.find("tr").eq(selectedIndex);
+        if (row.length == 1)
+            grid.select(row);
+        else
+            emptyDetails();
+    }
+
+    function onSelect(e) {
+        var row = this.select();
+        selectedIndex = row.index();
+        var provinceName = $(row).find('.ProvinceName').text();
+        var model = this.dataItem(row);
+        loadDetails(provinceName, model.Id);
+    }
+
+</script>
+
+
+<table class="adminContent">
+    <tr>
+        <td width="25%" id="overview-cell" style="vertical-align:top">
+            @Html.Partial("_TD1Overview")
+        </td>
+        <td width="5%"></td>
+        <td width="70%" id="details-cell" style="vertical-align:top"></td>
+    </tr>
+</table>
+
+
+<script type="text/javascript">
+
+    function loadDetails(provinceName, id) {
+        $('#details-cell').load('_TD1Details' + '/' + id, { provinceName: provinceName });
+    }
+
+    function emptyDetails() {
+        $('#details-cell').html('No data');
+    }
+
+</script>

@@ -1,0 +1,88 @@
+﻿@model IEnumerable<MessageHistoryModel>
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Messages.MessageHistory").Text;
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Messages.MessageHistory")
+    </div>
+    <div class="options">
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<MessageHistoryModel>()
+              .Name("MessageHistory")
+              .BindTo(Model)
+              .Columns(columns =>
+                {
+                    columns.Bound(x => x.EmailAccountId)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .Width(80).Hidden();
+                    columns.Bound(x => x.MailFrom)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Width(200);
+                    columns.Bound(x => x.MailTo)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Width(220);
+                    columns.Bound(x => x.Bcc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+                    columns.Bound(x => x.CC)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Width(220);
+                    columns.Bound(x => x.Subject)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+                    columns.Bound(x => x.Body)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+                    columns.Bound(x => x.SentTries)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .Width(100);
+
+                    columns.Bound(x => x.UpdatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120).Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120);
+
+                    columns.Bound(x => x.Id).Sortable(false).Filterable(false).Width(60)
+                        .Template(x => Html.ActionLink(T("Admin.Common.Details").Text, "Details", new { x.Id }, new { target = "_blank" }))
+                        .ClientTemplate("<a href=\"" + @Url.Content("~/Admin/MessageHistory/Details/") + "#= Id #\" target = \"_blank\">" + T("Admin.Common.Details").Text + "</a>")
+                        .Title("");
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(true))
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                )
+                //.Filterable(filterable => filterable
+                //    .Extra(false)
+                //    .Operators(operators => operators
+                //        .ForString(str => str.Clear()
+                //            .Contains("Contains")
+                //            .IsEqualTo("Is equal to")
+                //            .IsNotEqualTo("Is not equal to")
+                //        )
+                //    )
+                //)
+            )
+        </td>
+    </tr>
+</table>

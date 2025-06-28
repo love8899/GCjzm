@@ -1,0 +1,98 @@
+﻿@{
+    List<SelectListItem> emailTemplates = ViewBag.EmailTemplates;
+}
+<script type="text/javascript">
+    function applyTemplate() {
+        var templateId = $("#EmailTemplate").val();
+        $.ajax({
+            url: '@Url.Action("GetEmailTemplate","Candidate")'+"?templateId="+templateId,
+            dataType: 'json',
+            type: 'POST',
+            success: function (data) {
+                $("#Subject").val(data.subject);
+                $("#EmailMessage").data("kendoEditor").value(data.message);
+                $("#Pipeline").prop('disabled', !data.joborderPipeline);
+                $("#Global").prop("disabled", !data.globalPool);
+                $("#Pool").prop("disabled", !data.companyPool);
+
+                if (data.joborderPipeline)
+                    $("#Pipeline").prop('checked', true).change();
+                else if (data.companyPool)
+                    $("#Pool").prop('checked', true).change();
+                else
+                    $("#Global").prop('checked', true).change();
+            }
+        });
+
+        var head = templateId.split('-');
+
+        if (head[0] == "CMP") {
+            $("#OwnAccount").prop("disabled", false);
+            $("#OwnAccount").prop("checked", true);
+            $("#SystemAccount").prop("disabled", true);
+            $("#SystemAccount").prop("checked", false);
+        }
+        else {
+            $("#SystemAccount").prop("disabled", false);
+            $("#SystemAccount").prop("checked", false);
+            $("#OwnAccount").prop("disabled", false);
+            $("#OwnAccount").prop("checked", true);
+        }
+        if (templateId != "0") {
+            $("#Subject").prop("disabled", true);
+            $($('#EmailMessage').data().kendoEditor.body).attr('contenteditable', false);
+            $('.k-editor-toolbar').hide();
+        }
+        else {
+            $("#Subject").prop("disabled", false);
+            $($('#EmailMessage').data().kendoEditor.body).attr('contenteditable', true);
+            $('.k-editor-toolbar').show();
+        }
+    }
+</script>
+<br />
+<label class="first-label">From </label>
+<ul class="fieldlist" style="padding-left: 20px">
+    <li>
+        @(Html.Kendo().RadioButton().Name("OwnAccount").Checked(true).HtmlAttributes(new { @name = "FromAccount" }).Label("Own Account"))
+    </li>
+    <li>
+        @(Html.Kendo().RadioButton().Name("SystemAccount").HtmlAttributes(new { @name = "FromAccount" }).Label("System Account"))
+    </li>
+</ul>
+
+<br /><br />
+<label class="first-label">Email Template</label>
+@Html.Kendo().DropDownList().Name("EmailTemplate").BindTo(emailTemplates).Events(e=>e.Change("applyTemplate")).HtmlAttributes(new { style = "margin-left:10px;width:360px;", maxlength = "1000" })
+
+<br /><br />
+<label class="first-label">@T("Common.Subject")</label>
+@Html.Kendo().TextBox().Name("Subject").HtmlAttributes(new { style = "width:100%;", maxlength = "1000" })
+
+<br /><br />
+<label class="first-label">@T("Common.Message")</label>
+@Html.Kendo().Editor().Name("EmailMessage").HtmlAttributes(new { style = "height:400px;width:100%;", maxlength = "4000"})
+<br /><br />
+
+<script type="text/javascript">
+    function IsEmailMessageReady() {
+        var message = GetEmailMessage();
+        if ((!message.OwnAccount && !message.SystemAccount) || message.Subject == "" || message.Body == "")
+            return false;
+        else
+            return true;
+    }
+
+    function GetEmailMessage() {
+        var ownAccount = $("#OwnAccount").attr("checked") == "checked";
+        var systemAccount = $("#SystemAccount").attr("checked") == "checked";
+        var subject = $("#Subject").val();
+        var message = $("#EmailMessage").val();
+        return {
+            OwnAccount: ownAccount,
+            SystemAccount: systemAccount,
+            Subject: subject,
+            Body: message,
+        };
+    }
+</script>

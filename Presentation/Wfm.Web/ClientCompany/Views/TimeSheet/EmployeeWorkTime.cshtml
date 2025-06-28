@@ -1,0 +1,92 @@
+﻿@model Wfm.Shared.Models.Search.SearchTimeSheetModel
+@{
+    ViewBag.PageTitle = T("Admin.TimeSheet.EmployeeWorkTime").Text;
+
+    ViewBag.Title = T("Admin.TimeSheet.EmployeeWorkTime").Text;
+    Html.SetActiveMenuItemSystemName("DailyTimeSheets");
+
+    var gridName = "candidateworktime-grid";
+    var serverOperation = true;
+}
+
+@section Search {
+    @Html.Partial("_SearchTimeSheets", Model, new ViewDataDictionary
+    {
+        { "GridName", gridName }
+    })
+}
+
+@(Html.Kendo().Grid<DailyTimeSheetModel>().Name(gridName)
+    .Events(e => e.DataBound("onDataBound"))
+    .Columns(columns =>
+    {
+        columns.Bound(x => x.CandidateId).Title("Id")
+            .HeaderHtmlAttributes(new { title = T("Common.BadgeId").Text })
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0" });
+
+        columns.Bound(x => x.EmployeeId).Title("No.")
+            .HeaderHtmlAttributes(new { title = T("Common.EmployeeNumber").Text })
+            .ClientTemplate("<a onclick=getCandidateInfo('#=CandidateGuid#')>#= kendo.toString(EmployeeId) #</a>");
+
+        columns.Bound(x => x.EmployeeName)
+            .HtmlAttributes(new { @class = "col-xxs-0 cell-lg-2" })
+            .ClientTemplate("#if (ClockTimeInHours<=2){# <span class='worktime-warning'>#=EmployeeName#</span>#}else{# #=EmployeeName# #}#");
+
+        columns.Bound(x => x.JobTitle)
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0" });
+
+        columns.ForeignKey(x => x.CompanyLocationId, Model.AvailableLocations, "Value", "Text")
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0 cell-lg-2" });
+        //columns.ForeignKey(x => x.CompanyDepartmentId, Model.AvailableDepartments, "Value", "Text");
+        columns.ForeignKey(x => x.CompanyContactId, Model.AvailableContacts, "Value", "Text")
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 cell-lg-2" });
+
+        //columns.Bound(x => x.JobStartDateTime).Format("{0:yyyy-MM-dd HH:mm}").Title(T("Common.StartDate").Text).Hidden();
+        columns.Bound(x => x.JobStartDateTime).Format("{0:yyyy-MM-dd}").Title(T("Common.Date").Text)
+            .HtmlAttributes(new { @class = "cell-lg-2" });
+        //columns.Bound(x => x.JobEndDateTime).Format("{0:yyyy-MM-dd HH:mm}").Title(T("Common.EndDate").Text).Hidden();
+
+        columns.Bound(x => x.ClockIn).Format("{0:yyyy-MM-dd HH:mm}")
+            .HtmlAttributes(new { @class = "col-xxs-0 cell-lg-2" });
+        columns.Bound(x => x.ClockOut).Format("{0:yyyy-MM-dd HH:mm}")
+            .HtmlAttributes(new { @class = "col-xxs-0 cell-lg-2" });
+
+        //columns.Bound(x => x.AdjustmentInMinutes).Title("Adj.")
+        //    .HeaderHtmlAttributes(new { title = "Adjustment in minutes" })
+        //    .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0", style = "text-align:right" })
+        //    .ClientTemplate("#if (AdjustmentInMinutes) {# #=AdjustmentInMinutes# #}else{# #}#");
+
+        columns.Bound(x => x.NetWorkTimeInHours).Title("Hrs")
+            .HtmlAttributes(new { style = "text-align:right", @class = "boldColumn" })
+            .ClientTemplate("#if (NetWorkTimeInHours<=1){#" +
+                                "<span class='worktime-warning'>#=kendo.format('{0:n2}',NetWorkTimeInHours)#</span>" + "" +
+                            "#}else if (AdjustmentInMinutes != 0 || ClockTimeInHours == 0) {#" + "" +
+                                "<span class='worktime-adjusted' title='#=Note#'>#=kendo.format('{0:n2}',NetWorkTimeInHours)#</span>" +
+                            "#} else {#" +
+                                "<span class='boldColumn'>#=kendo.format('{0:n2}',NetWorkTimeInHours)#</span>" +
+                            "#}#");
+
+        columns.ForeignKey(x => x.CandidateWorkTimeStatusId, Model.AvailableCandidateWorkTimeStatus, "Value", "Text")
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 cell-lg-2" });
+
+        //columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Hidden(true);
+        //columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Hidden(true);
+    })
+    .Sortable()
+    .Pageable(x => x.PageSizes(new[] { 10, 15, 20, 30, 50, 100 }).Refresh(true))
+    .DataSource(dataSource => dataSource
+        .Ajax().ServerOperation(serverOperation).PageSize(10)
+        .Read(read => read.Action("EmployeeWorkTime", "TimeSheet").Data("onRead"))
+        .Sort(s =>
+        {
+            s.Add("JobStartDateTime").Descending();
+            s.Add("CandidateId");
+        })
+    )
+)
+
+@section scripts {<script type="text/javascript">
+    $(function () { initSearchAndGrid(null, '@gridName'); });
+    function onDataBound(e) { setGridResponsive(e.sender); }
+    function onRead(e) { return getGridOptions(); }
+</script>}

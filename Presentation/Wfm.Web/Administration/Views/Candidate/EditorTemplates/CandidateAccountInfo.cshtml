@@ -1,0 +1,72 @@
+﻿@using Wfm.Services.Common
+@using Wfm.Core.Domain.Candidates
+
+@model CandidateModel
+
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.IsEmployee)
+
+<h4>@T("Admin.Candidate.AccountInformation")</h4>
+<section>
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Email)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.Email)
+                @Html.WfmValidationMessageFor(model => model.Email)
+            </td>
+        </tr>
+        @if (Model.Id == 0)
+        {
+            <tr>
+                <td class="adminTitle">
+                    @Html.Label("UserSameEmail", "Use email as username")
+                </td>
+                <td class="adminData">
+                    @Html.CheckBox("UserSameEmail", true)
+                </td>
+            </tr>
+        }
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Username)
+            </td>
+            <td class="adminData required">
+                @if (Model.Id == 0)
+                {
+                    @Html.EditorFor(model => model.Username)
+                    @Html.WfmValidationMessageFor(model => model.Username)
+                }
+                else
+                {
+                    @Html.DisplayFor(model => model.Username)
+                    @Html.HiddenFor(model => model.Username)
+                }
+            </td>
+        </tr>
+        @if (Model.Id == 0)
+        {
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.Password)
+                </td>
+                <td class="adminData required">
+                    @Html.EditorFor(model => model.Password)
+                    @Html.WfmValidationMessageFor(model => model.Password)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.RePassword)
+                </td>
+                <td class="adminData required">
+                    @Html.EditorFor(model => model.RePassword)
+                    @Html.WfmValidationMessageFor(model => model.RePassword)
+                </td>
+            </tr>
+        }
+    </table>
+</section>

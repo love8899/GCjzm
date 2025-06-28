@@ -1,0 +1,13 @@
+﻿@model int?
+@(Html.Kendo().DropDownListFor(m => m)
+        //.AutoBind(false)
+            .OptionLabel("--Select--")
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .DataSource(dataSource =>
+        {
+            dataSource.Read(read => read.Action("GetShiftsAsSelectList", "Common"))
+            .ServerFiltering(true);
+        })
+)
+@Html.ValidationMessageFor(m => m)

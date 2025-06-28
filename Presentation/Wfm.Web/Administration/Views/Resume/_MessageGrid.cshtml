@@ -1,0 +1,235 @@
+﻿@{
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+}
+
+
+@(Html.Kendo().Grid<ResumeModel>()
+    .Name("MessageHistory")
+    .Events(events => events.DataBound("onDataBound").Change("onChange").DetailInit("onDetailInit"))
+    .Columns(columns =>
+    {
+        //columns.Bound(x => x).Filterable(false).Sortable(false)
+        //    .HeaderTemplate("<input id='mastercheckbox' type='checkbox'/>")
+        //    .ClientTemplate("<input type='checkbox' name='checkedRecords' value='#=Id#' class='checkboxGroups'/>")
+        //    .HeaderHtmlAttributes(new { style = "text-align:center" }).Title("")
+        //    .HtmlAttributes(new { style = "text-align:center" }).Width(30);
+
+        //columns.Bound(x => x.Id)
+        //    .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+        //    .Width(70).Hidden();
+
+        columns.Bound(x => x.From).Hidden()
+            .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains").MinLength(20)))
+            .ClientTemplate("#if (!IsRead) {# <span class=\"unread\"> #}else{# <span> #}# #= From #</span>")
+            .Width(180);
+        columns.Bound(x => x.FromName).Title("From")
+            .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains").MinLength(20)))
+            .ClientTemplate("#if (!IsRead) {# <span class=\"unread\"> #}else{# <span> #}# #= FromName #</span>")
+            .Width(180);
+        columns.Bound(x => x.To).Hidden()
+            .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains").MinLength(20)))
+            .ClientTemplate("#if (!IsRead) {# <span class=\"unread\"> #}else{# <span> #}# #= To #</span>")
+            .Width(180);
+        columns.Bound(x => x.ToName).Title("To").Hidden()
+            .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains").MinLength(20)))
+            .ClientTemplate("#if (!IsRead) {# <span class=\"unread\"> #}else{# <span> #}# #= ToName #</span>")
+            .Width(180);
+        columns.Bound(x => x.Subject)
+            .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains").MinLength(20)))
+            .ClientTemplate("#if (!IsRead) {# <span class=\"unread\"> #}else{# <span> #}# #= Subject #</span>");
+
+        columns.Bound(x => x.AttachmentFileName).Title("Resume").IncludeInMenu(false).Filterable(false).Sortable(false)
+            .ClientTemplate("#if (AttachmentFileName != null) {# <a class='-k-button' href=\"" + @Url.Content("~/Admin/Resume/DownloadMessageAttachment/") + "#= Id #\"><span class='fa fa-paperclip'></span></a> #}else{# #}#")
+            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" }).Width(75);
+
+        columns.Bound(x => x.EmailFile).Title("Email").IncludeInMenu(false).Filterable(false).Sortable(false)
+            .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/Resume/DownloadMessage/") + "#= Id #\"><span class='fa fa-envelope'></span></a>")
+            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" }).Width(75);
+
+        columns.Bound(x => x.Date).Title("Received").Filterable(false)
+            .ClientTemplate("#if (!IsRead) {# <span class=\"unread\"> #}else{# <span> #}# #= kendo.toString(Date,'yyyy-MM-dd HH:mm') #</span>")
+            .Width(130);
+
+        columns.Bound(x => x.IsContacted).Title("Contacted").IncludeInMenu(false).Sortable(false).Width(120)
+            .Filterable(ftb => ftb.Cell(cell => cell.Template("contactedFilter"))).Sortable(false)
+            .ClientTemplate("#if (IsContacted == true) {# Yes #}else{# No #}#")
+            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" });
+    })
+    .EnableCustomBinding(true)
+    .Reorderable(reorder => reorder.Columns(true))
+    .Resizable(resize => resize.Columns(true))
+    .ColumnMenu(d => d.Sortable(true))
+    .Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+    .Sortable()
+    .Selectable()
+    .Pageable(x => x.PageSizes(new[] { 10, 15, 20, 30, 50, 100 }).Refresh(true))
+    .DataSource(ds => ds
+        .Ajax()
+        .ServerOperation(true)
+        .PageSize(15)
+        .Read(read => read.Action("_MessageGrid", "Resume").Data("getMessageCriteria"))
+        .Sort(sorts => sorts.Add(x => x.Date).Descending())
+        .Filter(filters => filters.AddRange(ViewBag.FilterDescriptors ?? new List<Kendo.Mvc.IFilterDescriptor>()))
+    )
+    .ClientDetailTemplateId("resumeHistories")
+    //.Filterable(filterable => filterable
+    //    .Extra(false)
+    //    .Operators(operators => operators
+    //        .ForString(str => str.Clear()
+    //            .Contains("Contains")
+    //            .IsEqualTo("Is equal to")
+    //            .IsNotEqualTo("Is not equal to")
+    //        )
+    //    )
+    //)
+)
+
+
+<script id="resumeHistories" type="text/x-kendo-template">
+@(Html.Kendo().Grid<ResumeHistoryModel>()
+    .Name("grid_#=Id#")
+    .Columns(columns =>
+    {
+        columns.Bound(x => x.Who).Title("Who").Width(150);
+        columns.Bound(x => x.ContactedOn).Title("Contacted On")
+            .ClientTemplate("\\#= kendo.toString(ContactedOn, 'yyyy-MM-dd') \\#")
+            .Width(150);
+        columns.Bound(x => x.Via).Width(100);
+        columns.Bound(x => x.Result);
+        columns.Bound(x => x.Note);
+    })
+    .ToolBar(tb => { tb.Create(); tb.Save(); })
+    .Editable(editable => editable.Mode(GridEditMode.InCell))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Sort(sort => {
+            sort.Add("ContactedOnUtc").Descending();
+            sort.Add("UPdatedOnUtc").Descending();
+        })
+        .Read(read => read.Action("_GetResumeHistories", "Resume", new { resumeId = "#=Id#" }))
+        .Create(create => create.Action("_SaveResumeHistory", "Resume"))
+        .Update(update => update.Action("_SaveResumeHistory", "Resume"))
+        .Model(model =>
+        {
+            model.Id(x => x.Id);
+            model.Field(x => x.Who).DefaultValue(workContext.CurrentAccount.FullName).Editable(false);
+            model.Field(x => x.ContactedOn);
+            model.Field(x => x.Via);
+            model.Field(x => x.Result);
+            model.Field(x => x.Note);
+        })
+        .Events(e => e.Error("onHistoryError"))
+    )
+    .Pageable()
+    .Events(e => e.Edit("onHistoryEdit"))
+    .ToClientTemplate()
+)
+</script>
+
+
+<script type="text/javascript">
+
+    var filterDescriptors = @Html.Raw(Json.Encode(ViewBag.FilterDescriptors));
+
+    //var selectedIds = [];
+
+    //$(document).ready(function () {
+
+    //    $('#mastercheckbox').click(function () {
+    //        $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+    //    });
+
+    //    //wire up checkboxes.
+    //    $('#MessageHistory').on('change', 'input[type=checkbox][id!=mastercheckbox]', function (e) {
+    //        var $check = $(this);
+    //        if ($check.is(":checked") == true) {
+    //            var checked = jQuery.inArray($check.val(), selectedIds);
+    //            if (checked == -1) {
+    //                //add id to selectedIds.
+    //                selectedIds.push($check.val());
+    //            }
+    //        }
+    //        else {
+    //            var checked = jQuery.inArray($check.val(), selectedIds);
+    //            if (checked > -1) {
+    //                //remove id from selectedIds.
+    //                selectedIds = $.grep(selectedIds, function (item, index) {
+    //                    return item != $check.val();
+    //                });
+    //            }
+    //        }
+    //        updateMasterCheckbox();
+    //    });
+    //});
+
+    function onDataBound(e) {
+        //$('#MessageHistory input[type=checkbox][id!=mastercheckbox]').each(function () {
+        //    var currentId = $(this).val();
+        //    var checked = jQuery.inArray(currentId, selectedIds);
+        //    //set checked based on if current checkbox's value is in selectedIds.
+        //    $(this).attr('checked', checked > -1);
+        //    var grid = $('#MessageHistory').data('kendoGrid');
+        //    grid.thead.find("[data-field=AttachmentFileName]>.k-header-column-menu").remove();
+        //});
+
+        //updateMasterCheckbox();
+    }
+
+    function updateMasterCheckbox() {
+        var numChkBoxes = $('#MessageHistory input[type=checkbox][id!=mastercheckbox]').length;
+        var numChkBoxesChecked = $('#MessageHistory input[type=checkbox][checked][id!=mastercheckbox]').length;
+        $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+
+    function onChange(e) {
+        var grid = $('#MessageHistory').data('kendoGrid');
+        var currentPage = grid.dataSource.page();
+        var selectedRows = this.select();
+        var dataItem = this.dataItem(selectedRows[0]);
+        loadMsg(dataItem.Id);
+    }
+
+    function onDetailInit() {
+        $('.k-grid-add').html('Add');
+        $('.k-grid-save-changes').html('Save');
+        $('.k-grid-cancel-changes').html('Cancel');
+    }
+
+    function onHistoryEdit(e) {
+        var parentModel = getParentModel(e.sender);
+        if (e.model.Id === 0) {
+            e.model.set("ResumeId", parentModel.Id);
+        } else {
+            if (e.model.AccountId != '@(workContext.CurrentAccount.Id)')
+                e.sender.closeCell();
+        }
+    }
+
+    function contactedFilter(args) {
+        args.element.kendoDropDownList({
+            dataSource: [{ Text: 'No', Value: 'false' }, { Text: 'Yes', Value: 'true' }],
+            optionLabel: { Text: 'Y | N', Value: null },
+            dataTextField: 'Text',
+            dataValueField: 'Value',
+            valuePrimitive: true,
+            style: 'width:100px'
+        });
+    }
+
+    function getParentModel(detailGrid) {
+        var parentRow = detailGrid.element.closest("tr").prev();
+        var parentGrid = parentRow.closest("[data-role=grid]").data("kendoGrid");
+        return parentGrid.dataItem(parentRow);
+    }
+
+    function onHistoryError(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) $.each(value.errors, function () { message += this + "\n"; });
+            });
+            alert(message);
+        }
+    }
+
+</script>

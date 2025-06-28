@@ -1,0 +1,118 @@
+﻿@{
+    Layout = null;
+    bool fromWizard = ViewBag.FromWizard ?? false;
+}
+
+@*<link href="/Content/capture.css" rel="stylesheet" type="text/css" />*@
+<script src="//code.jquery.com/jquery-1.11.1.min.js" type="text/javascript"></script>
+
+<style>
+    .camcontent video {
+        display: block;
+        position: relative;
+        overflow: hidden;
+        margin: auto;
+    }
+    .cambuttons{
+        background: #2184be;
+        color: #fff;
+        display: block;
+        padding: 0.5em 1em;
+        text-decoration: none;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+  }
+</style>
+
+<div style="margin: 0 auto; width: 100%; text-align: center">
+    @if (fromWizard)
+    {
+        <h2 style="background-color: yellow; padding: 5px;">If you are using a mobile phone, please put it in landscape mode.</h2>
+    }
+    <div style="float: left; border: 4px solid #ccc; padding: 5px" class="cam-wrapper">
+        <div class="camcontent">
+            <video id="video" width="400" height="300" autoplay></video>
+        </div>
+        <br />
+        <button id="snap" style="display:none;" class="cambuttons">  Capture </button>
+        <br />
+    </div>
+    <div style="float: right; margin-left: 20px; border: 4px solid #ccc; padding: 5px" class="img-wrapper">
+        <div>
+            <img id="emptyImage" style="width: 400px; height: 300px;" src="@Url.Content("~/Content/Images/default-avatar.jpg")" />
+            <canvas id="canvas" width="400" height="300" style="display:none;"> </canvas>
+        </div>
+        <br>
+        <button id="upload" style="display:none;" class="cambuttons"> Upload </button>
+        <br /><span id=uploading style="display:none;"> Uploading has begun . . .  </span>
+    </div>
+</div>  
+
+<script>
+    // Put event listeners into place
+    window.addEventListener("DOMContentLoaded", function() {
+        // Grab elements, create settings, etc.
+        var canvas = document.getElementById("canvas"),
+            context = canvas.getContext("2d"),
+            video = document.getElementById("video"),
+            videoObj = { "video": true },
+            image_format= "jpeg",           
+            errBack = function(error) {
+                console.log("Video capture error: ", error.code);
+            };
+       
+        //// Put video listeners into place
+        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+        if (navigator.getUserMedia){
+        
+            function successCallback(stream) {
+                if (window.URL) {
+                    video.srcObject = stream;
+                    video.play();
+                    $("#snap").show();
+                } else if (video.mozSrcObject !== undefined) {
+                    video.mozSrcObject = stream;
+                    video.play();
+                    $("#snap").show();
+                } else {
+                    video.src = stream;
+                    video.play();
+                    $("#snap").show();
+                }
+            }
+            navigator.getUserMedia({ video: true }, successCallback, errBack);
+        }
+        // Get-Save Snapshot - image
+        document.getElementById("snap").addEventListener("click", function() {
+            context.drawImage(video, 0, 0, 400, 300);           
+            $("#canvas").show();            
+            $("#emptyImage").hide(); 
+            $("#upload").show();
+        });
+       
+        // Upload image to sever
+        document.getElementById("upload").addEventListener("click", function () {
+            var dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+            $("#uploading").show();
+            $.ajax({
+                type: "POST",
+                url: "@Url.Content("~/CandidateRegistration/TakePicture")/",
+                data: {
+                    imgBase64: dataUrl                   
+                    }
+            }).done(function(msg) {
+                console.log("saved");
+                $("#uploading").hide();
+                opener.DisplayPic();
+                window.close();
+            });
+        });
+    }, false);
+
+</script>
+
+
+ 
+

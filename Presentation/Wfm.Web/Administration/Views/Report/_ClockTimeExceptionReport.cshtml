@@ -1,0 +1,37 @@
+﻿@using System.Drawing
+@using System.Web.UI.WebControls
+@using MvcReportViewer
+@using Wfm.Core
+
+
+@{
+    var settings = new ControlSettings
+    {
+        SizeToReportContent = true,
+        ShowParameterPrompts = false,
+        ShowFindControls = true,
+        BackColor = Color.AliceBlue,
+        KeepSessionAlive = true,
+        //Width = new Unit("100%"),
+        //Height = new Unit("800px"),
+        AsyncRendering = false
+    };
+    var _workContext = EngineContext.Current.Resolve<IWorkContext>();
+    
+    var _parameters = new List<KeyValuePair<string, object>> 
+    { 
+        new KeyValuePair<string, object>("CompanyIds", ViewBag.CompanyId), 
+        new KeyValuePair<string, object>("LocationIds", ViewBag.LocationIds), 
+        new KeyValuePair<string, object>("VendorIds", ViewBag.VendorIds), 
+        new KeyValuePair<string, object>("FromDate", ViewBag.FromDate), 
+        new KeyValuePair<string, object>("ToDate", ViewBag.ToDate), 
+    }; 
+
+}
+
+
+@Html.MvcReportViewer(
+    "/WFMReports/ClockTimeExceptionReport",
+    _parameters,
+    new { style = "border: none ; height: 100%; width: 100%;min-height: 600px" }
+).ControlSettings(settings)

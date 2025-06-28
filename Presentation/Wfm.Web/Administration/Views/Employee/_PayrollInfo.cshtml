@@ -1,0 +1,246 @@
+﻿@model Wfm.Admin.Models.Employee.EmployeePayrollSettingModel
+@{
+    Layout = null;
+}
+
+<table class="adminContent">
+    <tr><td>@Dates()</td></tr>
+    <tr><td>@PayrollSettings()</td></tr>
+    <tr><td style="display:none">@HiddenPayrollTemplate()</td></tr>
+</table>
+@helper Dates()
+{
+    <table>
+        <tr>
+            <td colspan="4"><h4>Dates</h4></td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.FirstHireDate, "First Hire Date")
+            </td>
+            <td class="adminData">
+                @Html.Kendo().DatePickerFor(m => m.FirstHireDate).HtmlAttributes(new { type = "text" })
+                @Html.ValidationMessageFor(m => m.FirstHireDate)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.LastHireDate, "Last Hire Date")
+            </td>
+            <td class="adminData">
+                @Html.Kendo().DatePickerFor(m => m.LastHireDate).HtmlAttributes(new { type = "text" })
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.TerminationDate, "Termination Date")
+            </td>
+            <td class="adminData">
+                @Html.Kendo().DatePickerFor(m => m.TerminationDate).HtmlAttributes(new { type = "text" })
+            </td>
+        </tr>
+    </table>
+}
+@helper PayrollSettings()
+{
+    <table>
+        <tr>
+            <td colspan="4"><h4>Payroll settings</h4></td>
+        </tr>
+        <tr>
+            <td width="10%"></td>
+            <td>@GeneralSettings()</td>
+            <td width="10%"></td>
+            <td style="display:none" id="regular_pay_cell">@RegularPay()</td>
+        </tr>
+        <tr>
+            <td width="10%"></td>
+            <td>@VacationPay()</td>
+            <td width="10%"></td>
+            <td>@Exemptions()</td>
+        </tr>
+    </table>
+}
+@helper GeneralSettings()
+{
+    <table>
+        <tr>
+            <td colspan="2"><h4>General</h4></td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.PayGroupId, "Pay Group")
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(m => m.PayGroupId, new { FranChiseId = Model.FranchiseId })
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.EmployeeTypeId, "Employee Type")
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(m => m.EmployeeTypeId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.PayStubPassword, "Paystub Password")
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(m => m.PayStubPassword)
+            </td>
+        </tr>
+    </table>
+}
+
+@helper RegularPay()
+{
+    var candiateService = EngineContext.Current.Resolve<Wfm.Services.Candidates.ICandidateService>();
+    var franchiseId = candiateService.GetCandidateByIdForClient(Model.EmployeeId).FranchiseId;
+    var templateService = EngineContext.Current.Resolve<Wfm.Services.Employees.IEmployeePayrollTemplateService>();
+    var payrollItems = templateService.GetPayTemplateItems(franchiseId).Select(x => new SelectListItem() { Text = x.Description, Value = x.ID.ToString() });
+    var firstItem = templateService.GetAllEmployeePayrollTemplatesByEmployeeId(Model.EmployeeId).FirstOrDefault();
+    <script>
+        function getTemplate() { return { PayrollItemId: $('#PayrollItemId').val(), RegularPayHours: $('#RegularPay_Hours').val(), RegularPayRate: $('#RegularPay_Rate').val() }; }
+        function onItemChange() { loadPayrollTemplate(); }
+        function onHoursChange() { setModel(); }
+        function onRateChange() { setModel(); }
+    </script>
+    <table>
+        <tr>
+            <td colspan="2"><h4>Regular Pay</h4></td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                Payroll Item
+            </td>
+            <td class="adminData">
+                @Html.Kendo().DropDownList().Name("PayrollItemId").DataTextField("Text").DataValueField("Value").BindTo(payrollItems).Value(firstItem != null ? firstItem.PayrollItemId.ToString() : "").Events(e => e.Change("onItemChange"))
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                Hours
+            </td>
+            <td class="adminData">
+                @Html.Kendo().NumericTextBox().Name("RegularPay_Hours").Events(e => e.Change("onHoursChange"))
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                Rate
+            </td>
+            <td class="adminData">
+                @Html.Kendo().NumericTextBox().Name("RegularPay_Rate").Events(e => e.Change("onRateChange"))
+            </td>
+        </tr>
+    </table>
+}
+@helper VacationPay()
+{
+    <table>
+        <tr>
+            <td colspan="2"><h4>Vacation Pay</h4></td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.VacationRate, "Rate")
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(m => m.VacationRate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.AccrueVacation, "Accrue vacation")
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(m => m.AccrueVacation)
+            </td>
+        </tr>
+    </table>
+}
+@helper Exemptions()
+{
+    <table>
+        <tr>
+            <td colspan="4"><h4>Exemptions</h4></td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.Tax_Exempt, "Tax Exempt")
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(m => m.Tax_Exempt)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.CPP_Exempt, "CPP Exempt")
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(m => m.CPP_Exempt)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.EI_Exempt, "EI Exempt")
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(m => m.EI_Exempt)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.QPIP_Exempt, "QPIP Exempt")
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(m => m.QPIP_Exempt)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.WSIB_Exempt, "WCB Exempt")
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(m => m.WSIB_Exempt)
+            </td>
+        </tr>
+    </table>
+}
+@helper HiddenPayrollTemplate()
+{
+    <script>
+        function onTemplateDataBound() { loadPayrollTemplate(); }
+        function getModel() { return $('#template-grid').data("kendoGrid").dataSource.get($('#PayrollItemId').val()); }
+        function loadPayrollTemplate() {
+            var model = getModel();
+            if (model != null) {
+                $('#RegularPay_Hours').data('kendoNumericTextBox').value(model.Hours);
+                $('#RegularPay_Rate').data('kendoNumericTextBox').value(model.Rate);
+            }
+        }
+        function setModel(payrollItemId) {
+            var template = getTemplate();
+            var dataItem = $('#template-grid').data("kendoGrid").dataSource.get(template.PayrollItemId);
+            dataItem.set('Hours', template.RegularPayHours);
+            dataItem.set('Rate', template.RegularPayRate);
+        }
+    </script>
+    <table class="adminContent">
+        <tr><td>Regular Pay Grid</td></tr>
+        <tr>
+            <td>
+                @(Html.Kendo().Grid<Wfm.Core.Domain.Employees.EmployeePayrollTemplate>()
+                    .Name("template-grid")
+                    .Events(e => e.DataBinding("onTemplateDataBound"))
+                    .Columns(columns => {})
+                    .ToolBar(toolBar => { toolBar.Save(); })
+                    .Editable(editable => editable.Mode(GridEditMode.InCell))
+                    .DataSource(ds => ds
+                        .Ajax()
+                        .Batch(true)
+                        .Model(model => model.Id(x => x.PayrollItemId))
+                        .Read(read => read.Action("_EmployeePayrollTemplates", "Employee", new { candidateGuid = ViewBag.CandidateGuid }))
+                        .Update(update => update.Action("_UpdateEmployeePayrollTemplates", "Employee"))
+                    )
+                )
+            </td>
+        </tr>
+    </table>
+}

@@ -1,0 +1,396 @@
+﻿@model JobOrderCandidateModel
+@using Wfm.Core
+@using Wfm.Shared.Models.Common
+@{
+    Layout = "";
+    ViewBag.Title = T("Admin.Candidate.CandidateJobOrders").Text;
+
+    var jobOrderId = ViewBag.JobOrderId;
+    var candidateJobOrderService = EngineContext.Current.Resolve<Wfm.Services.Candidates.ICandidateJobOrderStatusService>();
+    var candidateJobOrderStatus = candidateJobOrderService.GetAllCandidateJobOrderStatus().Where(s => s.ForDirectHire);
+
+    var candidateJobOrderStatusDropDownList = new List<SelectListItem>();
+    candidateJobOrderStatusDropDownList.Add(new SelectListItem() { Text = "--Select--", Value = "0" });
+    var _workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var _franchiseService = EngineContext.Current.Resolve<Wfm.Services.Franchises.IFranchiseService>();
+    foreach (var c in candidateJobOrderStatus)
+    {
+        var item = new SelectListItem()
+        {
+            Text = c.StatusName,
+            Value = c.Id.ToString()
+        };
+        candidateJobOrderStatusDropDownList.Add(item);
+    }
+
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+}
+@using (Html.BeginForm())
+{
+    <script type="text/javascript">
+        function pipelineGridParameters() {
+            return {
+                guid: '@(ViewBag.JobOrderGuid)'
+            };
+        }
+        function changeCandidatejoborder() {
+            $("#candidateJobOrderStatusHistory-grid").data("kendoGrid").dataSource.read();
+           
+        }
+        function filterCandidateDirectHireStatusHistory(e) {
+            var grid = $("#candidatejoborder-grid").data("kendoGrid");
+            var row = grid.dataItem(grid.select());
+            if (row != null) {
+                return {
+                    candidateId: row.CandidateId,
+                    JobOrderId: '@(ViewBag.JobOrderId)'
+                };
+            }
+        }
+        function onDataBound(e) {
+            var grid = $("#candidatejoborder-grid").data("kendoGrid");
+            var row = grid.tbody.find('tr:nth-child(1)');
+            if (row.length > 0) {
+                grid.select(row);
+            }            
+        }
+        function onHistoryDataBound(e) {
+            var grid = $("#candidateJobOrderStatusHistory-grid").data("kendoGrid");
+            var row = grid.tbody.find('tr:nth-child(1)');
+            if (row.length > 0) {
+                grid.select(row);
+            }
+            else {
+                GetDetailForm(0);
+            }
+        }
+        function HistoryGrid_OnRowSelect(e) {
+            var dataitem = this.dataItem(this.select());
+            if (dataitem != null) {
+                GetDetailForm(dataitem.Id);
+            }
+        }
+        function GetDetailForm(historyId) {
+            if (historyId == 0)
+            {
+               $("#candidateJobOrderStatusHistory-grid").data("kendoGrid").clearSelection();               
+            }
+            var grid = $("#candidatejoborder-grid").data("kendoGrid");
+            var row = grid.dataItem(grid.select());
+            if (row != null) {
+                $.ajax({
+                    url: '@Url.Action("_CreateEditCandidateDirectHireStatusHistory", "DirectHireJobOrder")',
+                    type: 'GET',
+                    cache: false,
+                    data: { historyId: historyId, candidateId: row.CandidateId, JobOrderId: '@(ViewBag.JobOrderId)' }
+                }).done(function (result) {
+                    $('#dvCandidateJobStatuHistoryDetail').show();
+                    $('#dvCandidateJobStatuHistoryDetail').html(result);
+                });
+            }
+            else {
+                alert("Please select Candidate");
+            }
+        }
+       
+        function submitDetailForm(btnClicked) { 
+        var $form = $(btnClicked).parents('form');
+        $.ajax({
+            type: "POST",
+            url: $form.attr('action'),
+            data: $form.serialize(),
+            error: function (xhr, status, error) {
+                //do something about the error
+            },
+            success: function (response) {
+                if (response == 'done') {       
+                    var jobOrderGrid = $("#candidatejoborder-grid").data("kendoGrid");
+                    jobOrderGrid.dataSource.read();
+                }
+                else {
+                    $('#dvCandidateJobStatuHistoryDetail').html(response);
+                }
+            }
+        });
+    }
+  
+    </script>
+   
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Candidate.CandidateJobOrder")
+        </div>
+        <div class="options">
+            <button id="btnAddCandidateToPipeline" class="k-button" type="button">Add Candidate</button>
+            <button id="btnInvoice" class="k-button" type="button">@T("Admin.Common.Invoice")</button>
+        </div>
+    </div>
+    <table class="adminContent">
+        <tr>
+            <td width="50%"></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>
+                <div class="grid-title">
+                    @T("Admin.JobOrders.Pipeline.ActiveTitle")
+                </div>
+                @(Html.Kendo().Grid<CandidatePipelineSimpleModel>()
+                      .Name("candidatejoborder-grid")
+                      .Events(events => events.DataBound("onDataBound"))
+                      .Columns(columns =>
+                      {
+                          columns.Bound(x => x).Filterable(false).Sortable(false)
+                              .HeaderTemplate("<input id='mastercheckbox' type='checkbox'/>")
+                              .ClientTemplate("#if (StatusName == 'Hired') {# <input type='checkbox' value='#=Id#' class='checkboxGroups'/> #}else{# #}#")
+                              .Width(25);
+
+                          columns.Bound(x => x.EmployeeId)
+                              .ClientTemplate(@Html.ActionLink("#=EmployeeId#", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString());
+
+                          columns.Bound(x => x.LastName).Width(90);
+                          columns.Bound(x => x.FirstName).Width(90);
+
+                          columns.Bound(x => x.HomePhone).ClientTemplate("#= prettyPhone(HomePhone) #").Width(95);
+                          columns.Bound(x => x.MobilePhone).ClientTemplate("#= prettyPhone(MobilePhone) #").Width(95);
+
+                          columns.Bound(x => x.Email).Hidden(true);
+                          columns.Bound(s => s.StatusName).Title(T("Common.Status").Text);
+
+                          columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#= UpdatedOn!=null? kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm') :' ' #").Width(90).Hidden(true);
+                          columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#= CreatedOn!=null? kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm') :' ' #").Width(120).Hidden(true);
+                      })
+                      .EnableCustomBinding(true)
+                      .Reorderable(reorder => reorder.Columns(true))
+                      .Resizable(resize => resize.Columns(true))
+                      .ColumnMenu(d => d.Sortable(false))
+                      .Filterable()                      
+                      .Sortable()
+                      .Selectable()
+                      .Pageable(x => x.PageSizes(new[] { 10 }).Refresh(true))
+                      .DataSource(dataSource => dataSource
+                          .Ajax()
+                          .PageSize(10)
+                          //.Group(groups =>
+                          //  {
+                          //      groups.Add(x => x.StatusName);
+                          //  })                  
+                          .ServerOperation(false)                      
+                  .Read(read => read.Action("DirectHireJobOrderPlacedCandidates", "DirectHireJobOrder").Data("pipelineGridParameters"))
+                      )
+    .Events(events => { events.Change("changeCandidatejoborder").DataBound("onDataBound"); })
+                      .Filterable(filterable => filterable
+                          .Extra(false)
+                          .Operators(operators => operators
+                              .ForString(str => str.Clear()
+                                  .Contains("Contains")
+                                  .IsEqualTo("Is equal to")
+                                  .IsNotEqualTo("Is not equal to")
+                              )
+                          )
+                      )
+                )
+            </td>
+            <td>
+                <div class="grid-title">
+                    @T("Admin.Candidate.JobStatusHistory")
+                </div>
+                @(Html.Kendo().Grid<CandidateDirectHireStatusHistoryModel>()
+               .Events(events => events.Change("HistoryGrid_OnRowSelect").DataBound("onHistoryDataBound"))
+                .Name("candidateJobOrderStatusHistory-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Hidden(true);
+                    columns.Bound(x => x.CandidateId).Hidden(true);
+                    columns.Bound(x => x.JobOrderId).Hidden(true);
+                    columns.ForeignKey(x => x.StatusTo, candidateJobOrderStatusDropDownList, "Value", "Text").Width(140).Title(T("Common.Status").Text);
+                    columns.Bound(x => x.InterviewDate).ClientTemplate(" #= InterviewDate!=null? kendo.toString(InterviewDate,'yyyy-MM-dd HH:mm'):' ' #").Hidden(true);
+                    columns.Bound(x => x.HiredDate).ClientTemplate(" #= HiredDate!=null? kendo.toString(InterviewDate,'yyyy-MM-dd'):' ' #").Hidden(true);
+                    columns.Bound(x => x.Salary).Hidden(true);
+                    columns.Bound(x => x.Notes);
+                    columns.Bound(x => x.EnteredBy).ClientTemplate("#=EnteredName#").Title(T("Common.EnteredBy").Text).Filterable(false).Sortable(false);
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#= CreatedOn!=null? kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm'):' ' #").Width(120).Title(T("Common.Date").Text);                   
+                }).Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .AutoBind(false)
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10 }).Refresh(false))
+                .DataSource(dataBinding => dataBinding
+                                    .Ajax()                           
+                                    .PageSize(10)  
+                                    .Sort(s=>s.Add(m=>m.UpdatedOnUtc).Descending())
+                              .Read(read => read.Action("GetCandidateDirectHireStatusHistory", "DirectHireJobOrder").Data("filterCandidateDirectHireStatusHistory"))
+                                  
+                )
+               
+            )
+            </td>
+        </tr>   
+        <tr>
+            <td>
+                <div class="grid-title">
+                    @T("Admin.DirectHireJobOrder.JobStatusHistoryDetails")
+                </div>
+            </td>
+            <td>
+                <div class="section-header">
+                    <div class="options">
+                       
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <div id="dvCandidateJobStatuHistoryDetail"></div>
+            </td>
+        </tr>  
+    </table>
+
+    <div id="candidate-pool"></div>
+    <script type="text/javascript">
+    $('#btnAddCandidateToPipeline').on('click',function(){
+        candidatePoolList();
+    });
+    function candidatePoolList() {
+        var win = $("#candidate-pool").data("kendoWindow");
+        if (!win) {
+            $("#candidate-pool").kendoWindow({
+                title:  '@T("Admin.JobOrders.Pipeline.PoolTitle")',
+                modal: true,
+                resizable: true,
+                width: 1200,
+                height: 500,
+                maxHeight: 1000,
+                minHeight: 500,
+                minWidth: 1000,
+                maxWidth: 1500,
+                close: function () {
+                    setTimeout(function () {
+                        $('#candidate-pool').kendoWindow('close');
+                    }, 200);
+                },
+                refresh: function (e) {
+                    win.center().open();
+                },
+            });
+            win = $("#candidate-pool").data("kendoWindow");
+        }
+        else {
+            win.open();
+        }
+        win.refresh({
+            url:  '@Url.Action("_DirectHireCandidatePool", "DirectHireJobOrder")',
+            data: { joOrderGuid: '@Model.JobOrderGuid' }
+        });
+        win.center();
+        return false;
+    }
+    function moveCandidate(candidateId) {
+        if (candidateId) {
+            // _AddCandidateIntoPipeline
+            $.ajax({
+                cache: false,
+                async: false,
+                url: '@Html.Raw(Url.Action("_AddCandidateIntoPipeline", "DirectHireJobOrder"))',
+                data: { guid: '@Model.JobOrderGuid', candidateId: candidateId },
+                type: 'post',
+                success: function (result) {
+                    if (!result.Result) {
+                        alert(result.ErrorMessage);
+                    }
+                    else {
+                        $('#candidate-pool').kendoWindow('close');
+                        var grid = $("#candidatejoborder-grid").data("kendoGrid");
+                        grid.dataSource.read();
+                    }
+                },
+                error: function (xhr, ajaxOptions, errorThrown) {
+                    alert(xhr.responseText);
+                }
+            });
+        }
+    }
+        $('.k-grid-add').html('Add');
+        $('.k-grid-save-changes').html('Save');
+        $('.k-grid-cancel-changes').html('Cancel');
+    </script>
+}
+
+
+
+@using (Html.BeginForm("DirectPlacementInvoice", "DirectHireJobOrder", FormMethod.Post, new { id = "invoice-selected-form" }))
+{
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+}
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#btnInvoice').on('click', function (e) { getInvoice(e); });
+    });
+
+    function onDataBound(e) {
+        $('#candidatejoborder-grid input[type=checkbox][id!=mastercheckbox]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds);
+            //set checked based on if current checkbox's value is in selectedIds.
+            $(this).attr('checked', checked > -1);
+        });
+
+        updateMasterCheckbox();
+    }
+
+    function updateMasterCheckbox() {
+        var numChkBoxes = $('#candidatejoborder-grid input[type=checkbox][id!=mastercheckbox]').length;
+        var numChkBoxesChecked = $('#candidatejoborder-grid input[type=checkbox][checked][id!=mastercheckbox]').length;
+        $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+
+    var selectedIds = [];
+
+    $('#mastercheckbox').click(function () {
+        $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+    });
+
+    //wire up checkboxes.
+    $('#candidatejoborder-grid').on('change', 'input[type=checkbox][id!=mastercheckbox]', function (e) {
+        var $check = $(this);
+        if ($check.is(":checked") == true) {
+            var checked = jQuery.inArray($check.val(), selectedIds);
+            if (checked == -1) {
+                //add id to selectedIds.
+                selectedIds.push($check.val());
+            }
+        }
+        else {
+            var checked = jQuery.inArray($check.val(), selectedIds);
+            if (checked > -1) {
+                //remove id from selectedIds.
+                selectedIds = $.grep(selectedIds, function (item, index) {
+                    return item != $check.val();
+                });
+            }
+        }
+        updateMasterCheckbox();
+    });
+
+    function getInvoice(e) {
+        e.preventDefault();
+        if (selectedIds.length == 0)
+            alert("Please select candidate(s) to be invoiced.");
+        else {
+            var ids = selectedIds.join(",");
+            $('#invoice-selected-form #selectedIds').val(ids);
+            //alert(selectedIds.length + ' candidate(s) will be invoiced.');
+            $('#invoice-selected-form').submit();
+        }
+        return false;
+    }
+
+</script>

@@ -1,0 +1,94 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Scheduling
+@using Wfm.Shared.Models.Scheduling
+
+
+@{
+    var context = EngineContext.Current.Resolve<IWorkContext>();
+    var scheduleDemandingService = EngineContext.Current.Resolve<ISchedulingDemandService>();
+    var schedulePeriod = scheduleDemandingService.GetSchedulePeriodById((int)ViewBag.SchedulePeriodId);
+    var shiftInPeriodList = schedulePeriod.ShiftSchedules.Select(s => new SelectListItem
+        {
+            Text = string.Format("{0} ({2:g} to {3:g}) - {1} Hours ", s.CompanyShift.Shift.ShiftName, s.TotalHours, s.StartTimeOfDay, s.EndTimeOfDay),
+            Value = s.CompanyShiftId.ToString()
+        });
+}
+
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "add-employee-form" }))
+{
+    <br />
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle" width="20%">
+                Employee
+            </td>
+            <td class="adminData" width="80%">
+                <script> function filterEmployees() { return { schedulePeriodId: '@(ViewBag.SchedulePeriodId)', companyShiftId: '@(ViewBag.CompanyShiftId)' }; } </script>
+                @(Html.Kendo().DropDownList()
+                    .Name("employeeId")
+                    .OptionLabel("--Select--")
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .DataSource(source => source.Read(read => read.Action("_GetAvailableEmployees", "Scheduling").Data("filterEmployees")).ServerFiltering(true))
+                    .HtmlAttributes(new { style = "width: 360px" })
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                Shift
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownList()
+                    .Name("companyShiftId")
+                    .OptionLabel("--Select--")
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .BindTo(shiftInPeriodList)
+                    .Value(ViewBag.CompanyShiftId.ToString())
+                    .HtmlAttributes(new { style = "width: 360px" })
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                Job Role
+            </td>
+            <td class="adminData">
+                <script> function filterJobRoles() { return { companyShiftId: '@(ViewBag.CompanyShiftId)', schedulePeriodId: '@(ViewBag.SchedulePeriodId)' }; } </script>
+                @(Html.Kendo().DropDownList()
+                .Name("jobRoleId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .DataSource(source => source.Read(read => read.Action("GetCascadeJobRoles", "Scheduling").Data("filterJobRoles")).ServerFiltering(true))
+                .Value(ViewBag.CompanyJobRoleId.ToString())
+                .HtmlAttributes(new { style = "width: 360px" })
+                )
+            </td>
+        </tr>
+    </table>
+
+    <br /><br />
+    <div style="text-align: center">
+        <input type="button" id="add-employee-save" class="k-button" value="Add" style="text-align:center" />
+        <input type="button" id="add-employee-close" class="k-button" value="Cancel" style="text-align:center" />
+    </div>
+}
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        disableDropDownLists();
+    });
+
+    function disableDropDownLists() {
+        var ddl = $('#companyShiftId').data('kendoDropDownList');
+        ddl.readonly(true);
+        ddl = $('#jobRoleId').data('kendoDropDownList');
+        ddl.readonly(true);
+    }
+
+</script>

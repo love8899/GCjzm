@@ -1,0 +1,64 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Information Technology";
+    //var description = siteTitle + " is your IT staffing solution. Our expertise in IT staffing and our extensive database of qualified candidates enables us to efficiently fulfill the needs of our many clients.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Information Technology</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            Having trouble finding qualified IT professionals? @siteTitle is your IT
+            staffing solution. Our expertise in IT staffing and our extensive database of qualified
+            candidates enables us to efficiently fulfill the needs of our many clients. Whether
+            you need a web developer or a network administrator, our professional recruiters
+            have your best interests in mind. Our extensive prescreening process involves an
+            evaluation of technical skills, including in-house testing and extensive reference
+            checks, ensuring that you get only the best qualified people for the job.
+        </p>
+        <p>
+            <b>The right reasons for using @siteTitle’ IT staffing solutions:</b>
+        </p>
+        <ul>
+            <li>Our programmers provide immediate expertise in the technologies needed.</li>
+            <li>Our candidates can immediately contribute to productivity with little or no training.</li>
+            <li>
+                Hiring a qualified IT professional though @siteTitle is a much faster process
+                than trying to find the right employee on your own.
+            </li>
+        </ul>
+        <p>
+            @siteTitle can help you find permanent, contract and temporary staff across
+            a wide variety of technical roles, including:
+        </p>
+        <ul>
+            <li>IT manager</li>
+            <li>Network administrator</li>
+            <li>Network engineer</li>
+            <li>Network technician</li>
+            <li>SAP development leader</li>
+            <li>Systems analyst</li>
+            <li>Technical analyst</li>
+            <li>Web developer</li>
+        </ul>
+    </div>
+</div>

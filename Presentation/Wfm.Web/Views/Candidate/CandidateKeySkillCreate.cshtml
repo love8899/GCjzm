@@ -1,0 +1,25 @@
+﻿@model CandidateKeySkillModel
+@using Wfm.Web.Models.Candidate
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    ViewBag.Title = T("Common.KeySkill").Text;
+}
+
+
+<div class="page candidate-page">
+    <div class="page-body">
+        @using (Html.BeginForm())
+        {
+            <div class="section-header">
+                <div class="options">
+                    <input type="submit" name="save" class="k-button" value="@T("Common.Save").Text" />
+                    @Html.ActionLink(T("Common.Cancel").Text, "CandidateKeySkillIndex", null, new { @class = "k-button" })
+                </div>
+            </div>
+
+            @Html.Partial("_CreateOrUpdate.KeySkill", Model)
+        }
+    </div>
+</div>

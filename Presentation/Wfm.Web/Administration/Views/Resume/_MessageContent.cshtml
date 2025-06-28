@@ -1,0 +1,110 @@
+﻿@{
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+}
+
+@model ResumeModel
+
+
+<script type="text/javascript">
+
+    function onDataBinding() {
+        $('.k-grid-add').html('Add');
+        $('.k-grid-save-changes').html('Save');
+        $('.k-grid-cancel-changes').html('Cancel');
+    }
+
+    function onHistoryEdit(e) {
+        if (e.model.Id === 0) {
+            e.model.set("ResumeId", '@(Model.Id)');
+        } else {
+            if (e.model.AccountId != '@(workContext.CurrentAccount.Id)')
+                e.sender.closeCell();
+        }
+    }
+
+    function onHistoryError(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) $.each(value.errors, function () { message += this + "\n"; });
+            });
+            alert(message);
+        }
+    }
+
+</script>
+
+
+<div>
+    <h4>@Html.DisplayFor(model => model.Subject)</h4>
+    <br />
+
+    @*@Html.Raw(Model.Body)
+        <br />*@
+
+    <iframe id="html-body" width="100%" height="320" src=@String.Format("data:text/html;charset=UTF-8;base64,{0}", Model.HtmlBody) />
+    <br />
+
+    @if (Model.AttachmentFileName != null)
+    {
+        <h4>Attachment</h4>
+        <a href='@(Url.Action("DownloadMessageAttachment", "Resume", new { id = Model.Id }))'><span>@Model.AttachmentFileName</span></a>
+        <br /><br />
+    }
+
+    <div id="history" style="display:none">
+        <h4>Contact history</h4>
+        @(Html.Kendo().Grid<ResumeHistoryModel>()
+            .Name("contact-history")
+            .Columns(columns =>
+            {
+                columns.Bound(x => x.Who).Title("Who").Width(150);
+                columns.Bound(x => x.ContactedOn).Title("Contacted On")
+                    .ClientTemplate("#= kendo.toString(ContactedOn, 'yyyy-MM-dd') #")
+                    .Width(150);
+                columns.Bound(x => x.Via).Width(100);
+                columns.Bound(x => x.Result);
+                columns.Bound(x => x.Note);
+            })
+            .ToolBar(tb => { tb.Create(); tb.Save(); })
+            .Editable(editable => editable.Mode(GridEditMode.InCell))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .Sort(sort =>
+                {
+                    sort.Add("ContactedOnUtc").Descending();
+                    sort.Add("UPdatedOnUtc").Descending();
+                })
+                .Read(read => read.Action("_GetResumeHistories", "Resume", new { resumeId = Model.Id }))
+                .Create(create => create.Action("_SaveResumeHistory", "Resume"))
+                .Update(update => update.Action("_SaveResumeHistory", "Resume"))
+                .Model(model =>
+                {
+                    model.Id(x => x.Id);
+                    model.Field(x => x.Who).DefaultValue(workContext.CurrentAccount.FullName).Editable(false);
+                    model.Field(x => x.ContactedOn);
+                    model.Field(x => x.Via);
+                    model.Field(x => x.Result);
+                    model.Field(x => x.Note);
+                })
+                .PageSize(5)
+                .Events(e => e.Error("onHistoryError"))
+            )
+            .Pageable(x => x.PageSizes(new[] { 5, 10 }).Refresh(true))
+            .Events(e => e.DataBinding("onDataBinding").Edit("onHistoryEdit"))
+        )
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    $(function () {
+        var isContacted = @Html.Raw(Json.Encode(Model.IsContacted));
+        if (isContacted)
+            enableHistory();
+    });
+
+    function enableHistory() { $('#history').show(); }
+
+</script>

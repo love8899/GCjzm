@@ -1,0 +1,312 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Companies
+@using Wfm.Shared.Models.Scheduling
+
+@{
+    var context = EngineContext.Current.Resolve<IWorkContext>();
+    var companyLocationService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+    var companyLocations = companyLocationService.GetAllCompanyLocationsByAccount(context.CurrentAccount).OrderBy(x => x.LocationName);
+    var departmentService = EngineContext.Current.Resolve<ICompanyDepartmentService>();
+    var departments = departmentService.GetAllCompanyDepartmentsByAccount(context.CurrentAccount);
+}
+<div class="section-header">
+    <div class="title">
+        @T("Common.SchedulePeriod")
+    </div>
+    <div class="options">
+        <button id="add-schedule-period" class="k-button">@T("Admin.Common.Add")</button>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<SchedulePeriodModel>()
+            .Name("company-schedule-period-grid")
+            .Columns(columns =>
+            {
+                columns.Bound(x => x.Id).Hidden();
+                columns.Bound(x => x.PeriodStartDate).ClientTemplate("#=kendo.toString(PeriodStartDate,'yyyy-MM-dd')#").Width(120);
+                columns.Bound(x => x.PeriodEndDate).ClientTemplate("#=kendo.toString(PeriodEndDate,'yyyy-MM-dd')#").Width(120);
+                columns.ForeignKey(x => x.CompanyLocationId, companyLocations, "Id", "LocationName").Width(150);
+                columns.ForeignKey(x => x.CompanyDepartmentId, departments, "Id", "DepartmentName").Width(200);
+                columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                    .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center;white-space: normal" })
+                    .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { x.Id }))
+                    .ClientTemplate("<a class='k-button' title='Edit' onclick='return editSchedulePeriod(#= Id #)'><span class='fa fa-pencil'></span></a>" +
+                                   "<a class='k-button' title='Shifts' onclick='return editScheduleShifts(#= Id #, \"#= kendo.toString(PeriodStartDate,'yyyy-MM-dd') #\", \"#= kendo.toString(PeriodEndDate,'yyyy-MM-dd') #\")'><span class='k-icon k-createTable'></span></a>" +
+                                   "<a class='k-button' title='Copy'   onclick='return copySchedulePeriod(#= Id #, \"#= kendo.toString(PeriodStartDate,'yyyy-MM-dd') #\", \"#= kendo.toString(PeriodEndDate,'yyyy-MM-dd') #\")'><span class='k-icon k-i-restore'></span></a>" +
+                                   "<a class='k-button' title='Delete' onclick='return removeSchedulePeriod(#= Id #)'><span class='fa fa-trash'></span></a>" +
+                                   "<a class='k-button' title='Daily' onclick='return showDailyShiftSchedule(#= Id #)'><span class='k-icon k-i-calendar'></span></a>")
+                    .Width(120)
+                    .Title("");
+            })
+            .EnableCustomBinding(false)
+            .Reorderable(reorder => reorder.Columns(true))
+            .Filterable()
+            .Sortable()
+            .ColumnMenu()
+            .Selectable()
+            .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+            .DataSource(ds => ds
+                .Ajax()
+                .ServerOperation(false)
+                .PageSize(20)
+                .Read(read => read.Action("ListSchedulePeriod", "Scheduling"))
+            )
+            .Filterable(filterable => filterable
+                .Extra(false)
+                .Operators(operators => operators
+                    .ForString(str => str.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        .IsNotEqualTo("Is not equal to")
+                    )
+                )
+            )
+            )
+        </td>
+    </tr>
+</table>
+<div id="create-edit-schedule-period-dialog"></div>
+<div id="create-edit-schedule-shift-dialog"></div>
+<div id="copy-schedule-period-dialog"></div>
+<div id="daily-shift-schedule-dialog"></div>
+<script type="text/javascript">
+    $(function () {
+        $("#add-schedule-period").click(
+            function () {
+                addSchedulePeriod();
+            });
+    });
+    function bindDialogEvent(){
+        $('#close-schedule-period-report').click(function () {
+            $("#create-edit-schedule-period-dialog").data("kendoWindow").close();
+        });
+        $('#save-schedule-period-report').click(function () {          
+            var form = $('#schedule-period-report-form');
+            var validator = form.kendoValidator().data("kendoValidator");
+            if (validator.validate()) {
+                $.ajax({
+                    url: '@Url.Action("_EditSchedulePeriod")',
+                    type: 'POST',
+                    data: $('#schedule-period-report-form').serialize(),
+                    dataType: 'html',
+                    success: function (result) {
+                        if (result == 'done') {
+                            $("#create-edit-schedule-period-dialog").data("kendoWindow").close();
+                            $('#company-schedule-period-grid').data('kendoGrid').dataSource.read();
+                            $('#company-schedule-period-grid').data('kendoGrid').refresh();
+                        }
+                        else{
+                            $('#schedule-period-report-form').parent().html(result);
+                            bindDialogEvent();
+                        }
+                    }
+                });
+            }
+        })
+    }
+    function editSchedulePeriod(id) {
+        var dialog = $("#create-edit-schedule-period-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#create-edit-schedule-period-dialog").kendoWindow({
+                title: "Edit Schedule Period",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 320,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    bindDialogEvent();
+                }
+            });
+            dialog = $("#create-edit-schedule-period-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.title("Edit Schedule Period");
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_EditSchedulePeriod")',
+            data: { schedulePeriodId: id }
+        });
+        dialog.center();
+        return false;
+    }
+
+    function addSchedulePeriod() {
+        var dialog = $("#create-edit-schedule-period-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#create-edit-schedule-period-dialog").kendoWindow({
+                title: "New Schedule Period",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 320,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    bindDialogEvent();
+                }
+            });
+            dialog = $("#create-edit-schedule-period-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.title("New Schedule Period");
+            dialog.open();
+
+        }
+        dialog.refresh({
+            url: '@Url.Action("_NewSchedulePeriod")'
+        });
+        dialog.center();
+        return false;
+    }
+
+    function removeSchedulePeriod(id){
+        return gridDelete(function () {
+            $.ajax({
+                url: '@Url.Action("_RemoveSchedulePeriod")',
+                type: 'POST',
+                data: { schedulePeriodId: id },
+                dataType: 'html',
+                success: function (result) {
+                    if (result == 'done') {
+                        $('#company-schedule-period-grid').data('kendoGrid').dataSource.read();
+                        $('#company-schedule-period-grid').data('kendoGrid').refresh();
+                    }
+                }
+            });
+        })
+    }
+    // edit shifts of schedule period
+    function editScheduleShifts(id, startDate, endDate){
+        var dialog = $("#create-edit-schedule-shift-dialog").data("kendoWindow");
+        var title = "Edit Schedule Shifts - " + startDate + " to " + endDate;
+        if (!dialog) {
+            $("#create-edit-schedule-shift-dialog").kendoWindow({
+                title: title,
+                modal: true,
+                resizable: false,
+                width: 1280,
+                height: 410,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    $('#close-schedule-shift-report').click(function () {
+                        $("#create-edit-schedule-shift-dialog").data("kendoWindow").close();
+                    });
+                }
+            });
+            dialog = $("#create-edit-schedule-shift-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.title(title);
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_EditingScheduleShifts")',
+            data: { schedulePeriodId: id }
+        });
+        dialog.center();
+        return false;
+    }
+    //
+    function bindCopyDialogEvent() {
+        $('#close-schedule-period-copy').click(function () {
+            $("#copy-schedule-period-dialog").data("kendoWindow").close();
+        });
+        $('#copy-schedule-period-report').click(function () {
+            var form = $('#schedule-period-copy-form');
+            var validator = form.kendoValidator().data("kendoValidator");
+            if (validator.validate()) {
+                $.ajax({
+                    url: '@Url.Action("_CopySchedulePeriod")',
+                    type: 'POST',
+                    data: $('#schedule-period-copy-form').serialize(),
+                    dataType: 'html',
+                    success: function (result) {
+                        if (result == 'done') {
+                            $("#copy-schedule-period-dialog").data("kendoWindow").close();
+                            $('#company-schedule-period-grid').data('kendoGrid').dataSource.read();
+                            $('#company-schedule-period-grid').data('kendoGrid').refresh();
+                        }
+                        else {
+                            $('#schedule-period-copy-form').parent().html(result);
+                            bindCopyDialogEvent();
+                        }
+                    }
+                });
+            }
+        })
+    }
+    //
+    function copySchedulePeriod(id, startDate, endDate) {
+        var dialog = $("#copy-schedule-period-dialog").data("kendoWindow");
+        var title = "Copy Schedule Period - " + startDate + " to " + endDate;
+        if (!dialog) {
+            $("#copy-schedule-period-dialog").kendoWindow({
+                title: title,
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 200,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    bindCopyDialogEvent();
+                }
+            });
+            dialog = $("#copy-schedule-period-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.title(title);
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_CopySchedulePeriod")',
+            data: { schedulePeriodId: id }
+        });
+        dialog.center();
+        return false;
+    }
+
+    function showDailyShiftSchedule(id)
+    {
+        var dialog = $("#daily-shift-schedule-dialog").data("kendoWindow");
+        var title = "Daily Shift Schedule";
+        if (!dialog) {
+            $("#daily-shift-schedule-dialog").kendoWindow({
+                title: title,
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 800,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                }
+            });
+            dialog = $("#daily-shift-schedule-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_showDailyShiftSchedule")',
+            data: { schedulePeriodId: id }
+        });
+        dialog.center();
+        return false;
+    }
+</script>

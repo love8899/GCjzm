@@ -1,0 +1,24 @@
+﻿@{ 
+    Layout = "_ReportLayout";
+    ViewBag.ReportTitle = "DNR list report";
+
+    ViewBag.Title = "DNR list report";
+    Html.SetActiveMenuItemSystemName("DNRListReport");
+}
+
+<div class="col-md-6">
+    @Html.InputLine("RefDateStart", "Effective From", tmplt: "Date", viewData: new { Value = DateTime.Today })
+    @Html.InputLine("RefDateEnd", "Effective To", tmplt: "Date", viewData: new { Value = DateTime.Today })
+</div>
+
+<script type="text/javascript">
+    var reportParams = {};
+    var reportUrl = '_DNRListReport';
+    function valParams() {
+        reportParams = {
+            refDateStart: $('#RefDateStart').val(),
+            refDateEnd: $('#RefDateEnd').val()
+        };
+        return true;
+    }
+</script>

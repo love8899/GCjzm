@@ -1,0 +1,105 @@
+﻿@using Wfm.Services.Candidates
+
+@model CandidateJobOrderModel
+
+@{
+    var candidateJobOrderService = EngineContext.Current.Resolve<ICandidateJobOrderStatusService>();
+    var candidateJobOrderStatus = candidateJobOrderService.GetAllCandidateJobOrderStatus().Where(s => !s.ForDirectHire);
+    var candidateJobOrderStatusDropDownList = new List<SelectListItem>();
+
+    foreach (var c in candidateJobOrderStatus)
+    {
+        var item = new SelectListItem()
+        {
+            Text = c.StatusName,
+            Value = c.Id.ToString()
+        };
+        candidateJobOrderStatusDropDownList.Add(item);
+
+    }
+}
+
+@using (Html.BeginForm("EditCandidateJobOrderStatus", "JobOrder", new { currentDate = ViewBag.CurrentDate }, FormMethod.Post))
+{
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+    @Html.HiddenFor(model => model.UpdatedOnUtc)
+    @Html.HiddenFor(model => model.CandidateId)
+    @Html.HiddenFor(model => model.JobOrderId)
+    @Html.HiddenFor(model => model.EnteredBy)
+    @Html.HiddenFor(model => model.RatedBy)
+
+    <div class="section-header">
+        <div class="title">
+            <span class="k-icon k-i-pencil"></span>
+            @T("Admin.Candidate.CandidateJobOrder.EditCandidateJobOrderDetails")
+            @Html.ActionLink("(" + T("Admin.JobOrder.JobOrder.BackToDetails") + ")", "Details", new { Id = Model.JobOrderId })
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            @Html.ActionLink(T("Admin.Common.Cancel").Text, "Details", "JobOrder", new { Id = Model.JobOrderId }, new { @class = "k-button" })
+        </div>
+    </div>
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CandidateModel.EmployeeId)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CandidateModel.EmployeeId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CandidateModel.FirstName)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CandidateModel.FirstName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CandidateModel.LastName)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CandidateModel.LastName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CandidateJobOrderStatusId)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                    .Name("CandidateJobOrderStatusId")
+                    .BindTo(candidateJobOrderStatusDropDownList)
+                    .SelectedIndex(0)
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.RatingValue)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().Slider()
+                    .Name("RatingValue")
+                    .IncreaseButtonTitle("Right")
+                    .DecreaseButtonTitle("Left")
+                    .Min(0)
+                    .Max(5)
+                    .SmallStep(1)
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.RatingComment)
+            </td>
+            <td class="adminData">
+                @Html.TextAreaFor(model => model.RatingComment, new { style = "height:150px;width:100%;" })
+            </td>
+        </tr>
+    </table>
+}

@@ -1,0 +1,43 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Safety Information";
+    //var description = "Everyone has a right to a safe and healthy workplace. Safety in the workplace is a shared responsibility.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle;
+}
+
+@section left {
+    @Html.Partial("Layout/_AssociateSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Safety Information</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            Everyone has a right to a safe and healthy workplace. Safety in the workplace is
+            a shared responsibility. It’s something that everyone has to think about, from managers
+            and supervisors to full time, part time and temporary staff. @siteTitle helps
+            ensure that the workplace is a safe environment. For starters, we put all of the
+            employees we place through comprehensive health and safety training programs including
+            our WHMIS program (Workplace Hazardous Material Information System), Forklift Orientation,
+            Safe Lifting Training as well as In House Orientation as required, like GMP, SOP.
+            We will ensure that you are informed and knowledgeable about the workplace environment
+            before you step onto the worksite. We work closely with the IAPA (Industrial Accident
+            Prevention Association), to keep up to date with current safety issues and to keep
+            you informed about prevention.
+        </p>
+    </div>
+</div>

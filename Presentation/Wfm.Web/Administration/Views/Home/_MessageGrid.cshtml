@@ -1,0 +1,227 @@
+﻿@(Html.Kendo().Grid<MessageModel>()
+    .Name("MessageHistory")
+    .Events(events => events.DataBound("onDataBound").Change("onChange"))
+    .Columns(columns =>
+    {
+        columns.Bound(x => x).Filterable(false).Sortable(false)
+            .HeaderTemplate("<input id='mastercheckbox' type='checkbox'/>")
+            .ClientTemplate("<input type='checkbox' name='checkedRecords' value='#=Id#' class='checkboxGroups'/>")
+            .HeaderHtmlAttributes(new { style = "text-align:center" })
+            .HtmlAttributes(new { style = "text-align:center" })
+            .Title("")
+            .Width(25);
+
+        columns.Bound(x => x.Id)
+            .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+            .Width(70).Hidden();
+
+        columns.Bound(x => x.MessageCategory).Title("Type")
+            .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+            .ClientTemplate("<span class=\"notification notification-#= getCategoryClass(data) #\">#= MessageCategory #</span>")
+            .Width(120);
+
+        columns.Bound(x => x.MailFrom).Hidden()
+            .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+            .ClientTemplate("#if (!IsRead) {# <span class=\"unread\"> #}else{# <span> #}# #= MailFrom #</span>")
+            .Width(180);
+        columns.Bound(x => x.FromName).Title("From")
+            .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+            .ClientTemplate("#if (!IsRead) {# <span class=\"unread\"> #}else{# <span> #}# #= FromName #</span>")
+            .Width(180);
+        columns.Bound(x => x.MailTo).Hidden()
+            .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+            .ClientTemplate("#if (!IsRead) {# <span class=\"unread\"> #}else{# <span> #}# #= MailTo #</span>")
+            .Width(180);
+        columns.Bound(x => x.ToName).Title("To")
+            .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+            .ClientTemplate("#if (!IsRead) {# <span class=\"unread\"> #}else{# <span> #}# #= ToName #</span>")
+            .Width(180);
+        columns.Bound(x => x.CC).Hidden()
+            .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+            .ClientTemplate("#if (!IsRead) {# <span class=\"unread\"> #}else{# <span> #}# #= CC #</span>")
+            .Width(240);
+        columns.Bound(x => x.Subject)
+            //.ClientTemplate("<a href=\"" + @Url.Content("~/Admin/Home/MessageDetails/") + "#= Id #\" target = \"_blank\">" + "#= Subject #" + "</a>")
+            .ClientTemplate("#if (!IsRead) {# <span class=\"unread\"> #}else{# <span> #}# #= Subject #</span>")
+            .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+        columns.Bound(x => x.AttachmentFileName).Title("").IncludeInMenu(false).Width(25)
+            .ClientTemplate("#if (AttachmentFileName != null) {# <a class='-k-button' href=\"" + @Url.Content("~/Admin/Home/DownloadMessageAttachment/") + "#= Id #\"><span class='fa fa-paperclip'></span></a> #}else{# #}#");
+          
+        columns.Bound(x => x.CreatedOnUtc).Title("Received")
+            .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+            .ClientTemplate("#if (!IsRead) {# <span class=\"unread\"> #}else{# <span> #}# #=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')# </span>")
+            .Width(150);
+    })
+    .EnableCustomBinding(true)
+    .Reorderable(reorder => reorder.Columns(true))
+    .Resizable(resize => resize.Columns(true))
+    .ColumnMenu(d => d.Sortable(true))
+    //.Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+    .Sortable()
+    .Selectable()
+    .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+    .DataSource(ds => ds
+        .Ajax()
+        .ServerOperation(true)
+        .PageSize(20)
+        .Read(read => read.Action("_MessageGrid", "Home").Data("onRead"))
+        .Sort(sorts => sorts.Add(x => x.CreatedOnUtc).Descending())
+    )
+    .Filterable(filterable => filterable
+        .Extra(false)
+        .Operators(operators => operators
+            .ForString(str => str.Clear()
+                .Contains("Contains")
+                .IsEqualTo("Is equal to")
+                .IsNotEqualTo("Is not equal to")
+            )
+        )
+    )
+)
+
+<script type="text/javascript">
+
+    var selectedIds = [];
+
+    $(document).ready(function () {
+
+        $('#mastercheckbox').click(function () {
+            $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+        });
+
+        //wire up checkboxes.
+        $('#MessageHistory').on('change', 'input[type=checkbox][id!=mastercheckbox]', function (e) {
+            var $check = $(this);
+            if ($check.is(":checked") == true) {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked == -1) {
+                    //add id to selectedIds.
+                    selectedIds.push($check.val());
+                }
+            }
+            else {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked > -1) {
+                    //remove id from selectedIds.
+                    selectedIds = $.grep(selectedIds, function (item, index) {
+                        return item != $check.val();
+                    });
+                }
+            }
+            updateMasterCheckbox();
+        });
+    });
+
+    $('#mark-as-read').click(function (e) {
+        e.preventDefault();
+        if (selectedIds.length <= 0) {
+            alert("Please select message(s) first!");
+            return true;
+        }
+
+        var grid = $('#MessageHistory').data('kendoGrid');
+        var currentPage = grid.dataSource.page();
+        var postData = {
+            selectedIds: selectedIds
+        };
+
+        $.ajax({
+            cache: false,
+            type: "POST",
+            url: "@(Url.Action("MarkSelectedAsRead", "Home"))",
+            data: postData,
+            success: function (response) {
+                if (response.Result) {
+                    updateUnreadNum(-(response.ReadNum));
+                    refreshGrid('#MessageHistory', currentPage);
+                    $('.checkboxGroups').attr('checked', false).change();
+                    selectedIds = [];
+                }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert(thrownError);
+            },
+            traditional: true
+        });
+
+        return false;
+    });
+
+    function onDataBound(e) {
+
+        $('#MessageHistory input[type=checkbox][id!=mastercheckbox]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds);
+            //set checked based on if current checkbox's value is in selectedIds.
+            $(this).attr('checked', checked > -1);
+            var grid = $('#MessageHistory').data('kendoGrid');
+            grid.thead.find("[data-field=AttachmentFileName]>.k-header-column-menu").remove();
+        });
+
+        updateMasterCheckbox();
+    }
+
+    function updateMasterCheckbox() {
+        var numChkBoxes = $('#MessageHistory input[type=checkbox][id!=mastercheckbox]').length;
+        var numChkBoxesChecked = $('#MessageHistory input[type=checkbox][checked][id!=mastercheckbox]').length;
+        $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+
+    function onChange(e) {
+        var grid = $('#MessageHistory').data('kendoGrid');
+        var currentPage = grid.dataSource.page();
+        var selectedRows = this.select();
+        var dataItem = this.dataItem(selectedRows[0]);
+        loadDetails(dataItem.Id);
+        //if (!dataItem.IsRead)
+        //    updateUnreadNum(-1);
+        //refreshGrid(currentPage);
+    }
+
+    //function refreshGrid(grid, p) {
+    //    var grid = $(grid).data('kendoGrid');
+    //    p = p || 1;
+    //    grid.dataSource.page(p);
+    //    grid.dataSource.read();
+    //}
+
+    function getCategoryClass(data) {
+        return data.MessageCategory.replace(" ", "");
+    }
+
+    $('#mark-as-unread').click(function (e) {
+        e.preventDefault();
+        if (selectedIds.length <= 0) {
+            alert("Please select message(s) first!");
+            return true;
+        }
+
+        var grid = $('#MessageHistory').data('kendoGrid');
+        var currentPage = grid.dataSource.page();
+        var postData = {
+            selectedIds: selectedIds
+        };
+
+        $.ajax({
+            cache: false,
+            type: "POST",
+            url: "@(Url.Action("MarkSelectedAsUnread", "Home"))",
+            data: postData,
+            success: function (response) {
+                if (response.Result) {
+                    updateUnreadNum(response.UnreadNum);
+                    refreshGrid('#MessageHistory', currentPage);
+                    $('.checkboxGroups').attr('checked', false).change();
+                    selectedIds = [];
+                }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert(thrownError);
+            },
+            traditional: true
+        });
+
+        return false;
+    });
+
+</script>

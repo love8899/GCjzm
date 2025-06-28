@@ -1,0 +1,44 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Life Sciences";
+    //var description = "When working with " + siteTitle + " in the scientific field you can rest assured that you will be getting the right people for the job.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Life Sciences</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            When working with @siteTitle in the scientific field you can rest assured
+            that you will be getting the right people for the job. @siteTitle has vast
+            experience in placements ranging from lab technicians to Ph.D. level researchers
+            and technologists. Our consultants handle assignments across the full spectrum of
+            life sciences work in the following areas:
+        </p>
+        <ul>
+            <li>Biotechnology</li>
+            <li>Chemicals</li>
+            <li>Clinical research</li>
+            <li>Food science</li>
+            <li>Pharmaceutical and cosmetics</li>
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,87 @@
+﻿@model Wfm.Admin.Models.WSIBs.WSIBModel
+
+@using (Html.BeginForm("", "", FormMethod.Post, new { id = "copy-wsib-form" }))
+{
+    <div class="section-header" style="padding:10px;">
+        <div class="title">
+        </div>
+        <div class="options">
+            <input type="button" id="btn-save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" id="btn-cancel" class="k-button" value="@T("Admin.Common.Cancel")" />
+        </div>
+    </div>
+    @Html.HiddenFor(x=>x.CountryId)
+    @Html.HiddenFor(x => x.ProvinceId)
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CountryId, T("Common.Country").Text)
+            </td>
+            <td class="adminData required">
+                @Html.Kendo().TextBoxFor(model=>model.CountryName).Enable(false)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.ProvinceId, T("Common.StateProvince").Text)
+            </td>
+            <td class="adminData required">
+                @Html.Kendo().TextBoxFor(model => model.ProvinceName).Enable(false)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Code)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.Code)
+                @Html.WfmValidationMessageFor(model => model.Code)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Description)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.Description)
+                @Html.WfmValidationMessageFor(model => model.Description)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Rate)
+            </td>
+            <td class="adminData required">
+                @Html.Kendo().NumericTextBoxFor(model=>model.Rate).Decimals(2).Min(0.01M)
+                @Html.WfmValidationMessageFor(model => model.Rate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.StartDate)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.StartDate)
+                @Html.WfmValidationMessageFor(model => model.StartDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EndDate)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.EndDate)
+                @Html.WfmValidationMessageFor(model => model.EndDate)
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+    
+</script>
+

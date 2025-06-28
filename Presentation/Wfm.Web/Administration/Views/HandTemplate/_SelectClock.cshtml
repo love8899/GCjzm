@@ -1,0 +1,63 @@
+﻿<script type="text/javascript">
+    function filterCompanies() { return { excludeEnrolment: false }; }
+    function filterLocations() { return { companyId: $('#CompanyId').val(), excludeEnrolment: false }; }
+    function filterClockDevices() { return { companyLocationId: $("#LocationId").val(), onlyWithIPAddress: true, excludeEnrolment: false }; }
+    function setDefault(e) { if (this.dataSource.total() == 1) this.select(1); }
+</script>
+
+
+@using (Html.BeginForm("", "", FormMethod.Post, new { id = "punch-form" }))
+{
+    <div class="section-header" style="padding:10px;">
+        <div class="title">
+        </div>
+        <div class="options">
+            <input type="button" id="btn-start" class="k-button" value=Start />
+            <input type="button" id="btn-cancel" class="k-button" value="@T("Common.Cancel")" />
+        </div>
+    </div>
+
+    <br />
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @T("Common.Company").Text
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownList().Name("CompanyId")
+                    .OptionLabel("Select company").DataTextField("Text").DataValueField("Value")
+                    .DataSource(source => source.Read(read => { read.Action("GetCascadeCompaniesWithHandPunchClocks", "Common").Data("filterCompanies"); }).ServerFiltering(true))
+                    .Value("1")     // GC by default
+                    .Events(e => e.DataBound("setDefault"))
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Common.Location").Text
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownList().Name("LocationId")
+                    .OptionLabel("Select location").DataTextField("Text").DataValueField("Value")
+                    .DataSource(source => source.Read(read => { read.Action("GetCascadeLocationsWithHandPunchClocks", "Common").Data("filterLocations"); }).ServerFiltering(true))
+                    .Events(e => e.DataBound("setDefault"))
+                    .CascadeFrom("CompanyId")
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Admin.ClockDevice").Text
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList().Name("ClockDeviceId")
+                    .OptionLabel(T("Admin.Common.Select").Text).DataTextField("Text").DataValueField("Value")
+                    .DataSource(source => source.Read(read => read.Action("GetCascadeClockDevices", "Common").Data("filterClockDevices")).ServerFiltering(true))
+                    .Events(e => e.DataBound("setDefault"))
+                    .CascadeFrom("LocationId")
+                )
+            </td>
+        </tr>
+    </table>
+}

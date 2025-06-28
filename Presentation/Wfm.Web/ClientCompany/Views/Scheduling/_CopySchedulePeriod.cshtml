@@ -1,0 +1,60 @@
+﻿@using Wfm.Services.Common
+@using Wfm.Services.Companies
+@using Wfm.Shared.Models.Scheduling
+@model SchedulePeriodModel
+
+<script>
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+</script>
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "schedule-period-copy-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+           @T("Web.SchedulePeriod.Copy").Text 
+        </div>
+        <div class="options">
+            <input type="button" name="save" id="copy-schedule-period-report" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" name="close" id="close-schedule-period-copy" class="k-button" value="@T("Common.Close")" />
+        </div>
+    </div>
+
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.CompanyId)
+    @Html.HiddenFor(model => model.CompanyLocationId)
+    @Html.HiddenFor(model => model.CompanyDepartmentId)
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+    @Html.HiddenFor(model => model.UpdatedOnUtc)
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.PeriodStartDate)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DatePickerFor(model => Model.PeriodStartDate)
+                .HtmlAttributes(new { Id = "copy-PeriodStartDate"})
+                .Format("yyyy-MM-dd")
+                .Start(CalendarView.Month))
+                @Html.WfmValidationMessageFor(model => model.PeriodStartDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.PeriodEndDate)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DatePickerFor(model => Model.PeriodEndDate)
+                .HtmlAttributes(new { Id = "copy-PeriodEndDate" })
+                .Format("yyyy-MM-dd")
+                .Start(CalendarView.Month))
+                @Html.WfmValidationMessageFor(model => model.PeriodEndDate)
+            </td>
+        </tr>
+    </table>
+}
+

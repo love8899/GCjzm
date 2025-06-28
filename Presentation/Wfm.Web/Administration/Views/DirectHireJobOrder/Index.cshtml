@@ -1,0 +1,131 @@
+﻿@using Wfm.Core;
+@using Wfm.Core.Domain.JobOrders
+@using Wfm.Services.JobOrders
+@using Wfm.Services.Companies
+@using Wfm.Services.Common
+@using Wfm.Services.DirectoryLocation
+@using Wfm.Services.Franchises
+@using Wfm.Core.Domain.Accounts
+@using Wfm.Services.Security
+
+@model IEnumerable<DirectHireJobOrderListModel>
+
+
+@{
+    ViewBag.Title = T("Common.DirectPlacement").Text;   
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var companyService = EngineContext.Current.Resolve<ICompanyService>(); 
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    var companies = companyService.GetAllCompanies(workContext.CurrentAccount);
+    var isVendor = workContext.CurrentAccount.IsVendor();
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var vendors = franchiseService.GetAllFranchises();
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+    ViewBag.SearchArea = "JobOrder";
+    var startDate = DateTime.Today.AddMonths(-1);
+    var endDate = DateTime.Today.AddDays(30).StartOfWeek(DayOfWeek.Sunday).AddDays(-1);
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Common.DirectPlacement")
+    </div>
+    <div class="options">  
+        @Html.Label("startDate", T("Admin.Common.From").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("startDate").Value(startDate)
+        @Html.Label("endDate", T("Admin.Common.To").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("endDate").Value(endDate)
+        @Html.Kendo().Button().Name("loadJobOrders").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text)
+           
+        @if ((workContext.CurrentFranchise.EnableStandAloneJobOrders || workContext.CurrentFranchise.IsDefaultManagedServiceProvider) && permissionService.Authorize(StandardPermissionProvider.ManageDirectHireJobOrders))
+        {
+            @Html.ActionLink(T("Common.Add").Text, "Create", null, new { @class = "k-button" })
+        }
+        </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<DirectHireJobOrderListModel>()
+                .Name("directhirejoborder-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(60).Title("Id");
+                    if (!isVendor && commonSettings.DisplayVendor)
+                    {
+                        columns.ForeignKey(x => x.FranchiseId, vendors, "Id", "FranchiseName").Title(T("Common.Vendor").Text).Width(140);
+                     
+                    }
+                    columns.Bound(x => x.JobTitle)
+                        .Template(x => Html.ActionLink(x.JobTitle, "Details", "JobOrder", new { guid = x.JobOrderGuid }, null))
+                        .ClientTemplate(@Html.ActionLink("#=JobTitle#", "Details", new { guid = "#=JobOrderGuid#" }).ToHtmlString());
+
+                    columns.ForeignKey(x => x.CompanyId, companies, "Value", "Text")
+                        .HeaderTemplate(T("Common.Company").Text)
+                        .Template(x => Html.ActionLink(x.CompanyName, "Details", "Company", new { guid = x.CompanyGuid }, new { }))
+                        .ClientTemplate(@Html.ActionLink("#=CompanyName#", "Details", "Company", new { guid = "#=CompanyGuid#" }, new { target = "_blank" }).ToHtmlString());
+
+
+
+                    columns.Bound(x => x.HiringDurationExpiredDate).Format("{0:yyyy-MM-dd}");
+                    columns.Bound(x => x.StartDate).Format("{0:yyyy-MM-dd}").Hidden(true);
+                    columns.Bound(x => x.SalaryMin).Format("{0:c}").Width(120);
+                    columns.Bound(x => x.SalaryMax).Format("{0:c}").Width(120);
+
+                    columns.Bound(x => x.Status).Width(80);
+                  
+                    columns.Bound(x => x.RecruiterName).Width(80).Hidden().Title(T("Common.Recruiter").Text);
+                   
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                        .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { guid = x.JobOrderGuid }))
+                        .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/DirectHireJobOrder/Edit?guid=") + "#= JobOrderGuid #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(50)
+                        .Title(T("Admin.Common.Edit").Text);
+                   
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                            .Read(read => read.Action("Index", "DirectHireJobOrder").Data("onRead"))
+                    .Sort(sorts => sorts.Add(x => x.UpdatedOnUtc).Descending())
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")                           
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+<script type="text/javascript">
+    function onRead() {
+        return {
+            startDate: $("#startDate").val(),
+            endDate: $("#endDate").val()
+        }
+    }
+    $("#loadJobOrders").click(function () {
+        var grid = $("#directhirejoborder-grid").data("kendoGrid");
+        grid.dataSource.page(1);
+        grid.dataSource.read();
+    });
+</script>

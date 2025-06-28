@@ -1,0 +1,28 @@
+﻿@{
+    var companyGuid = ViewBag.CompanyGuid;
+}
+
+
+@using (Html.BeginForm("AddCandidateToPool", "Company", FormMethod.Post, new { id = "addtopool-selected-form" }))
+{
+    <input type="hidden" id="companyGuid" name="companyGuid" value="@companyGuid" />
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+    <table>
+        <tr>
+            <td class="adminTitle">Start Date</td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                    .Name("startDate")
+                    .Format("yyyy-MM-dd")
+                    .Value(DateTime.Now.Date)
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle"></td>
+            <td class="adminData">
+                <input type="submit" id="submit-add" value="Add" name="submit" class="k-button" />
+            </td>
+        </tr>
+    </table>
+}

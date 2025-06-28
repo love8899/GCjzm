@@ -1,0 +1,131 @@
+﻿@model SearchAttendanceModel
+@using Wfm.Core
+@using Wfm.Core.Domain.Accounts
+@using Wfm.Shared.Models.Search;
+
+@{
+    ViewBag.PageTitle = "Daily Attendance List";
+
+    ViewBag.Title = T("Common.DailyAttendanceList").Text;
+    Html.SetActiveMenuItemSystemName("DailyAttendanceList");
+
+    var gridName = "dailyattendance-grid";
+    var serverOperation = true;
+
+    var todayDate = DateTime.Today.Date;
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+}
+
+@section Options {
+    <a id="exportexcel-selected" class="btn btn-success hidden-xxs">
+        <i class="fa fa-file-excel-o"></i>@T("Admin.Common.ExportToExcel.Selected")
+    </a>
+    @*<a id="printtopdf-selected" class="btn bg-purple hidden-xxs">
+            <i class="fa fa-file-pdf-o"></i>@T("Admin.Common.PrintToPdf.Selected")
+        </a>*@
+}
+
+@section Search {
+    @Html.Partial("_SearchAttendance", Model, new ViewDataDictionary
+    {
+        { "GridName", gridName },
+        { "DefaultTitle", "Attendance list for today" },
+    })
+}
+
+@(Html.Kendo().Grid<DailyAttendanceListModel>().Name(gridName)
+    .Events(events => { events.DataBound("onDataBound"); })
+    .Columns(columns =>
+    {
+        columns.Bound(x => x).Filterable(false).Sortable(false)
+            .Title("<input class='mastercheckbox' type='checkbox'/>")
+            .HtmlAttributes(new { @class = "col-xxs-0 cell-lg-1", style = "text-align:center" })
+            .ClientTemplate("<input type='checkbox' name='checkedRecords' value='#=CandidateJobOrderId#' class='checkboxGroups'/>");
+
+        columns.Bound(x => x.CandidateId).Title("Id")
+            .HeaderHtmlAttributes(new { title = T("Common.BadgeId").Text })
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0 cell-lg-1" });
+        columns.Bound(x => x.EmployeeId).Title("No.")
+            .HeaderHtmlAttributes(new { title = T("Common.EmployeeNumber").Text })
+            .HtmlAttributes(new { @class = "cell-lg-1" })
+            .ClientTemplate("<a onclick=getCandidateInfo('#=CandidateGuid#')>#=EmployeeId#</a>");
+        columns.Bound(x => x.EmployeeFirstName)
+            .HtmlAttributes(new { @class = "col-xxs-0 cell-lg-2" });
+        columns.Bound(x => x.EmployeeLastName)
+            .HtmlAttributes(new { @class = "col-xxs-0 cell-lg-2" });
+
+        columns.Bound(x => x.JobTitleAndId).IncludeInMenu(false).Hidden(true)
+            .ClientGroupHeaderTemplate("#= value #");
+
+        columns.Bound(x => x.TotalHoursWorked).Format("{0:0.00}").Title("Hours")
+            .HeaderHtmlAttributes(new { title = "Total hours worked" })
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 cell-lg-1", style = "text-align:right" });
+
+        columns.Bound(x => x.Location)
+            .Hidden(!(workContext.CurrentAccount.IsCompanyHrManager() || workContext.CurrentAccount.IsCompanyAdministrator()))
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 cell-lg-2" });
+        columns.Bound(x => x.Department)
+            .Hidden(!(workContext.CurrentAccount.IsCompanyHrManager() || workContext.CurrentAccount.IsCompanyAdministrator()))
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0 cell-lg-2" });
+
+        columns.Bound(x => x.ShiftStartTime).Format("{0:HH:mm}").Title("Start")
+            .HeaderHtmlAttributes(new { title = T("Common.ShiftStartTime").Text })
+            .HtmlAttributes(new { @class = "cell-lg-1" });
+        columns.Bound(x => x.ShiftEndTime).Format("{0:HH:mm}").Title("End")
+            .HeaderHtmlAttributes(new { title = T("Common.ShiftStartTime").Text })
+            .HtmlAttributes(new { @class = "col-xxs-0 cell-lg-1" });
+
+        columns.Bound(x => x.Status)
+            .HtmlAttributes(new { @class = "cell-lg-1" })
+            .ClientTemplate("#if (Status=='No Show'){# <span class='worktime-warning'>#=Status#</span> #}else if (Status == 'Punched in') {# <span class='worktime-adjusted'>#=Status#</span>#} else {# <span>#=Status#</span> #}#");
+
+        columns.Command(command => { command.Custom("Reject").Click("rejectPlacement"); }).Title(T("Common.Action").Text)
+            .HtmlAttributes(new { @class = "cell-lg-1", style = "text-align:center" });
+    })
+    .Sortable()
+    .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+    .DataSource(dataSource => dataSource
+        .Ajax().ServerOperation(serverOperation).PageSize(10)
+        .Group(group => group.Add(e => e.JobTitleAndId))
+        .Read(read => read.Action("DailyAttendanceList", "TimeSheet").Data("onRead"))
+    )
+)
+
+
+@section Misc {
+    @Html.Partial("_ExportAttendance", new ViewDataDictionary { { "GridName", gridName } })
+}
+
+@section scripts {<script type="text/javascript">
+    var checkedIds = [];
+    function clearSelection() {
+        if (checkedIds.length)
+            checkedIds.length = 0;  // keep the reference !!!
+    }
+
+    $(function () { initSearchAndGrid(null, '@gridName', checkedIds); });
+
+    function onRead(e) { return getGridOptions(); }
+
+    function onDataBound(e) {
+        setGridResponsive(e.sender);
+        setGridRows(e.sender);
+    }
+
+    function setGridRows(grid) {
+        setGridCheckBoxStatus(grid, checkedIds);
+        $(".k-grid-Reject").attr('title', 'Reject the replacement').html('<span class="fa fa-thumbs-down"></span>');
+    }
+
+    function rejectPlacement(e) {
+        var grid = this;
+        var formName = 'reject-form';
+        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
+        var getUrl = '@Url.Action("_RejectPlacement")' + '/' + dataItem.CandidateJobOrderId;
+        getUrl += '?refDate=' + kendo.toString(dataItem.ShiftStartTime, 'yyyy-MM-dd') + '&formName=' + formName;
+        var postUrl = '@Url.Action("_RejectPlacement")' + '/' + dataItem.CandidateJobOrderId;
+        popupPost('reject-placement', getUrl, 'Reject placement', 480, formName, postUrl,
+            'The placement is rejected', function (result) { reloadGrid(grid); }
+        );
+    }
+</script>}

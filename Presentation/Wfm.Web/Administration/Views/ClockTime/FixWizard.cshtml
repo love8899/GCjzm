@@ -1,0 +1,181 @@
+﻿@model bool
+<style>
+.wizard > .content > .body
+{
+    float: left;
+    position: inherit; 
+    width: 95%;
+    height: 95%;
+    padding: 2.5%;
+}
+.wizard > .content > .body ul > li {
+    display: inline;
+}
+
+</style>
+<div id="fix-wizard-details">
+    <h3>Candidate Onboarding Status</h3>
+    @if (Model)
+    {
+        <section>
+            <p>
+                This candidate is already onboarded, please click "Next" button to refresh the punch records.
+            </p>
+        </section>
+    }
+    else
+    {
+        <section>
+            <p>
+                Please click "Start Onboarding" button to onboard the candidate!
+            </p>
+            <button id="btn-start-onboarding" class="k-button">Start Onboarding</button>
+        </section>
+    }
+    <h3>Current Status</h3>
+
+    <section data-mode="async" data-url="@Url.Action("CandidateCurrentStatus", "ClockTime", new { clockTimeId = ViewBag.ClockTimeId })"></section>
+
+    <h3>Candidate Placement</h3>
+
+    <section data-mode="async" data-url="@Url.Action("_TabSchedule", "Candidate", new { candidateGuid = ViewBag.CandidateGuid, refDate = ViewBag.RefDate })"></section>
+
+    <h3>Placement Result</h3>
+    <section data-mode="async" data-url="@Url.Action("PlacementResult", "ClockTime", new { candidateClockTimeId = ViewBag.ClockTimeId })"></section>
+
+    <h3>Candidate Time Sheet</h3>
+    <section data-mode="async" data-url="#"></section>
+
+</div>
+
+
+
+
+
+
+
+<script>
+    var wizard = $("#fix-wizard-details").steps({
+        headerTag: "h3",
+        bodyTag: "section",
+        transitionEffect: "slide",
+        stepsOrientation: "vertical",
+        onStepChanging: function (event, currentIndex, newIndex) {
+            // Allways allow previous action even if the current form is not valid!
+            if (currentIndex > newIndex) {
+                return true;
+            }
+            // Needed in some cases if the user went back (clean up)
+            if (currentIndex < newIndex) {
+                // To remove error styles
+                //form.find(".body:eq(" + newIndex + ") label.error").remove();
+                //form.find(".body:eq(" + newIndex + ") .error").removeClass("error");
+                if (currentIndex == 0)
+                    onRefresh('@ViewBag.ClockTimeId');
+                if (currentIndex == 1) {
+                    var warning = $("#not-onboarded-warning").length;
+                    if (warning)
+                        return false;
+                    else
+                        return true;
+                }
+                if (currentIndex == 3) {
+                    var jobOrderSelected = $('input[name=jobOrder]:checked').val();
+                    if (jobOrderSelected) {
+                        var jobOrderDate = jobOrderSelected.split('-');
+                        var jobOrderId = jobOrderDate[1];
+                        var date = jobOrderDate[0];
+                        var guessed = jobOrderDate[2];
+                        if (guessed) {
+                            $.ajax({
+                                url: '@Url.Action("ConfirmWorkTime", "Timesheet")',
+                                type: 'POST',
+                                data: { id: guessed },
+                                success: function (result) {
+                                    if (!result.Succeed) {
+                                        alert(result.Error);
+                                    }
+                                },
+                            });
+                        }
+                        else {
+                            if (jobOrderId != "0") {
+                                //calculate work time first
+                                var link = '@Url.Action("_CalculateOneCandidateWorkTime", "JobOrder")';
+                                $.ajax({
+                                    type: "POST",
+                                    url: link,
+                                    data: { jobOrderId: jobOrderId, refDate: date, candidateGuid: '@ViewBag.CandidateGuid' },
+                                    success: function (response) {
+                                        if (!response.Result) {
+                                            alert(response.ErrorMessage);
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                alert("Please go to Candidate Placement step to do placement!");
+                                return false;
+                            }
+                        }
+                        wizard.steps("remove", 4);
+                        // In this case you could also use add instead of insert
+                        wizard.steps("insert", 4, {
+                            title: "Candidate Time Sheet",
+                            contentMode: "async",
+                            contentUrl: "@Url.Action("RelatedWorkTime", "ClockTime")" + "?candidateGuid=" + '@ViewBag.CandidateGuid' + "&jobOrderId=" + jobOrderId + "&refDate=" + date
+                        });
+                        //alert(jobOrderSelected);
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+
+            }
+            return true;
+            //form.validate().settings.ignore = ":disabled,:hidden";
+            //return form.valid();
+        },
+        onFinishing: function (event, currentIndex)
+        {
+            var grid = $("#candidateworktime-grid").data("kendoGrid");
+            var rows = grid.dataSource.total();
+            if (rows > 0) {
+                var data = grid.dataItem("tr:eq(1)");
+                if (data.CandidateWorkTimeStatusId == 17 || (data.CandidateWorkTimeStatusId == 11 && data.NetWorkTimeInHours > 0))
+                    markAsProcessed(data.Id);
+                else {
+                    alert("There is no valid time sheet!");
+                    return false;
+                }
+            }
+            else {
+                alert("There is no valid time sheet!");
+                return false;
+            }
+            return true;
+        },
+        onFinished: function (event, currentIndex) {
+            $("#fix-wizard").data("kendoWindow").close();
+        }
+    });
+    $("#btn-start-onboarding").bind("click", function () {
+        var candidateGuid = '@ViewBag.CandidateGuid';
+        $(document.body).append('<div id="start-onboarding"></div>');
+        $("#start-onboarding").kendoWindow({
+            title: "Start onboarding",
+            modal: true,
+            resizable: true,
+            width: 1000,
+            height: 600,
+            content: '@Url.Action("StartOnboarding", "Candidate")' + '?guid=' + candidateGuid,
+            close: function () {
+                setTimeout(function () {
+                    $('#start-onboarding').kendoWindow('destroy');
+                }, 200);
+            }
+        }).data('kendoWindow').center();
+    });
+</script>

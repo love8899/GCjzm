@@ -1,0 +1,116 @@
+﻿@model AccessLogModel
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Logging.AccessLog.Detail").Text;
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "city-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Logging.AccessLog.Detail") @Html.ActionLink("(" + T("Admin.Logging.AccessLog.BackToList") + ")", "Index")
+        </div>
+        <div class="options">
+        </div>
+    </div>
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Id)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.Id)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.AccountId)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.AccountId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.AccountModel.FirstName)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.AccountModel.FirstName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.AccountModel.LastName)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.AccountModel.LastName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.AccountModel.Email)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.AccountModel.Email)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.AccountModel.IsActive)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.AccountModel.IsActive)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.IpAdress)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.IpAdress)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.UserAgent)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.UserAgent)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.IsSuccessful)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.IsSuccessful)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Description)
+            </td>
+            <td class="adminData">
+                @Html.Raw(Model.Description)
+            </td>
+        </tr>      
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CreatedOn)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CreatedOn, "LocalFullDateTime")
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.UpdatedOn)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.UpdatedOn, "LocalFullDateTime")
+            </td>
+        </tr>
+    </table>
+}

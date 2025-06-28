@@ -1,0 +1,53 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Jobs";
+    //var description = "From marketing, financial services and information technology, to life sciences, engineering, manufacturing and more, our experience in diverse placements is a competitive strength you can use to your advantage.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Job Categories</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            From marketing, financial services and information technology, to life sciences,
+            engineering, manufacturing and more, our experience in diverse placements is a competitive
+            strength you can use to your advantage.
+        </p>
+        <p>
+            Check out our job categories below and see our Job Search [link to Job Search page]
+            section for the latest jobs.
+        </p>
+        <ul>
+            <li>Management and Executive</li>
+            <li>Sales and Marketing</li>
+            <li>Financial and Accounting</li>
+            <li>Information Technology</li>
+            <li>Life Sciences</li>
+            <li>Engineering</li>
+            <li>Industrial and Manufacturing</li>
+            <li>Call Centre and Customer Service</li>
+            <li>Supply Chain, Logistics and Warehousing</li>
+            <li>Administrative and Office</li>
+            <li>Skilled Trades</li>
+            <li>Others</li>
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,33 @@
+﻿@model Wfm.Shared.Models.Accounts.AccountChangeSecuirtyQuestionsModel
+@using Wfm.Core.Infrastructure
+@using Wfm.Services.Common
+@{
+    ViewBag.PageTitle = "Change security questions";
+    ViewBag.UsingForm = true;
+
+    ViewBag.Title = T("Admin.Accounts.Account.ResetPassword").Text;
+
+    var securityQuestionService = EngineContext.Current.Resolve<ISecurityQuestionService>();
+    var securityquestionsDropDownList = securityQuestionService.GetAllSecurityQuestions().Select(x => new SelectListItem()
+    {
+        Text = x.Question,
+        Value = x.Id.ToString()
+    });
+}
+
+@section Options {
+    <button type="submit" name="save" class="btn bg-blue">
+        <i class="fa fa-floppy-o"></i>@T("Admin.Common.Save")
+    </button>
+    <a class="btn bg-yellow" href="@Url.Action("Details")">
+        <i class="fa fa-ban"></i>@T("Admin.Common.Cancel")
+    </a>
+}
+
+@Html.ValidationSummary(true)
+@Html.AntiForgeryToken()
+
+@Html.InputFor(m => m.SecurityQuestion1Id, "DropDownList", new { Items = securityquestionsDropDownList, OptionLabel = "--Select--" })
+@Html.InputFor(m => m.SecurityQuestion1Answer)
+@Html.InputFor(m => m.SecurityQuestion2Id, "DropDownList", new { Items = securityquestionsDropDownList, OptionLabel = "--Select--" })
+@Html.InputFor(m => m.SecurityQuestion2Answer)

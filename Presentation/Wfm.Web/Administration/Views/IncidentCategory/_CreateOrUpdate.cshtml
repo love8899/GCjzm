@@ -1,0 +1,92 @@
+﻿@using Wfm.Admin.Models.Incident
+@model IncidentCategoryModel
+
+@{
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "incident-category-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @(Model.Id > 0 ? T("Admin.Configuration.IncidentCategory.Edit").Text : T("Common.Incident").Text)
+        </div>
+        <div class="options">
+            <input type="button" name="save" id="save-incident-category" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" name="close" id="close-incident-category" class="k-button" value="@T("Common.Close")" />
+        </div>
+    </div>
+
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+    @Html.HiddenFor(model => model.UpdatedOnUtc)
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Code)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.IncidentCategoryCode)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Description)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.Description)
+            </td>
+        </tr>
+
+        @if (commonSettings.DisplayVendor)
+        {
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.Vendor)
+                </td>
+                <td class="adminData">
+                    @(Html.Kendo().DropDownList()
+                .Name("FranchiseId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(Model.VendorList)
+                    )
+                </td>
+            </tr>
+        }
+        else
+        {
+            @Html.HiddenFor(model => model.FranchiseId)
+        }
+
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.IsActive)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.IsActive)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CreatedOn)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CreatedOn)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.UpdatedOn)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.UpdatedOn)
+            </td>
+        </tr>
+    </table>
+}
+
+

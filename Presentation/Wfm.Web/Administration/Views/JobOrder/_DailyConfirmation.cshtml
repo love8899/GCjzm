@@ -1,0 +1,70 @@
+﻿@using Wfm.Core.Domain.Candidates
+@{
+    var noStatus = (int)CandidateJobOrderStatusEnum.NoStatus;
+    var placed = (int)CandidateJobOrderStatusEnum.Placed;
+    var statusList = new List<SelectListItem>()
+    {
+        new SelectListItem() { Text = "Standby", Value = noStatus.ToString() },
+        new SelectListItem() { Text = "Placed", Value = placed.ToString() },
+        new SelectListItem() { Text = "All", Value = "0" },
+    };
+}
+
+<form id="daily-confirm-form">
+    @Html.Hidden("jobOrderGuid", ((Guid)ViewBag.JobOrderGuid).ToString())
+    <p>
+        This is to send confirmation emails to all selected candidates.<br />
+        (Though, those contacted or refused already, are skipped)<br />
+        Their status in pipeline will be reset to "Contacted" then.<br />
+        The status will be changed to "Placed" upon confirmation "Yes".
+    </p>
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle" width="30%">For Date</td>
+            <td class="adminData required" width="70%">
+                @(Html.Kendo().DatePicker().Name("refDate").Format("yyyy-MM-dd")
+                    .HtmlAttributes(new { type = "text", style = "width: 200px" })
+                    .Value(ViewBag.RefDate)
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">Current Status</td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList().Name("StatusId")
+                    .HtmlAttributes(new { style = "width: 200px" })
+                    .DataTextField("Text").DataValueField("Value")
+                    .BindTo(statusList)
+                )
+            </td>
+        </tr>
+        <tr>
+            @*<td class="adminTitle"></td>*@
+            <td colspan="2" class="adminData" style="text-align:center">
+                <input type="submit" id="submit-daily-confirm" value="Send" name="submit" class="k-button" />
+            </td>
+        </tr>
+    </table>
+</form>
+
+<script type="text/javascript">
+    $(function () {
+        $('#daily-confirm-form').submit(function (e) {
+            e.preventDefault();
+            $.ajax({
+                data: $(this).serialize(),
+                url: '@Html.Raw(Url.Action("SendDailyConfirmation", "JobOrder"))',
+                dataType: "json",
+                type: 'post',
+                success: function (response) {
+                    $('#' + $(e.target).parent()[0].id).data("kendoWindow").close();
+                    refreshPipeline();
+                    var msg = 'The confirmation is sent to ' + response.Done + ' candidates.\r\n'
+                    if (response.ErrorMessage)
+                        msg += '\r\n' + response.ErrorMessage;
+                    alert(msg);
+                },
+            });
+        });
+    });
+</script>

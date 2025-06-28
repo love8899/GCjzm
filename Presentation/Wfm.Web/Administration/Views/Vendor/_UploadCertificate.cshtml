@@ -1,0 +1,45 @@
+﻿@model VendorCertificateModel
+@Html.HiddenFor(model=>model.CertificateGuid)
+<script src="@Url.Content("~/Scripts/fileUploadHelper.js")" type="text/javascript"></script>
+<script type="text/javascript">
+    function onUploadOverride(e) {
+        onUpload(e);
+        e.data = { guid: $("#CertificateGuid").val() };
+    }
+
+    function onCompleteOverride() {
+        $(".k-widget.k-upload").find("ul").remove();
+        $("#upload-window").data("kendoWindow").close();
+        var grid = $("#vendorCertificate-grid").data("kendoGrid");
+        grid.dataSource.page(1);
+        grid.dataSource.read();
+    }
+</script>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Upload()
+                .Name("attachment")
+                .HtmlAttributes(new { style = "height:200px" })
+                .Multiple(false)
+                .Async(async => async
+                    .Save("SaveCertificateFile", "Vendor")
+                    .Remove("RemoveCertificateFile", "Vendor")
+                    .AutoUpload(false)
+                )
+                
+                .Events(events => events
+                    //.Cancel("onCancel")
+                    .Complete("onCompleteOverride")
+                    .Error("onError")
+                    //.Progress("onProgress")
+                    //.Remove("onRemove")
+                    //.Select("onSelect")
+                    .Success("onSuccess")
+                    .Upload("onUploadOverride")
+                )
+            )
+        </td>
+    </tr>
+</table>

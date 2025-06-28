@@ -1,0 +1,46 @@
+﻿<br />
+<label class="first-label">From </label>
+<ul class="fieldlist" style="padding-left: 20px">
+    <li>
+        @(Html.Kendo().RadioButton().Name("OwnAccount").Checked(true).HtmlAttributes(new { @name = "FromAccount" }).Label("Own Account"))
+    </li>
+    <li>
+        @(Html.Kendo().RadioButton().Name("SystemAccount").HtmlAttributes(new { @name = "FromAccount" }).Label("System Account"))
+    </li>
+</ul>
+
+<br /><br />
+<label class="first-label">Subject</label>
+@Html.Kendo().TextBox().Name("Subject").HtmlAttributes(new { style = "margin-left:10px;width:360px;", maxlength = "1000" })
+
+<br /><br />
+<label class="first-label">Message</label>
+@Html.TextArea("Message", new { style = "height:240px;width:720px;", maxlength = "4000" })
+
+<br /><br />
+
+
+<script type="text/javascript">
+
+    function IsMessageReady() {
+        var message = GetMessage();
+        if ((!message.OwnAccount && !message.SystemAccount) || message.Subject == "" || message.Body == "")
+            return false;
+        else
+            return true;
+    }
+
+    function GetMessage() {
+        var ownAccount = $("#OwnAccount").attr("checked") == "checked";
+        var systemAccount = $("#SystemAccount").attr("checked") == "checked";
+        var subject = $("#Subject").val();
+        var message = $("#Message").val();
+        return {
+            OwnAccount: ownAccount,
+            SystemAccount: systemAccount,
+            Subject: subject,
+            Body: message,
+        };
+    }
+
+</script>

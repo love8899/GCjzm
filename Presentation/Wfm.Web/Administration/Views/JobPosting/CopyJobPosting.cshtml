@@ -1,0 +1,31 @@
+﻿@using Wfm.Shared.Models.JobPosting;
+@model JobPostingEditModel
+
+@{
+    ViewBag.Title = T("Admin.JobPosting.CopyJobPosting").Text;
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@using (Html.BeginForm())
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.JobPosting.CopyJobPosting") @Html.ActionLink("(" + T("Admin.JobPosting.BackToList") + ")", "Index")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            @Html.ActionLink(T("Admin.Common.Cancel").Text, "Index", null, new { @class = "k-button" })
+        </div>
+    </div>
+
+
+    @Html.Partial("_CreateOrUpdate", Model)
+
+    <div class="section-header">
+        <div class="title">
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+        </div>
+    </div>
+}

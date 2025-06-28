@@ -1,0 +1,122 @@
+﻿@using Wfm.Core
+@using Wfm.Core.Domain.Employees
+@using Wfm.Client.Models.Employees
+@model IEnumerable<EmployeeAvailabilityModel>
+@{
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+}
+<script src="@Url.Content("~/Scripts/admin.common.js?version=1.8")" type="text/javascript"></script>
+<script type="text/javascript">
+    $('#employee-worktime-preference-grid').on('change', 'input[type=checkbox][id=IsAllDay]', function (e) {
+        var grid = $("#employee-worktime-preference-grid").data("kendoGrid");
+        var $check = $(this);
+        if ($check.is(":checked") == true) {
+            grid.hideColumn("StartTimeOfDay");
+            grid.hideColumn("EndTimeOfDay");
+        }
+        else {
+            grid.showColumn("StartTimeOfDay");
+            grid.showColumn("EndTimeOfDay");
+        }
+    });
+    function OnEdit(e) {
+        var grid = $("#employee-worktime-preference-grid").data("kendoGrid");
+        
+        if (e.model.IsAllDay) {
+            var start = e.container.find("input[name=StartTimeOfDay]").data("kendoTimePicker");
+            if (start) {
+                start.enable(false);
+            }
+            var end = e.container.find("input[name=EndTimeOfDay]").data("kendoTimePicker");
+            if (end) {
+                end.enable(false);
+            }
+        }
+    }
+</script>
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Accounts.Account.WorktimePreference")
+    </div>
+    <div class="options">  
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<EmployeeAvailabilityModel>()
+                .Name("employee-worktime-preference-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(80).Hidden();
+                    columns.Bound(x => x.EmployeeAvailabilityType).EditorTemplateName("EmployeeAvailabilityTypeEditor").Width(100);
+                    columns.ForeignKey(x => x.DayOfWeek,DayOfWeek.Monday.ToSelectList()).EditorTemplateName("DayOfWeekDropDown");
+                    columns.Bound(x => x.IsAllDay)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsAllDay #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" }).Width(80);
+                    columns.Bound(x => x.StartTimeOfDay)
+                        //.ClientTemplate("<span style='color:#= TextColor#;'>#=kendo.toString(StartTimeOfDay,'hh:mm tt')#<span>")
+                        .Width(120);
+                    columns.Bound(x => x.EndTimeOfDay)
+                        //.ClientTemplate("<span style='color:#= TextColor#;'>#=kendo.toString(EndTimeOfDay,'hh:mm tt')#<span>")
+                        .Width(120);
+                    columns.Bound(x => x.StartDate).ClientTemplate("#=(StartDate == null) ? '' : kendo.toString(StartDate,'yyyy-MM-dd')#").Width(120);
+                    columns.Bound(x => x.EndDate).ClientTemplate("#=(EndDate == null) ? '' : kendo.toString(EndDate,'yyyy-MM-dd')#").Width(120);
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Command(x => x.Destroy().Text(" ")).Width(80);
+                })
+                .ToolBar(x => { x.Create(); x.Save(); })
+                .Editable(e => e.Mode(GridEditMode.InCell))
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+                .Sortable()
+                .Selectable()
+                .Events(e=>e.Edit("OnEdit"))
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .Batch(true)
+                        .ServerOperation(true)
+                        .PageSize(20)
+                        .Read(read => read.Action("ReadWorktimePreference", "Employee", new { employeeId = ViewBag.EmployeeId }))
+                        .Create(c => c.Action("CreateWorktimePreference", "Employee"))
+                        .Update(c => c.Action("UpdateWorktimePreference", "Employee"))
+                        .Destroy(c => c.Action("DeleteWorktimePreference", "Employee"))
+                        .Model(x => {
+                            x.Id(m => m.Id);
+                            x.Field(m => m.Id).Editable(false);
+                            x.Field(m => m.EmployeeIntId).Editable(false).DefaultValue(ViewBag.CandidateId);
+                            x.Field(m => m.EmployeeAvailabilityType).Editable(true);
+                            x.Field(m => m.IsAllDay).Editable(true).DefaultValue(false);
+                            x.Field(m => m.DayOfWeek).Editable(true).DefaultValue(DayOfWeek.Monday);
+                            x.Field(m => m.StartDate).Editable(true).DefaultValue(DateTime.Today);
+                            x.Field(m => m.EndDate).Editable(true).DefaultValue(DateTime.Today.AddDays(1));
+                            x.Field(m => m.StartTimeOfDay).Editable(true).DefaultValue(DateTime.Today);
+                            x.Field(m => m.EndTimeOfDay).Editable(true).DefaultValue(DateTime.Today);
+                            x.Field(m => m.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                            x.Field(m => m.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                            x.Field(m => m.CreatedOn).Editable(false).DefaultValue(DateTime.Now);
+                            x.Field(m => m.UpdatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        })
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

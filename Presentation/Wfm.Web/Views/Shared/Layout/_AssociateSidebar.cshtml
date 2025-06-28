@@ -1,0 +1,13 @@
+﻿@using Wfm.Web.Framework.HtmlHelpers
+<div class="block block-category-navigation side-navigation-menu">
+    <div class="title">
+        <strong>Contact Us</strong>
+    </div>
+    <div class="listbox menu-item-box">
+        <ul class="list">
+            <li class="@Html.SideBarMenuLink("Associates", "Associates", "Associate")">@Html.ActionLink("Associates", "Associates", "Associate")</li>
+            <li class="@Html.SideBarMenuLink("Employment Guidelines", "EmploymentGuidelines", "Associate")">@Html.ActionLink("Employment Guidelines", "EmploymentGuidelines", "Associate")</li>
+            <li class="@Html.SideBarMenuLink("Safety Information", "SafetyInformation", "Associate")">@Html.ActionLink("Safety Information", "SafetyInformation", "Associate")</li>
+        </ul>
+    </div>
+</div>

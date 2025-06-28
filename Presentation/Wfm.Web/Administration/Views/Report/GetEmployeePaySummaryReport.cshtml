@@ -1,0 +1,107 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Franchises;
+@{
+    var startDate = DateTime.Today.Date.AddDays(-7);
+    var endDate = DateTime.Today;
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+}
+<style>
+    .k-multiselect.k-header {
+        /*border-color: #94c0d2;*/
+        text-align: left;
+        float: none;
+        vertical-align: middle;
+        display: inline-block;
+        margin-left: 10px;
+        margin-right: 20px;
+    }
+</style>
+@(Html.Kendo().PanelBar().Name("search-bar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text(String.Format(T("Common.ReportParameters").Text, T("Report.EmployeePaySummary").Text))
+            .Expanded(true)
+            .Content(@<div class="panel">
+                <br />
+                <div>
+                    <label>@T("Common.Vendor"):</label>
+                    @(Html.Kendo().ComboBox().Name("Vendor").HtmlAttributes(new { style = "width: 500px" })
+                        .Placeholder("Select a vendor...")
+                        .DataSource(ds => ds.Read("GetAllVendors", "Common"))
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                        .Events(e => e.Change("onSelectedVendorChange")))
+                </div>
+                <div>
+                    <label>@T("Common.Company"): </label>
+                    @(Html.Kendo().MultiSelect().Name("Companies").HtmlAttributes(new { style = "width:400px" })
+                            .Placeholder("Select companies...")
+                            .DataSource(ds => ds.Read("GetCascadeCompanies", "Common"))
+                            .DataTextField("Text")
+                            .DataValueField("Value"))
+                </div>
+                <div>
+                    <label>@T("Common.PayGroup"):</label>
+                    @(Html.Kendo().MultiSelect().Name("PayGroups").HtmlAttributes(new { style = "width:400px" })
+                                .Placeholder("Select pay groups...")
+                                .DataSource(ds => ds.Read(read => { read.Action("GetAllPayGroupsByVendor", "Common").Data("filterByVendor"); }).ServerFiltering(true))
+                                .DataTextField("Text")
+                                .DataValueField("Value")
+                    )
+                </div>
+                <div>
+                    @Html.Label("FromDate", "Pay Date from: ")
+                    @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("fromDate").Value(startDate.ToString("yyyy-MM-dd"))
+                    @Html.Label("ToDate", "To: ")
+                    @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("toDate").Value(endDate.ToString("yyyy-MM-dd"))
+                </div>
+                <div style="text-align: center">
+                    <br />@(Html.Kendo().Button().Name("loadReport").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text))<br /><br />
+                </div>
+            </div>);
+    })
+)
+
+<div id="report" />
+<script type="text/javascript">
+    $("#loadReport").bind("click", function () {
+        loadReport();
+    });
+
+    function loadReport() {
+        var ids = $("#Companies").data("kendoMultiSelect").value().join();
+        var paygroups = $("#PayGroups").data("kendoMultiSelect").value().join();
+        var fromDate = $("#fromDate").val();
+        var toDate = $("#toDate").val();
+        var vendorId= $("#Vendor").val()
+
+        if (!fromDate) {
+            alert("Please select the start date!");
+        }
+        else if (!toDate) {
+            alert("Please select the end date!");
+        }
+        else {
+            $("#report").load("_EmployeePaySummaryReport", {
+                fromDate: fromDate,
+                toDate: toDate,
+                companyIds: ids,
+                paygroups: paygroups,
+                vendorId: vendorId
+            });
+        }
+    }
+
+    function filterByVendor() { return { vendorId: $("#Vendor").val() }; }
+
+    function onSelectedVendorChange(e) {
+        $('#PayGroups').data('kendoMultiSelect').dataSource.read();
+    }
+</script>
+
+
+
+
+
+

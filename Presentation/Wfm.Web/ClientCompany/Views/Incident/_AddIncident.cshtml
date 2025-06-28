@@ -1,0 +1,52 @@
+﻿@model IncidentReportModel
+@using Wfm.Shared.Models.Incident
+@{
+    var panelName = ViewBag.PanelName ?? "addIncident";
+    var formName = ViewBag.FormName ?? "incident-report-form";
+}
+
+@using (Ajax.BeginForm("_EditIncidentReport", "Incident", new { returnViewOnErr = true },
+    new AjaxOptions { OnSuccess = "onSuccess" },
+    new { @id = formName }))
+{
+    <div class="panel-heading">
+        <b>
+            @(Model.Id > 0 ? T("Admin.Candidate.IncidentReport.Edit").Text : T("Common.Incident").Text)
+        </b>
+        <div class="pull-right">
+            <button type="submit" name="save" class="k-button">
+                <i class="fa fa-floppy-o"></i>@T("Admin.Common.Save")
+            </button>
+            <button type="button" class="k-button" onclick="removeForm();">
+                <i class="fa fa-ban"></i>@T("Admin.Common.Cancel")
+            </button>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div class="message-error">
+            @Html.ValidationSummary(true)
+        </div>
+        @Html.HiddenFor(model => model.Id)
+        @Html.HiddenFor(model => model.CompanyId)
+        @Html.HiddenFor(model => model.CreatedOnUtc)
+        @Html.HiddenFor(model => model.UpdatedOnUtc)
+
+        @Html.Partial("_IncidentFields", Model, new ViewDataDictionary { { "AddRequireHint", true } })
+    </div>
+}
+<script type="text/javascript" language=javascript>
+    $(function () {
+        enableValidation('@formName');
+        @*addClass2FormLines('@formName', ['col-sm-3', 'col-sm-9']);*@
+    });
+    function onSuccess(response) {
+        if (response.Succeed) {
+            reloadGridByName();
+            $('#@panelName').collapse('hide');
+            displayAdminNotification('Incident report is ' + '@(Model.Id == 0 ? "added" : "updated")', 'success');
+        }
+        else
+            $('#@panelName').html(response);
+    }
+    function removeForm() { $('#@panelName').collapse('hide').empty(); }
+</script>

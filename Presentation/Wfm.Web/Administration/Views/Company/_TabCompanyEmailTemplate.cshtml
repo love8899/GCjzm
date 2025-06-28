@@ -1,0 +1,99 @@
+﻿@using Wfm.Services.Companies
+@using Wfm.Core.Domain.Companies
+@{
+    var companyLocationService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+    var locations = companyLocationService.GetAllCompanyLocations().Select(x => new SelectListItem() { Text = x.LocationName, Value = x.Id.ToString() });
+
+    var companyDepartmentService = EngineContext.Current.Resolve<ICompanyDepartmentService>();
+    var departments = companyDepartmentService.GetAllCompanyDepartmentsForDropDownList();
+
+    var types = CompanyEmailTemplateType.Confirmation.ToSelectList(false).ToList();
+}
+<div class="section-header">
+    <div class="title">
+        @T("Common.CompanyEmailTemplate")
+    </div>
+    <div class="options">
+        @Html.ActionLink(T("Common.Add").Text, "CreateOrUpdateCompanyEmailTemplate", new { guid = ViewBag.CompanyGuid }, new { @class = "k-button" })
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CompanyEmailTemplateModel>()
+                .Name("company-email-template-grid")
+                .Columns(columns =>
+                {
+                    columns.ForeignKey(x => x.Type,types,"Value","Text").Width(100);
+                    columns.ForeignKey(x => x.CompanyLocationId, locations, "Value", "Text")
+                        .Title(T("Common.Location").Text)
+                        .EditorTemplateName("CompanyLocationEditor");
+                    columns.ForeignKey(x => x.CompanyDepartmentId, departments, "Value", "Text")
+                        .Title(T("Common.Department").Text)
+                        .EditorTemplateName("CompanyDepartmentEditor")
+                        .Width(150);
+                    columns.Bound(x => x.Id).Filterable(false)
+                        .ClientTemplate("<a class='k-button' href=\"" + @Url.Content("~/Admin/Company/CreateOrUpdateCompanyEmailTemplate?guid=") + ViewBag.CompanyGuid + "&templateId=" + "#= Id #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center", title = T("Admin.Common.Edit").Text })
+                        .Width(60)
+                        .Title(T("Admin.Common.Edit").Text).Sortable(false);
+                    columns.Command(command => { command.Destroy().Text(" "); }).HtmlAttributes(new { title = T("Common.Delete").Text }).Title(T("Common.Delete").Text).Width(60);
+                    columns.Template(x => { }).ClientTemplate(
+                                    "<a class='k-button' title='Copy' href='" +
+                                        Url.Action("CopyEmailTemplate", "Company") +
+                                        "?templateId=#= Id #'" +
+                                    "><span class='k-icon k-i-restore'></span></a>"
+                                ).Title(T("Admin.Common.Copy").Text).Width(60);
+                })
+                //.ToolBar(toolBar => { toolBar.Save(); toolBar.Create(); })
+                .Editable(editable => editable.Mode(GridEditMode.InLine))
+                .EnableCustomBinding(false)
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Resizable(r=>r.Columns(true))
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    //.Batch(true)
+                    
+                    .Read(read => read.Action("_CompanyEmailTemplates", "Company", new { guid = ViewBag.CompanyGuid }))
+                    .Events(events => events.Error("error_handler"))
+                    .Model(model =>
+                    {
+                        model.Id(x => x.Id);
+                        model.Field(x => x.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(x => x.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                    })
+                    //.Create(update => update.Action("_AddCompanyActivity", "Company"))
+                    //.Update(update => update.Action("_EditCompanyActivity", "Company"))
+                    .Destroy(update => update.Action("_RemoveCompanyEmailTemplate", "Company"))
+                            .Events(events => events.Sync(@"function(e){setTimeout(function(){refreshGrid('#company-email-template-grid')})}"))
+                )
+            )
+
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+    function filterLocations() {
+        return { companyId:'@ViewBag.CompanyId' };
+    }
+    function filterDepartments() {
+        var model = getCurrentEditedModel("#company-email-template-grid");
+        return {
+            locationId: model.CompanyLocationId
+        };
+    }
+
+    function getCurrentEditedModel(gridName) {
+        var grid = $(gridName).data("kendoGrid");
+        var editRow = grid.tbody.find("tr:has(.k-edit-cell)");
+        return grid.dataItem(editRow);
+    }
+</script>

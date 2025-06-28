@@ -1,0 +1,42 @@
+﻿@model IEnumerable<CandidateTestResultModel>
+@using Wfm.Web.Models.Candidate
+
+@(Html.Kendo().Grid<CandidateTestResultModel>().Name("testresult-grid")
+    .BindTo(Model).Events(e => e.DataBound("onResultsBound"))
+    .Columns(columns =>
+    {
+        columns.Bound(t => t.TestCategoryModel.TestCategoryName)
+            .HtmlAttributes(new { @class = "col-8 col-sm-8 col-md-5 col-lg-4"});
+
+        columns.Bound(t => t.TotalScore).HtmlAttributes(new { style = "text-align: right", @class = "col-lg-1" });
+        columns.Bound(t => t.PassScore).Title("Pass score").HtmlAttributes(new { style = "text-align: right", @class = "col-lg-1" });
+
+        columns.Bound(t => t.TestScore).Title("Score").HtmlAttributes(new { style = "text-align: center", @class = "col-md-2 col-lg-2" });
+        columns.Bound(x => x.IsPassed).Title("Passed")
+            .ClientTemplate("<img alt='check' src='" + Url.Content("~/Content/images/") + "active-#= IsPassed #.png' />")
+            .HeaderHtmlAttributes(new { style = "text-align:center" })
+            .HtmlAttributes(new { style = "text-align:center", @class = "col-4 col-sm-4 col-md-2 col-lg-2" });
+
+        columns.Bound(x => x.UpdatedOnUtc).Title(T("Admin.Common.Fields.UpdatedOn").Text)
+            .ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#")
+            .HtmlAttributes(new { @class = "col-md-3 col-lg-2" });
+    })
+        .EnableCustomBinding(false)
+        .Reorderable(reorder => reorder.Columns(true))
+        .Resizable(resize => resize.Columns(true))
+        //.Filterable()
+        .Sortable()
+        .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+        .DataSource(ds => ds
+            .Ajax()
+            .ServerOperation(false)
+            .PageSize(20)
+        )
+)
+
+<script type="text/javascript">
+    function onResultsBound(e) {
+        setGridColumnClass(e.sender, ["TestScore", "UpdatedOnUtc"], 'd-none d-md-table-cell');
+        setGridColumnClass(e.sender, ["PassScore", "TotalScore"], 'd-none d-lg-table-cell');
+    }
+</script>

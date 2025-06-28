@@ -1,0 +1,7 @@
+﻿@model string
+
+@Html.TextAreaFor(m => m, new {
+    style = (string)ViewData["Style"] ?? "resize:none",
+    placeholder = (string)ViewData["PlaceHolder"],
+    data_val_required = (bool?)ViewData["Required"] ?? false
+})

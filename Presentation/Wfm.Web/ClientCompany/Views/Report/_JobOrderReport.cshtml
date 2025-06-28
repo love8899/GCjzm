@@ -1,0 +1,33 @@
+﻿@{
+    Layout = "_ReportViewerLayout";
+    ViewBag.ReportFile = "JobOrderReport";
+
+    var _groupingCols = new List<string>();
+    // This is the default order of grouping 
+    _groupingCols.Add("Vendor");
+    _groupingCols.Add("Location");
+    _groupingCols.Add("Department");
+    _groupingCols.Add("Shift");
+
+    // Re-order the grouping columns if user has selected a specific column for grouping
+    if (!String.IsNullOrWhiteSpace(ViewBag.GroupBy) && _groupingCols.Contains(ViewBag.GroupBy))
+    {
+        _groupingCols.Remove(ViewBag.GroupBy);
+        _groupingCols.Insert(0, ViewBag.GroupBy);
+    }
+
+    var _workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    ViewBag.ReportParameters = new
+    {
+        CompanyIds = _workContext.CurrentAccount.CompanyId,
+        CompanyName = ViewBag.CompanyName,
+        FromDate = ViewBag.StartDate,
+        ToDate = ViewBag.EndDate,
+        VendorIds = ViewBag.VendorIds,
+        LocationIds = ViewBag.LocationIds,
+        GroupingColumn1 = _groupingCols[0],
+        GroupingColumn2 = _groupingCols[1],
+        GroupingColumn3 = _groupingCols[2],
+        GroupingColumn4 = _groupingCols[3]
+    };
+}

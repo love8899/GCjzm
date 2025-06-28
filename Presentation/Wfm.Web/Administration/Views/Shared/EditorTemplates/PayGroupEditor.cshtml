@@ -1,0 +1,12 @@
+﻿@model int?
+@{ var isEnabled = ViewData["isEnabled"] != null ? (bool)ViewData["isEnabled"] : true;
+   var vendorId = ViewData["franchiseId"] != null ? (int)ViewData["franchiseId"] : 0; 
+ }
+
+@(Html.Kendo().DropDownListFor(m => m)
+        //.OptionLabel("Select a pay group...")
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .DataSource(dataSource => dataSource.Read(read => read.Action("GetAllPayGroups", "Common", new { vendorId = vendorId }).Type(HttpVerbs.Post)).ServerFiltering(true))
+        .Enable(isEnabled)
+)

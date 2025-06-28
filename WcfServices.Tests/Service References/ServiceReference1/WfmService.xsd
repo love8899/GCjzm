@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/WcfServices" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/WcfServices" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="http://localhost:3630/WfmService.svc?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/WcfServices.TimeSheets" />
+  <xs:complexType name="AuthenticationResult">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="IsDelegate" type="xs:boolean" />
+      <xs:element minOccurs="0" name="IsPasswordExpired" type="xs:boolean" />
+      <xs:element minOccurs="0" name="IsValid" type="xs:boolean" />
+      <xs:element minOccurs="0" name="SessionId" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="AuthenticationResult" nillable="true" type="tns:AuthenticationResult" />
+  <xs:complexType name="PagedListResultOfTimeSheetHpUzpNkN">
+    <xs:annotation>
+      <xs:appinfo>
+        <GenericType Name="PagedListResultOf{0}{#}" Namespace="http://schemas.datacontract.org/2004/07/WcfServices" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+          <GenericParameter Name="TimeSheet" Namespace="http://schemas.datacontract.org/2004/07/WcfServices" />
+        </GenericType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Items" nillable="true" type="tns:ArrayOfTimeSheet" />
+      <xs:element minOccurs="0" name="TotalCount" type="xs:long" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="PagedListResultOfTimeSheetHpUzpNkN" nillable="true" type="tns:PagedListResultOfTimeSheetHpUzpNkN" />
+  <xs:complexType name="ArrayOfTimeSheet">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="TimeSheet" nillable="true" type="tns:TimeSheet" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfTimeSheet" nillable="true" type="tns:ArrayOfTimeSheet" />
+  <xs:complexType name="TimeSheet">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="AdjustmentInMinutes" type="xs:decimal" />
+      <xs:element minOccurs="0" name="AllowSuperVisorModifyWorkTime" type="xs:boolean" />
+      <xs:element minOccurs="0" name="ApprovedBy" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="CandidateGuid" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="CandidateId" type="xs:int" />
+      <xs:element minOccurs="0" name="CandidateWorkTimeStatusId" type="xs:int" />
+      <xs:element minOccurs="0" name="ClockIn" nillable="true" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="ClockOut" nillable="true" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="ClockTimeInHours" type="xs:decimal" />
+      <xs:element minOccurs="0" name="CompanyLocationId" type="xs:int" />
+      <xs:element minOccurs="0" name="CompanyName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ContactName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="CreatedOnUtc" nillable="true" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="DepartmentName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="EmployeeFirstName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="EmployeeId" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="EmployeeLastName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="FranchiseId" type="xs:int" />
+      <xs:element minOccurs="0" name="IsCurrentWeek" type="xs:boolean" />
+      <xs:element minOccurs="0" name="JobEndDateTime" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="JobOrderDurationInHours" type="xs:decimal" />
+      <xs:element minOccurs="0" name="JobOrderGuid" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="JobOrderId" type="xs:int" />
+      <xs:element minOccurs="0" name="JobShift" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="JobStartDateTime" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="JobTitle" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="LocationName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="NetWorkTimeInHours" type="xs:decimal" />
+      <xs:element minOccurs="0" name="NetWorkTimeInMinutes" type="xs:decimal" />
+      <xs:element minOccurs="0" name="Note" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="OtherAlerts" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="OvertimeMessage" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Payroll_BatchId" type="xs:int" />
+      <xs:element minOccurs="0" name="TimeSheetId" type="xs:int" />
+      <xs:element minOccurs="0" name="UpdatedOnUtc" nillable="true" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="VendorName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="WeekOfYear" type="xs:int" />
+      <xs:element minOccurs="0" name="Year" type="xs:int" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="TimeSheet" nillable="true" type="tns:TimeSheet" />
+  <xs:complexType name="PagedListResultOfSimpleEmployeeTimeChartHistorymfZTS4bC">
+    <xs:annotation>
+      <xs:appinfo>
+        <GenericType Name="PagedListResultOf{0}{#}" Namespace="http://schemas.datacontract.org/2004/07/WcfServices" xmlns="http://schemas.microsoft.com/2003/10/Serialization/">
+          <GenericParameter Name="SimpleEmployeeTimeChartHistory" Namespace="http://schemas.datacontract.org/2004/07/WcfServices.TimeSheets" />
+        </GenericType>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element xmlns:q1="http://schemas.datacontract.org/2004/07/WcfServices.TimeSheets" minOccurs="0" name="Items" nillable="true" type="q1:ArrayOfSimpleEmployeeTimeChartHistory" />
+      <xs:element minOccurs="0" name="TotalCount" type="xs:long" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="PagedListResultOfSimpleEmployeeTimeChartHistorymfZTS4bC" nillable="true" type="tns:PagedListResultOfSimpleEmployeeTimeChartHistorymfZTS4bC" />
+  <xs:complexType name="BasicResult">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Message" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Success" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="BasicResult" nillable="true" type="tns:BasicResult" />
+  <xs:complexType name="TimeSheetAndSession">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CandidateTimeSheet" nillable="true" type="tns:TimeSheetSlim" />
+      <xs:element minOccurs="0" name="SessionId" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="TimeSheetAndSession" nillable="true" type="tns:TimeSheetAndSession" />
+  <xs:complexType name="TimeSheetSlim">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CandidateGuid" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Note" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="TimeSheetId" type="xs:int" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="TimeSheetSlim" nillable="true" type="tns:TimeSheetSlim" />
+  <xs:complexType name="TimeSheetOperationResult">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Result" nillable="true" type="tns:BasicResult" />
+      <xs:element minOccurs="0" name="TimeSheet" nillable="true" type="tns:TimeSheet" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="TimeSheetOperationResult" nillable="true" type="tns:TimeSheetOperationResult" />
+  <xs:complexType name="ArrayOfTimeSheetSlim">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="TimeSheetSlim" nillable="true" type="tns:TimeSheetSlim" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfTimeSheetSlim" nillable="true" type="tns:ArrayOfTimeSheetSlim" />
+  <xs:complexType name="WorkTime">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CandidateGuid" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="JobOrderGuid" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="NetWorkTimeInHours" type="xs:decimal" />
+      <xs:element minOccurs="0" name="Note" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="WorkDate" type="xs:dateTime" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="WorkTime" nillable="true" type="tns:WorkTime" />
+</xs:schema>

@@ -1,0 +1,63 @@
+﻿@using Wfm.Web.Models.Candidate;
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    ViewBag.Title = "Payment History";
+}
+
+<div class="page candidate-page">
+    <div class="page-body">
+        <div class="section-header">
+            <div class="title">
+                Payment Hostory
+            </div>
+            <div class="options">
+            </div>
+        </div>
+        @(Html.Kendo().Grid<PaymentHistoryWithPayStubModel>().Name("payment-history-grid")
+            .Events(e => e.DataBound("onDataBound"))
+            .Columns(columns =>
+            {
+                columns.Bound(x => x.PaymentDate).Format("{0:MM/dd/yyyy}").Title("Paid on")
+                    .ClientTemplate("<a href=\"" + @Url.Content("~/Candidate/DownloadPayStub?guid=") + "#= CandidatePaymentHistoryGuid #\">#=kendo.toString(PaymentDate,'MM/dd/yyyy')#</a>")
+                    .HeaderHtmlAttributes(new { title = "Payment Date" });
+
+                columns.Bound(x => x.PayPeriodStartDate).Format("{0:yyyy-MM-dd}").Title("From")
+                    .HeaderHtmlAttributes(new { title = "Pay Period Start Date" });
+
+                columns.Bound(x => x.PayPeriodEndDate).Format("{0:yyyy-MM-dd}").Title("To")
+                    .HeaderHtmlAttributes(new { title = "Pay Period End Date" });
+
+                columns.Bound(x => x.CandidatePaymentHistoryGuid).Title(T("Common.Action").Text)
+                    .ClientTemplate("<a class='k-button' href=\"" + @Url.Content("~/Candidate/DownloadPayStub?guid=") + "#= CandidatePaymentHistoryGuid #\"><span class='fa fa-download'></span></a>")
+                    .HtmlAttributes(new { style = "text-align:center", title = T("Common.Download").Text });
+            })
+            //.EnableCustomBinding(true)
+            //.ColumnMenu()
+            //.Selectable()
+            .Sortable()
+            .Pageable(x => x.PageSizes(new[] { 5, 10, 20 }).Refresh(true))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .ServerOperation(true)
+                .PageSize(10)
+                .Sort(s => s.Add("PaymentDate").Descending())
+                .Read(read => read.Action("CandidatePaymentHistory", "Candidate"))
+            )
+        )
+        <p style="color:red">
+            <br />
+            The format of the password is combined with 4 numbers of date of birth (month and date) and the last 3 digits of SIN, e.g. MMDDSSS.
+            <br />
+            For example, your SIN is XXX-XXX-123, and your date of birth is Dec 5, 1980. Then your password should be 1205123.
+        </p>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function onDataBound(e) {
+        // TODO: auto setup, upon bootstrap prefix
+        setGridColumnClass(e.sender, ["CandidatePaymentHistoryGuid"], 'd-none d-sm-table-cell');
+    }
+</script>

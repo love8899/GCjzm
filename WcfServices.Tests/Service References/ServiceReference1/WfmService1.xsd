@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/WcfServices.TimeSheets" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/WcfServices.TimeSheets" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:complexType name="SimpleEmployeeTimeChartHistory">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ApprovedBy" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="CompanyContactId" type="xs:int" />
+      <xs:element minOccurs="0" name="CompanyDepartmentId" type="xs:int" />
+      <xs:element minOccurs="0" name="CompanyId" type="xs:int" />
+      <xs:element minOccurs="0" name="CompanyLocationId" type="xs:int" />
+      <xs:element minOccurs="0" name="CompanyName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ContactName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="DepartmentName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="EmployeeFirstName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="EmployeeId" type="xs:int" />
+      <xs:element minOccurs="0" name="EmployeeLastName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="EmployeeNumber" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="FranchiseId" type="xs:int" />
+      <xs:element minOccurs="0" name="FranchiseName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Friday" type="xs:decimal" />
+      <xs:element minOccurs="0" name="FridayDate" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="JobOrderId" type="xs:int" />
+      <xs:element minOccurs="0" name="JobTitle" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="LocationName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Monday" type="xs:decimal" />
+      <xs:element minOccurs="0" name="MondayDate" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="OTHours" nillable="true" type="xs:decimal" />
+      <xs:element minOccurs="0" name="RegularHours" nillable="true" type="xs:decimal" />
+      <xs:element minOccurs="0" name="Saturday" type="xs:decimal" />
+      <xs:element minOccurs="0" name="SaturdayDate" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="SubTotalHours" nillable="true" type="xs:decimal" />
+      <xs:element minOccurs="0" name="Sunday" type="xs:decimal" />
+      <xs:element minOccurs="0" name="SundayDate" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="Thursday" type="xs:decimal" />
+      <xs:element minOccurs="0" name="ThursdayDate" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="Tuesday" type="xs:decimal" />
+      <xs:element minOccurs="0" name="TuesdayDate" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="Wednesday" type="xs:decimal" />
+      <xs:element minOccurs="0" name="WednesdayDate" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="WeekOfYear" type="xs:int" />
+      <xs:element minOccurs="0" name="Year" type="xs:int" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SimpleEmployeeTimeChartHistory" nillable="true" type="tns:SimpleEmployeeTimeChartHistory" />
+  <xs:complexType name="ArrayOfSimpleEmployeeTimeChartHistory">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="SimpleEmployeeTimeChartHistory" nillable="true" type="tns:SimpleEmployeeTimeChartHistory" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfSimpleEmployeeTimeChartHistory" nillable="true" type="tns:ArrayOfSimpleEmployeeTimeChartHistory" />
+</xs:schema>

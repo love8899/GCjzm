@@ -1,0 +1,154 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Common;
+@using Wfm.Services.DirectoryLocation;
+
+@{
+    var today = DateTime.Today;
+    var startDate = today.AddDays(-14);
+    var endDate = today;
+}
+
+<style type="text/css">
+
+    .TypeBar {
+        display: block;
+        padding: 3px 0 3px 12px;
+        margin: 6px 0 6px 0;
+        color: white;
+        text-align: left;
+    }
+
+    .actionLink {
+        color: #008bc7;
+        cursor: pointer;
+    }
+
+    .simple-checkbox {
+        padding: 3px 30px 3px 0;
+    }
+
+</style>
+
+<div id="category-list">
+    Message Type&nbsp;&nbsp;&nbsp;&nbsp;<span class="actionLink" onclick="selectAll()">Select All</span> | <span class="actionLink" onclick="selectNone()">Select None</span>
+    <br/>
+    @foreach (var category in ViewBag.MessageCategories)
+    {
+        <div class="notification notification-@category.Replace(" ", "")"><span class="TypeBar"><input type="checkbox" name="categories" class="categories" value="@category">&nbsp;&nbsp;@category</span></div>
+    }
+</div>
+<br />
+<div id="status">
+    Message Status
+    <div>
+        <span class="simple-checkbox "><input type="checkbox" class="message-status" id="allowUnread">&nbsp;&nbsp;Unread</span>
+        <span class="simple-checkbox "><input type="checkbox" class="message-status" id="allowRead">&nbsp;&nbsp;Read</span>
+    </div>
+</div>
+<br />
+<div id="recipient">
+    Message Recipient
+    <div>
+        <span class="simple-checkbox "><input type="checkbox" name="recipient" id="withCC" checked="checked">&nbsp;&nbsp;Include messages copied to me</span>
+    </div>
+</div>
+<br />
+<div style="text-align: center">
+    <br />
+    @(Html.Kendo().Button().Name("Search")
+        .HtmlAttributes(new { type = "submit" }).Content("Filter Messages"))
+</div>
+<br />
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        if (currCriteria == null) {
+            selectAll();
+            currCriteria = getMessageCriteria();
+        }
+    });
+
+    function selectAll() {
+        categories = @Html.Raw(Json.Encode(ViewBag.MessageCategories));
+        setCheckboxes();
+    }
+
+    function selectNone() {
+        categories = [];
+        setCheckboxes();
+    }
+
+    $('#category-list').on('change', 'input[type=checkbox]', function (e) {
+        var $check = $(this);
+        if ($check.is(":checked")) {
+            var checked = $.inArray($check.val(), categories);
+            if (checked == -1) {
+                categories.push($check.val());
+            }
+        }
+        else {
+            var checked = $.inArray($check.val(), categories);
+            if (checked > -1) {
+                categories = $.grep(categories, function (item, index) {
+                    return item != $check.val();
+                });
+            }
+        }
+    });
+
+    $("#Search").click(function () {
+        currCriteria = getMessageCriteria();
+        refreshGrid('#MessageHistory', 1);
+    });
+
+    function onRead(e) {
+        return currCriteria;
+    }
+
+    function setCheckboxes() {
+        // categories
+        $('.categories').removeAttr('checked');
+        if (categories) {
+            categories.forEach(function (entry) {
+                var s = '[value="' + entry + '"]';
+                $(s).attr('checked', 'checked');
+            });
+        }
+        // status (unread/read)
+        $('.message-status').removeAttr('checked');
+        if (status) {
+            if ($.inArray('0', status) > -1 || $.inArray(0, status) > -1)
+                $('#allowUnread').attr('checked', 'checked');
+            if ($.inArray('1', status) > -1 || $.inArray(1, status) > -1)
+                $('#allowRead').attr('checked', 'checked');
+        }
+        // withCC ?
+        if (withCC)
+            $('#withCC').attr('checked', 'checked');
+        else
+            $('#withCC').removeAttr('checked');
+    }
+
+    function getMessageCriteria() {
+        withCC = $("#withCC").attr("checked") == "checked";
+        return {
+            SubjectKeyword: null,
+            Categories: categories,
+            Status: getStatusSelected(),
+            WithCC: withCC,
+        }
+    }
+
+    function getStatusSelected() {
+        var allowUnread = $("#allowUnread").attr("checked") == "checked";
+        var allowRead = $("#allowRead").attr("checked") == "checked";
+        var newStatus = [];
+        if (allowUnread)
+            newStatus.push(0);
+        if (allowRead)
+            newStatus.push(1);
+        status = newStatus;
+        return newStatus;
+    }
+</script>

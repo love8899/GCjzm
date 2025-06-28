@@ -1,0 +1,57 @@
+﻿@using Wfm.Services.Accounts
+
+@model AccountFullModel
+@{
+    var returnPath = ViewBag.ReturnPath;
+    var listPath = returnPath != null && !returnPath.Contains("AccountManager") ? returnPath : "~/Admin/AccountManager/Index";
+}
+
+@using (Html.BeginForm(null, null, new { returnPath = returnPath }, FormMethod.Post, new { id = "account-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Common.Account") @Html.ActionLink("(" + T("Admin.Accounts.Account.BackToList") + ")", null, null, null, new { href = Url.Content(listPath) })
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />
+        </div>
+    </div>
+    <table class="adminContent">
+        <tr>
+            <td colspan="4">
+                <div class="statisticsTitle">
+                    @T("Admin.Accounts.Account.LoginInformation")
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Username)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.Username)
+                @Html.WfmValidationMessageFor(model => model.Username)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Password)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.Password)
+                @Html.WfmValidationMessageFor(model => model.Password)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.RePassword)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.RePassword)
+                @Html.WfmValidationMessageFor(model => model.RePassword)
+            </td>
+        </tr>
+    </table>
+    @Html.Partial("_CreateOrUpdate", Model)
+}

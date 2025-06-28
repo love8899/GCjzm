@@ -1,0 +1,22 @@
+﻿@using System.Drawing
+@using MvcReportViewer
+
+@{
+    var settings = new ControlSettings
+    {
+        SizeToReportContent = true,
+        ShowParameterPrompts = false,
+        ShowFindControls = true,
+        BackColor = Color.AliceBlue,
+        KeepSessionAlive = true,
+        //Width = new Unit("100%"),
+        //Height = new Unit("800px"),
+        AsyncRendering = false
+    }; 
+}
+
+@Html.MvcReportViewer(
+    "/WFMReports/JobOrderPlacementSummaryByRecruiter",
+    new { FromDate = ViewBag.StartDate, ToDate = ViewBag.EndDate, FranchiseId = ViewBag.VendorId, VendorName = ViewBag.VendorName },
+    new { style = "border: none ; height: 100%; width: 100%;min-height: 600px" }
+).ControlSettings(settings)

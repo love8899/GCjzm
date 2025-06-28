@@ -1,0 +1,247 @@
+﻿@using System.Text;
+@using Wfm.Core;
+@using Wfm.Services.Common;
+@using Wfm.Services.Franchises;
+@using Wfm.Core.Domain.Accounts;
+
+@model VendorCandidateImportModel
+
+
+@{
+    ViewBag.Title = T("Admin.Candidate.Candidate.Import").Text;
+
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var franchises = franchiseService.GetAllFranchises();
+    var franchiseDropDownList = new List<SelectListItem>();
+    foreach (var f in franchises)
+    {
+        franchiseDropDownList.Add(new SelectListItem() { Text = f.FranchiseName, Value = f.Id.ToString() });
+    }
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Candidate.Candidate.Import") @Html.ActionLink("(" + T("Admin.Candidate.Candidate.BackToList") + ")", "Index")
+    </div>
+    <div class="options">
+    </div>
+</div>
+
+@if(commonSettings.DisplayVendor&&!workContext.CurrentAccount.IsVendor())
+{ 
+<table class="adminContent">
+    <tr>
+        <td colspan="3">
+            <div class="statisticsTitle">
+                Vendor
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td width="180px"></td>
+        <td>
+            @franchiseDropDownList.Find(x => x.Value == Model.VendorId.ToString()).Text
+        </td>
+        <td width="180px"></td>
+    </tr>
+</table>
+}
+
+@using (Ajax.BeginForm("ImportAccount", "Candidate", new { model = Model }, null, new { enctype = "multipart/form-data" }))
+{
+    <table class="adminContent">
+        <tr>
+            <td colspan="3">
+                <div class="statisticsTitle">
+                    @T("Common.BasicInformation")
+                </div>
+            </td>
+        </tr>
+        @if (Model.AccountImportedOn != null)
+        {
+            <tr>
+                <td width="180px">
+                    Last import (@Model.AccountImportedOn.Value.ToString("yyyy-MM-dd hh:mm"))
+                </td>
+                <td class="adminData" width="360px">
+                    <span>Imported: <strong>@Model.AccountImportResult.Imported</strong>. </span>
+                    @if (Model.AccountImportResult.NotImported > 0)
+                    {
+                        var errMsg = "data:text/plain;charset=utf-8;base64," + Convert.ToBase64String(Encoding.UTF8.GetBytes(String.Join("\r\n", Model.AccountImportResult.ErrorMsg)));
+                        <span>Skipped: <strong>@Model.AccountImportResult.NotImported</strong>, see <a href="@errMsg" download="errors.txt">error details</a>.</span>
+                    }
+                </td>
+            </tr>
+        }
+        <tr>
+            <td width="180px">
+                @T("Admin.Common.ExcelFile"):
+            </td>
+            <td class="adminData" width="360px">
+                <input type="file" id="account-file" name="account-file" accept=".xlsx, .xls" />
+            </td>
+            <td>
+                <button id="import-account" class="k-button">@T("Admin.Common.Submit").Text</button>
+            </td>
+        </tr>
+    </table>
+}
+
+
+@using (Ajax.BeginForm("ImportAddress", "Candidate", new { model = Model }, null, new { enctype = "multipart/form-data" }))
+{
+    <table class="adminContent">
+        <tr>
+            <td colspan="3">
+                <div class="statisticsTitle">
+                    @T("Admin.Candidate.CandidateAddress")
+                </div>
+            </td>
+        </tr>
+        @if (Model.AddressImportedOn != null)
+        {
+            <tr>
+                <td width="180px">
+                    Last import (@Model.AddressImportedOn.Value.ToString("yyyy-MM-dd hh:mm"))
+                </td>
+                <td class="adminData" width="360px">
+                    <span>Imported: <strong>@Model.AddressImportResult.Imported</strong>. </span>
+                    @if (Model.AddressImportResult.NotImported > 0)
+                    {
+                        var errMsg = "data:text/plain;charset=utf-8;base64," + Convert.ToBase64String(Encoding.UTF8.GetBytes(String.Join("\r\n", Model.AddressImportResult.ErrorMsg)));
+                        <span>Skipped: <strong>@Model.AddressImportResult.NotImported</strong>, see <a href="@errMsg" download="errors.txt">error details</a>.</span>
+                    }
+                </td>
+            </tr>
+        }
+        <tr>
+            <td width="180px">
+                @T("Admin.Common.ExcelFile"):
+            </td>
+            <td class="adminData" width="360px">
+                <input type="file" id="address-file" name="address-file" accept=".xlsx, .xls" />
+            </td>
+            <td>
+                <button id="import-address" class="k-button">@T("Admin.Common.Submit").Text</button>
+            </td>
+        </tr>
+    </table>
+}
+
+
+@using (Ajax.BeginForm("ImportSkill", "Candidate", new { model = Model }, null, new { enctype = "multipart/form-data" }))
+{
+    <table class="adminContent">
+        <tr>
+            <td colspan="3">
+                <div class="statisticsTitle">
+                    @T("Admin.Candidate.KeySkills")
+                </div>
+            </td>
+        </tr>
+        @if (Model.SkillImportedOn != null)
+        {
+            <tr>
+                <td width="180px">
+                    Last import (@Model.SkillImportedOn.Value.ToString("yyyy-MM-dd hh:mm"))
+                </td>
+                <td class="adminData" width="360px">
+                    <span>Imported: <strong>@Model.SkillImportResult.Imported</strong>. </span>
+                    @if (Model.SkillImportResult.NotImported > 0)
+                    {
+                        var errMsg = "data:text/plain;charset=utf-8;base64," + Convert.ToBase64String(Encoding.UTF8.GetBytes(String.Join("\r\n", Model.SkillImportResult.ErrorMsg)));
+                        <span>Skipped: <strong>@Model.SkillImportResult.NotImported</strong>, see <a href="@errMsg" download="errors.txt">error details</a>.</span>
+                    }
+                </td>
+            </tr>
+        }
+        <tr>
+            <td width="180px">
+                @T("Admin.Common.ExcelFile"):
+            </td>
+            <td class="adminData" width="360px">
+                <input type="file" id="skill-file" name="skill-file" accept=".xlsx, .xls" />
+            </td>
+            <td>
+                <button id="import-skill" class="k-button">@T("Admin.Common.Submit").Text</button>
+            </td>
+        </tr>
+    </table>
+}
+
+@using (Ajax.BeginForm("ImportBankAccount", "Candidate", new { model = Model }, null, new { enctype = "multipart/form-data" }))
+{
+    <table class="adminContent">
+        <tr>
+            <td colspan="3">
+                <div class="statisticsTitle">
+                    @T("Admin.CandidateBankAccounts")
+                </div>
+            </td>
+        </tr>
+        @if (Model.BankAccountImportedOn != null)
+        {
+            <tr>
+                <td width="180px">
+                    Last import (@Model.BankAccountImportedOn.Value.ToString("yyyy-MM-dd hh:mm"))
+                </td>
+                <td class="adminData" width="360px">
+                    <span>Imported: <strong>@Model.BankAccountImportResult.Imported</strong>. </span>
+                    @if (Model.BankAccountImportResult.NotImported > 0)
+                    {
+                        var errMsg = "data:text/plain;charset=utf-8;base64," + Convert.ToBase64String(Encoding.UTF8.GetBytes(String.Join("\r\n", Model.BankAccountImportResult.ErrorMsg)));
+                        <span>Skipped: <strong>@Model.BankAccountImportResult.NotImported</strong>, see <a href="@errMsg" download="errors.txt">error details</a>.</span>
+                    }
+                </td>
+            </tr>
+        }
+        <tr>
+            <td width="180px">
+                @T("Admin.Common.ExcelFile"):
+            </td>
+            <td class="adminData" width="360px">
+                <input type="file" id="bank-account-file" name="bank-account-file" accept=".xlsx, .xls" />
+            </td>
+            <td>
+                <button id="import-bank-account" class="k-button">@T("Admin.Common.Submit").Text</button>
+            </td>
+        </tr>
+    </table>
+}
+
+<script>
+
+    $("#import-account").bind("click", importAccount);
+    $("#import-address").bind("click", importAddress);
+    $("#import-skill").bind("click", importSkill);
+    $("#import-bank-account").bind("click", importBankAccount);
+    function importAccount(e) {
+        checkFile(e, "#account-file");
+    }
+
+    function importAddress(e) {
+        checkFile(e, "#address-file");
+    }
+
+    function importSkill(e) {
+        checkFile(e, "#skill-file");
+    }
+
+    function importBankAccount(e)
+    {
+        checkFile(e, "#bank-account-file");
+    }
+    function checkFile(e,id)
+    {
+        var fileName = $(id).val();
+
+        if (!fileName) {
+            alert("Please select file!");
+            e.preventDefault();
+        }
+    }
+</script>

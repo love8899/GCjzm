@@ -1,0 +1,124 @@
+﻿@using Wfm.Services.Common;
+@using Wfm.Services.DirectoryLocation;
+@using Wfm.Services.Franchises;
+@using Wfm.Shared.Models.Employees;
+
+@model IEnumerable<EmployeeGridModel>
+
+@{
+    //ViewBag.Title = T("Common.Employee").Text;
+
+    var transportationService = EngineContext.Current.Resolve<ITransportationService>();
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var cityService = EngineContext.Current.Resolve<ICityService>();
+    var stateProvinceService = EngineContext.Current.Resolve<IStateProvinceService>();
+
+    var transportation = transportationService.GetAllTransportations();
+    var franchises = franchiseService.GetAllFranchises();
+    var cities = cityService.GetAllCities();
+    var stateProvinces = stateProvinceService.GetAllStateProvinces();
+
+    //set the Global viewbag Variable
+    ViewBag.SearchArea = "FulltimeEmployee";
+}
+<div class="section-header">
+    <div class="title">
+        @T("Common.Employees")
+    </div>
+    <div class="options">
+        @Html.ActionLink(T("Common.Add").Text, "Create", null, new { @class = "k-button" })
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<EmployeeGridModel>()
+                .Name("candidate-popup-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.EmployeeId)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("equals")))                        
+                        .Width("10%");
+
+                    columns.Bound(x => x.FirstName)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Template(x => Html.ActionLink(x.FirstName, "Details", new { x.CandidateGuid }, new { }))
+                        .ClientTemplate("<span>" + Html.ActionLink("#=FirstName #", "Details", "Employee", new { guid = "#=CandidateGuid#" }, null).ToHtmlString() + "</span>")
+                        .Width("10%");
+
+                    columns.Bound(x => x.LastName)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Template(x => Html.ActionLink(x.LastName, "Details", new { x.CandidateGuid }, new { }))
+                        .ClientTemplate("<span>" + Html.ActionLink("#=LastName #", "Details", "Employee", new { guid = "#=CandidateGuid#" }, null).ToHtmlString() + "</span>")
+                        .Width("10%");
+
+                    columns.Bound(x => x.EmployeeType)
+                        .Width("10%");
+                    columns.Bound(x => x.Email)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Width("10%");
+                    columns.Bound(x => x.PreferredWorkLocation)
+                        .Width("10%");
+                    //columns.Bound(x => x.SearchKeys).Sortable(false).ClientTemplate("Quick search ...").Width(100);
+                    //columns.Bound(x => x.SearchKeys).Sortable(false)
+                    //    .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                    //    .Hidden(true);
+
+                    columns.Bound(x => x.HomePhone)
+                       .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                       .ClientTemplate("#= prettyPhone(HomePhone) #")
+                       .Width("10%");
+                    columns.Bound(x => x.MobilePhone)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate("#= prettyPhone(MobilePhone) #")
+                        .Width("10%");
+
+                    //columns.ForeignKey(x => x.CandidateAddressModel.CityId, cities, "Id", "CityName").Sortable(false).Width(150);
+                    //columns.ForeignKey(x => x.CandidateAddressModel.StateProvinceId, stateProvinces, "Id", "StateProvinceName").Sortable(false).Filterable(false).Hidden(true);
+
+                    columns.Bound(x => x.JobTitle)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Width("10%");
+
+                    columns.Bound(x => x.UpdatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        .ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width("10%");
+                    columns.Bound(x => x.CreatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        .ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width("10%")
+                        .Hidden(true);
+                })
+            .EnableCustomBinding(true)
+            .Reorderable(reorder => reorder.Columns(true))
+            .Resizable(resize => resize.Columns(true))
+            .ColumnMenu(d => d.Sortable(true))
+            .Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+            .Sortable()
+            .Selectable(configurator => configurator.Mode(GridSelectionMode.Multiple))
+            .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+            .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("ListGlobalEmployees", "Employee"))
+            )
+            .Filterable(filterable => filterable
+                .Extra(false)
+                .Operators(operators => operators
+                    .ForString(str => str.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        .IsNotEqualTo("Is not equal to")
+                    )
+                )
+            )
+            )
+        </td>
+    </tr>
+</table>
+<script>
+    $(function () {
+    })
+</script>

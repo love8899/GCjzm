@@ -1,0 +1,235 @@
+﻿@using Wfm.Services.Common
+@using Wfm.Core.Domain.Candidates
+
+@model CandidateModel
+
+@{
+    var _salutationService = EngineContext.Current.Resolve<ISalutationService>();
+    var _transportationService = EngineContext.Current.Resolve<ITransportationService>();
+    var _shiftService = EngineContext.Current.Resolve<IShiftService>();
+
+    var salutations = _salutationService.GetAllSalutations().Select(x => new SelectListItem { Text = x.SalutationName, Value = x.Id.ToString() });
+    var transportations = _transportationService.GetAllTransportations().Select(x => new SelectListItem { Text = x.TransportationName, Value = x.Id.ToString() });
+    var shifts = _shiftService.GetAllShifts().Select(x => new SelectListItem { Text = x.ShiftName, Value = x.Id.ToString() });
+}
+
+
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.IsEmployee)
+@Html.HiddenFor(model => model.OnboardingStatus)
+
+<h4>@T("Common.BasicInformation")</h4>
+<section>
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SalutationId)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownListFor(model => model.SalutationId)
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .BindTo(salutations)
+                )
+                @Html.WfmValidationMessageFor(model => model.SalutationId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.FirstName)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.FirstName)
+                @Html.WfmValidationMessageFor(model => model.FirstName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.LastName)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.LastName)
+                @Html.WfmValidationMessageFor(model => model.LastName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.MiddleName)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.MiddleName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.BirthDate)
+            </td>
+            <td class="adminData">
+                <div style="width:300px">@Html.Kendo().DatePickerFor(model => model.BirthDate)</div>
+                @Html.WfmValidationMessageFor(model => model.BirthDate)
+            </td>
+        </tr>
+    </table>
+</section>
+
+<h4>@T("Admin.Candidate.ContactInformation")</h4>
+<section>
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.HomePhone)
+            </td>
+            <td class="adminData required">
+                @Html.Kendo().MaskedTextBoxFor(model => model.HomePhone).Mask("999-999-9999")
+                @Html.WfmValidationMessageFor(model => model.HomePhone)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.MobilePhone)
+            </td>
+            <td class="adminData">
+                @Html.Kendo().MaskedTextBoxFor(model => model.MobilePhone).Mask("999-999-9999")
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EmergencyPhone)
+            </td>
+            <td class="adminData">
+                @Html.Kendo().MaskedTextBoxFor(model => model.EmergencyPhone).Mask("999-999-9999")
+            </td>
+        </tr>
+    </table>
+</section>
+
+<h4>@T("Common.OtherInformation")</h4>
+<section>
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.UseForDirectPlacement)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.UseForDirectPlacement)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobTitle)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.JobTitle)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Education)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.Education)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.ShiftId)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownListFor(model => model.ShiftId)
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .BindTo(shifts)
+                )
+                @Html.WfmValidationMessageFor(model => model.ShiftId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.TransportationId)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownListFor(model => model.TransportationId)
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .BindTo(transportations)
+                )
+                @Html.WfmValidationMessageFor(model => model.TransportationId)
+            </td>
+        </tr>
+
+        @if (Model.TransportationId == 1)
+        {
+            <tr id="licence-plate">
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.LicencePlate)
+                </td>
+                <td class="adminData required">
+                    @Html.Kendo().TextBoxFor(model => model.LicencePlate)
+                    @Html.WfmValidationMessageFor(model => model.LicencePlate)
+                </td>
+            </tr>
+        }
+        else
+        {
+            <tr style="display:none" id="licence-plate">
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.LicencePlate)
+                </td>
+                <td class="adminData required">
+                    @Html.Kendo().TextBoxFor(model => model.LicencePlate)
+                    @Html.WfmValidationMessageFor(model => model.LicencePlate)
+                </td>
+            </tr>
+        }
+
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.MajorIntersection1)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.MajorIntersection1)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.MajorIntersection2)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.MajorIntersection2)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.PreferredWorkLocation)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.PreferredWorkLocation)
+            </td>
+        </tr>
+    </table>
+</section>
+
+
+<script type="text/javascript">
+
+    $("#TransportationId").change(function () {
+        var tran = $("#TransportationId").val();
+        if (tran == 1) {
+            $("#licence-plate").show();
+            $( "#LicencePlate" ).rules( "add", {
+                required: true,
+                messages: {
+                    required: "The licence plate is required!"
+                }
+            });
+        }
+        else {
+            $("#licence-plate").hide();
+            $( "#LicencePlate" ).rules("remove");
+        }
+    });
+
+    $("#TransportationId").focus(function () {
+        alert("focus");
+        $("#license-plate").hide();
+    });
+
+</script>

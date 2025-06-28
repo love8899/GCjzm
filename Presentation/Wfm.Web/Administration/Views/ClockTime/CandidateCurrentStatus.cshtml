@@ -1,0 +1,122 @@
+﻿@model CandidateCurrentStatusModel
+@using Wfm.Services.Companies
+@using Wfm.Core.Domain.ClockTime
+@{
+    var companyDivisionService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+    var companyLocations = companyDivisionService.GetAllCompanyLocations();
+    var availableClockTimeStatus = CandidateClockTimeStatus.NoStatus.ToSelectList(false).ToList();
+}
+@if(Model.Onboarded)
+{ 
+<table class="adminContent">
+    @if(Model.JobOrders.Count>0)
+    { 
+        <tr>
+            <td style="font-weight:bold">
+                The employee currently is placed in following job orders:
+            </td>
+        </tr>
+    <tr>
+        <td>
+            @(Html.Kendo().Grid(Model.JobOrders)
+                .Name("placed-job-orders")
+                .Columns(columns =>
+                {
+                    columns.Bound(p => p.JobOrderId).Width(60);
+                    columns.Bound(p => p.JobTitle);
+                    columns.Bound(p => p.Location);
+                    columns.Bound(p => p.Date).Format("{0:MM/dd/yyyy}").Width(100);
+                    columns.Bound(p => p.StartTime).Format("{0:HH:mm}").Width(70);
+                    columns.Bound(p => p.EndTime).Format("{0:HH:mm}").Width(70);
+                })
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }))
+                .Sortable()
+                .Filterable()
+                .Resizable(resize => resize.Columns(true))  
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(20)
+                    .ServerOperation(false)
+                 )
+                 .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+    }
+    else
+    {
+        <tr>
+            <td style="color:red">
+                The employee is NOT placed in any job orders on this day!
+            </td>
+        </tr> 
+    }
+    <tr>
+        <td>
+            <br />
+        </td>
+    </tr>
+    <tr>
+        <td style="font-weight:bold">
+            The employee's punch records
+        </td>
+    </tr>
+    <tr>
+        <td>
+            @(Html.Kendo().Grid(Model.PunchRecords)
+                .Name("punch-record-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.CandidateId).Width(80)
+                                            .ClientTemplate(@Html.ActionLink("#=CandidateId#", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString());
+                    columns.Bound(x => x.SmartCardUid).Title("Smart Card").Width(100);
+
+                   // columns.Bound(x => x.ClockDeviceUid).Title("Clock Device").Width(100);
+
+                    columns.Bound(x => x.CompanyName).Title(T("Common.Company").Text);
+                    columns.ForeignKey(x => x.CompanyLocationId, companyLocations, "Id", "LocationName").Title("Location");
+
+                    columns.Bound(x => x.ClockInOut).Title("Clock In/Out").Format("{0:yyyy-MM-dd HH:mm}").Width(120);
+                    columns.Bound(x => x.Source).Title("Source").Width(90);
+
+                    columns.ForeignKey(x => x.CandidateClockTimeStatusId, availableClockTimeStatus, "Value", "Text").Width(110);
+
+                })
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }))
+                .Sortable()
+                .Filterable()
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(20)
+                    .ServerOperation(false)
+                 )
+             .Filterable(filterable => filterable
+                .Extra(false)
+                .Operators(operators => operators
+                    .ForString(str => str.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        .IsNotEqualTo("Is not equal to")
+                    )
+                )
+            )
+            )
+        </td>
+    </tr>
+</table>
+}
+else
+{
+    <p id="not-onboarded-warning">
+        Please onboard the candidate before placement!
+    </p>
+}

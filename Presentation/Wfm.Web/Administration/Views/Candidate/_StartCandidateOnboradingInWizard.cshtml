@@ -1,0 +1,91 @@
+﻿@model CandidateOnboardingModel
+
+
+@using (Html.BeginForm("", "", FormMethod.Post, new { id = "start-onboarding-form" }))
+{
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SocialInsuranceNumber)
+            </td>
+            @if (Model.IsEmployee || Model.OnboardingStatus == Wfm.Core.Domain.Candidates.CandidateOnboardingStatusEnum.Started.ToString())
+            {
+                <td class="adminData required">
+                    @Html.TextBoxFor(model => model.SocialInsuranceNumber, new { @readonly = "readonly", @class = "k-textbox" })
+                    @Html.WfmValidationMessageFor(model => model.SocialInsuranceNumber)
+                </td>
+            }
+            else
+            {
+                <td class="adminData">
+                    @Html.Kendo().MaskedTextBoxFor(model => model.SocialInsuranceNumber).Mask("999 999 999")
+                    @Html.WfmValidationMessageFor(model => model.SocialInsuranceNumber)
+                </td>
+            }
+        </tr>
+        <tr id="sin-expiration-date">
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SINExpiryDate)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                                .Name("SINExpiryDate")
+                                .Format("yyyy-MM-dd")
+                                .Min(DateTime.Now.AddDays(-60))
+                )
+                @Html.WfmValidationMessageFor(model => model.SINExpiryDate)
+            </td>
+        </tr>
+    </table>
+    <br />
+    <br />
+    <div class="options" align="center">
+        <input type="button" id="btn-save" class="k-button" value="Start Onboarding" />
+        @*<input type="button" id="btn-cancel" class="k-button" value="@T("Admin.Common.Cancel")" />*@
+    </div>
+}
+
+
+@* for jQuery validation *@
+<script>
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+</script>
+
+<script type="text/javascript">
+
+    $("#SocialInsuranceNumber").blur(function () {
+        var sin = $('#SocialInsuranceNumber').val();
+        if (sin.length == 11 && sin[0] == "9") {
+            $("#SINExpiryDate").data('kendoDatePicker').enable(true);
+        }
+        else {
+
+            $("#SINExpiryDate").data('kendoDatePicker').enable(false);
+            $("#SINExpiryDate").data('kendoDatePicker').val = new Date();
+        }
+    });
+
+    $(document).ready(function () {
+        var sin = $("#SocialInsuranceNumber").val();
+        if (sin.length == 11 && sin[0] == "9") {
+            $("#SINExpiryDate").data('kendoDatePicker').enable(true);
+        }
+        else {
+            $("#SINExpiryDate").data('kendoDatePicker').enable(false);
+        }
+        if ($('#onboardingStarted').val() != '0')
+            disableStartOnboarding();
+    });
+
+    function disableStartOnboarding() {
+        $('#SocialInsuranceNumber').data('kendoMaskedTextBox').enable(false);
+        $('#start-onboarding-form .options').html('<h4>Onbaording started.</h4>');
+    }
+
+</script>

@@ -1,0 +1,126 @@
+﻿@using Wfm.Services.Franchises;
+
+
+@{
+    Layout = "";   
+}
+<script>
+    function changeVendor() {      
+        $("#vendorCertificate-grid").data("kendoGrid").dataSource.read();
+    }
+    function filterCertificates() {
+        var grid = $("#companyvendor-grid").data("kendoGrid");       
+        return {
+            guid: grid.dataItem(grid.select()).FranchiseGuid
+        };
+    }
+    function downloadCertificate(CertificateGuid) {
+        window.location.href = '@Url.Action("_DownloadCertificate", "Company")' + '?guid=' + CertificateGuid;
+        return false;       
+    }
+    function onDataBound() {
+        var grid = $("#companyvendor-grid").data("kendoGrid")
+        var row = grid.tbody.find('tr:first');
+        if (row.length > 0) {
+            grid.select(row);
+            row.trigger('click');
+        }
+    }
+</script>
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Vendors")
+    </div>
+    <div class="options">
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+
+            @(Html.Kendo().Grid<CompanyVendorModel>()
+                .Name("companyvendor-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.VendorName).Title(T("Common.Vendor").Text);
+                    columns.Bound(x => x.Email);
+                    columns.Bound(x => x.VendorWebsite).Title("Website");
+                    columns.Bound(x => x.FranchiseGuid).Hidden().IncludeInMenu(false);
+                    columns.Bound(x => x.IsActive).Title("Active")
+                        .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(90);
+                })                
+                .EnableCustomBinding(false)
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))             
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(20)                                   
+                    .Read(read => read.Action("_CompanyVendorList", "Company"))
+                    
+                )
+                .Events(events => { events.Change("changeVendor"); events.DataBound("onDataBound"); })
+              
+            )
+
+        </td>
+    </tr>
+</table>
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Vendor.Certificate")
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<Wfm.Client.Models.Franchises.VendorCertificateModel>()
+                .Name("vendorCertificate-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(50);                   
+                    columns.Bound(x => x.GeneralLiabilityCoverage).Title(T("Admin.Franchises.Franchise.Fields.GeneralLiabilityCoverage").Text).Width(200);
+                    columns.Bound(x => x.GeneralLiabilityCertificateExpiryDate).Title(T("Admin.Franchises.Franchise.Fields.GeneralLiabilityCertificateExpiryDate").Text)
+                            .ClientTemplate("#=kendo.toString(GeneralLiabilityCertificateExpiryDate,'yyyy-MM-dd')#").Width(200);
+                    columns.Bound(x => x.Description);
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })                      
+                            .ClientTemplate("#if(HasCertificate){#<a class='k-button' onclick=\"return downloadCertificate('#=kendo.toString(CertificateGuid)#')\"><span class='fa fa-download' title='Download'></span></a>#}#")
+                            .Width(200).Title("");                   
+                })
+              
+                .EnableCustomBinding(false)
+                .Filterable()
+                .Resizable(x => x.Columns(true))
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .AutoBind(false)
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(false))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(20)
+                            .Read(read => read.Action("_CertificateList", "Company").Data("filterCertificates")))
+                   
+                   
+                )
+            
+        </td>
+    </tr>
+</table>
+
+
+
+
+
+
+
+

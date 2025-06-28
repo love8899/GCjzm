@@ -1,0 +1,103 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Scheduling
+@using Wfm.Shared.Models.Scheduling
+
+@model EmployeeScheduleModel
+
+@{
+    var context = EngineContext.Current.Resolve<IWorkContext>();
+    var scheduleDemandingService = EngineContext.Current.Resolve<ISchedulingDemandService>();
+    var schedulePeriod = scheduleDemandingService.GetSchedulePeriodById(Model.SchedulePeriodId);
+
+    var shiftInPeriodList = schedulePeriod.ShiftSchedules.Select(
+        s => new SelectListItem
+        {
+            Text = string.Format("{0} ({2:g} to {3:g}) - {1} Hours ", s.CompanyShift.Shift.ShiftName, s.TotalHours, s.StartTimeOfDay, s.EndTimeOfDay),
+            Value = s.CompanyShiftId.ToString()
+        });
+    var employeeList = scheduleDemandingService.GetAvailableEmployees(Model.SchedulePeriodId, Model.CompanyShiftId, null).Select(
+        e => new SelectListItem
+        {
+            Text = string.Format("{0} {1} ({2} - {3})", e.FirstName, e.LastName, e.EmployeeType, e.EmployeeId),
+            Value = e.Id.ToString(),
+        });
+}
+<div class="section-header">
+    <div class="title">
+        <div class="title">
+            @(T("Common.ScheduleEmployee"))
+        </div>
+    </div>
+    <div class="options">
+        <input type="button" name="save" id="schedule-employee-save" class="k-button" value="@T("Admin.Common.Save")" />
+        <input type="button" name="close" id="close-schedule-employee" class="k-button" value="@T("Common.Close")" />
+    </div>
+</div>
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "schedule-employee-form" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    @Html.HiddenFor(m => m.SchedulePeriodId)
+    @Html.HiddenFor(m => m.CompanyShiftId, new { id = "hiddenCompanyShiftId" })
+    @Html.HiddenFor(m => m.JobRoleId, new { id = "hiddenJobRoleId" })
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.EmployeeId)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownListFor(m => m.EmployeeId)
+                .Name("EmployeeId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(employeeList)
+                .HtmlAttributes(new { style = "width: 500px" })
+                )
+        
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.CompanyShiftId)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownListFor(m => m.CompanyShiftId)
+                .Name("CompanyShiftId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .Enable(false)
+                .BindTo(shiftInPeriodList)
+                .HtmlAttributes(new { style = "width: 500px" })
+                )
+                <script> function filterJobRoles() { return { companyShiftId: $("#CompanyShiftId").val(), schedulePeriodId: @Model.SchedulePeriodId }; } </script>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.JobRoleId)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownListFor(m => m.JobRoleId)
+                .Name("JobRoleId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetCascadeJobRoles", "Scheduling").Data("filterJobRoles");
+                    })
+                    .ServerFiltering(true);
+                })
+                .Enable(false)
+                .AutoBind(false)
+                .CascadeFrom("CompanyShiftId")
+                .HtmlAttributes(new { style = "width: 500px" })
+                )
+            </td>
+        </tr>
+    </table>
+}
+

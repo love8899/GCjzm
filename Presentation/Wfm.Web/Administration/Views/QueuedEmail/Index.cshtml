@@ -1,0 +1,156 @@
+﻿@model IEnumerable<QueuedEmailModel>
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.System.QueuedEmail").Text;
+}
+@using (Html.BeginForm())
+{
+<div class="section-header">
+    <div class="title">
+        @T("Admin.System.QueuedEmail") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+    <div class="options">
+        <input type="button" id="delete-selected" class="k-button" value="@T("Admin.System.QueuedEmails.DeleteSelected")" />
+        <input type="submit" name="delete-all" class="k-button" value="@T("Admin.System.QueuedEmails.DeleteAll")" onclick="return confirm('@T("Admin.Common.AreYouSure")'); " />
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<QueuedEmailModel>()
+              .Name("queuedemail-grid")
+              .Events(e => e.DataBound("onDataBound"))
+              .Columns(columns =>
+                {
+                    columns.Bound(x => x).Filterable(false).Sortable(false)
+                        .ClientTemplate("<input type='checkbox' name='checkedRecords' value='#= Id #' class='checkboxGroups'/>")
+                        .Title("<input id='mastercheckbox' type='checkbox'/>")
+                        .Width(25);
+                    columns.Bound(x => x.Id).Width(80);
+                    columns.Bound(x => x.From).Width(200);
+                    columns.Bound(x => x.To).Width(200);
+                    columns.Bound(x => x.Bcc).Hidden();
+                    columns.Bound(x => x.CC).Width(200);
+                    columns.Bound(x => x.Subject);
+                    columns.Bound(x => x.Body).Hidden();
+                    columns.Bound(x => x.SentTries).Width(100);
+                    columns.Bound(x => x.SentOn).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.Priority).Width(80);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+
+                    columns.Bound(x => x.Id).Width(80)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .ClientTemplate("<a href=\"" + @Url.Content("~/Admin/QueuedEmail/Edit/") + "#= Id #\"><span class='k-icon k-i-pencil'></span></a>")
+                        .Title(T("Admin.Common.Edit").Text);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 50, 100 }))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(r=>r.Action("List","QueuedEmail"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+}
+<script type="text/javascript">
+    var selectedIds = [];
+    $('#delete-selected').click(function (e) {
+        e.preventDefault();
+        if (selectedIds.length > 0) {
+            var postData = {
+                selectedIds: selectedIds
+            };
+
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@(Url.Action("DeleteSelected", "QueuedEmail"))",
+                data: postData,
+                complete: function (data) {
+                    //reload grid
+                    var grid = $('#queuedemail-grid').data('kendoGrid');
+                    grid.dataSource.page(1); //new search. Set page size to 1
+                    grid.dataSource.read();
+                    //clear selected checkboxes
+                    $('.checkboxGroups').attr('checked', false).change();
+                    selectedIds = [];
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert(thrownError);
+                },
+                traditional: true
+            });
+            return false;
+        }
+        else
+            alert("Please select at least one queued email!");
+    });
+
+    $('#mastercheckbox').click(function () {
+        $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+    });
+
+    //wire up checkboxes.
+    $('#queuedemail-grid').on('change', 'input[type=checkbox][id!=mastercheckbox]', function (e) {
+        var $check = $(this);
+        if ($check.is(":checked") == true) {
+            var checked = jQuery.inArray($check.val(), selectedIds);
+            if (checked == -1) {
+                //add id to selectedIds.
+                selectedIds.push($check.val());
+            }
+        }
+        else {
+            var checked = jQuery.inArray($check.val(), selectedIds);
+            if (checked > -1) {
+                //remove id from selectedIds.
+                selectedIds = $.grep(selectedIds, function (item, index) {
+                    return item != $check.val();
+                });
+            }
+        }
+        updateMasterCheckbox();
+    });
+    function onDataBound(e) {
+
+        $('#queuedemail-grid input[type=checkbox][id!=mastercheckbox]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds);
+            //set checked based on if current checkbox's value is in selectedIds.
+            $(this).attr('checked', checked > -1);
+        });
+
+        updateMasterCheckbox();
+    }
+
+    function updateMasterCheckbox() {
+        var numChkBoxes = $('#queuedemail-grid input[type=checkbox][id!=mastercheckbox]').length;
+        var numChkBoxesChecked = $('#queuedemail-grid input[type=checkbox][checked][id!=mastercheckbox]').length;
+        $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+
+</script>

@@ -1,0 +1,39 @@
+﻿@model QuickSearchModel
+
+<div id="quick-search-block" class="quick-search-block">
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Domain)
+    @Html.ValidationMessageFor(model => model.KeyWord) @Html.TextBoxFor(model => model.KeyWord, new { @class = "k-textbox k-space-right", @style = "width:300px" })
+    <input type="submit" id="quick-search-button" value="Search" class="k-button" />
+    <span id="quick-search-loading-progress" style="display: none;" class="please-wait">@T("Common.Wait...")</span>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#quick-search-button').click(function () {
+            var quickSearchProgress = $("#quick-search-loading-progress");
+            quickSearchProgress.show();
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@(Url.Action("QuickSearchResult", "QuickSearch", Model))",
+                success: function (data) {
+                    quickSearchProgress.hide();
+                    $("#quick-search-result-block").html(data.Result);
+                    if (data.Success) {
+                        $('#quick-search-block').hide();
+                        $('#quick-search-result-block').show();
+                    }
+                    else {
+                        $('#quick-search-result-block').fadeIn("slow").delay(2000).fadeOut("slow");
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert('Failed to search.');
+                    quickSearchProgress.hide();
+                }
+            });
+            return false;
+        });
+    });
+</script>

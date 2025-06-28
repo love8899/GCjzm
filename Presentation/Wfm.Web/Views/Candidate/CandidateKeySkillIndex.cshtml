@@ -1,0 +1,61 @@
+﻿@model IEnumerable<CandidateKeySkillModel>
+@using Wfm.Web.Models.Candidate
+
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    ViewBag.Title = "CandidateWorkKeySkillIndex";
+}
+
+<div class="page candidate-page">
+    <div class="page-body">
+        <div class="section-header">
+            <div class="title">
+                Your key skills
+            </div>
+            <div class="options">
+                @Html.ActionLink(T("Common.Add").Text, "CandidateKeySkillCreate", null, new { @class = "k-button" })
+            </div>
+        </div>
+        @(Html.Kendo().Grid<CandidateKeySkillModel>().Name("candidatekeyskills-grid").BindTo(Model)
+            .Events(e => e.DataBound("onBound"))
+            .Columns(columns =>
+            {
+                columns.Bound(x => x.KeySkill).HtmlAttributes(new { @class = "col-9 col-sm-6 col-md-4"});
+
+                columns.Bound(x => x.YearsOfExperience).Title("Years")
+                    .HeaderHtmlAttributes(new { title = "Years of Experience"})
+                    .HtmlAttributes(new { @class = "col-sm-2 col-md-2" });
+
+                columns.Bound(x => x.LastUsedDate).Format("{0:yyyy-MM-dd}").HtmlAttributes(new { @class = "col-sm-2 col-md-2" });
+
+                columns.Bound(x => x.UpdatedOnUtc).HtmlAttributes(new { @class = "col-md-2" })
+                    .ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#");
+
+                columns.Bound(x => x.Id).Title(T("Common.Edit").Text)
+                    .HtmlAttributes(new { style = "text-align: center", @class = "col-3 col-sm-2 col-md-2" })
+                    .ClientTemplate("<a class='k-button' href=\"" + @Url.Content("~/Candidate/CandidateKeySkillEdit?guid=") + "#= CandidateKeySkillGuid #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>");
+
+                //columns.Bound(x => x.Id)
+                //    .Template(x => Html.ActionLink("Delete", "CandidateKeySkillDelete", new { x.Id })).Title("Delete");
+            })
+            .EnableCustomBinding(false)
+            .Sortable()
+            .Selectable()
+            .Pageable(x => x.PageSizes(new[] { 5, 10, 20 }).Refresh(true))
+            .DataSource(ds => ds
+                .Ajax()
+                .ServerOperation(false)
+                .PageSize(10)
+            )
+        )
+    </div>
+</div>
+
+<script type="text/javascript">
+    function onBound(e) {
+        setGridColumnClass(e.sender, ["YearsOfExperience", "LastUsedDate"], "d-none d-sm-table-cell");
+        setGridColumnClass(e.sender, ["UpdatedOnUtc"], "d-none d-md-table-cell");
+    }
+</script>

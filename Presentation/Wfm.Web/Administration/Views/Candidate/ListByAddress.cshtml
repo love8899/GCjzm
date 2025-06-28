@@ -1,0 +1,110 @@
+﻿@using Wfm.Services.Common
+@using Wfm.Services.DirectoryLocation
+@using Wfm.Core
+@using Wfm.Core.Domain.Accounts
+@using Wfm.Services.Franchises
+@model IEnumerable<CandidateAddressModel>
+
+@{
+    ViewBag.Title = T("Admin.Candidate.CandidateAddress").Text;
+
+    var addressTypeService = EngineContext.Current.Resolve<IAddressTypeService>();
+    var cityService = EngineContext.Current.Resolve<ICityService>();
+    var stateProvinceService = EngineContext.Current.Resolve<IStateProvinceService>();
+    var countryService = EngineContext.Current.Resolve<ICountryService>();
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var franchiseList = franchiseService.GetAllFranchisesAsSelectList(workContext.CurrentAccount);
+    var addressTypes = addressTypeService.GetAllAddressTypes();
+    var cities = cityService.GetAllCities();
+    var stateProvinces = stateProvinceService.GetAllStateProvinces();
+    var countries = countryService.GetAllCountries();
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Candidate.CandidateAddress")
+    </div>
+    <div class="options">
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateAddressModel>()
+                .Name("candidateaddress-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.CandidateId).Title(@T("Common.Id").Text).Width(75);
+
+                    columns.Bound(x => x.EmployeeId).Width(150)
+                        .ClientTemplate(@Html.ActionLink("#=EmployeeId#", "Details", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString());
+                    
+                    columns.Bound(x => x.EmployeeName);
+                    if (!workContext.CurrentAccount.IsVendor()&&commonSettings.DisplayVendor)
+                    {
+                        columns.ForeignKey("FranchiseId", franchiseList, "Value", "Text");
+                    }
+
+                    columns.ForeignKey(x => x.AddressTypeId, addressTypes, "Id", "AddressTypeName").Width(120);
+
+                    columns.Bound(x => x.FullAddress);
+                    
+                    //columns.Bound(x => x.UnitNumber).Width(60);
+                    //columns.Bound(x => x.AddressLine1);
+                    //columns.Bound(x => x.AddressLine2);           
+
+                    columns.ForeignKey(x => x.CityId, cities, "Id", "CityName").Width(110);
+                    columns.ForeignKey(x => x.StateProvinceId, stateProvinces, "Id", "StateProvinceName").Width(110);
+                    columns.ForeignKey(x => x.CountryId, countries, "Id", "CountryName").Width(110);
+
+                    columns.Bound(x => x.Id)
+                        .Template(x => Html.Action("MapLookup", "Directory", new
+                        {
+                            x.AddressLine1,
+                            x.CityName,
+                            x.StateProvinceName,
+                            x.CountryName
+                        }))
+                        .ClientTemplate(Html.Action("MapLookup", "Directory", new
+                        {
+                            addressLine1 = "#=AddressLine1#",
+                            cityName = "#=CityName#",
+                            stateProvinceName = "#=StateProvinceName#",
+                            countryName = "#=CountryName#"
+                        }).ToHtmlString())
+                        .Title(T("Admin.Map").Text)
+                        .Width(100);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(true)
+                        .PageSize(20)
+                        .Read(read => read.Action("ListByAddress", "Candidate"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

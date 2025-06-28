@@ -1,0 +1,139 @@
+﻿@using Wfm.Services.Security
+
+
+@{
+    Layout = "";
+
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    var vendorGuId = ViewBag.VendorGuid;
+}
+
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Settings")
+    </div>
+    <div class="options">
+    </div>
+</div>
+
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<SettingModel>()
+                .Name("setting-grid")
+                .Events(e => e.DataBound("onDataBound"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Name).Width("30%");
+                    columns.Bound(x => x.Value).Width("70%");
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    columns.Command(command =>
+                    {
+                        command.Custom("Edit").Click("editSetting").Text("");
+                    }).Title("Action").HtmlAttributes(new { align = "center" }).Width(80);
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .Read(read => read.Action("Settings", "Vendor", new { vendorGuid = vendorGuId }))
+                    .PageSize(20)
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+
+<script>
+
+    function onDataBound(e) {
+        applyCommandIcons(e);
+    }
+
+    function applyCommandIcons(e) {
+        $(".k-grid-Edit").attr('title', 'Edit').html('<span class="fa fa-pencil"></span>');
+    }
+
+    function refreshGird() {
+        var grid = $("#setting-grid").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    function showMsg(msg) {
+        $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+        $(".messageBox").text(msg);
+    }
+
+    function editSetting(e) {
+        e.preventDefault();
+
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var routes = '?settingId=' + dataItem.Id;
+
+        $(document.body).append('<div id="editSetting"></div>');
+        $("#editSetting").kendoWindow({
+            title: "Edit Setting",
+            modal: true,
+            resizable: false,
+            width: 640,
+            height: 320,
+            content: '@Url.Action("_EditSetting", "Vendor")' + routes,
+            close: function () {
+                setTimeout(function () {
+                    $('#editSetting').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-cancel').click(function () {
+                    win.close();
+                })
+                $('#btn-save').click(function () {
+                    var form = $('#setting-form');
+                    if (form.valid()) {
+                        var link = '@Url.Action("_SaveSetting", "Vendor")';
+                        $.ajax({
+                            type: "POST",
+                            url: link,
+                            data: form.serialize(),
+                            success: function (response) {
+                                if (response.Result) {
+                                    showMsg("Setting is updated.");
+                                    win.close();
+                                    refreshGird();
+                                }
+                                else {
+                                    alert(response.ErrorMessage);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }).data('kendoWindow').center();
+    }
+
+</script>

@@ -1,0 +1,87 @@
+﻿@using Wfm.Core;
+@using Wfm.Core.Domain.Common
+@using Wfm.Core.Domain.Localization
+@using Wfm.Web.Framework.UI
+
+@{
+    //var kendoFolder = "kendo/2014.3.1119";
+    var kendoFolder = "kendo/2014.3.1314";
+
+    var supportRtl = EngineContext.Current.Resolve<IWorkContext>().WorkingLanguage.Rtl
+&& !EngineContext.Current.Resolve<LocalizationSettings>().IgnoreRtlPropertyForAdminArea;
+
+    //page title
+    string adminPageTitle = !String.IsNullOrWhiteSpace(ViewBag.Title) ? ViewBag.Title + " / " : "";
+    adminPageTitle += T("Admin.PageTitle").Text;
+
+    //X-UA-Compatible tag
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    if (commonSettings.RenderXuaCompatible)
+    {
+        Html.AppendHeadCustomParts(string.Format("<meta http-equiv=\"X-UA-Compatible\" content=\"{0}\"/>", commonSettings.XuaCompatibleValue));
+    }
+}
+
+<!DOCTYPE html>
+<html@(supportRtl ? Html.Raw(" dir=\"rtl\"") : null)>
+    <head>
+        <title>@adminPageTitle</title>
+        <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+        <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+        <!-- AdminLTE Skins (choose a skin from the css/skins) -->
+        <link href="@Url.Content("~/Content/Admin/adminLTE/skins/_all-skins.min.css")" rel="stylesheet" type="text/css" />
+        <link href="@Url.Content("~/Content/Admin/bootstrap-touchspin/jquery.bootstrap-touchspin.min.css")" rel="stylesheet" type="text/css" />
+        <link href="@Url.Content("~/Content/Admin/fontAwesome/css/font-awesome-4.6.3.min.css")" rel="stylesheet" type="text/css" />
+        <link href="@Url.Content("~/Content/Admin/jquery-ui-themes/smoothness/jquery-ui-1.10.3.custom.min.css")" rel="stylesheet" type="text/css" />
+        <link href="@Url.Content(string.Format("~/Content/{0}/kendo.common.min.css", kendoFolder))" rel="stylesheet" type="text/css" />
+        <link href="@Url.Content(string.Format("~/Content/{0}/kendo.default.min.css", kendoFolder))" rel="stylesheet" type="text/css" />
+        <link href="@Url.Content(string.Format("~/Content/{0}/kendo.rtl.min.css", kendoFolder))" rel="stylesheet" type="text/css" />
+        <link href="@Url.Content("~/Content/kendoExt/kendo.ext.css")" rel="stylesheet" type="text/css" />   @* KENDO Ext css *@
+        @if (supportRtl)
+        {
+            <link href="@Url.Content(" ~/Content/Admin/bootstrap/css/bootstrap.rtl.css")" rel="stylesheet" />
+            <link href="@Url.Content("~/Content/Admin/adminLTE/AdminLTE-2.3.0.rtl.css")" rel="stylesheet" />
+            <link href="@Url.Content("~/Content/Admin/styles.rtl.css")" rel="stylesheet" />
+        }
+        else
+        {
+            <link href="@Url.Content("~/Content/Admin/bootstrap/css/bootstrap.min.css")" rel="stylesheet" />
+            <link href="@Url.Content("~/Content/Admin/adminLTE/AdminLTE-2.3.0.min.css")" rel="stylesheet" />
+            <link href="@Url.Content("~/Content/Admin/styles.css")" rel="stylesheet" />
+        }
+        <link href="@Url.Content("~/Content/acc-wizard.min.css")" rel="stylesheet" />
+        <link href="@Url.Content("~/Content/Admin/tempus.css")" rel="stylesheet" />
+        <link href="@Url.Content("~/Content/Admin/bs3xxs.css")" rel="stylesheet" />
+        <link href="@Url.Content("~/Content/Admin/grid20.css")" rel="stylesheet" />
+        <link href="@Url.Content("~/Content/Admin/dialog.css")" rel="stylesheet" />
+        <script src="@Url.Content("~/Scripts/Admin/jquery-1.10.2.min.js")" type="text/javascript"></script>
+        <script src="@Url.Content("~/Scripts/Admin/jquery-migrate-1.2.1.min.js")" type="text/javascript"></script>
+        <script src="@Url.Content("~/Scripts/Admin/jquery-ui-1.10.3.custom.min.js")" type="text/javascript"></script>
+        <script src="@Url.Content("~/Scripts/Admin/jquery.validate.min.js")" type="text/javascript"></script>
+        <script src="@Url.Content("~/Scripts/Admin/jquery.validate.unobtrusive.min.js")" type="text/javascript"></script>
+        <script src="@Url.Content("~/Scripts/Admin/bootstrap-touchspin/jquery.bootstrap-touchspin.min.js")" type="text/javascript"></script>
+        <script src="@Url.Content("~/Scripts/Admin/bootstrap/bootstrap.min.js")" type="text/javascript"></script>
+        <script src="@Url.Content("~/Scripts/acc-wizard.min.js")" type="text/javascript"></script>
+        <script src="@Url.Content("~/Scripts/Admin/adminLTE/app.min.js")" type="text/javascript"></script>
+        <script src="@Url.Content("~/Scripts/Admin/admin.common.js")" type="text/javascript"></script>
+        <script src="@Url.Content(string.Format("~/Scripts/{0}/jszip.min.js", kendoFolder))" type="text/javascript"></script>
+        <script src="@Url.Content(string.Format("~/Scripts/{0}/kendo.all.min.js", kendoFolder))" type="text/javascript"></script>
+        <script src="@Url.Content(string.Format("~/Scripts/{0}/kendo.aspnetmvc.min.js", kendoFolder))" type="text/javascript"></script>
+        <script src="@Url.Content(string.Format("~/Scripts/{0}/kendo.timezones.min.js", kendoFolder))" type="text/javascript"></script>
+        <script src="@Url.Content("~/Scripts/kendo.modernizr.custom.js")" type="text/javascript"></script>
+        <script src="@Url.Content("~/Scripts/KendoExt/kendo.web.ext.js")" type="text/javascript"></script>  @* KENDO Ext scripts *@
+        <script src="@Url.Content("~/Scripts/Admin/tempus.js")" type="text/javascript"></script>
+    </head>
+    <body class="hold-transition skin-blue sidebar-collapse popup">
+        <div class="wrapper">
+            <div class="content-wrapper">
+                <div class="notifications">
+                    @Html.Partial("_Notifications")
+                </div>
+                <div class="content-body">
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,31 @@
+﻿@{
+    Layout = "~/Views/Shared/Layout/_Root.Head.cshtml";
+    var area = ViewBag.Area != null ? (string)ViewBag.Area : string.Empty;
+
+    var reqPath = Request.Path.TrimEnd(new char[] { '/' }).ToLower();
+    var rootPath = new List<string>() { "", "/home/index", "/register", "/sigin", "/login" };
+    var enableBreadCrumb = !rootPath.Contains(reqPath);
+}
+
+@Html.Partial("Layout/_Notifications")      @*dialog or float notifications*@
+@Html.Action("JavaScriptDisabledWarning", "Common")
+@Html.Partial("Layout/OldInternetExplorerWarning")
+<div class="master-wrapper-page">
+    @*@Html.Action("AdminHeaderLinks", "Common")*@
+    @Html.Partial("Layout/Header")
+    <div class="header-menu">
+        @Html.Partial("Layout/_TopMenu" + area)
+    </div>
+    <div class="master-wrapper-content">
+        @if (enableBreadCrumb)
+        {
+            <div class="breadcrumb">
+                @Html.MvcSiteMap().SiteMapPath()
+            </div>
+        }
+        <div class="master-column-wrapper">
+            @RenderBody()
+        </div>
+    </div>
+    @Html.Partial("Layout/Footer")
+</div>

@@ -1,0 +1,67 @@
+﻿@model MissingHourDocumentModel
+
+
+@Html.HiddenFor(model => model.CandidateMissingHourId)
+
+
+<script src="@Url.Content("~/Scripts/fileUploadHelper.js")" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+    var errors = [];
+
+    function onUpload(e) {
+        var extensions = ['.xls', '.xlsx', '.doc', '.docx', '.pdf', '.jpg', '.jpeg'];
+        $.each(e.files, function (index) {
+            var extension = this.extension.toLowerCase();
+            var allowed = jQuery.inArray(extension, extensions);
+            if (allowed == -1) {
+                e.preventDefault();
+                errors.push('The file type of "' + this.name + '" is not allowed.');
+            }
+        });
+    }
+
+    function onSuccessOverride(e) {
+        refreshList();
+    }
+
+    function onErrorOverride(e) {
+        refreshList();
+        var files = e.files;
+        if (e.operation == "upload") {
+            alert("Failed to upload " + files.length + " files");
+        }
+    }
+
+    function onComplete(e) {
+        if (errors.length > 0)
+            alert(errors.join('\r\n'));
+        errors = [];
+    }
+
+</script>
+
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Upload()
+                .Name("missingHourDocuments")
+                .HtmlAttributes(new { style = "height:200px" })
+                .Multiple(true)
+                .Async(async => async
+                    .Save("SaveMissingHourDocuments", "Company", Model)
+                    //.Remove("RemoveClientDocuments", "Company")
+                    .AutoUpload(false)
+                )
+                .Events(events => events
+                    .Upload("onUpload")
+                    .Complete("onComplete")
+                    .Error("onErrorOverride")
+                    .Success("onSuccessOverride")
+                )
+            )
+        </td>
+    </tr>
+</table>

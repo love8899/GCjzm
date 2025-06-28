@@ -1,0 +1,86 @@
+﻿@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts;
+
+@{
+    Layout = null;
+
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var FranchiseGuid = workContext.CurrentFranchise.FranchiseGuid;
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+
+
+<script type="text/javascript">
+    function filterRecruiters()
+    {
+        return { vendorGuid: $("#Franchise").val() };
+    }
+</script>
+
+
+
+@using (Html.BeginForm("_SelectRecruiters", "Company", new { companyGuid = ViewBag.CompanyGuid }, FormMethod.Post, new {id = "select-new-recruiter-form" }))
+{
+    
+    <table>
+        @if(!workContext.CurrentAccount.IsVendor()&&commonSettings.DisplayVendor)
+        { 
+        <tr>
+            <td class="adminTitle">
+                @(Html.Label("Franchise", "Vendor"))
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownList().Name("Franchise")
+                    .HtmlAttributes(new { data_bind = "value:FranchiseId", style = "width: 250px" })
+                    .DataTextField("Item3")
+                    .DataValueField("Item2")
+                    .OptionLabel("Select a vendor...")
+                    .Value(FranchiseGuid.ToString())
+                    .Enable(!workContext.CurrentAccount.IsLimitedToFranchises)
+                    .DataSource(source =>
+                            source.Read(read => read.Action("GetCascadeVendorsWithGuid", "Common", new { companyGuid = ViewBag.CompanyGuid })).ServerFiltering(true)
+                    )
+                )
+            </td>
+        </tr>
+        }
+        else
+        {
+            @Html.Hidden("Franchise",workContext.CurrentFranchise.FranchiseGuid) 
+        }
+        <tr>
+            <td class="adminTitle">
+                @(Html.Label("Recruiter", "Recruiter"))
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownList().Name("Recruiter")
+                    .HtmlAttributes(new { data_bind = "value:recruiterId", style = "width: 250px" })
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .OptionLabel("Select a recruiter...")
+                    .DataSource(source =>
+                        source.Read(read => read.Action("GetCascadeRecruiters", "JobOrder").Data("filterRecruiters")).ServerFiltering(true)
+                    )
+                    .Enable(workContext.CurrentAccount.IsVendor() || !commonSettings.DisplayVendor)
+                    .AutoBind(false)
+                    .CascadeFrom("Franchise")
+                )
+            </td>
+        </tr>
+        <tr></tr>
+        <tr>
+            <td class="adminTitle">
+            </td>
+            <td class="adminData">
+                <input type="button" id="btn-save" class="k-button" value="@T("Admin.Common.Add")" />
+                <input type="button" id="btn-cancel" class="k-button" value="@T("Admin.Common.Cancel")" />
+            </td>
+        </tr>
+    </table>
+}
+
+@*<script type="text/javascript">
+    $("input[name=cancel]").click(function () {
+        $("#recruiter-window").data("kendoWindow").close();
+    });
+</script>*@

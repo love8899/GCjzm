@@ -1,0 +1,76 @@
+﻿@{
+    Layout = "_ReportLayout";
+    ViewBag.ReportTitle = "Daily attendance report";
+
+    ViewBag.Title = "Daily attendance report";
+    Html.SetActiveMenuItemSystemName("DailyAttendanceReport");
+
+    var startDate = DateTime.Today.Date.AddDays(-7);
+    var endDate = DateTime.Today;
+
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+
+    var GroupChoices = new List<SelectListItem>();
+    if (commonSettings.DisplayVendor) { GroupChoices.Add(new SelectListItem() { Text = "Vendor" }); }
+    GroupChoices.Add(new SelectListItem() { Text = "Location" });
+    GroupChoices.Add(new SelectListItem() { Text = "Department" });
+    GroupChoices.Add(new SelectListItem() { Text = "Supervisor" });
+}
+
+<div class="col-md-6">
+    @Html.Input("Locations", "MultiSelect", new { Items = ViewBag.Locations, PlaceHolder = "Select locations...", })
+    @Html.Input("Departments", "MultiSelect", new { Items = ViewBag.Departments, PlaceHolder = "Select departments...", })
+    @Html.Input("Supervisors", "MultiSelect", new { Items = ViewBag.Supervisors, PlaceHolder = "Select supervisors...", })
+    @if (commonSettings.DisplayVendor)
+    {
+        @Html.Input("Vendors", "MultiSelect", new { Items = ViewBag.Vendors, PlaceHolder = "Select vendors...", })
+    }
+</div>
+<div class="col-md-6">
+    @Html.InputLine("fromDate", "From", tmplt: "Date", viewData: new { Value = startDate, OnChange = "startDateChange" })
+    @Html.InputLine("toDate", "To", tmplt: "Date", viewData: new { Value = endDate })
+    @Html.Input("GroupBy", "DropDownList4Obj", new { Items = GroupChoices, OptionLabel = "Select primary group..." })
+</div>
+
+<script type="text/javascript">
+    var reportParams = {};
+    var reportUrl = '_AttendanceReport';
+    function valParams() {
+        var result = false;
+        var ids = $("#Vendors").val();
+        var vendorIds = ids ? ids.join() : '';
+        ids = $("#Locations").val();
+        var locationIds = ids ? ids.join() : '';
+        ids = $("#Departments").val();
+        var departmentIds = ids ? ids.join() : '';
+        ids = $("#Supervisors").val();
+        var supervisorIds = ids ? ids.join() : '';
+        var fromDate = $("#fromDate").val();
+        var toDate = $("#toDate").val();
+        if (!fromDate)
+            popupNotification('Please select the start date!', 'error');
+        else if (!toDate)
+            popupNotification('Please select the end date!', 'error');
+        else {
+            result = true;
+            reportParams = {
+                vendorIds: vendorIds,
+                locationIds: locationIds,
+                departmentIds: departmentIds,
+                supervisorIds: supervisorIds,
+                groupBy: $("#GroupBy").val(),
+                startDate: fromDate,
+                endDate: toDate
+            };
+        }
+        return result;
+    }
+    function startDateChange() {
+        var startDate = this.value();
+        var endPicker = $("#toDate").data("kendoDatePicker");
+        if (startDate) {
+            startDate = new Date(startDate);
+            endPicker.min(startDate);
+        }
+    }
+</script>

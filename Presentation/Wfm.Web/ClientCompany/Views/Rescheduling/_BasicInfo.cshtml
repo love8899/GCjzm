@@ -1,0 +1,42 @@
+﻿@model Wfm.Client.Models.Rescheduling.ReschedulingModel
+@{
+    Layout = null;
+}
+
+@Html.InputFor(x => x.EmployeeId, "StringDisplay", new { Value = Model.EmployeeId})
+
+@Html.InputFor(x => x.EmployeeName, "StringDisplay", new { Value = Model.EmployeeName })
+
+@Html.InputFor(x => x.StartDate, "Date", new { HtmlAttr = new { @readonly = "readonly" }, OnChange = "onStartDateChange" })
+
+@Html.InputFor(x => x.EndDate, "Date", new { Min = Model.StartDate, Enable = Model.StartDate.Date != DateTime.Today, OnChange = "onEndDateChange" })
+
+@Html.InputFor(x => x.LocationId, "DropDownListRemote", new
+    {
+        Controller = "Common",
+        Action = "GetCascadeLocations",
+        Option = T("Admin.Common.None").Text,
+        OnChange = "onLocationChange"
+    })
+
+@Html.InputFor(x => x.DepartmentId, "CascadeDropDownList", new
+    {
+        Controller = "Company",
+        Action = "GetCascadeDepartments",
+        OnData = "filterDepartments",
+        From = "LocationId",
+        Option = T("Admin.Common.None").Text,
+        OnChange = "onDepartmentChange"
+    })
+
+@Html.InputFor(x => x.PositionId, "DropDownListRemote", new
+    {
+        Controller = "Common",
+        Action = "GetCascadePositions",
+        Option = T("Admin.Common.None").Text,
+        OnChange = "onPositionChange"
+    })
+
+@Html.InputFor(x => x.StartTime, "Time", new { OnChange = "onStartTimeChange" })
+
+@Html.InputFor(x => x.EndTime, "Time", new { OnChange = "onEndTimeChange" })

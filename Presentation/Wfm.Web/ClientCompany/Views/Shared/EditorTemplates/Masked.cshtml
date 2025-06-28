@@ -1,0 +1,7 @@
+﻿@model string
+
+@(Html.Kendo().MaskedTextBoxFor(m => m)
+    .Mask((string)ViewData["Mask"] ?? "(999) 000-0000")
+    .Enable((bool?)ViewData["Enable"] ?? true)
+    .HtmlAttributes(ViewData["HtmlAttr"])
+)

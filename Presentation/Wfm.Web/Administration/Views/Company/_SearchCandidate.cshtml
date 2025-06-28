@@ -1,0 +1,214 @@
+﻿@using Wfm.Services.Common;
+@using Wfm.Services.Franchises;
+@using Wfm.Services.DirectoryLocation;
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts;
+@model CompanyCandidateModel
+
+@{
+    Layout = "";
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var genderService = EngineContext.Current.Resolve<IGenderService>();
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var transportationService = EngineContext.Current.Resolve<ITransportationService>();
+    var cityService = EngineContext.Current.Resolve<ICityService>();
+    var stateProvinceService = EngineContext.Current.Resolve<IStateProvinceService>();
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+    var genders = genderService.GetAllGenders();
+    var shifts = shiftService.GetAllShifts();
+    var franchises = franchiseService.GetAllFranchises();
+    var transportations = transportationService.GetAllTransportations();
+    var cities = cityService.GetAllCities();
+    var stateProvinces = stateProvinceService.GetAllStateProvinces();
+}
+
+<script type="text/javascript">
+    function onDataBound(e) {
+        $('#candidate-grid input[type=checkbox][id!=mastercheckbox]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds);
+            //set checked based on if current checkbox's value is in selectedIds.
+            $(this).attr('checked', checked > -1);
+        });
+
+        updateMasterCheckbox();
+    }
+</script>
+
+
+@using (Html.BeginForm())
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Candidate.SearchCandidate")
+        </div>
+        <div class="options">
+            <input type="button" id="addtopool-selected" class="k-button" value="@T("Admin.Companies.Company.NewCandidate").Text" />
+        </div>
+    </div>
+
+    <table class="adminContent">
+        <tr>
+            <td>
+                @(Html.Kendo().Grid<SearchCompanyCandidateModel>()
+                    .Name("candidate-grid")
+                    .Events(events => events.DataBound("onDataBound"))
+                    .Columns(columns =>
+                    {
+                        columns.Bound(x => x).Filterable(false).Sortable(false)
+                            .HeaderTemplate("<input id='mastercheckbox' type='checkbox'/>")
+                            .ClientTemplate("<input type='checkbox' value='#=Id#' class='checkboxGroups'/>")
+                            .Width(25);
+
+                        columns.Bound(x => x.Id).Title(@T("Common.Id").Text).Width(75);
+
+                        columns.Bound(x => x.EmployeeId).ClientTemplate("#=EmployeeId#").Width(100);
+
+                        columns.Bound(x => x.LastName)
+                            .Template(x => Html.ActionLink(x.LastName, "Details", "Candidate", new { guid = x.Guid }, null))
+                            .ClientTemplate(@Html.ActionLink("#=LastName #", "Details", "Candidate", new { guid = "#=Guid#" }, new { target = "_blank" }).ToHtmlString());
+
+                        columns.Bound(x => x.FirstName)
+                            .Template(x => Html.ActionLink(x.FirstName, "Details", "Candidate", new { guid = x.Guid }, null))
+                            .ClientTemplate(@Html.ActionLink("#=FirstName #", "Details", "Candidate", new { guid = "#=Guid#" }, new { target = "_blank" }).ToHtmlString());
+
+                        columns.ForeignKey(x => x.GenderId, genders, "Id", "GenderName").Width(80);
+
+                        columns.Bound(x => x.Email).Sortable(false).Hidden(true);
+
+                        columns.Bound(x => x.SearchKeys).Sortable(false);
+
+                        columns.ForeignKey(x => x.CityId, cities, "Id", "CityName");
+                        columns.ForeignKey(x => x.StateProvinceId, stateProvinces, "Id", "StateProvinceName").Hidden();
+
+                        columns.Bound(x => x.HomePhone).ClientTemplate("#= prettyPhone(HomePhone) #").Width(110);
+                        columns.Bound(x => x.MobilePhone).ClientTemplate("#= prettyPhone(MobilePhone) #").Width(110);
+                        columns.Bound(x => x.EmergencyPhone).ClientTemplate("#= prettyPhone(EmergencyPhone) #").Width(110).Hidden(true);
+
+                        columns.ForeignKey(x => x.ShiftId, shifts, "Id", "ShiftName").Sortable(false);
+                        columns.ForeignKey(x => x.TransportationId, transportations, "Id", "TransportationName").Sortable(false);
+                        if (commonSettings.DisplayVendor&&!workContext.CurrentAccount.IsVendor())
+                        {
+                            columns.ForeignKey(x => x.FranchiseId, franchises, "Id", "FranchiseName").Width(100).Hidden();
+                        }
+                        columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                        columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    })
+                    .EnableCustomBinding(true)
+                    .Reorderable(reorder => reorder.Columns(true))
+                    .Resizable(resize => resize.Columns(true))
+                    .ColumnMenu(d => d.Sortable(false))
+                    .Sortable()
+                    .Selectable()
+                    .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(true)
+                        .PageSize(20)
+                        .Read(read => read.Action("_SearchCandidate", "Company", new { companyGuid = ViewBag.CompanyGuid }))
+                    )
+                    .Filterable(filterable => filterable
+                        .Extra(false)
+                        .Operators(operators => operators
+                            .ForString(str => str.Clear()
+                                .Contains("Contains")
+                                .IsEqualTo("Is equal to")
+                                .IsNotEqualTo("Is not equal to")
+                            )
+                        )
+                    )
+                )
+            </td>
+        </tr>
+    </table>
+
+    <script type="text/javascript">
+
+        var selectedIds = [];
+
+        $(document).ready(function () {
+
+            $('#mastercheckbox').click(function () {
+                $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+            });
+
+            //wire up checkboxes.
+            $('#candidate-grid').on('change', 'input[type=checkbox][id!=mastercheckbox]', function (e) {
+                var $check = $(this);
+                if ($check.is(":checked") == true) {
+                    var checked = jQuery.inArray($check.val(), selectedIds);
+                    if (checked == -1) {
+                        //add id to selectedIds.
+                        selectedIds.push($check.val());
+                    }
+                }
+                else {
+                    var checked = jQuery.inArray($check.val(), selectedIds);
+                    if (checked > -1) {
+                        //remove id from selectedIds.
+                        selectedIds = $.grep(selectedIds, function (item, index) {
+                            return item != $check.val();
+                        });
+                    }
+                }
+                updateMasterCheckbox();
+            });
+        });
+
+        function onDataBound(e) {
+            $('#candidate-grid input[type=checkbox][id!=mastercheckbox]').each(function () {
+                var currentId = $(this).val();
+                var checked = jQuery.inArray(currentId, selectedIds);
+                //set checked based on if current checkbox's value is in selectedIds.
+                $(this).attr('checked', checked > -1);
+            });
+
+            updateMasterCheckbox();
+        }
+
+        function updateMasterCheckbox() {
+            var numChkBoxes = $('#candidate-grid input[type=checkbox][id!=mastercheckbox]').length;
+            var numChkBoxesChecked = $('#candidate-grid input[type=checkbox][checked][id!=mastercheckbox]').length;
+            $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+        }
+    </script>
+
+}
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $('#addtopool-selected').click(function (e) {
+            e.preventDefault();
+            $(document.body).append('<div id="add-candidate-to-pool"></div>');
+            $("#add-candidate-to-pool").kendoWindow({
+                title: "Add candidate to pool",
+                modal: true,
+                resizable: false,
+                width: 420,
+                height: 120,
+                content: '@Url.Action("_AddCandidateToPool", "Company", new { companyGuid =ViewBag.CompanyGuid})',
+                close: function () {
+                    setTimeout(function () {
+                        $('#add-candidate-to-pool').kendoWindow('destroy');
+                    }, 200);
+                },
+                refresh: function (e) {
+                    var win = this;
+                    var ids = selectedIds.join(",");
+                    $('#addtopool-selected-form #selectedIds').val(ids);
+                    $('#submit-add').click(function () {
+                        win.close();
+                    })
+                }
+            }).data('kendoWindow').center();
+
+            return false;
+        });
+
+    });
+
+</script>

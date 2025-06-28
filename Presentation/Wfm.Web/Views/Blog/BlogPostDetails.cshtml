@@ -1,0 +1,50 @@
+﻿@model BlogPostModel
+@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@using Wfm.Web.Models.Blogs
+@using Wfm.Web.Framework.Seo;
+@using Wfm.Web.Framework.HtmlHelpers;
+@{
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    if (Model.Body != null)
+    {
+        Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+        ViewBag.PageClass = "html-blogpost-page";
+
+        var shortName = "GC Employment Staffing Agency";
+        var pageTitle = SeoHelper.ToSeoFriendlyString(Model.Title);
+        HtmlToText htmlToText = new HtmlToText();
+        //var description = htmlToText.Convert(Model.Body, 180) + "...";
+
+        ViewBag.Title = pageTitle + " | " + shortName;
+        //ViewBag.Description = description;
+        ViewBag.Keywords = null;
+        ViewBag.PageTitle = ViewBag.Title;
+        //ViewBag.PageDescription = ViewBag.Description;
+        ViewBag.PageName = shortName + " | Blog";
+
+        //meta
+        Html.AddMetaDescriptionParts(Model.MetaDescription);
+        Html.AddMetaKeywordParts(Model.MetaKeywords);
+    }
+}
+
+@section left {
+    @Html.Partial("Layout/_ContactSideBar")
+}
+<div class="page blogpost-page">
+    @Html.Widget("blogpost_page_top", Model.Id)
+    <div class="page-title">
+        <h1>@Model.Title</h1>
+    </div>
+    <div class="page-body">
+        <div class="post-date">
+            @Model.CreatedOn.Value.ToString("D")
+        </div>
+        @Html.Widget("blogpost_page_before_body", Model.Id)
+        <div class="post-body">
+            @Html.Raw(Model.Body)
+        </div>
+    </div>
+</div>

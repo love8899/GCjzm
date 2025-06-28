@@ -1,0 +1,48 @@
+﻿@*export selected (Pdf). We don't use GET approach because it's limited to 2K-4K chars and won't work for large number of entities*@
+@using (Html.BeginForm("PrintDailyAttendanceListToPdf", "TimeSheet", FormMethod.Post, new { id = "printtopdf-selected-form" }))
+{
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+    <input type="hidden" id="hdnDate" name="hdnDate" value="" />
+    <input type="hidden" id="clientTime" name="clientDateTime" value="" />
+    <input type="hidden" id="hideTotalHours" name="hideTotalHours" value="" />
+}
+<script type="text/javascript">
+    $(function () {
+        $('#printtopdf-selected').click(function (e) {
+            e.preventDefault();
+            if (checkedIds.length) {
+                $('#printtopdf-selected-form #selectedIds').val(checkedIds.join(','));
+                $('#printtopdf-selected-form #hdnDate').val($("#sf_From").val());
+                $('#printtopdf-selected-form #clientTime').val(new Date().toJSON());
+                $('#printtopdf-selected-form #hideTotalHours').val(getColumnByName('@ViewData["GridName"]', 'TotalHoursWorked').hidden);
+                $('#printtopdf-selected-form').submit();
+            }
+            else
+                popupNotification('@T("Common.SelectOneOrMoreItems")', 'error');
+            return false;
+        });
+    });
+</script>
+
+@using (Html.BeginForm("ExportDailyAttendanceListToXlsx", "TimeSheet", FormMethod.Post, new { id = "exporttoxlsx-selected-form" }))
+{
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+    <input type="hidden" id="hdnDate" name="hdnDate" value="" />
+    <input type="hidden" id="clientTime" name="clientDateTime" value="" />
+}
+<script type="text/javascript">
+    $(function () {
+        $('#exportexcel-selected').click(function (e) {
+            e.preventDefault();
+            if (checkedIds.length) {
+                $('#exporttoxlsx-selected-form #selectedIds').val(checkedIds.join(','));
+                $('#exporttoxlsx-selected-form #hdnDate').val($("#sf_From").val());
+                $('#exporttoxlsx-selected-form #clientTime').val(new Date().toJSON());
+                $('#exporttoxlsx-selected-form').submit();
+            }
+            else
+                popupNotification('@T("Common.SelectOneOrMoreItems")', 'error');
+            return false;
+        });
+    });
+</script>

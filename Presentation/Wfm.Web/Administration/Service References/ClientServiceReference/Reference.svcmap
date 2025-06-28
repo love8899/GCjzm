@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="6a03cc2d-18cb-4b2e-b7ca-29a33d660dec" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+  <ClientOptions>
+    <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
+    <GenerateTaskBasedAsynchronousMethod>true</GenerateTaskBasedAsynchronousMethod>
+    <EnableDataBinding>true</EnableDataBinding>
+    <ExcludedTypes />
+    <ImportXmlTypes>false</ImportXmlTypes>
+    <GenerateInternalTypes>false</GenerateInternalTypes>
+    <GenerateMessageContracts>false</GenerateMessageContracts>
+    <NamespaceMappings />
+    <CollectionMappings />
+    <GenerateSerializableTypes>true</GenerateSerializableTypes>
+    <Serializer>Auto</Serializer>
+    <UseSerializerForFaults>true</UseSerializerForFaults>
+    <ReferenceAllAssemblies>true</ReferenceAllAssemblies>
+    <ReferencedAssemblies />
+    <ReferencedDataContractTypes />
+    <ServiceContractMappings />
+  </ClientOptions>
+  <MetadataSources>
+    <MetadataSource Address="http://localhost:3630/WfmService.svc" Protocol="http" SourceId="1" />
+  </MetadataSources>
+  <Metadata>
+    <MetadataFile FileName="WfmService.wsdl" MetadataType="Wsdl" ID="3058c965-2e64-40d4-9223-4dd5ea9daa59" SourceId="1" SourceUrl="http://localhost:3630/WfmService.svc?wsdl" />
+    <MetadataFile FileName="WfmService2.xsd" MetadataType="Schema" ID="03f9fa39-8ebb-4966-a3f7-7e6cbab3ff9a" SourceId="1" SourceUrl="http://localhost:3630/WfmService.svc?xsd=xsd2" />
+    <MetadataFile FileName="WfmService3.xsd" MetadataType="Schema" ID="b0ce2643-c366-4dd2-bcbf-7ca9730b7953" SourceId="1" SourceUrl="http://localhost:3630/WfmService.svc?xsd=xsd3" />
+    <MetadataFile FileName="WfmService1.xsd" MetadataType="Schema" ID="599a990c-226c-4aa5-85a0-d486002f9279" SourceId="1" SourceUrl="http://localhost:3630/WfmService.svc?xsd=xsd0" />
+    <MetadataFile FileName="WfmService.xsd" MetadataType="Schema" ID="a19254c3-dffb-476c-9561-6890e00097cc" SourceId="1" SourceUrl="http://localhost:3630/WfmService.svc?xsd=xsd1" />
+    <MetadataFile FileName="WfmService.disco" MetadataType="Disco" ID="0628be85-ddf0-4e8b-b88e-6b60d7bdd6f0" SourceId="1" SourceUrl="http://localhost:3630/WfmService.svc?disco" />
+  </Metadata>
+  <Extensions>
+    <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
+    <ExtensionFile FileName="configuration.svcinfo" Name="configuration.svcinfo" />
+  </Extensions>
+</ReferenceGroup>

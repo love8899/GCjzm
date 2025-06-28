@@ -1,0 +1,63 @@
+﻿<script>
+    function gridParameter() { return { guid: '@(ViewBag.CandidateGuid)', year: $("#tax-year").val() }; }
+    function refresh() { $('#tax-form-grid').data('kendoGrid').dataSource.read(); }
+</script>
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Employee.TaxForm")
+    </div>
+    <div class="options">
+        @T("Common.Year"):
+        @(Html.Kendo().DatePicker().Name("tax-year").HtmlAttributes(new { type = "text", style = "width:150px" })
+            .Depth(CalendarView.Decade).Start(CalendarView.Decade).Format("yyyy")
+            .Value(DateTime.Today).Max(DateTime.Today.AddYears(1))
+            .Events(e => e.Change("refresh")))
+    </div>
+</div>
+<br />
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<Wfm.Core.Domain.Payroll.TaxForm>()
+                .Name("tax-form-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(p => p.Id).Hidden();
+                    columns.Bound(p => p.FormType).Width(100);
+                    columns.Bound(p => p.Year).Width(100);
+                    columns.Bound(p => p.Province).Width(180);
+                    columns.Bound(p => p.SlipType);
+
+                    columns.Bound(p => p.Income).Title("Total Income").Format("{0:c}").Width(120);
+                    columns.Bound(p => p.Tax).Format("{0:c}").Width(120);
+
+                    columns.Bound(p => p.IssueDate).Format("{0:yyyy-MM-dd HH:mm}").Width(200);
+
+                })
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("_TabTaxForm", "Employee").Data("gridParameter"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

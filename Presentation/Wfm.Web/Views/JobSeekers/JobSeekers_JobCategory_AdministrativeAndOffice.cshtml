@@ -1,0 +1,49 @@
+﻿@using Wfm.Core.Infrastructure
+@using Wfm.Core.Domain.Common
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Administrative and Office";
+    //var description = siteTitle + " provides permanent, contract and temporary appointments across a wide variety of administrative and office roles.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower() + " jobs";
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Administrative and Office</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            @siteTitle provides permanent, contract and temporary appointments across
+            a wide variety of administrative and office roles. We will help you find exactly
+            what you are looking for and take you through the process of selection and interviews.
+        </p>
+        <p>
+            We have a great track record of placing highly-qualified staff in the following
+            positions:
+        </p>
+        <ul>
+            <li>Administrative and executive assistants</li>
+            <li>Secretaries</li>
+            <li>Receptionists and switchboard operators</li>
+            <li>Word processing, spreadsheet and database specialists</li>
+            <li>Clerks</li>
+            <li>Accounting clerks</li>
+            <li>Data-entry operators</li>
+            <li>Desktop publishers</li>
+        </ul>
+    </div>
+</div>

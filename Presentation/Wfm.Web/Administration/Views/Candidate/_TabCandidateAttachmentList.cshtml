@@ -1,0 +1,101 @@
+﻿@using Wfm.Services.Media
+@{
+    Layout = "";
+    ViewBag.Title = T("Admin.Candidate.Attachments").Text;
+
+    var attachmentTypeService = EngineContext.Current.Resolve<IAttachmentTypeService>();
+    var attachmentTypes = attachmentTypeService.GetAllAttachmentTypes();
+    var documentTypeService = EngineContext.Current.Resolve<IDocumentTypeService>();
+    var documentTypes = documentTypeService.GetAllDocumentTypes();
+}
+@(Html.Kendo().Window()
+    .Name("attachment-window")
+    .Title("Attachment")
+    .Content(@<text> @Html.Partial("_UploadAttachment", new CandidateAttachmentModel { CandidateId = ViewBag.CandidateId,CandidateGuid=ViewBag.CandidateGuid }) </text>)
+    .Draggable()
+    .Resizable()
+    .Visible(false)
+    .Width(700)
+    .Actions(actions => actions.Minimize().Maximize().Close())
+)
+
+<div class="section-header">
+    @if (ViewBag.DisplayHeader == null || ViewBag.DisplayHeader)
+    {
+        <div class="title">
+            @T("Admin.Candidate.Attachments")
+        </div>
+    }
+    <div class="options">
+        @*<button id="upload-attachments" class="k-button">@T("Common.Add")</button>*@
+        <input type="button" id="upload-attachments" class="k-button" value="@T("Common.Add")" />
+        <script type="text/javascript">
+            $("#upload-attachments").bind("click", function () { $("#attachment-window").data("kendoWindow").center().open(); });
+        </script>
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateAttachmentModel>()
+                .Name("candidateattachment-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.OriginalFileName);
+                    columns.ForeignKey(x => x.AttachmentTypeId, attachmentTypes, "Id", "TypeName").Width(100);
+                    columns.ForeignKey(x => x.DocumentTypeId, documentTypes, "Id", "TypeName").Width(100);
+                    columns.Bound(x => x.ExpiryDate).Format("{0:yyyy-MM-dd}").Width(80);
+                    columns.Bound(x => x.Id)
+                        .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/Candidate/DownloadCandidateAttachment?guid=") + "#= CandidateAttachmentGuid #\"><span class='fa fa-download'></span></a>")
+                        .HtmlAttributes(new { style = "text-align:center",title=T("Common.Download").Text })
+                        .Title(T("Common.Download").Text)
+                        .Width(90);
+                    columns.Bound(x => x.CompanyName);
+                    //columns.Bound(x => x.ContentText).Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+                    columns.Bound(x => x.ContentType).Width(100).Hidden();
+                   // columns.Bound(x => x.StoredPath).Hidden();
+                   // columns.Bound(x => x.StoredFileName).Hidden();
+                    columns.Bound(x => x.UpdatedOnUtc)
+                        .Template(x => x.UpdatedOn.Value.ToString("yyyy-MM-dd HH:mm"))
+                        .ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc)
+                        .Template(x => x.CreatedOn.Value.ToString("yyyy-MM-dd HH:mm"))
+                        .ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Command(commands =>
+                        {
+                            commands.Destroy().Text(" ");
+                        })
+                        .HtmlAttributes(new { style = "vertical-align:middle", title=T("Common.Delete").Text})
+                        .Width(100);
+
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(30)
+                    .Read(read => read.Action("_TabCandidateAttachmentList", "Candidate", new { candidateGuid = ViewBag.CandidateGuid }))
+                    .Destroy(update => update.Action("DeleteAttachment", "Candidate"))
+                    .Model(m=>m.Id("Id"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

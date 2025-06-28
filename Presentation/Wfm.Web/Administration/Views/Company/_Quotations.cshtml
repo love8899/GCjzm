@@ -1,0 +1,50 @@
+﻿@model IEnumerable<QuotationModel>
+
+@{ 
+    var quotationDeletable = ViewData["quotationDeletable"] != null ? (bool)ViewData["quotationDeletable"] : false;
+}
+
+
+@if (Model != null && Model.Any())
+{
+    foreach (var doc in Model)
+    {
+        <a class='k-button' href='@(Url.Content("~/Admin/Company/DownloadQuotation/") + doc.Id.ToString())'>
+            <img alt="document" src="@Url.Content("~/Administration/Content/images/ico-letter.png")" class="k-image">
+            @doc.FileName
+            @if (quotationDeletable)
+            {
+                <img alt="delete" src="@Url.Content("~/Administration/Content/images/ico-cross-small.png")" class="k-image" onclick="return deleteQuotation(@doc.Id);">
+            }
+        </a>
+    }
+}
+else
+{
+    <span>None</span>
+}
+
+
+<script type="text/javascript">
+
+    function deleteQuotation(id) {
+        $.ajax({
+            url: '@Url.Action("_DeleteQuotation", "Company")',
+            type: 'post',
+            data: { id: id },
+            dataType: 'text',
+            success: function (result) {
+                if (result != '{}')
+                    alert(result);
+                else {
+                    refreshQuotationList(true);
+                    existing--;
+                    if (existing <= 0)
+                        alert('Quotation is required');
+                }
+            }
+        });
+        return false;
+    }
+
+</script>

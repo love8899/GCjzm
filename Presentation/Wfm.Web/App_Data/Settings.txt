@@ -1,0 +1,2 @@
+DataProvider: sqlserver
+DataConnectionString: Data Source=localhost\SQLEXPRESS;Initial Catalog=Workforce3;Integrated Security=SSPI; Persist Security Info=False;MultipleActiveResultSets=True

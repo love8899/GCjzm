@@ -1,0 +1,73 @@
+﻿@using Wfm.Core.Infrastructure
+@using Wfm.Services.Common
+@model Wfm.Shared.Models.Accounts.AccountChangeSecuirtyQuestionsModel
+@{
+    var securityQuestionService = EngineContext.Current.Resolve<ISecurityQuestionService>();
+    var securityquestions = securityQuestionService.GetAllSecurityQuestions();
+    var securityquestionsDropDownList = new List<SelectListItem>();
+    foreach (var c in securityquestions)
+    {
+        var item = new SelectListItem()
+        {
+            Text = c.Question,
+            Value = c.Id.ToString()
+        };
+        securityquestionsDropDownList.Add(item);
+    }
+}
+@using (Html.BeginForm("_ChangeSecurityQuestions", "Account", FormMethod.Post, new { id = "changeSecurityQuestions-form" }))
+{
+    <div class="section-header">
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            @Html.ActionLink(T("Admin.Common.Cancel").Text, "Details", "Account", null, new { @class = "k-button" })
+        </div>
+    </div>
+    @Html.ValidationSummary(true)
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SecurityQuestion1Id)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                    .Name("SecurityQuestion1Id")
+                                .OptionLabel("--Select--")
+                                .BindTo(securityquestionsDropDownList)
+                )
+                @Html.WfmValidationMessageFor(model => model.SecurityQuestion1Id)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SecurityQuestion1Answer)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.SecurityQuestion1Answer)
+                @Html.WfmValidationMessageFor(model => model.SecurityQuestion1Answer)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SecurityQuestion2Id)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                    .Name("SecurityQuestion2Id")
+                                .OptionLabel("--Select--")
+                                .BindTo(securityquestionsDropDownList)
+                )
+                @Html.WfmValidationMessageFor(model => model.SecurityQuestion2Id)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SecurityQuestion2Answer)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.SecurityQuestion2Answer)
+                @Html.WfmValidationMessageFor(model => model.SecurityQuestion2Answer)
+            </td>
+        </tr>
+    </table>
+}

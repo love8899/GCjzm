@@ -1,0 +1,46 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Franchises;
+@{
+    var refDate = DateTime.Today;
+}
+@(Html.Kendo().PanelBar().Name("search-bar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text(String.Format(T("Common.ReportParameters").Text, T("Report.SINExpiry").Text))
+            .Expanded(true)
+            .Content(@<div class="panel">
+                <br />
+                @Html.Label("RefDate", "SIN Expiry Date on or before: ")
+                @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("RefDate").Value(refDate.ToString("yyyy-MM-dd"))
+                <div style="text-align: center">
+                    <br />@(Html.Kendo().Button().Name("loadReport").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text))<br /><br />
+                </div>
+            </div>);
+    })
+)
+
+<div id="report" />
+<script type="text/javascript">
+
+    $("#loadReport").bind("click", function () {
+        loadReport();
+    });
+
+    function loadReport() {
+        var refDate = $("#RefDate").val();
+        if (!refDate) {
+            alert("Please select a date!");
+        }
+        else {
+            $("#report").load("_SINExpiryReport", {
+                refDate:refDate
+            });
+        }
+    }
+</script>
+
+
+
+
+

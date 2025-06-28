@@ -1,0 +1,30 @@
+﻿@model JobOrderModel
+<script>
+    function filterBillingRateCodes() {
+        var companyId = 0;
+        if ($("#CompanyData").attr("datauid") != null && $("#CompanyData").attr("datauid") != '')
+            companyId = $("#CompanyData").attr("datauid");
+        var FranchiseId = 0;
+        if ($("#FranchiseData").attr("datauid") != null && $("#FranchiseData").attr("datauid") != '')
+            FranchiseId = $("#FranchiseData").attr("datauid");
+        return { companyId: companyId, locationid: $("#CompanyLocationId").val(), vendorId: FranchiseId, refDate: $('#StartDate').val() };
+    }</script>
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @T("Admin.JobOrder.JobOrder.Fields.BillingRateCode")
+        </td>
+        <td class="adminData required">
+            @Html.TextBoxFor(model => model.BillingRateCode, new { @class = "k-textbox", @readonly = true })
+            @Html.WfmValidationMessageFor(model => model.BillingRateCode)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Salary)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.Salary)
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,367 @@
+﻿@using Wfm.Core
+@using Wfm.Shared.Models.Employees;
+@using Wfm.Services.Common
+@using Wfm.Services.Companies
+@using Wfm.Services.Employees
+
+@model EmployeeModel
+@{ 
+    var vetranTypeService = EngineContext.Current.Resolve<IVetranTypeService>();
+    var vetranTypes = vetranTypeService.GetAllVetranTypes();
+    var vetranTypesDropDownList = vetranTypes.Select(x => new SelectListItem
+    {
+        Text = x.VetranTypeName,
+        Value = x.Id.ToString(),
+    }).ToList();
+
+    var genderService = EngineContext.Current.Resolve<IGenderService>();
+    var genders = genderService.GetAllGenders();
+    var gendersDropDownList = genders.Select(x => new SelectListItem
+    {
+        Text = x.GenderName,
+        Value = x.Id.ToString(),
+    }).ToList();
+
+    var employeeService = EngineContext.Current.Resolve<IEmployeeService>();
+    var employeeTypes = employeeService.GetAllEmployeeTypes();
+    var employeeTypesDropDownList = employeeTypes.Select(x => new SelectListItem
+    {
+        Text = x.Name,
+        Value = x.Id.ToString(),
+    }).ToList();
+
+    var companyDivisionService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var locationList = new SelectList(companyDivisionService.GetAllCompanyLocationsByCompanyId(workContext.CurrentAccount.CompanyId).OrderBy(x => x.LocationName).ToArray(),
+                    "Id", "LocationName");
+    var companyService = EngineContext.Current.Resolve<ICompanyService>();
+    var companyJobRoleList = new SelectList(companyService.GetAllJobRoles(workContext.CurrentAccount.CompanyId).OrderBy(x => x.Name).ToArray(),
+        "Id", "Name");
+}
+<form id="employee-basic-form">
+    
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.CandidateGuid)
+    @*@Html.HiddenFor(model => model.CandidateModel.SocialInsuranceNumber)
+        @Html.HiddenFor(model => model.CandidateModel.SINExpiryDate)*@
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+    @Html.HiddenFor(model => model.UpdatedOnUtc)
+    @*@Html.HiddenFor(model => model.PasswordPolicyModel.Code)
+    @Html.HiddenFor(model => model.PasswordPolicyModel.PasswordHistory)
+    @Html.HiddenFor(model => model.PasswordPolicyModel.PasswordLifeTime)
+    @Html.HiddenFor(model => model.PasswordPolicyModel.MinLength)
+    @Html.HiddenFor(model => model.PasswordPolicyModel.MaxLength)
+    @Html.HiddenFor(model => model.PasswordPolicyModel.RequireLowerCase)
+    @Html.HiddenFor(model => model.PasswordPolicyModel.RequireNumber)
+    @Html.HiddenFor(model => model.PasswordPolicyModel.RequireSymbol)
+    @Html.HiddenFor(model => model.PasswordPolicyModel.RequireUpperCase)*@
+    <table class="adminContent">
+        <tr><td colspan="4" >@Html.ValidationSummary(true)</td>
+            </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.FirstName)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.FirstName)
+                @Html.WfmValidationMessageFor(model => model.FirstName)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.LastName)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.LastName)
+                @Html.WfmValidationMessageFor(model => model.LastName)
+            </td>
+            @*<td class="adminTitle" rowspan="4"></td>
+            <td class="adminData" rowspan="4">
+                <img alt="@Model.Id" src="@Model.PictureThumbnailUrl" />
+            </td>*@
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SocialInsuranceNumber)
+            </td>
+            <td class="adminData required">
+                @Html.Kendo().MaskedTextBoxFor(model => model.SocialInsuranceNumber).Mask("999-999-999").HtmlAttributes(new { placeholder = "123-456-789" })
+                @Html.WfmValidationMessageFor(model => model.SocialInsuranceNumber)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SINExpiryDate)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                .Name("SINExpiryDate")
+                .Format("dddd, MMMM d, yyyy")
+                .Start(CalendarView.Year)
+                )
+                @Html.WfmValidationMessageFor(model => model.SINExpiryDate)
+            </td>
+        </tr>
+        @if(Model.Password==null)
+        { 
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.Password)
+                </td>
+                <td class="adminData required">
+                    @Html.EditorFor(model => model.Password)
+                    @Html.WfmValidationMessageFor(model => model.Password)
+                </td>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.RePassword)
+                </td>
+                <td class="adminData required">
+                    @Html.EditorFor(model => model.RePassword)
+                    @Html.WfmValidationMessageFor(model => model.RePassword)
+                </td>
+            </tr>
+        }
+        else
+        {
+            @Html.HiddenFor(model=>model.Password)
+            @Html.HiddenFor(model=>model.RePassword) 
+        }
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EmployeeId)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.EmployeeId)
+                @Html.WfmValidationMessageFor(model => model.EmployeeId)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SINExtensionSubmissionDate)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                .Name("SINExtensionSubmissionDate")
+                .Format("dddd, MMMM d, yyyy")
+                .Start(CalendarView.Year)
+                )
+                @Html.WfmValidationMessageFor(model => model.SINExtensionSubmissionDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Email)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.Email)
+                @Html.WfmValidationMessageFor(model => model.Email)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.GenderId)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                    .Name("GenderId")
+                    .OptionLabel("--Select--")
+                    .BindTo(gendersDropDownList)
+                )
+                @Html.WfmValidationMessageFor(model => model.GenderId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.WorkPermit)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.WorkPermit)
+                @Html.WfmValidationMessageFor(model => model.WorkPermit)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.WorkPermitExpiry)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                .Name("WorkPermitExpiry")
+                .Format("dddd, MMMM d, yyyy")
+                .Start(CalendarView.Year)
+                )
+                @Html.WfmValidationMessageFor(model => model.WorkPermitExpiry)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.HomePhone)
+            </td>
+            <td class="adminData required">
+                @Html.Kendo().MaskedTextBoxFor(model => model.HomePhone).Mask("999-999-9999")
+                @Html.WfmValidationMessageFor(model => model.HomePhone)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.MobilePhone)
+            </td>
+            <td class="adminData">
+                @Html.Kendo().MaskedTextBoxFor(model => model.MobilePhone).Mask("999-999-9999")
+                @Html.WfmValidationMessageFor(model => model.MobilePhone)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EmergencyPhone)
+            </td>
+            <td class="adminData">
+                @Html.Kendo().MaskedTextBoxFor(model => model.EmergencyPhone).Mask("999-999-9999")
+                @Html.WfmValidationMessageFor(model => model.EmergencyPhone)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.PreferredWorkLocation)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownList()
+                .Name("CompanyLocationId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(locationList)
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.PrimaryJobRoleId)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownList()
+                .Name("PrimaryJobRoleId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(companyJobRoleList)
+                )
+                @Html.WfmValidationMessageFor(model => model.PrimaryJobRoleId)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.BirthDate)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                .Name("BirthDate")
+                .Format("dddd, MMMM d, yyyy")
+                .Start(CalendarView.Century)
+                //.Min(DateTime.Now.AddYears(-80))
+                .Max(DateTime.Now.AddYears(-10))
+                )
+                @Html.WfmValidationMessageFor(model => model.BirthDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.HireDate)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                .Name("HireDate")
+                .Format("dddd, MMMM d, yyyy")
+                .Start(CalendarView.Month)
+                )
+                @Html.WfmValidationMessageFor(model => model.HireDate)
+            </td>
+
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.TerminationDate)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                .Name("TerminationDate")
+                .Format("dddd, MMMM d, yyyy")
+                .Start(CalendarView.Month)
+                )
+                @Html.WfmValidationMessageFor(model => model.TerminationDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.IsActive)
+            </td>
+            <td class="adminData">
+                @Html.CheckBoxFor(model => model.IsActive)
+                @Html.WfmValidationMessageFor(model => model.IsActive)
+            </td>
+
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.InactiveReason)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.InactiveReason)
+                @Html.WfmValidationMessageFor(model => model.InactiveReason)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Education)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.Education)
+                @Html.WfmValidationMessageFor(model => model.Education)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Education2)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.Education2)
+                @Html.WfmValidationMessageFor(model => model.Education2)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CanRelocate)
+            </td>
+            <td class="adminData">
+                @Html.CheckBoxFor(model => model.CanRelocate)
+                @Html.WfmValidationMessageFor(model => model.CanRelocate)
+            </td>
+
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.VetranTypeId)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownList()
+                    .Name("VetranTypeId")
+                    .OptionLabel("--Select--")
+                    .BindTo(vetranTypesDropDownList)
+                )
+                @Html.WfmValidationMessageFor(model => model.VetranTypeId)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EmployeeType)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                    .Name("EmployeeTypeId")
+                    .OptionLabel("--Select--")
+                    .BindTo(employeeTypesDropDownList)
+                )
+                @Html.WfmValidationMessageFor(model => model.EmployeeTypeId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Note)
+            </td>
+            <td class="adminData">
+                @Html.TextAreaFor(model => model.Note, new { @class = "k-widget k-input", style = "border-color: #94c0d2; border-radius: 4px; width: 99%;" })
+                @Html.WfmValidationMessageFor(model => model.Note)
+            </td>
+        </tr>
+    </table>
+</form>
+@if(Model.Id>0)
+{ 
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @T("Common.Photo")
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.CandidateGuid, "PictureCandidate")
+                @Html.WfmValidationMessageFor(model => model.CandidateGuid)
+            </td>
+        </tr>
+    </table>
+}
+

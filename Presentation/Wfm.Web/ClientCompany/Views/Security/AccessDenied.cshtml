@@ -1,0 +1,12 @@
+﻿@{
+    //page title
+    ViewBag.Title = T("Admin.AccessDenied.Title").Text;
+}
+
+<div class="section-header">
+    <div class="title">
+        <img src="@Url.Content("~/ClientCompany/Content/images/ico-blacklist.png")" alt="@T("Admin.AccessDenied.Title")" />
+        @T("Admin.AccessDenied.Title")
+    </div>
+</div>
+<p>@T("Admin.AccessDenied.Description")</p>

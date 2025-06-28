@@ -1,0 +1,21 @@
+﻿@model Wfm.Shared.Models.Accounts.AccountModel
+@{
+    ViewBag.PageTitle = T("Admin.Accounts.Account.EditAccountDetails").Text;
+    ViewBag.UsingForm = true;
+}
+
+@section Options {
+    <button type="submit" name="save" class="btn bg-blue">
+        <i class="fa fa-floppy-o"></i>
+        @T("Admin.Common.Save")
+    </button>
+    <button type="submit" name="save-continue" class="btn bg-blue">
+        <i class="fa fa-floppy-o"></i>
+        @T("Admin.Common.SaveContinue")
+    </button>
+    <a class="btn bg-yellow" href="@Url.Action("Details")">
+        <i class="fa fa-ban"></i>@T("Admin.Common.Cancel")
+    </a>
+}
+
+@Html.Partial("_CreateOrUpdate", Model)

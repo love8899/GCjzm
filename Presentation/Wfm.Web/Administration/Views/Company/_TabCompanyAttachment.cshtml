@@ -1,0 +1,148 @@
+﻿@using Wfm.Services.Media
+@using Wfm.Services.Security
+<script src="@Url.Content("~/Scripts/admin.common.js?version=1.8")" type="text/javascript"></script>
+@{
+    var attachmentTypeService = EngineContext.Current.Resolve<IAttachmentTypeService>();
+    var types = attachmentTypeService.GetAllAttachmentTypes();
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+}
+<script type="text/javascript">
+    function onUpload2(e) {
+        e.data = { guid: '@(ViewBag.CompanyGuid)', isRestricted: $('#IsRestricted').is(':checked') };
+    }
+    function onComplete2() {
+        $("#attachment-window").data("kendoWindow").close();
+        refreshAttachmentGird();
+    }
+    function onError(e) {
+    }
+    function refreshAttachmentGird() {
+        var grid = $("#company-attachment-grid").data("kendoGrid");
+        grid.dataSource.read();
+    }
+    function onAttachmentDataBound(e) {
+        var grid = $("#company-attachment-grid").data("kendoGrid");
+        var data = grid.dataSource.data();
+        for (var i = 0; i < data.length; i++) {
+            var currentData = data[i];
+            var theRow = grid.tbody.find(">tr:not(.k-grouping-row)").eq(i);
+            if (!currentData.Readable) {
+                theRow.find(".k-grid-download").remove();
+            }
+            if (!currentData.Writeable) {
+                theRow.find(".k-grid-edit").remove();
+            }
+            if (!currentData.Deletable) {
+                theRow.find(".k-grid-delete").remove();
+            }
+        }
+    }
+    function onEdit(e) {
+        if (!e.model.Writeable) {
+            $("#company-attachment-grid").data("kendoGrid").closeCell();
+            alert('You cannot change this attachment!');
+        }
+    }
+    function uploadAttachment () {
+        var dialog = $("#attachment-window").data("kendoWindow");
+        if (!dialog) {
+            $("#attachment-window").kendoWindow({
+                title: "Attachment",
+                modal: true,
+                resizable: false,
+                width: 700,
+                refresh: function (e) { dialog.open(); }
+            });
+            dialog = $("#attachment-window").data("kendoWindow");
+        }
+        dialog.refresh({
+            url: '@Url.Action("_UploadAttachment", "Company")',
+        });
+        dialog.center();
+    }
+</script>
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Candidate.Attachments")
+    </div>
+    @if (permissionService.Authorize(StandardPermissionProvider.UploadCompanyAttachment))
+    {
+        <div class="options">
+            <input type="button" id="upload-attachments" class="k-button" value="@T("Common.Add")" />
+            <script type="text/javascript">
+                $("#upload-attachments").bind("click", uploadAttachment);
+            </script>
+        </div>
+    }
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CompanyAttachmentModel>()
+                .Name("company-attachment-grid")
+                .Events(e => e.DataBound("onAttachmentDataBound").Edit("onEdit"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.AttachmentFileName);
+                    columns.ForeignKey(model => model.AttachmentTypeId, types, "Id", "TypeName").Title(T("Admin.Candidate.CandidateAttachment.Fields.AttachmentTypeId").Text).Width(150);
+
+                    columns.Bound(x => x.IsRestricted).Title("Restricted").HtmlAttributes(new { style = "text-align:center;vertical-align:middle" }).Width(100)
+                        //.ClientTemplate("<input type='checkbox' value='true' " + "# if (IsRestricted) { #" + "checked='checked'" + "# } #" + "/>");
+                        .ClientTemplate("#if (IsRestricted) {# Yes #}else{# No #}#");
+                    
+                    columns.Bound(x => x.Id)
+                        .ClientTemplate("<a class='k-button k-grid-download' href=\"" + @Url.Content("~/Admin/Company/DownloadCompanyAttachment?guid=") + "#= CompanyAttachmentGuid #\"><span class='fa fa-download'></span></a>")
+                        .HtmlAttributes(new { style = "text-align:center", title = T("Common.Download").Text })
+                        .Title(T("Common.Download").Text)
+                        .Width(150);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd hh:mm')#").Width(150).Hidden();
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd hh:mm')#").Width(150);
+                    if (permissionService.Authorize(StandardPermissionProvider.UploadCompanyAttachment))
+                    {
+                        columns.Command(c => {
+                                c.Destroy().Text(" ").HtmlAttributes(new { title = T("Common.Delete").Text });
+                                //c.Edit().Text(" ").HtmlAttributes(new { title = T("Common.Edit").Text });
+                            })
+                            .Title("Action").HtmlAttributes(new { style = "text-align:center;vertical-align:middle" }).Width(150);
+                    }
+                })
+                .ToolBar(tool => { tool.Save(); })
+                .Editable(edit => edit.Mode(GridEditMode.InCell))
+                .EnableCustomBinding(false)
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Resizable(r=>r.Columns(true))
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .Batch(true)
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Sort(s => s.Add(model => model.UpdatedOnUtc).Descending())
+                    .Model(model =>
+                        {
+                            model.Id(p => p.Id);
+                            model.Field(p => p.Id).Editable(false);
+                            model.Field(p => p.AttachmentFileName).Editable(false);
+                            model.Field(p => p.AttachmentTypeId).Editable(false);
+                            model.Field(p => p.IsRestricted);
+                            model.Field(p => p.Writeable);
+                            model.Field(p => p.CreatedOnUtc).Editable(false);
+                            model.Field(p => p.UpdatedOnUtc).Editable(false);
+                        })
+                    .Read(read => read.Action("_CompanyAttachmentList", "Company", new { guid = ViewBag.CompanyGuid }))
+                    .Update(update => update.Action("UpdateCompanyAttachment", "Company"))
+                    .Destroy(update => update.Action("DeleteCompanyAttachment", "Company"))
+                    .Events(e => e.Error("onError"))
+                )
+            )
+
+        </td>
+    </tr>
+</table>
+
+<div id="attachment-window"></div>

@@ -1,0 +1,68 @@
+﻿@{
+    var guid = ViewBag.CandidateGuid;
+}
+<style>
+    table.adminContent td {
+        vertical-align: middle;
+    }
+</style>
+@using (Html.BeginForm("AddCandidateToCompaniesPool", "Candidate", FormMethod.Post, new { id = "addtocompaniespool-selected-form" }))
+{
+    @Html.ValidationSummary(true)
+    <input type="hidden" id="guid" name="guid" value="@guid" />
+    <input type="hidden" id="ids" name="ids" />
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">@T("Common.Company"): </td>
+            <td class="adminData required">
+                @(Html.Kendo().MultiSelect().Name("Companies")
+                //.HtmlAttributes(new { style = "width:400px" })
+                    .Placeholder("Select companies...")
+                    .BindTo(ViewBag.Companies)
+                    .DataTextField("Text")
+                    .MaxSelectedItems(5)
+                    .DataValueField("Value"))
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">@T("Common.StartDate"): </td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                    .Name("startDate")
+                    .Format("yyyy-MM-dd")
+                    .Value(DateTime.Today)
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle"></td>
+            <td class="adminData">
+                <input type="submit" id="submit-addtocompaniespool" value="Add" name="submit" class="k-button" />
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+    function addToCompaniesPool(e) {
+        var ids = $("#Companies").val();
+        if (!ids)
+        {
+            alert("Please select at least one company!");
+            e.preventDefault();
+            return;
+        }
+        ids = $("#Companies").val().join();
+        $("#ids").val(ids);
+
+        var start = $("#startDate").val();
+        if (!start)
+        {
+            alert("Please select a start date!");
+            e.preventDefault();
+            return;
+        }
+    }
+</script>
+
+
+

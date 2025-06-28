@@ -1,0 +1,75 @@
+﻿@model Wfm.Client.Models.Rescheduling.ReschedulingModel
+@{
+    Layout = null;
+
+    var postionService = EngineContext.Current.Resolve<Wfm.Services.Common.IPositionService>();
+    var locationService = EngineContext.Current.Resolve<Wfm.Services.Companies.ICompanyDivisionService>();
+    var departmentService = EngineContext.Current.Resolve<Wfm.Services.Companies.ICompanyDepartmentService>();
+    var location = locationService.GetCompanyLocationById(Model.LocationId);
+    var department = departmentService.GetCompanyDepartmentById(Model.DepartmentId);
+    var position = postionService.GetPositionById(Model.PositionId);}
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">@T("Common.EmployeeId")</td>
+        <td class="adminData">@Html.DisplayFor(model => model.EmployeeId)</td>
+    </tr>
+    <tr>
+        <td class="adminTitle">@T("Common.EmployeeName")</td>
+        <td class="adminData">@Html.DisplayFor(model => model.EmployeeName)</td>
+    </tr>
+</table>
+<br />
+<table class="compareTbl" width="100%">
+    <tr><th class="k-header" width="30%"></th><th class="k-header" width="35%">Original Value</th><th class="k-header" width="35%">New Value</th></tr>
+    <tr>
+        <td>@T("Common.StartDate")</td>
+        <td>@Model.StartDate.ToShortDateString()</td>
+        <td id="newStartDate">@Model.StartDate.ToShortDateString()</td>
+    </tr>
+    <tr class="k-alt">
+        <td>@T("Common.EndDate")</td>
+        <td>@Model.EndDate.ToShortDateString()</td>
+        <td id="newEndDate">@Model.EndDate.ToShortDateString()</td>
+    </tr>
+    <tr>
+        <td>@T("Common.Location")</td>
+        <td>@location.LocationName</td>
+        <td id="LocationName">@location.LocationName</td>
+    </tr>
+    <tr class="k-alt">
+        <td>@T("Common.Department")</td>
+        <td>@department.DepartmentName</td>
+        <td id="DepartmentName">@department.DepartmentName</td>
+    </tr>
+    <tr>
+        <td>@T("Common.Position")</td>
+        <td>@position.Name</td>
+        <td id="PositionName">@position.Name</td>
+    </tr>
+    <tr class="k-alt">
+        <td>@T("Common.StartTime")</td>
+        <td>@Model.StartTime.ToShortTimeString()</td>
+        <td id="newStartTime">@Model.StartTime.ToShortTimeString()</td>
+    </tr>
+    <tr>
+        <td>@T("Common.EndTime")</td>
+        <td>@Model.EndTime.ToShortTimeString()</td>
+        <td id="newEndTime">@Model.EndTime.ToShortTimeString()</td>
+    </tr>
+    <tr class="k-alt">
+        <td>@T("Common.JobOrder")</td>
+        <td>@Model.JobOrderId</td>
+        <td id="newJobOrder">@Model.JobOrderId</td>
+    </tr>
+    <tr>
+        <td>@T("Web.JobOrder.JobOrder.Fields.Supervisor")</td>
+        <td>@Model.Supervisor</td>
+        <td id="SupervisorName">@Model.Supervisor</td>
+    </tr>
+    <tr class="k-alt">
+        <td>@T("Admin.JobOrder.JobOrder.Fields.PayRate")</td>
+        <td>@Model.PayRate</td>
+        <td id="NewPayRateTxt">@Model.PayRate</td>
+    </tr>
+</table>

@@ -1,0 +1,226 @@
+﻿@using Wfm.Core.Domain.Candidates
+@model IEnumerable<CandidateJobHistoryModel>
+@{
+    Layout = "";
+    ViewBag.Title = T("Admin.Candidate.CandidateWorkHistory").Text;
+
+    var weekStartDate = ViewBag.WeekStartDate;
+    var weekStartDay = ViewBag.WeekStartDay;
+    var thisWeekEnd = DateTime.Today.AddDays((int)(DayOfWeek.Saturday - DateTime.Today.DayOfWeek));
+}
+<style type="text/css">
+    .disabled {
+        /* adding some CSS to match the normal days styling */
+        display: block;
+        overflow: hidden;
+        min-height: 15px;
+        line-height: 15px;
+        padding: 0;
+        cursor: default;
+        opacity: 0.5;
+    }
+</style>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#weekCalendar").keypress(function (evt) {
+            var keycode = evt.charCode || evt.keyCode;
+            if (keycode == 9) { //allow Tab through
+                return true;
+            } else {
+                // Allow the datepicker to open instead
+                var datePicker = $("#weekCalendar").data("kendoDatePicker");
+                datePicker.open();
+                return false;
+            }
+        });
+    });
+
+    var isCalendarInitialized = false;
+    function highlightDates() {
+        $(".disabled").parent().removeClass("k-link") //removing this class makes the day unselectable
+        $(".disabled").parent().removeAttr("href") //this removes the hyperlink styling
+    }
+
+    function Checkthis() {
+        if (!isCalendarInitialized) {
+            $("[data-role=calendar]").data("kendoCalendar").bind("navigate", highlightDates);
+            isCalendarInitialized = true;
+        }
+        $(".disabled").parent().removeClass("k-link") //removing this class makes the day unselectable
+        $(".disabled").parent().removeAttr("href") //this removes the hyperlink styling
+    }
+
+    function gridParameter() {
+        return {
+            candidateGuid: '@(ViewBag.CandidateGuid)',
+            weekStartDate: $("#weekCalendar").data("kendoDatePicker").value()
+        };
+    }
+
+    function detailGridParameter() {
+        return {
+            weekStartDate: $("#weekCalendar").data("kendoDatePicker").value()
+        };
+    }
+
+    function onOpen() {
+        var dateViewCalendar = this.dateView.calendar;
+        if (dateViewCalendar) {
+            dateViewCalendar.element.width(340);
+        }
+    };
+
+    function onChangeDatePicker() {
+        reloadGrid();
+    }
+
+    function reloadGrid() {
+        var grid = $("#candidatejobordermodel-grid").data("kendoGrid");
+        grid.dataSource.page(1);
+       // grid.dataSource.read();
+        selectedIds = [];
+    }
+
+</script>
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Candidate.CandidateWorkHistory")
+    </div>
+    <div class="options">
+        <label for="week-filter-selection">Load from week of:</label>
+        @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("weekCalendar")
+            .Events(e =>
+              {
+                  e.Change("onChangeDatePicker");
+                  e.Open("Checkthis");
+                  e.Close("Checkthis");
+              }).Value(weekStartDate).MonthTemplate(" #if (data.date.getDay() == " + weekStartDay + " ) {#" + "#= data.value #" + "# } else { #" + "<div class='disabled'>#= data.value #</div>" + "# } #")
+            .Max(thisWeekEnd)
+        )
+        <label for="week-filter-selection"> to today</label>
+    </div>
+</div>
+
+<script id="template" type="text/kendo-tmpl">
+    @(Html.Kendo().TabStrip()
+    .Name("WorkHistory_#=CandidateId#_#=JobOrderId#")
+    .SelectedIndex(0)
+    .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+    .Items(items =>
+            {
+                items.Add().Text("Hours").Content(@<text>
+                    @(Html.Kendo().Grid<JobHistoryModel>()
+                        .Name("timesheet_#=CandidateId#" + "_#=JobOrderId#") // template expression, to be evaluated in the master context
+                        .Columns(columns =>
+                        {
+                            columns.Bound(p => p.WeekOfYear).Title("Week")
+                                .ClientTemplate("\\#= WeekOfYear \\#/\\#= Year \\#");
+                            columns.Bound(p => p.SundayDate).Format("{0:yyyy-MM-dd}").Title("Start Date").Width(90);
+                            columns.Bound(p => p.SaturdayDate).Format("{0:yyyy-MM-dd}").Title("End Date").Width(90);
+                            columns.Bound(p => p.CompanyName).Width(180).Title(T("Common.Company").Text);
+
+                            columns.Bound(p => p.Sunday)
+                                .Format("{0:n2}").HtmlAttributes(new { style = "text-align: right" });
+                            columns.Bound(p => p.Monday)
+                                .Format("{0:n2}").HtmlAttributes(new { style = "text-align: right" });
+                            columns.Bound(p => p.Tuesday)
+                                .Format("{0:n2}").HtmlAttributes(new { style = "text-align: right" });
+                            columns.Bound(p => p.Wednesday)
+                                .Format("{0:n2}").HtmlAttributes(new { style = "text-align: right" });
+                            columns.Bound(p => p.Thursday)
+                                .Format("{0:n2}").HtmlAttributes(new { style = "text-align: right" });
+                            columns.Bound(p => p.Friday)
+                                .Format("{0:n2}").HtmlAttributes(new { style = "text-align: right" });
+                            columns.Bound(p => p.Saturday)
+                                .Format("{0:n2}").HtmlAttributes(new { style = "text-align: right" });
+
+                            columns.Bound(p => p.SubTotalHours).Title("Total Hours")
+                                .Format("{0:n2}").HtmlAttributes(new { style = "text-align: right" });
+                            columns.Bound(p => p.RegularHours).Title("Reg. hours")
+                                .Format("{0:n2}").HtmlAttributes(new { style = "text-align: right" });
+                            columns.Bound(p => p.OTHours)
+                                .Format("{0:n2}").HtmlAttributes(new { style = "text-align: right" });
+                        })
+                        .Pageable(x => x.PageSizes(new[] { 10, 20 }))
+                        .DataSource(dataSource => dataSource
+                            .Ajax()
+                            .ServerOperation(false)
+                            .Read(read => read.Action("CandidateTimeSheetForJobOrder", "Candidate", new { candidateGuid = ViewBag.CandidateGuid, jobOrderId = "#=JobOrderId#" }).Data("detailGridParameter"))
+                        )
+                        .ToClientTemplate())
+                </text>
+                );
+
+            })
+            .ToClientTemplate())
+</script>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateJobHistoryModel>()
+                .Name("candidatejobordermodel-grid")
+                .Columns(columns =>
+                            {
+                                columns.Bound(x => x.JobOrderId).Title("Job order")
+                                    .HtmlAttributes(new { id = "joborder-id" })
+                                    .Width(80);
+
+                                columns.Bound(x => x.CompanyName)
+                                    .Width(180).Title(T("Common.Company").Text);
+
+                                columns.Bound(x => x.JobTitle)
+                                    .Template(x => Html.ActionLink(x.JobTitle, "Details", "JobOrder", new { id = x.JobOrderId }, new { }))
+                                    .ClientTemplate("<a href=\"" + @Url.Content("~/Admin/JobOrder/Details?guid=") + "#= JobOrderGuid #\">" + "#= JobTitle #</a>");
+
+                                columns.Bound(x => x.JobOrderStartDate).Format("{0:yyyy-MM-dd}").Width(100);
+                                columns.Bound(x => x.JobOrderEndDate).Format("{0:yyyy-MM-dd}").Width(100);
+
+                                columns.Bound(x => x.TotalHours)
+                                    .Format("{0:n2}").HtmlAttributes(new { style = "text-align: right" })
+                                    .Width(80);
+
+                                columns.Bound(x => x.RatingValue).Width(100)
+                                    .ClientTemplate("<div class=\"rating\"><div style=\"width: #= RatingValue/5*100 #%;\"></div></div>");
+                                columns.Bound(x => x.RatingComment);
+
+                                columns.Bound(x => x.UpdatedOnUtc).Format("{0:yyyy-MM-dd HH:mm}").Width(120).Hidden(true);
+                                columns.Bound(x => x.CreatedOnUtc).Format("{0:yyyy-MM-dd HH:mm}").Width(120).Hidden(true);
+                            })
+
+                        .Reorderable(reorder => reorder.Columns(true))
+                        .Resizable(resize => resize.Columns(true))
+                        .ColumnMenu(d => d.Sortable(false))
+                        .Filterable()
+                        .ClientDetailTemplateId("template")
+                        .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+                        .Sortable()
+                        .Selectable()
+                        .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }))
+                        .DataSource(dataSource => dataSource
+                            .Ajax()
+                            .ServerOperation(true)
+                            .PageSize(10)
+                                    .Read(read => read.Action("_TabCandidateJobOrderList", "Candidate").Data("gridParameter"))
+                            .Sort(sorts => {
+                                sorts.Add(x => x.JobOrderEndDate.HasValue);
+                                sorts.Add(x => x.JobOrderStartDate).Descending();
+                                sorts.Add(x => x.JobOrderEndDate).Descending(); 
+                            })
+                     )
+                        .Filterable(filterable => filterable
+                            .Extra(false)
+                            .Operators(operators => operators
+                                .ForString(str => str.Clear()
+                                    .Contains("Contains")
+                                    .IsEqualTo("Is equal to")
+                                    .IsNotEqualTo("Is not equal to")
+                                )
+                            )
+                        )
+            )
+        </td>
+    </tr>
+</table>

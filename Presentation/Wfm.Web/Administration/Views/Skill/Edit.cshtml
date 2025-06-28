@@ -1,0 +1,24 @@
+﻿@model SkillModel
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.Skill.EditSkillDetails").Text;
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "skill-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Common.Add") @Html.ActionLink("(" + T("Admin.Configuration.Skill.BackToList") + ")", "Index")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />
+            <span id="skill-delete" class="k-button">@T("Common.Delete")</span>
+        </div>
+    </div>
+
+    @Html.Partial("_CreateOrUpdate", Model)
+}
+
+@Html.DeleteConfirmation("skill-delete")

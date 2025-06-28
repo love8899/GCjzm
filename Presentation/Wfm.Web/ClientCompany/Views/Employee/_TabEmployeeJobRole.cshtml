@@ -1,0 +1,186 @@
+﻿@using Wfm.Core
+@using Wfm.Shared.Models.Employees
+@using Wfm.Services.Companies
+@model IEnumerable<EmployeeJobRoleModel>
+@{ 
+    var companyService = EngineContext.Current.Resolve<ICompanyService>();
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var allCompanyJobRoles = companyService.GetAllJobRoles(workContext.CurrentAccount.CompanyId);
+}
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Employee.JobRoles")
+    </div>
+    <div class="options">
+        <button id="add-job-role" class="k-button">@T("Admin.Common.Add")</button>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<EmployeeJobRoleModel>()
+                .Name("employee-job-role-grid")
+                .BindTo(Model)
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(80).Hidden();
+                    columns.ForeignKey(x => x.CompanyJobRoleId, allCompanyJobRoles, "Id", "Name").Width(150);
+                    columns.Bound(x => x.IsPrimary).Width(80)                      
+                      .ClientTemplate("#if (IsPrimary == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                     .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" });
+                    columns.Bound(x => x.EffectiveDate).ClientTemplate("#=(EffectiveDate == null) ? '' : kendo.toString(EffectiveDate,'yyyy-MM-dd')#").Width(120);
+                    columns.Bound(x => x.ExpiryDate).ClientTemplate("#=(ExpiryDate == null) ? '' : kendo.toString(ExpiryDate,'yyyy-MM-dd')#").Width(120);
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .ClientTemplate("<a class='k-button'  title='" + T("Common.Edit").Text + "' onclick=\"return editJobRole(#= Id #)\"><span class='fa fa-pencil'></span></a>" +
+                        "<a class='k-button'  title='" + T("Common.Delete").Text + "' onclick=\"return removeJobRole(#= Id #)\"><span class='fa fa-trash'></span></a>")
+                        .Width(120)
+                        .Title("");
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(true)
+                        .PageSize(20)
+                        .Read(read => read.Action("_TabEmployeeJobRole", "Employee", new { employeeId = ViewBag.EmployeeId }))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+<div id="create-edit-job-role-dialog"></div>
+<script type="text/javascript">
+    $(function () {
+        $("#add-job-role").click(
+            function () {
+                addJobRole();
+            });
+    });
+    function bindDialogEvent(){
+        $('#close-job-role-report').click(function () {
+            $("#create-edit-job-role-dialog").data("kendoWindow").close();
+        });
+        $('#save-job-role-report').click(function () {
+            var form = $('#job-role-report-form');
+            if (form.valid()) {
+                $.ajax({
+                    url: '@Url.Action("_EditJobRole")',
+                    type: 'POST',
+                    data: $('#job-role-report-form').serialize(),
+                    dataType: 'html',
+                    success: function (result) {
+                        if (result == 'done') {
+                            $("#create-edit-job-role-dialog").data("kendoWindow").close();
+                            $('#employee-job-role-grid').data('kendoGrid').dataSource.read();
+                            $('#employee-job-role-grid').data('kendoGrid').refresh();
+                        }
+                        else{
+                            $('#job-role-report-form').parent().html(result);
+                            bindDialogEvent();
+                        }
+                    }
+                });
+            }
+        })
+    }
+    function editJobRole(id) {
+        var dialog = $("#create-edit-job-role-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#create-edit-job-role-dialog").kendoWindow({
+                title: "Edit Job Role",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 300,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    bindDialogEvent();
+                }
+            });
+            dialog = $("#create-edit-job-role-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.title("Edit Job Role");
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_EditJobRole")',
+            data: { jobRoleId: id }
+        });
+        dialog.center();
+        return false;
+    }
+
+    function addJobRole() {
+        var dialog = $("#create-edit-job-role-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#create-edit-job-role-dialog").kendoWindow({
+                title: "New Job Role",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 300,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    bindDialogEvent();
+                }
+            });
+            dialog = $("#create-edit-job-role-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.title("New Job Role");
+            dialog.open();
+
+        }
+        dialog.refresh({
+            url: '@Url.Action("_NewJobRole")',
+            data: { employeeId: '@ViewBag.EmployeeId' }
+        });
+        dialog.center();
+        return false;
+    }
+
+    function removeJobRole(id){
+        return gridDelete(function () {
+            $.ajax({
+                url: '@Url.Action("_RemoveJobRole")',
+                type: 'POST',
+                data: { jobRoleId: id },
+                dataType: 'html',
+                success: function (result) {
+                    if (result == 'done') {
+                        $('#employee-job-role-grid').data('kendoGrid').dataSource.read();
+                        $('#employee-job-role-grid').data('kendoGrid').refresh();
+                    }
+                }
+            });
+        })
+    }
+</script>
+

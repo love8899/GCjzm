@@ -1,0 +1,305 @@
+﻿@using Wfm.Shared.Models.Employees
+@{ 
+    var year = DateTime.Today.Year;
+    var yearText = T("Common.Year").Text;
+    var yearList = new SelectListItem[] { new SelectListItem() { Text = yearText + ": " +  (year - 1).ToString(), Value = (year - 1).ToString() },
+                new SelectListItem() { Text = yearText + ": " +  year.ToString(), Value = year.ToString(), Selected = true },
+                new SelectListItem() { Text = yearText + ": " +  (year + 1).ToString(), Value = (year + 1).ToString() }, };
+}
+<script src="@Url.Content("~/Scripts/admin.common.js?version=1.8")" type="text/javascript"></script>
+<script>
+    function reloadEntitlementGrid() {
+        refreshGrid('#timeoff-entitlement-grid');
+        reloadBookHistoryGrid();
+    }
+    function reloadBookHistoryGrid() {
+        refreshGrid('#timeoff-booking-grid');
+    }
+</script>
+<div class="section-header">
+    <div class="options">
+        @(Html.Kendo().DropDownList()
+            .Name("InquiryYear")
+            .BindTo(yearList).DataTextField("Text").DataValueField("Value")
+            .HtmlAttributes(new { id = "inquiry-year"})
+            .Events(evt => evt.Change("reloadEntitlementGrid")))
+        <button id="add-timeoff" class="k-button">@T("Admin.Employee.Timeoff.BooNew")</button>
+    </div>
+</div>
+<script>
+    function filterEntitlement() { return { employeeId: '@(ViewData["EmployeeId"])', year: $("#inquiry-year").val() }; }
+</script>
+<table class="adminContent">
+    <tr>
+        <td>
+            <h4>@T("Admin.Employee.Timeoff.Entitlement")</h4>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<EmployeeTimeoffBalanceModel>()
+                .Name("timeoff-entitlement-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.EmployeeTimeoffTypeName);
+                    columns.Bound(x => x.EntitledTimeoffInHours);
+                    columns.Bound(x => x.BookedHours);
+                    columns.Bound(x => x.AllowNegative)
+                        .ClientTemplate("#if (AllowNegative == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" });
+                    columns.Bound(x => x.LatestBalanceInHours);
+                })
+                //.ToolBar(toolbar => toolbar.Save())
+                //.Editable(editable => editable.Mode(GridEditMode.InCell))
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+                .Sortable()
+                .Selectable()
+                //.Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    //.Batch(true)
+                    .ServerOperation(false)
+                    //.PageSize(20)
+                    //.Model(model =>
+                    //{
+                    //    model.Id(m => m.Id);
+                    //    model.Field(m => m.EmployeeTimeoffTypeName).Editable(false);
+                    //    model.Field(m => m.BookedHours).Editable(false);
+                    //    model.Field(m => m.AllowNegative).Editable(false);
+                    //    model.Field(m => m.LatestBalanceInHours).Editable(false);
+                    //    model.Field(m => m.UpdatedOnUtc).Editable(false);
+                    //    model.Field(m => m.CreatedOnUtc).Editable(false);
+                    //})
+                    .Read(read => read.Action("_GetEmployeeTimeoffEntitlement", "Account").Data("filterEntitlement"))
+                    //.Update(update => update.Action("_UpdateEmployeeTimeoffEntitlement", "Account"))
+                    //.Create(update => update.Action("_UpdateEmployeeTimeoffEntitlement", "Account"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+
+    <tr>
+        <td>
+            <h4>@T("Admin.Employee.Timeoff.BookingHistory")</h4>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<EmployeeTimeoffBookingHistoryModel>()
+                .Name("timeoff-booking-grid")
+                .Events(events => events.DataBound("onDataBound"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.EmployeeTimeoffTypeName);
+                    columns.Bound(x => x.TimeOffStartDateTime).ClientTemplate("#=kendo.toString(TimeOffStartDateTime,'yyyy-MM-dd')#");
+                    columns.Bound(x => x.TimeOffEndDateTime).ClientTemplate("#=kendo.toString(TimeOffEndDateTime,'yyyy-MM-dd')#");
+                    columns.Bound(x => x.BookedTimeoffInHours);
+                    columns.Bound(x => x.BookedByAccountName);
+                    columns.Bound(x => x.IsRejected).Title("Is Approved").HtmlAttributes(new { style = "text-align:center" }).Width(100)
+                        //.ClientTemplate("#if (IsRejected == null) {# #}else{# <img alt='' src='" + Url.Content("~/Content/images/") + "active-#= !IsRejected #.png' />" + "#}#");
+                        .ClientTemplate("#if (ApprovedTimeoffInHours) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#");
+                    columns.Bound(x => x.ApprovedTimeoffInHours).Title("Hours Approved")
+                        .ClientTemplate("#if (ApprovedTimeoffInHours) {# #=ApprovedTimeoffInHours# #}else{# #}#").Hidden(true);
+                    columns.Bound(x => x.Note);
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Hidden(true);
+
+                    columns.Command(command =>
+                    {
+                        command.Custom("Update").Click("updateEntry").Text("");
+                        command.Destroy().Text(" ").HtmlAttributes(new { title = T("Common.Delete").Text });
+                    }).Title("Action").HtmlAttributes(new { align = "center" }).Width(160);
+
+                    //columns.Bound(x => x.Id).Filterable(false).Sortable(false).Title("Action")
+                    //    .Template(x => Html.ActionLink("", "Edit", new { x.Id }))
+                    //    .ClientTemplate("#if (CanEdit == true) { #<a class='k-button' title='" + T("Common.Edit").Text + "' onclick=\"return editTimeoffBooking(#= Id #) \"><span class='fa fa-pencil'></span></a> #}#")
+                    //    .HeaderHtmlAttributes(new { style = "text-align:center" }).Width(120);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+                .Sortable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Model(model => { 
+                        model.Id(p => p.Id); 
+                        model.Field(p => p.EmployeeId); 
+                    })
+                    //.Sort(s => s.Add(x => x.TimeOffStartDateTime).Descending())
+                    .Read(read => read.Action("_GetEmployeeTimeoffBookHistory", "Account").Data("filterEntitlement"))
+                    .Destroy(update => update.Action("_DeleteEmployeeTimeoffBook", "Account"))
+                    .Events(e => e.Sync("onSync"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+<div id="book-timeoff-dialog"></div>
+
+
+<script>
+
+    $(function () {
+        $('#add-timeoff').click(function(){ addTimeoff(); });
+    })
+
+    function onDataBound() {
+        applyCommandIcons();
+        showOrHideButton();
+    }
+
+    function applyCommandIcons() {
+        $(".k-grid-Update").attr('title', 'Update').html('<span class="fa fa-pencil"></span>');
+    }
+
+    function showOrHideButton() {
+        var grid = $("#timeoff-booking-grid").data("kendoGrid");
+        var data = grid.dataSource.data();
+        for (var i = 0; i < data.length; i++) {
+            var currentData = data[i];
+            var theRow = grid.tbody.find(">tr:not(.k-grouping-row)").eq(i);
+            // approved or rejected
+            if (currentData.ApprovedTimeoffInHours > 0 && currentData.ApprovedByAccountId > 0 ||
+                currentData.IsRejected) {
+                theRow.find(".k-grid-Update").remove();
+                theRow.find(".k-grid-delete").remove();
+            }
+        }
+    }
+
+    function updateEntry(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        return timeoffPopup('@Url.Action("_EditTimeoffPopup", "Account", new { timeoffBookingId = "XXXX" })'.replace("XXXX", dataItem.Id),
+            'Edit Timeoff Booking');
+    }
+
+    function bookTimeoff() {
+        $.ajax({
+            url: '@Url.Action("_SaveTimeoffBooking", "Account")',
+            type: 'POST',
+            data: $('#timeoff-booking-form').serialize(),
+            dataType: 'html',
+            success: function (result) {
+                if (result == 'done') {
+                    $("#book-timeoff-dialog").data("kendoWindow").close();
+                    reloadEntitlementGrid();
+                }
+                else {
+                    $('#timeoff-booking-form').parent().html(result);
+                    bindDialogEvent();
+                }
+            }
+        });
+    }
+
+    function bindDialogEvent() {
+        $('#close-timeoff-booking').click(function () {
+            $("#book-timeoff-dialog").data("kendoWindow").close();
+        });
+        $('#save-timeoff-booking').click(function () {
+            if ($('#timeoff-total-hours').val() <= 0)
+                alert('The total hours must be greater than zero');
+            else {
+                $.ajax({
+                    url: '@Url.Action("_GetEmployeeScheduleForTimeoffBooking", "Account")',
+                    type: 'POST',
+                    data: $('#timeoff-booking-form').serialize(),
+                    dataType: 'json',
+                    success: function (result) {
+                        if (result.Schedule.length > 0) {
+                            confirmAction('Scheduled tasks found in this period. Do you want continue?', bookTimeoff);
+                        }
+                        else {
+                            bookTimeoff();
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    function timeoffPopup(refreshUrl, title) {
+        var dialog = $("#book-timeoff-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#book-timeoff-dialog").kendoWindow({
+                title: title,
+                modal: true,
+                resizable: false,
+                width: 600,
+                height: 450,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    bindDialogEvent();
+                }
+            });
+            dialog = $("#book-timeoff-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.open();
+        }
+        dialog.refresh({
+            url: refreshUrl
+        });
+        dialog.center();
+        return false;
+    }
+
+    function addTimeoff() {
+        var entityGrid = $("#timeoff-entitlement-grid").data("kendoGrid");
+        var selectedItem = entityGrid.dataItem(entityGrid.select());
+        var selectedTypeId = selectedItem ? selectedItem.EmployeeTimeoffTypeId : 0;
+        if (!selectedTypeId)
+            alert('Please select a time off type first');
+        else if (!anyBalance(selectedItem))
+            alert("You cannot book a new timeoff of this type as there's no balance.");
+        else
+            return timeoffPopup('@Html.Raw(Url.Action("_BookNewTimeoffPopup", "Account", new { employeeId = ViewData["EmployeeId"], timeoffTypeId ="XXXX" }))'
+                .replace("XXXX", selectedTypeId.toString()), 'Request New Timeoff');
+    }
+
+    function editTimeoffBooking(id) {
+        return timeoffPopup('@Url.Action("_EditTimeoffPopup", "Employee", new { timeoffBookingId = "XXXX" })'.replace("XXXX", id.toString()),
+            'Edit Timeoff Booking');
+    }
+
+    function anyBalance(data) {
+        return data ? data.AllowNegative || data.LatestBalanceInHours > 0 : false;
+    }
+
+    function onSync() {
+        reloadEntitlementGrid();
+    }
+
+</script>

@@ -1,0 +1,62 @@
+﻿@using Wfm.Services.JobOrders
+
+
+@model JobOrderOvertimeRuleModel
+
+
+@{
+    ViewBag.Title = T("Admin.Companies.Company.OvertimeRule").Text;
+}
+
+
+@using (Html.BeginForm("CreateOvertimeRule", "JobOrder", FormMethod.Post, new { id = "overtimerule-form" }))
+{
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.JobOrderId)
+    @Html.HiddenFor(model => model.JobOrderGuid)
+
+    <div class="section-header">
+        <div class="title">
+            @T("Common.OvertimeRule")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            @*<input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />*@
+        </div>
+    </div>
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.OvertimeRuleSettingId)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownListFor(model => model.OvertimeRuleSettingId)
+                    .Name("OvertimeRuleSettingId")
+                    .OptionLabel("--Select--")
+                    .BindTo(Model.OvertimeRuleSettings)
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .Enable(true)
+                )
+                @Html.WfmValidationMessageFor(model => model.OvertimeRuleSettingId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.IsActive)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.IsActive)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Note)
+            </td>
+            <td class="adminData">
+                @Html.TextAreaFor(model => model.Note, new { style = "height:150px; width:75%;" })
+            </td>
+        </tr>
+    </table>
+}

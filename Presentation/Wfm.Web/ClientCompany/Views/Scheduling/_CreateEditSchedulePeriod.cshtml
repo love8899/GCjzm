@@ -1,0 +1,104 @@
+﻿@using Wfm.Services.Common
+@using Wfm.Services.Companies
+@using Wfm.Shared.Models.Scheduling
+@model SchedulePeriodModel
+    @{ 
+        var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+        var companyLocationService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+        var companyLocations = companyLocationService.GetAllCompanyLocationsByAccount(workContext.CurrentAccount)
+            .Select(x => new SelectListItem
+            {
+                Text = x.LocationName,
+                Value = x.Id.ToString(),
+            }).ToArray();
+    }
+<script>
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+</script>
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "schedule-period-report-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @(Model.Id > 0 ? T("Web.SchedulePeriod.Edit").Text : T("Web.SchedulePeriod.Add").Text)
+        </div>
+        <div class="options">
+            <input type="button" name="save" id="save-schedule-period-report" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" name="close" id="close-schedule-period-report" class="k-button" value="@T("Common.Close")" />
+        </div>
+    </div>
+
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.CompanyId)
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+    @Html.HiddenFor(model => model.UpdatedOnUtc)
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.PeriodStartDate)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePickerFor(model => Model.PeriodStartDate)
+                .Format("yyyy-MM-dd")
+                .Start(CalendarView.Month))
+                @Html.WfmValidationMessageFor(model => model.PeriodStartDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.PeriodEndDate)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePickerFor(model => Model.PeriodEndDate)
+                .Format("yyyy-MM-dd")
+                .Start(CalendarView.Month))
+                @Html.WfmValidationMessageFor(model => model.PeriodEndDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CompanyLocationId)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                .Name("CompanyLocationId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(companyLocations)
+                )
+                <script> function filterDepartments() { return { locationId: $("#CompanyLocationId").val() }; } </script>
+                @Html.WfmValidationMessageFor(model => model.CompanyLocationId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CompanyDepartmentId)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                .Name("CompanyDepartmentId")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                        {
+                            read.Action("GetCascadeDepartments", "Company").Data("filterDepartments");
+                        })
+                        .ServerFiltering(true);
+                })
+                .Enable(false)
+                .AutoBind(false)
+                .CascadeFrom("CompanyLocationId")
+                )
+                @Html.WfmValidationMessageFor(model => model.CompanyDepartmentId)
+            </td>
+        </tr>
+    </table>
+}

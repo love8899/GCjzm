@@ -1,0 +1,275 @@
+﻿@model Wfm.Shared.Models.Search.SearchTimeSheetModel
+@using Wfm.Core.Domain.TimeSheet
+
+@{
+    ViewBag.PageTitle = T("Admin.TimeSheet.EmployeeTimeSheetApproval").Text;
+
+    ViewBag.Title = T("Admin.TimeSheet.EmployeeTimeSheetApproval").Text;
+    Html.SetActiveMenuItemSystemName("TimeSheetApproval");
+
+    var gridName = "timesheetapproval-grid";
+    var serverOperation = true;
+
+    var excludedStatusIds = new int[] { (int)CandidateWorkTimeStatus.Matched, };
+    var availableWorkTimeStatus = CandidateWorkTimeStatus.PendingApproval.ToSelectList(false, excludedStatusIds).ToList();
+}
+
+@section Options {
+    <a id="approve-selected" class="btn bg-blue hidden-xxs hidden-xs">
+        <i class="fa fa-thumbs-up"></i>@T("Admin.Common.Approve.Selected")
+    </a>
+    <a id="approve-all" class="btn bg-blue hidden-xxs hidden-xs">
+        <i class="fa fa-check"></i>@T("Admin.Common.Approve.All")
+    </a>
+    <a id="exportexcel-selected" class="btn btn-success hidden-xxs">
+        <i class="fa fa-file-excel-o"></i>@T("Admin.Common.ExportToExcel.All")
+    </a>
+    <a id="printtopdf-selected" class="btn bg-purple hidden-xxs hidden-xs">
+            <i class="fa fa-file-pdf-o"></i>@T("Admin.Common.PrintToPdf.All")
+    </a>
+}
+
+@section Search {
+    @Html.Partial("_SearchTimeSheets", Model, new ViewDataDictionary
+    {
+        { "Period", 6 },
+        { "GridName", gridName },
+        { "DefaultTitle", "Time sheets for this week" },
+    })
+}
+
+@(Html.Kendo().Grid<EmployeeWorkTimeApprovalModel>().Name(gridName)
+    .Events(events => { events.DataBound("onDataBound"); events.Cancel("applyCommandIcons"); events.SaveChanges("applyCommandIcons"); })
+    .Columns(columns =>
+    {
+        columns.Bound(x => x).Filterable(false).Sortable(false).IncludeInMenu(false)
+            .Title("<input class='mastercheckbox' type='checkbox'/>")
+            .ClientTemplate("<input type='checkbox' name='checkedRecords' value='#=Id#' class='checkboxGroups'/>")
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0", style = "text-align:center" });
+
+        columns.Bound(x => x.CandidateId).Title("Id")
+            .HeaderHtmlAttributes(new { title = T("Common.BadgeId").Text, @class = "cell-lg-1" })
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0" });
+        columns.Bound(x => x.EmployeeId).Title("No.").Hidden()
+            .HeaderHtmlAttributes(new { title = T("Common.EmployeeNumber").Text })
+            //.ClientGroupHeaderTemplate("\\##=value# <span class='overtime-placeholder'></span>")
+            .ClientGroupHeaderTemplate("<a onclick=getCandidateInfo(event)>No.#=value#</a>")
+            .ClientTemplate("<a onclick=getCandidateInfo('#=CandidateGuid#')>#=EmployeeId#</a>");
+
+        //columns.Bound(x => x.EmployeeFirstName).Title(T("Common.FirstName").Text)
+        //    .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0" })
+        //    .ClientTemplate("#if (ClockTimeInHours<=2){# <span class='-worktime-warning'>#=EmployeeFirstName#</span> #}else{# #=EmployeeFirstName# #}#");
+        //columns.Bound(x => x.EmployeeLastName).Title(T("Common.LastName").Text)
+        //    .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0" })
+        //    .ClientTemplate("#if (ClockTimeInHours<=2){# <span class='-worktime-warning'>#=EmployeeLastName#</span> #}else{# #=EmployeeLastName# #}#");
+
+        columns.Bound(x => x.JobTitle)
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0" });
+
+        //columns.ForeignKey(x => x.CompanyLocationId, Model.AvailableLocations, "Value", "Text").Title(T("Common.Location").Text).Hidden();
+        //columns.ForeignKey(x => x.CompanyDepartmentId, Model.AvailableDepartments, "Value", "Text").Title(T("Common.Department").Text).Hidden();
+        columns.ForeignKey(x => x.CompanyContactId, Model.AvailableContacts, "Value", "Text").Title(T("Web.JobOrder.JobOrder.Fields.Supervisor").Text)
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 cell-lg-2" });
+
+        columns.Bound(x => x.JobStartDateTime).Format("{0:yyyy-MM-dd HH:mm}").Title(T("Common.Shift").Text)
+            .HtmlAttributes(new { @class = "col-xxs-4 col-xs-2 cell-lg-2" });
+        //columns.Bound(x => x.JobEndDateTime).Format("{0:yyyy-MM-dd HH:mm}").Title(T("Common.EndDate").Text).Hidden();
+
+        columns.Bound(x => x.ClockIn).Format("{0:yyyy-MM-dd HH:mm}")
+            .HtmlAttributes(new { @class = "col-xxs-0 cell-lg-2" });
+        columns.Bound(x => x.ClockOut).Format("{0:yyyy-MM-dd HH:mm}")
+            .HtmlAttributes(new { @class = "col-xxs-0 cell-lg-2" });
+
+        columns.Bound(x => x.NetWorkTimeInHours).Title("Hrs")
+            //.HtmlAttributes(new { style = "text-align:right", @class = "boldColumn" })
+            //.ClientTemplate("#if (NetWorkTimeInHours<=1){# <span class='worktime-warning'>#=NetWorkTimeInHours#</span> #}else if (AdjustmentInMinutes != 0 || ClockTimeInHours == 0) {# <span class='worktime-adjusted' title='#=Note#'>#=NetWorkTimeInHours#</span>#} else {# <span class='boldColumn'>#=NetWorkTimeInHours#</span> #}#");
+            .HtmlAttributes(new { style = "text-align:right", @class = "boldColumn col-xxs-2 col-xs-1 cell-lg-1" })
+            .ClientTemplate("#if (NetWorkTimeInHours<=1){#" +
+                                "<span class='worktime-warning'>#=kendo.format('{0:n2}',NetWorkTimeInHours)#</span>" + "" +
+                            "#}else if (AdjustmentInMinutes != 0 || ClockTimeInHours == 0) {#" + "" +
+                                "<span class='worktime-adjusted' title='#=Note#'>#=kendo.format('{0:n2}',NetWorkTimeInHours)#</span>" +
+                            "#} else {#" +
+                                "<span class='boldColumn'>#=kendo.format('{0:n2}',NetWorkTimeInHours)#</span>" +
+                            "#}#");
+
+        columns.ForeignKey(x => x.CandidateWorkTimeStatusId, availableWorkTimeStatus, "Value", "Text")
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-2 cell-lg-2" });
+
+        columns.Command(command =>
+        {
+            command.Custom("Adjust").Click("adjustEntry").Text("");
+            command.Custom("Approve").Click("approveEntry").Text("");
+            command.Custom("Reject").Click("rejectEntry").Text("");
+        }).Title(T("Common.Action").Text).IncludeInMenu(false)
+            .HeaderHtmlAttributes(new { style = "text-align:center" })
+            .HtmlAttributes(new { style = "text-align:center;white-space: normal", @class = "col-xxs-6 cell-lg-3" });
+    })
+    .Sortable()
+    .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+    .DataSource(ds => ds.Ajax().ServerOperation(serverOperation).PageSize(50)
+        .Read(read => read.Action("EmployeeWorkTimeApproval", "TimeSheet").Data("onRead"))
+        .Update(update => update.Action("SaveAdjustedWorkTime", "TimeSheet"))
+        .Group(g => g.Add(x => x.EmployeeId))
+        .Sort(x => x.Add(m => m.JobStartDateTime))
+    )
+)
+
+@section Misc {
+    @Html.Partial("_ExportTimeSheet")
+}
+
+@section scripts {<script type="text/javascript">
+
+    var checkedIds = [];
+    function clearSelection() {
+        if (checkedIds.length)
+            checkedIds.length = 0;  // keep the reference !!!
+    }
+
+    $(function () {
+        initSearchAndGrid(null, '@gridName', checkedIds);
+        $('#approve-selected').click(function (e) { return approveSelected(e);});
+        $('#approve-all').click(function (e) { return approveAll(e); });
+    });
+
+    function onRead(e) { return getGridOptions(); }
+
+    function onDataBound(e) {
+        setGridResponsive(e.sender);
+        setGridRows(e.sender);
+    }
+
+    function setGridRows(grid) {
+        setGridCheckBoxStatus(grid, checkedIds);
+        applyCommandIcons();
+        showOrHideButton(grid);
+    }
+
+    function applyCommandIcons(e) {
+        $(".k-grid-Adjust").attr('title', 'Adjust').html('<span class="fa fa-pencil"></span>');
+        $(".k-grid-Approve").attr('title', 'Approve').html('<span class="fa fa-thumbs-up"></span>');
+        $(".k-grid-Reject").attr('title', 'Reject').html('<span class="fa fa-thumbs-down"></span>');
+    }
+
+    function showOrHideButton(grid) {
+        grid.tbody.find('>tr').each(function () {
+            var theRow = $(this);
+            var currentData = grid.dataItem(this);
+            if (theRow.hasClass('k-grouping-row')) {
+                // display Employee Name in group header
+                var groupHeader = theRow.find(".k-reset");
+                var nameSpan = '<span class="" style="margin-left: 10px">'
+                    + currentData.EmployeeFirstName + ' ' + currentData.EmployeeLastName + '</span>'
+                groupHeader.append(nameSpan);
+                // also overtime alerts
+                if (currentData.OvertimeMessage) {
+                    if (groupHeader.find('.overtime-message').length == 0) {
+                        groupHeader.append('<span class="overtime-message">' + currentData.OvertimeMessage + '</span>');
+                    }
+                }
+                if (currentData.OtherAlerts) {
+                    if (groupHeader.find('.candidate-alert-message').length == 0) {
+                        groupHeader.append('<span class="candidate-alert-message">' + currentData.OtherAlerts + '</span>');
+                    }
+                }
+            } else {
+                // too early (shift not end yet), or too late (paid)
+                if ((currentData.ClockOut == null && currentData.JobEndDateTime > new Date()) || (currentData.Payroll_BatchId != null && currentData.Payroll_BatchId > 0)) {
+                    theRow.find(".k-grid-Approve").remove();
+                    theRow.find(".k-grid-Reject").remove();
+                    theRow.find(".checkboxGroups").remove();
+                    theRow.find(".k-grid-Adjust").remove();
+                }
+                // approved
+                else if (currentData.CandidateWorkTimeStatusId == @((int)(CandidateWorkTimeStatus.Approved))) {
+                    theRow.find(".k-grid-Approve").remove();
+                    theRow.find(".checkboxGroups").remove();
+                    // adjust/add only for this week
+                    if (!currentData.IsCurrentWeek) {
+                        theRow.find(".k-grid-Adjust").remove();
+                    }
+                }
+                // rejected
+                else if (currentData.CandidateWorkTimeStatusId == @((int)(CandidateWorkTimeStatus.Rejected))){
+                    theRow.find(".k-grid-Reject").remove();
+                    // approve or adjust/add only for this week
+                    if (!currentData.IsCurrentWeek) {
+                        theRow.find(".checkboxGroups").remove();
+                        theRow.find(".k-grid-Approve").remove();
+                        theRow.find(".k-grid-Adjust").remove();
+                    }
+                }
+                // 0 hour (missing punch), approval disabled
+                else if(currentData.NetWorkTimeInHours == 0) {
+                    theRow.find(".k-grid-Approve").remove();
+                    theRow.find(".checkboxGroups").remove();
+                    if (!currentData.Id)
+                        theRow.find(".k-grid-Reject").remove();
+                }
+                if (!currentData.AllowSuperVisorModifyWorkTime) {
+                    theRow.find(".k-grid-Adjust").remove();
+                }
+            }
+        });
+    }
+
+    function approveSelected(e) {
+        e.preventDefault();
+        if (checkedIds.length) {
+            var url = "@(Url.Action("DailyApprovalWorkTime", "TimeSheet"))";
+            justGet(url, { selectedIds: checkedIds.join(',') }, null, function (result) {
+                displayAdminNotification(result.Approved + ' @T("Common.TimeSheet")' + '(s) @T("Common.AreApproved")', 'success');
+                reloadGridByName('@gridName');
+            });
+        }
+        else
+            popupNotification('@T("Common.SelectOneOrMoreItems")');
+        return false;
+    }
+
+    function approveAll (e) {
+        e.preventDefault();
+        var url = "@(Url.Action("DailyApproveAllWorkTime", "TimeSheet"))";
+        justGet(url, { weekStartDate: $("#sf_From").val() }, null, function (result) {
+            displayAdminNotification(result.Approved + ' @T("Common.TimeSheet")' + '(s) @T("Common.AreApproved")', 'success');
+            reloadGridByName('@gridName');
+        });
+        return false;
+    }
+
+    function approveEntry(e) {
+        e.preventDefault();
+        var grid = this;
+        var url = '@Url.Action("ApproveWorktime", "Timesheet")';
+        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
+        justPost(url, { id: dataItem.Id }, 'Time Sheet is approved', function (result) { reloadGrid(grid); });
+    }
+
+    function adjustEntry(e) {
+        var grid = this;
+        var formName = 'worktime-form';
+        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
+        var getUrl = '@Url.Action("AdjustCandidateWorkTime")' + '/' + dataItem.Id;
+        getUrl += dataItem.Id ? '?formName=' + formName
+            : '?candidateId=' + dataItem.CandidateId
+                + '&jobOrderId=' + dataItem.JobOrderId
+                + '&refDate=' + kendo.toString(dataItem.JobStartDateTime, 'yyyy-MM-dd')
+                + '&formName=' + formName;
+        var postUrl = '@Url.Action("SaveAdjustedWorkTime")' + '/' + dataItem.Id;
+        popupPost('newWorktimeEntry', getUrl, '@T("Common.Adjust") @T("Common.TimeSheet")', 640, formName, postUrl,
+            'Time sheet is adjusted', function (result) { reloadGrid(grid); }
+        );
+    }
+
+    function rejectEntry(e) {
+        var grid = this;
+        var formName = 'reject-worktime-form';
+        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
+        var getUrl = '@Url.Action("_RejectCandidateWorktime")' + '/' + dataItem.Id + '?formName=' + formName;
+        var postUrl = '@Url.Action("RejectWorktime")' + '/' + dataItem.Id;
+        popupPost('reject-worktime', getUrl, '@T("Common.Reject") @T("Common.TimeSheet")', 480, formName, postUrl,
+            '@T("Common.TimeSheet") @T("Common.IsRejected")', function (result) { reloadGrid(grid); }
+        );
+    }
+
+</script>}

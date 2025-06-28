@@ -1,0 +1,225 @@
+﻿@using Wfm.Core
+@using Wfm.Services.Security
+@using Wfm.Services.Companies
+@using Wfm.Services.JobOrders
+
+@{
+    Layout = null;
+    ViewBag.Title = "_TabCompanyJobOrder";
+
+    var startDate = DateTime.Today.AddMonths(-1);
+    var endDate = DateTime.Today.AddDays(14).StartOfWeek(DayOfWeek.Sunday).AddDays(-1);
+
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+
+    var companyLocationService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+    List<SelectListItem> locations = companyLocationService.GetAllCompanyLocationsByCompanyGuidAsSelectList(ViewBag.CompanyGuid);
+
+    var companyDepartmentService = EngineContext.Current.Resolve<ICompanyDepartmentService>();
+    List<SelectListItem> departments = companyDepartmentService.GetAllCompanyDepartmentsByCompanyGuidAsSelectList(ViewBag.CompanyGuid);
+
+    var contactService = EngineContext.Current.Resolve<ICompanyContactService>();
+    var contacts = contactService.GetCompanyContactsByCompanyIdAsSelectList((int)ViewBag.CompanyId);
+
+    //var jobOrderTypeService = EngineContext.Current.Resolve<IJobOrderTypeService>();
+    //var joborderTypes = jobOrderTypeService.GetAllJobOrderTypes().Where(x => !x.IsDirectHire).Select(x => new SelectListItem() { Text = x.JobOrderTypeName, Value = x.Id.ToString() });
+
+    //var jobOrderCategoryService = EngineContext.Current.Resolve<IJobOrderCategoryService>();
+    //var joborderCategories = jobOrderCategoryService.GetAllJobOrderCategories().Select(x => new SelectListItem() { Text = x.CategoryName, Value = x.Id.ToString() });
+
+    var jobOrderStatusService = EngineContext.Current.Resolve<IJobOrderStatusService>();
+    var joborderStatus = jobOrderStatusService.GetAllJobOrderStatus().Select(x => new SelectListItem() { Text = x.JobOrderStatusName, Value = x.Id.ToString() });
+}
+
+<script type="text/javascript">
+    function onDataBound(e) {
+        $('#joborder-grid input[type=checkbox][id!=mastercheckbox-joborder-grid]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds);
+            //set checked based on if current checkbox's value is in selectedIds.
+            $(this).attr('checked', checked > -1);
+        });
+
+        updatemastercheckboxJobOrderGrid();
+    }
+    $("#loadJobOrders").click(function () {
+        var grid = $("#joborder-grid").data("kendoGrid");
+        grid.dataSource.page(1);
+        grid.dataSource.read();
+    });
+    function onRead() {
+        return {
+            companyGuid:'@ViewBag.CompanyGuid',
+            startDate: $("#startDate").val(),
+            endDate: $("#endDate").val()
+        }
+    }
+</script>
+
+<div class="section-header">
+    <div class="title">
+        @T("Common.JobOrders")
+    </div>
+    <div class="options">
+        @Html.Label("startDate", T("Admin.Common.From").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("startDate").Value(startDate)
+        @Html.Label("endDate", T("Admin.Common.To").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("endDate").Value(endDate)
+        @Html.Kendo().Button().Name("loadJobOrders").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text)
+        <button id="export-joborder-grid-excel" class="k-button">@T("Admin.Candidate.CandidateJobOrder.AttendantList.Excel").Text</button>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<JobOrderModel>().Name("joborder-grid")
+                .Events(events => events.DataBound("onDataBound"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x).Filterable(false).Sortable(false)
+                        .HeaderTemplate("<input id='mastercheckbox-joborder-grid' type='checkbox'/>")
+                        .ClientTemplate("#if(!IsDirectHire){#<input type='checkbox' value='#=Id#' class='checkboxGroups1'/>#}else{##}#")
+                        .Width(30);
+                    columns.Bound(x => x.Id).Width(80);
+
+                    columns.Bound(x => x.JobTitle)
+                        .HtmlAttributes(new { style = "white-space: normal" })
+                        .ClientTemplate("#if(!IsDirectHire){# <a href=\"" + @Url.Content("~/Admin/JobOrder/Details?guid=") + "#= JobOrderGuid #\">#= JobTitle #</a>#}else{#<a href=\"" + @Url.Content("~/Admin/DirectHireJobOrder/Details?guid=") + "#= JobOrderGuid #\">#= JobTitle #</a>#}#");
+
+                    if (permissionService.Authorize("ViewCompanyBillingRates") || permissionService.Authorize("ViewCompanyPayRates"))
+                    {
+                        columns.Bound(x => x.PayRate).Width(80)
+                            .HtmlAttributes(new { align = "right" }).Format("{0:c}");
+                    }
+
+                    columns.ForeignKey(x => x.CompanyLocationId, locations, "Value", "Text").Width(120);
+                    columns.ForeignKey(x => x.CompanyDepartmentId, departments, "Value", "Text").Width(120);
+                    columns.ForeignKey(x => x.CompanyContactId, contacts, "Value", "Text").Title("Contact").Width(120);
+
+                    //columns.ForeignKey(x => x.JobOrderTypeId, joborderTypes, "Value", "Text").Title(T("Common.Type").Text).Width(150);
+                    //columns.ForeignKey(x => x.JobOrderCategoryId, joborderCategories, "Value", "Text").Title(T("Common.Category").Text).Hidden();
+                    columns.ForeignKey(x => x.JobOrderStatusId, joborderStatus, "Value", "Text").Title(T("Common.Status").Text).Width(80);
+
+                    columns.Bound(x => x.StartDate).Format("{0:yyyy-MM-dd}").Width(80);
+                    columns.Bound(x => x.StartTime).Format("{0:HH:mm}").Width(80);
+                    columns.Bound(x => x.EndDate).Format("{0:yyyy-MM-dd}").Width(80).Hidden();
+                    columns.Bound(x => x.EndTime).Format("{0:HH:mm}").Width(80);
+
+                    columns.Bound(x => x.BillingRateCode).Width(150).Hidden();
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                        .ClientTemplate("#if (isUpdateable && !IsDirectHire) {# <a class='-k-button' href=\"" + @Url.Content("~/Admin/JobOrder/Edit?guid=") + "#= JobOrderGuid #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        //.ClientTemplate("<a class="k-button"><span class="k-icon k-i-pencil"></span></a>")
+                        .Width(50).Title("Edit");
+                    if ((workContext.CurrentFranchise.EnableStandAloneJobOrders || workContext.CurrentFranchise.IsDefaultManagedServiceProvider) && permissionService.Authorize(StandardPermissionProvider.ManageJobOrders))
+                    {
+                        columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                            .ClientTemplate("#if(JobPostingId!=null || IsDirectHire){# #}else{#<a class='-k-button' href=\"" + @Url.Content("~/Admin/JobOrder/CopyJobOrder?guid=") + "#= JobOrderGuid #\"><span class='k-icon k-i-restore'></span></a>#}#")
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                            .Width(50).Title("Copy");
+                    }
+
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("_TabCompanyJobOrderList", "Company").Data("onRead"))
+                    .Sort(s => s.Add(x => x.UpdatedOnUtc).Descending())
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+<script type="text/javascript">
+    var selectedIds = [];
+
+    $(document).ready(function () {
+        $("#export-joborder-grid-excel").bind("click", exportAttendantList);
+        $('#mastercheckbox-joborder-grid').click(function () {
+            $('.checkboxGroups1').attr('checked', $(this).is(':checked')).change();
+        });
+        //wire up checkboxes.
+        $('#joborder-grid').on('change', 'input[type=checkbox][id!=mastercheckbox-joborder-grid]', function (e) {
+            var $check = $(this);
+            if ($check.is(":checked") == true) {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked == -1) {
+                    //add id to selectedIds.
+                    selectedIds.push($check.val());
+                }
+            }
+            else {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked > -1) {
+                    //remove id from selectedIds.
+                    selectedIds = $.grep(selectedIds, function (item, index) {
+                        return item != $check.val();
+                    });
+                }
+            }
+            updatemastercheckboxJobOrderGrid();
+        });
+    });
+
+    function updatemastercheckboxJobOrderGrid() {
+        var numChkBoxes = $('#joborder-grid input[type=checkbox][id!=mastercheckbox-joborder-grid]').length;
+        var numChkBoxesChecked = $('#joborder-grid input[type=checkbox][checked][id!=mastercheckbox-joborder-grid]').length;
+        $('#mastercheckbox-joborder-grid').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+    function exportAttendantList(e) {
+        e.preventDefault();
+        //alert(selectedIds.toString());
+        if (selectedIds.length > 0) {
+            $(document.body).append('<div id="export-attendant-list"></div>');
+            $("#export-attendant-list").kendoWindow({
+                title: "Export Attendant List",
+                modal: true,
+                resizable: false,
+                width: 440,
+                height: 120,
+                content: '@Url.Action("_ExportAttendanceListForJobOrders", "JobOrder")' + '?ids=' + selectedIds.toString() + '&companyGuid=' + '@ViewBag.CompanyGuid',
+                close: function () {
+                    setTimeout(function () {
+                        $('#export-attendant-list').kendoWindow('destroy');
+                    }, 200);
+                },
+                refresh: function (e) {
+                    var win = this;
+                    $('#submit-export').click(function () {
+                        win.close();
+                    })
+                }
+            }).data('kendoWindow').center();
+
+        }
+        else {
+            alert("Please select at least one job order!");
+        }
+    }
+</script>

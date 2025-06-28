@@ -1,0 +1,72 @@
+﻿@model JobOrderModel
+<script> function filterCompanyPolicy() { return { companyid: $("#CompanyData").attr("datauid") }; } </script>
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.ShiftId)
+        </td>
+        <td class="adminData required">           
+            @(Html.Kendo().DropDownList().Name("ShiftId")
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .DataSource(ds => ds.Read(r => { r.Action("GetCascadeShift", "JobOrder").Data("filterCompanyPolicy"); }).ServerFiltering(true))
+                .CascadeFrom("CompanyGuid").Text(Model.ShiftName)
+                .Events(e => e.Change("reloadPositions"))
+            )
+            @Html.WfmValidationMessageFor(model => model.ShiftId)
+        </td>
+
+    </tr>
+    @*<tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.ShiftSchedule)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.ShiftSchedule)
+        </td>
+
+    </tr>*@
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.SchedulePolicyId)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().DropDownList().Name("SchedulePolicyId")
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .DataSource(ds => ds.Read(r =>r.Action("GetCascadeCompanyPolicy", "JobOrder").Data("filterCompanyPolicy")).ServerFiltering(true) )
+                .CascadeFrom("CompanyGuid")
+            )
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.StartDate)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DatePicker().Name("StartDate")
+                .Format("dddd, MMMM d, yyyy").HtmlAttributes(new { type = "text" })
+                .Events(e => e.Change("reloadPositions"))
+            )
+            @Html.WfmValidationMessageFor(model => model.StartDate)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.StartTime)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().TimePicker().Name("StartTime").HtmlAttributes(new { type = "text" }))
+            @Html.WfmValidationMessageFor(model => model.StartTime)
+        </td>
+
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EndTime)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().TimePicker().Name("EndTime").HtmlAttributes(new { type = "text" }))
+            @Html.WfmValidationMessageFor(model => model.EndTime)
+        </td>
+    </tr>
+    </table>

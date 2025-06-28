@@ -1,0 +1,44 @@
+﻿@model IList<Wfm.Core.Domain.Announcements.Announcement>
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    ViewBag.Title = T("Admin.Configuration.Announcements").Text;
+}
+
+<style>
+    .cardAnnouncement {
+        border: 1px solid gray;
+        box-shadow: 1px 1px 3px #888;
+        border-top: 10px solid #1976D2;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+</style>
+
+<div class="page candidate-page">
+    <div class="page-title">
+        <h1>@T("Admin.Configuration.Announcements").Text</h1>
+    </div>
+    <div class="page-body">
+        <table class="web-content">
+            <tr>
+                <td>
+                    @if (Model.Count > 0)
+                    {
+                        foreach (var item in Model)
+                        {
+                            <div class="cardAnnouncement">
+                                <h5 style="margin:0px;">@T("Common.Date"):@item.CreatedOnUtc.Value.ToShortDateString()</h5>
+                                <div>@Html.Raw(item.AnnouncementText)</div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <label>There are no announcements for now.</label>
+                    }
+                </td>
+        </table>
+    </div>
+</div>

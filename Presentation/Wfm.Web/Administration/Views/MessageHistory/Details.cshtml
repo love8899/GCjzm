@@ -1,0 +1,105 @@
+﻿@model MessageHistoryModel
+
+@{
+    ViewBag.Title = T("Admin.Messages.MessageHistory.ViewLogDetails").Text;
+}
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true)
+
+
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Messages.MessageHistory.ViewLogDetails") @Html.ActionLink("(" + T("Admin.Messages.MessageHistory.BackToList") + ")", "Index")
+        </div>
+        <div class="options">
+        </div>
+    </div>
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.MailFrom):
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.MailFrom)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.MailTo):
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.MailTo)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.ToName):
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.ToName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CC):
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CC)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Subject):
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.Subject)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Body):
+            </td>
+            <td class="adminData">
+                @Html.Raw(Model.Body)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Note):
+            </td>
+            <td class="adminData">
+                @Html.Raw(Model.Note)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SentTries):
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.SentTries)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SentOnUtc):
+            </td>
+            <td class="adminData">
+                @if (Model.SentOnUtc != null)
+                {
+                    Html.DisplayFor(model => model.SentOnUtc, "LocalFullDateTime");
+                }
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CreatedOn):
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CreatedOn, "LocalFullDateTime")
+            </td>
+        </tr>
+    </table>
+}

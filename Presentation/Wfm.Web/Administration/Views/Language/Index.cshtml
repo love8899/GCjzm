@@ -1,0 +1,83 @@
+﻿@model IEnumerable<LanguageModel>
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.Languages").Text;
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration.Languages") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+    <div class="options">
+        @Html.ActionLink(T("Common.Add").Text, "Create", null, new { @class = "k-button" })
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<LanguageModel>()
+              .Name("language-grid")
+              .BindTo(Model)
+              .Columns(columns =>
+                {
+                    columns.Bound(x => x.Name);
+                    columns.Bound(x => x.LanguageCulture);
+                    columns.Bound(x => x.UniqueSeoCode);
+                    
+                    columns.Bound(x => x.FlagImageFileName).Width(80)
+                        .Template(@<img alt="" src="@Url.Content(String.Concat("~/Content/images/active-" , String.IsNullOrEmpty(item.FlagImageFileName)?"":item.FlagImageFileName.ToLowerInvariant()))" />)
+                        .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Content/images/flags/") + "#= FlagImageFileName #)'></div>");
+
+                    columns.Bound(x => x.Rtl);
+
+                    columns.Bound(x => x.IsActive)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsActive #.png' />")
+                        .Width(100);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+
+                    //columns.Bound(x => x.Id).Width(50)
+                    //    .Template(x => Html.ActionLink("Edit", "Edit", new { x.Id }))
+                    //    .ClientTemplate("<a href=\"" + @Url.Content("~/Admin/City/Edit/") + "#= Id #\">" + T("Edit").Text + "</a>")
+                    //    .Title("Edit").Sortable(false);
+
+                    columns.Bound(x => x.Id).Filterable(false)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(x => Html.ActionLink("Edit", "Edit", new { x.Id }))
+                        .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/Language/Edit/") + "#= Id #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                        .Width(80)
+                        .Title(T("Admin.Common.Edit").Text).Sortable(false);
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(20)
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

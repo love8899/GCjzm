@@ -1,0 +1,82 @@
+﻿@using Wfm.Services.Security
+@using Wfm.Services.Payroll
+@{
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    var overtimeSettingService = EngineContext.Current.Resolve<IOvertimeRuleSettingService>();
+    var settings = overtimeSettingService.GetAllOvertimeRuleSettingsForDropDownList();
+}
+<script src="@Url.Content("~/Scripts/admin.common.js?version=1.8")" type="text/javascript"></script>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CompanyOvertimeRuleModel>()
+                  .Name("company-overtime-rule-gid")
+                  .Columns(columns =>
+                {
+                    columns.ForeignKey(x=>x.OvertimeRuleSettingId,settings,"Value","Text").Width(350);
+                    //  columns.Bound(x => x.OvertimeRuleSettingId).Hidden(true);
+                    columns.Bound(x => x.TypeName).Title("Type").ClientGroupHeaderTemplate("#= value #");
+                    columns.Bound(x => x.ApplyAfter);
+                    columns.Bound(x => x.Rate);
+
+                    columns.Bound(x => x.IsActive)
+                        .Template(@<img alt="" src="@Url.Content("~/Administration/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Administration/Content/images/") + "active-#= IsActive #.png)'></div>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80).Hidden();
+
+                    columns.Bound(x => x.Note).Width(200);
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden();
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Command(x => x.Destroy().Text(" ")).Width(60);
+
+                })
+        .EnableCustomBinding(false)
+        .Reorderable(reorder => reorder.Columns(true))
+        .Resizable(resize => resize.Columns(true))
+        .ColumnMenu(d => d.Sortable(false))
+        .Filterable()
+        .Sortable()
+        .Selectable()
+        .Events(e=>e.Edit("onEdit"))
+        .ToolBar(toolBar => { if (permissionService.Authorize("ManageOvertimeRule")) { toolBar.Save(); toolBar.Create(); } })
+        .Editable(editable => editable.Mode(GridEditMode.InCell))
+        .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+        .DataSource(ds => ds
+            .Ajax()
+            .Batch(true)
+            .ServerOperation(false)
+            .Group(groups =>
+            {
+                groups.Add(x => x.TypeName);
+            })
+            .Model(model =>
+                        {
+                            model.Id(p => p.Id);
+                            //   model.Field(p => p.OvertimeRuleSettingId).Editable(false);
+                            model.Field(p => p.Description).Editable(false);
+                            model.Field(p => p.ApplyAfter).Editable(false);
+                            model.Field(p => p.Rate).Editable(false);
+                            model.Field(p => p.IsActive).DefaultValue(true);
+                            model.Field(p => p.TypeName).Editable(false);
+                            model.Field(p => p.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                            model.Field(p => p.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                            model.Field(p => p.UpdatedOn).Editable(false).DefaultValue(DateTime.Now);
+                            model.Field(p => p.CreatedOn).Editable(false).DefaultValue(DateTime.Now);
+                            model.Field(p => p.Note);
+
+
+                        })
+                    .Events(events => events.Error("error_handler1"))
+
+            .PageSize(20)
+            .Read(read => read.Action("_TabCompanyOvertimeRule", "Company").Data("getGuid"))
+            .Update(update => update.Action("_EditOvertimeRule", "Company"))
+            .Create(update => update.Action("_AddOvertimeRule", "Company"))
+            .Destroy(update => update.Action("_DeleteOvertimeRule", "Company"))
+                                .Events(events => events.Sync(@"function(e){setTimeout(function(){refreshGrid('#company-overtime-rule-gid')})}"))
+            )
+            )
+        </td>
+    </tr>
+</table>

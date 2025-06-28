@@ -1,0 +1,186 @@
+﻿@using Wfm.Core
+@using Wfm.Services.Franchises;
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts;
+
+
+@{
+    ViewBag.Title = T("Admin.TimeClocks.CandidateSmartCards").Text;
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+    IList<Wfm.Core.Domain.Franchises.Franchise> franchises = null;
+    if (commonSettings.DisplayVendor)
+    {
+        var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+        franchises = franchiseService.GetAllFranchises();
+    }
+}
+
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.TimeClocks.CandidateSmartCards") & @T("Common.Candidates")
+     </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateSmartCardMatchModel>()
+                .Name("candidatesmartcard-grid")
+                .Events(events => events.DataBound("onDataBound"))
+                .Columns(columns =>
+                {
+                    if (commonSettings.DisplayVendor && !workContext.CurrentAccount.IsVendor())
+                    {
+                        columns.ForeignKey(x => x.FranchiseId, franchises, "Id", "FranchiseName").Title(T("Common.Vendor").Text).Hidden();
+                    }
+
+                    columns.Bound(x => x.EmployeeId)
+                        .Width(100);
+
+                    columns.Bound(x => x.CandidateLastName).Filterable(false).Sortable(false).Width(100);
+                    columns.Bound(x => x.CandidateFirstName).Filterable(false).Sortable(false).Width(100);
+
+                    columns.Bound(x => x.SmartCardUid)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate("#=SmartCardUidTemplate(data)#")
+                        .Width(120);
+
+                    columns.Bound(x => x.IsActive)
+                        .ClientTemplate("#if (!SmartCardUid) {# #} else if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(120);
+
+                    columns.Bound(x => x.ActivatedDate).Format("{0:yyyy-MM-dd}").Title("Activated on").Width(130);
+
+                    columns.Bound(x => x.DeactivatedDate).Format("{0:yyyy-MM-dd}").Title("Deactivated on").Width(130);
+                    columns.Bound(x => x.ReasonForDeactivation)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+
+                    columns.Bound(x => x.Note)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+
+                    //columns.Bound(x => x.CandidateSmartCardMatchStatusId).Hidden();
+
+                    columns.Bound(x => x.JobOrderId).Title(T("Common.JobOrder").Text).Width(60)
+                        .ClientTemplate("#if (JobOrderId) {# #=JobOrderId# #}else{# #}#");
+                    columns.Bound(x => x.JobTitle);
+                    columns.Bound(x => x.StartTime).ClientTemplate("#if (JobOrderId) {# #=kendo.toString(StartTime,'HH:mm')# #}else{# #}#").Width(70);
+                    columns.Bound(x => x.EndTime).ClientTemplate("#if (JobOrderId) {# #=kendo.toString(EndTime,'HH:mm')# #}else{# #}#").Width(70);
+
+                    if (permissionService.Authorize("SelectClockTimeCandidate"))
+                    {
+                        columns.Command(command =>
+                        {
+                            command.Custom("Select").Click("confirmCandidate");
+                        }).Title("Action").Width(100);
+                    }
+
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                //.Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(true)
+                        .PageSize(20)
+                        .Read(read => read.Action("CandidateMatch", "SmartCard", new { companyLocationId = ViewBag.CompanyLocationId, 
+                                                                                       smartCardUid = ViewBag.SmartCardUid, 
+                                                                                       clockInOut = ViewBag.ClockInOut }))
+                        .Group(g => g.Add(x => x.CandidateId))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+
+<script type="text/javascript">
+
+    function onDataBound(e) {
+        showOrHideButton(e)
+    }
+
+    function showOrHideButton(e) {
+        var grid = $("#candidatesmartcard-grid").data("kendoGrid");
+        var data = grid.dataSource.data();
+        var currentRow = 0;
+        var l1Num = data.length;
+        for (var i = 0; i < l1Num; i++) {
+            var l2Num = data[i].items.length;
+            for (var j = 0; j < l2Num; j++) {
+                var currentData = data[i].items[j];
+                var theRow = grid.tbody.find(">tr:not(.k-grouping-row)").eq(currentRow);
+                if (currentData.SmartCardUid != null && currentData.IsActive == 0)
+                    theRow.find(".k-grid-Select").remove();
+                currentRow++;
+            }
+        }
+    }
+
+    function confirmCandidate(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var returnUrl = '@Url.Action("Index", "ClockTime")' + '?CandidateId=' + dataItem.CandidateId + '&refDate=' + '@(ViewBag.ClockInOut.Date.ToShortDateString())';
+        $.ajax({
+            url: '@Url.Action("ConfirmCandidate", "SmartCard")',
+            type: 'POST',
+            data: { smartCardUid: '@(ViewBag.SmartCardUid)', candidateId: dataItem.CandidateId, selectedUid: dataItem.SmartCardUid },
+            cache: false,
+            async: false,
+            success: function (result) {
+                if (result.Succeed) {
+                    reloadGrid();
+                    window.location.href = returnUrl;
+                }
+                else {
+                    alert(result.Error);
+                }
+            },
+        });
+    }
+
+    function reloadGrid() {
+        var grid = $("#candidatesmartcard-grid").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    function SmartCardUidTemplate(data) {
+        var template = kendo.template($('#SmartCardUid').html());
+        return template(data);
+    }
+
+</script>
+
+
+<script id="SmartCardUid" type="text/x-kendo-template">
+
+    # var targetUid = '@(ViewBag.SmartCardUid)'; #
+    #if (SmartCardUid == null) {#
+        <span />
+    #} else if (SmartCardUid == targetUid) {#
+        <span style='color:red'><strong>#= SmartCardUid #</strong></span>
+    #} else {#
+        <span>#= SmartCardUid #</span>
+    #}#
+
+</script>

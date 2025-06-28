@@ -1,0 +1,194 @@
+﻿@model IEnumerable<DailyAttendanceModel>
+
+@{
+    Layout = null;
+    ViewBag.Title = "_TabDailyAttendanceList";
+
+    var companyGuid = ViewBag.CompanyGuid;
+    var refDate = ViewBag.RefDate;
+}
+
+<script type="text/javascript">
+
+    function onDataBound(e) {
+       
+        $('#attendance-grid input[type=checkbox][id!=mastercheckbox1]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds);
+            //set checked based on if current checkbox's value is in selectedIds.
+            $(this).attr('checked', checked > -1);
+        });
+
+        updateMasterCheckbox1();
+    }
+
+    function reloadGrid() {
+        var grid = $("#attendance-grid").data("kendoGrid");
+        grid.dataSource.page(1);
+        grid.dataSource.read();
+    }
+
+    function onChangeDatePicker() {
+        reloadGrid();
+    }
+
+    function gridParameter() {
+        return {
+            companyGuid: '@(ViewBag.CompanyGuid)',
+            refDate: $("#refDate").data("kendoDatePicker").value(),
+        };
+    }
+
+</script>
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Companies.Company.DailyAttendance")
+    </div>
+    <div class="options">
+        <label for="inquiry-date">Select date&nbsp;&nbsp;</label>
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("refDate").Events(e =>
+              {
+                  e.Change("onChangeDatePicker");
+              }).Value(refDate).Format("yyyy-MM-dd")
+        <button id="export-excel" class="k-button">@T("Admin.Candidate.CandidateJobOrder.AttendantList.Selected").Text</button>
+        <button id="export-excel-all" class="k-button">@T("Admin.Candidate.CandidateJobOrder.AttendantList.All").Text</button>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<DailyAttendanceModel>()
+            .Name("attendance-grid")
+            .Events(events => events.DataBound("onDataBound"))
+            .Columns(columns =>
+                {
+                    columns.Bound(x => x).Filterable(false).Sortable(false)
+                        .HeaderTemplate("<input id='mastercheckbox1' type='checkbox'/>")
+                        .ClientTemplate("<input type='checkbox' value='#= CandidateJobOrderId #' class='checkboxGroups1'/>")
+                        .Width(25);
+
+                    columns.Bound(x => x.Supervisor).Width(150);
+
+                    columns.Bound(x => x.JobOrderId).Width(60);
+                    columns.Bound(x => x.JobTitle).Width(300)
+                        .ClientTemplate("<a href=\"" + @Url.Content("~/Admin/JobOrder/Details?guid=") + "#= JobOrderGuid #\" + target = \"_blank\" >" + "#= JobTitle #</a>" + "");
+                    columns.Bound(x => x.ShiftStart).Format("{0:hh:mm tt}").Width(80);
+                    columns.Bound(x => x.ShiftEnd).Format("{0:hh:mm tt}").Width(80);
+
+                    columns.Bound(x => x.EmployeeId).Width(80)
+                        .ClientTemplate(@Html.ActionLink("#=EmployeeId#", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString());
+                    columns.Bound(x => x.FirstName).Width(120);
+                    columns.Bound(x => x.LastName).Width(120);
+
+                    columns.Bound(x => x.StartDate).Format("{0:yyyy-MM-dd}").Width(80).Hidden();
+                    //columns.Bound(x => x.ClockIn).Format("{0:yyyy-MM-dd HH:mm}").Width(120);
+                    //columns.Bound(x => x.ClockOut).Format("{0:yyyy-MM-dd HH:mm}").Width(120);
+
+                    //columns.Bound(x => x.JobDuration).Width(80).Format("{0:n2}").HtmlAttributes(new { style = "text-align: right" });
+                    //columns.Bound(x => x.GrossHours).Width(80).Format("{0:n2}").HtmlAttributes(new { style = "text-align: right" }).Hidden(true);
+                    //columns.Bound(x => x.Adjustment).Width(80).Format("{0:n2}").HtmlAttributes(new { style = "text-align: right" }).Hidden(true);
+                    //columns.Bound(x => x.NetHours).Width(80).Format("{0:n2}").HtmlAttributes(new { style = "text-align: right" })
+                    //    .ClientTemplate("#if (NetHours == 0) {# #} else {# #= kendo.toString(NetHours, 'n2') # #}#");
+                })
+            .EnableCustomBinding(true)
+            .Reorderable(reorder => reorder.Columns(true))
+            .Resizable(resize => resize.Columns(true))
+            .ColumnMenu()
+            .Filterable()
+            .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+            .Sortable()
+            .Selectable()
+            .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .ServerOperation(true)
+                .PageSize(20)
+                .Read(read => read.Action("_TabDailyAttendanceList", "Company").Data("gridParameter"))
+                .Group(g => {
+                    g.Add(x => x.Supervisor);
+                    g.Add(x => x.JobOrderId); 
+                })
+            )
+            .Filterable(filterable => filterable
+                .Extra(false)
+                .Operators(operators => operators
+                    .ForString(str => str.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        .IsNotEqualTo("Is not equal to")
+                    )
+                )
+            )
+        )
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+
+    var selectedIds = [];
+
+    $(document).ready(function () {
+
+        $("#export-excel").on("click", exportAttendantList);
+        $("#export-excel-all").on("click", exportAllAttendantList);
+        $('#mastercheckbox1').on("click",function () {
+            $('.checkboxGroups1').attr('checked', $(this).is(':checked')).change();
+        });
+
+        //wire up checkboxes.
+        $('#attendance-grid').on('change', 'input[type=checkbox][id!=mastercheckbox1]', function (e) {
+            
+            var $check = $(this);
+            if ($check.is(":checked") == true) {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked == -1) {
+                    //add id to selectedIds.
+                    selectedIds.push($check.val());
+                }
+            }
+            else {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked > -1) {
+                    //remove id from selectedIds.
+                    selectedIds = $.grep(selectedIds, function (item, index) {
+                        return item != $check.val();
+                    });
+                }
+            }
+            updateMasterCheckbox1();
+        });
+    });
+
+    function updateMasterCheckbox1() {
+        var numChkBoxes = $('#attendance-grid input[type=checkbox][id!=mastercheckbox1]').length;
+        var numChkBoxesChecked = $('#attendance-grid input[type=checkbox][checked][id!=mastercheckbox1]').length;
+        $('#mastercheckbox1').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+
+    function exportAttendantList(e) {
+        e.preventDefault();
+        
+        if (selectedIds.length > 0) {
+            var ids = selectedIds.join(",");
+            var refDate = $("#refDate").val();
+            var url = '@Url.Action("ExportDailyAttendantList", "Company")';
+            url += '?companyGuid=' + '@ViewBag.CompanyGuid' + '&refDate=' + refDate + '&selectedIds=' + ids;
+            window.open(url, '_self');
+        } else {
+            alert('Please select candidates first');
+        }
+    }
+
+    function exportAllAttendantList(e) {
+        e.preventDefault();
+
+        var refDate = $("#refDate").val();
+        var url = '@Url.Action("ExportAllDailyAttendantList", "Company")';
+        url += '?companyGuid=' + '@ViewBag.CompanyGuid' + '&refDate=' + refDate;
+        window.open(url, '_self');
+    }
+
+</script>

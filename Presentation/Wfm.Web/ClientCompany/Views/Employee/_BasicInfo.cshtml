@@ -1,0 +1,239 @@
+﻿@using Wfm.Shared.Models.Employees;
+
+@model EmployeeModel 
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.FirstName)
+        </td>
+        <td class="adminData">
+            @Model.FirstName
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.LastName)
+        </td>
+        <td class="adminData">
+            @Model.LastName
+        </td>
+        <td class="adminTitle" rowspan="4"></td>
+        <td class="adminData picture-td" rowspan="4">
+            <img alt="@Model.Id" src="@Model.PictureThumbnailUrl" />
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.SocialInsuranceNumber)
+        </td>
+        <td class="adminData">
+            @Model.SocialInsuranceNumber.ToPrettySocialInsuranceNumber()
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.SINExpiryDate)
+        </td>
+        <td class="adminData">
+            @string.Format("{0:MMMM dd, yyyy}", Model.SINExpiryDate)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EmployeeId)
+        </td>
+        <td class="adminData">
+            @Model.EmployeeId
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.SINExtensionSubmissionDate)
+        </td>
+        <td class="adminData">
+            @string.Format("{0:MMMM dd, yyyy}", Model.SINExtensionSubmissionDate)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Email)
+        </td>
+        <td class="adminData">
+            @Model.Email
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.GenderId)
+        </td>
+        <td class="adminData">
+            @Model.GenderName
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.WorkPermit)
+        </td>
+        <td class="adminData">
+            @Model.WorkPermit
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.WorkPermitExpiry)
+        </td>
+        <td class="adminData">
+            @string.Format("{0:MMMM dd, yyyy}", Model.WorkPermitExpiry)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.HomePhone)
+        </td>
+        <td class="adminData">
+            @Model.HomePhone.ToPrettyTelephone()
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.MobilePhone)
+        </td>
+        <td class="adminData">
+            @Model.MobilePhone.ToPrettyTelephone()
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EmergencyPhone)
+        </td>
+        <td class="adminData">
+            @Model.EmergencyPhone.ToPrettyTelephone()
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.PreferredWorkLocation)
+        </td>
+        <td class="adminData">
+            @Model.PreferredWorkLocation
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.JobTitle)
+        </td>
+        <td class="adminData">
+            @Model.JobTitle
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Age)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.Age)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.HireDate)
+        </td>
+        <td class="adminData">
+            @string.Format("{0:MMMM dd, yyyy}", Model.HireDate)
+        </td>
+
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.TerminationDate)
+        </td>
+        <td class="adminData">
+            @string.Format("{0:MMMM dd, yyyy}", Model.TerminationDate)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsActive)
+        </td>
+        <td class="adminData">
+            @{
+                if (Model.IsActive == true)
+                {<span class='k-icon k-i-tick' />
+                }
+                else
+                {
+                    <span class='k-icon k-i-close' />
+                }
+            }
+
+        </td>
+
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.InactiveReason)
+        </td>
+        <td class="adminData">
+            @Model.InactiveReason
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Education)
+        </td>
+        <td class="adminData">
+            @Model.Education
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Education2)
+        </td>
+        <td class="adminData">
+            @Model.Education2
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CanRelocate)
+        </td>
+        <td class="adminData">
+            @{
+                if (Model.CanRelocate == true)
+                {<span class='k-icon k-i-tick' />
+                }
+                else
+                {
+                    <span class='k-icon k-i-close' />
+                }
+            }
+            
+           
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EnteredBy)
+        </td>
+        <td class="adminData">
+            @Model.EnteredByUserName
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.VetranTypeId)
+        </td>
+        <td class="adminData">
+            @if (Model.VetranTypeId.HasValue)
+            {
+                @Model.VetranTypeName
+            }
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CreatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.CreatedOn)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EmployeeType)
+        </td>
+        <td class="adminData">
+            @Model.EmployeeType
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.UpdatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.UpdatedOn)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Note)
+        </td>
+        <td class="adminData">
+            @Html.DisplayTextFor(model => model.Note)
+        </td>
+        
+    </tr>
+</table>
+

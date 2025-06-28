@@ -1,0 +1,17 @@
+﻿@model object
+@using Wfm.Services.Common
+@{
+    var skillService = EngineContext.Current.Resolve<ISkillService>();
+    var skills = skillService.GetAllSkills();
+    var skillsDropDownList = new List<SelectListItem>();
+    foreach (var c in skills)
+    {
+        var item = new SelectListItem()
+        {
+            Text = c.SkillName,
+            Value = c.SkillName
+        };
+        skillsDropDownList.Add(item);
+    }
+}
+@(Html.Kendo().AutoCompleteFor(e => e).BindTo(skillsDropDownList.Select(s => s.Value)))

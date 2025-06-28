@@ -1,0 +1,169 @@
+﻿@using Wfm.Services.Announcements;
+@model Wfm.Admin.Models.Announcements.AnnouncementModel
+@{
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+}
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.StartDate)
+        </td>
+        <td class="adminData required">          
+            @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                .Name("StartDate")
+                .Format("dddd, MMMM d, yyyy")                              
+            )
+            @Html.WfmValidationMessageFor(model => model.StartDate)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EndDate)
+        </td>
+        <td class="adminData required">          
+            @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                        .Name("EndDate")
+                .Format("dddd, MMMM d, yyyy")
+            )
+            @Html.WfmValidationMessageFor(model => model.EndDate) 
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Subject)
+        </td>
+        <td class="adminData ">
+            @Html.EditorFor(model => model.Subject)          
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.AnnouncementText)
+        </td>
+        <td class="adminData required">           
+            @Html.EditorFor(model => model.AnnouncementText, "RichEditor2")
+            @Html.WfmValidationMessageFor(model => model.AnnouncementText)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.DisplayOrder)
+        </td>
+        <td class="adminData">
+            @Html.Kendo().IntegerTextBoxFor(model => model.DisplayOrder)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.ForClient)
+        </td>
+        <td class="adminData">
+            
+            @Html.CheckBoxFor(model => model.ForClient,new { @class = "clsTarget" } )
+             
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.ForCandidate)
+        </td>
+        <td class="adminData">
+          
+            @Html.CheckBoxFor(model => model.ForCandidate,  new { @class = "clsTarget" } )
+        </td>
+    </tr>  
+  
+@if(!(workContext.CurrentAccount.IsLimitedToFranchises))
+{ 
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.ForFranchise)
+        </td>
+        <td class="adminData">           
+            @Html.CheckBoxFor(model => model.ForFranchise, new { @class = "clsTarget" } )
+        </td>
+    </tr>  
+}
+    
+    <tr id="rowCompanyId">
+        <td class="adminTitle" style="vertical-align:middle;">
+            @Html.LabelFor(model => model.CompanyIds)
+        </td>
+        <td class="adminData">
+
+            @(Html.Kendo().MultiSelect()
+                  .Name("CompanyIds")
+                  .Placeholder("All Companies.")
+                  .DataTextField("Text")
+                  .DataValueField("Value")
+                  .BindTo(Model.CompanyList)
+                  .Value(Model.SelectedCompanyList))
+
+        </td>
+    </tr>   
+    <tr id="rowFranchiseId" style="display:none">
+        <td class="adminTitle" style="vertical-align:middle;">
+            @Html.LabelFor(model => model.FranchiseIds)
+        </td>
+        <td class="adminData">
+
+            @(Html.Kendo().MultiSelect()
+                                  .Name("FranchiseIds")
+                  .Placeholder("All Vendors.")
+                  .DataTextField("Text")
+                  .DataValueField("Value")
+                  .Placeholder("All")
+                  .BindTo(Model.FranchiseList)
+                  .Value(Model.SelectedFranchiseList))
+
+        </td>
+    </tr>
+</table>
+    <script type="text/javascript">
+        $(function () {
+            $('body').on('click', '.clsTarget', function () {
+                $(".clsTarget").prop('checked', false);
+                $(this).attr("checked", "checked");
+                if ($(this).attr("name") == "ForCandidate") {
+                    resetCompanyIds();
+                    resetfranchiseIds();
+                }
+                else if ($(this).attr("name") == "ForFranchise") {
+                    resetCompanyIds();
+                    $("#rowFranchiseId").show();
+                }
+                else if ($(this).attr("name") == "ForClient") {
+                    resetfranchiseIds();
+                    $("#rowCompanyId").show();
+                }
+
+            });
+            if ($('#ForFranchise').attr("checked"))
+            {
+                $("#rowCompanyId").hide();
+                $("#rowFranchiseId").show();
+            }
+            else if ($('#ForClient').attr("checked")) {
+                $("#rowFranchiseId").hide();
+            }
+            else {
+                $("#rowCompanyId").hide();
+                $("#rowFranchiseId").hide();
+            }
+        });
+        function resetCompanyIds() {
+            var multiSelect = $("#CompanyIds").data("kendoMultiSelect");
+            multiSelect.value([]);
+            $("#rowCompanyId").hide();
+        }
+        function resetfranchiseIds() {
+            $("#rowFranchiseId").hide();
+            var multiSelect = $("#FranchiseIds").data("kendoMultiSelect");
+            multiSelect.value([]);
+        }
+</script>

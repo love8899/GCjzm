@@ -1,0 +1,9 @@
+﻿@model System.DateTime?
+
+@(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Format("MMMM d, yyyy")
+    .Name(ViewData.TemplateInfo.GetFullHtmlFieldName(string.Empty))
+    .Value(Model > DateTime.MinValue ? Model : null)
+    .Start(CalendarView.Century)
+    .Min(DateTime.Now.AddYears(-80))
+    .Max(DateTime.Now.AddYears(-10))
+)

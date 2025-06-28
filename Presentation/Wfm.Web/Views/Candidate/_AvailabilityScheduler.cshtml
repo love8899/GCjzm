@@ -1,0 +1,227 @@
+﻿@{
+    var today = DateTime.Today;
+    int candidateId = ViewBag.CandidateId != null ? ViewBag.CandidateId : 0;
+    DateTime refDate = ViewBag.RefDate != null ? ViewBag.RefDate : today;
+    bool readOnly = ViewBag.ReadOnly != null ? ViewBag.ReadOnly : false;
+}
+
+<script type="text/javascript">
+
+    var viewDate, viewStart, viewEnd;
+
+    function addDays(date, days) {
+        var result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    }
+
+    function getScheduleOptions() {
+        setViewDates($("#scheduler").data("kendoScheduler"));
+        return {
+            candidateId: '@candidateId',
+            startDate: kendo.toString(viewStart, 'yyyy-MM-dd'),
+            endDate: kendo.toString(viewEnd, 'yyyy-MM-dd'),
+        };
+    }
+
+    //not used
+    function ShowHideDeleteBtn(scheduler) {
+        $("#scheduler tbody tr .k-event-delete").each(function () {
+            var model = scheduler.dataSource.getByUid($(this).closest('div').attr('data-uid'));
+            if (model.ReadOnly || !model.TypeId) {
+                $(this).remove();
+            }
+        })
+    }
+
+    function enableSingleClick(scheduler) {
+        $(".k-event").on("click", function (e) {
+            e.stopImmediatePropagation();
+            if ($(e.target).hasClass("k-si-close")) {
+                return;
+            }
+            var target = $(e.currentTarget);
+            if (target.hasClass("k-event")) {
+                var event = scheduler.occurrenceByUid(target.data("uid"));
+                scheduler.editEvent(event);
+            }
+        });
+    }
+
+    function scheduler_dataBound(e) {
+        e.sender._data.forEach(function (eventDetails) {
+            addEventClass(eventDetails);
+        });
+        // enable sinlge click to edit
+        enableSingleClick(e.sender);
+    }
+
+    function addEventClass(eventDetails) {
+        var event = $('div.k-event[data-uid="' + eventDetails['uid'] + '"]');
+        var delBtn = event.find('.k-event-delete');
+        var classStr = 'availability-event';
+        event.addClass(classStr);
+        if (eventDetails.Hidden) {
+            event.addClass('hidden-availability');
+        } else if (eventDetails.ReadOnly) {
+            event.attr('title', 'You can not change a past shift');
+            event.addClass('readonly-availability');
+            delBtn.remove();
+        } else if (!eventDetails.TypeId) {
+            event.addClass('blank-availability');
+            delBtn.remove();
+        }
+        // additional class for responsive title replacement
+        var shift = eventDetails.title;
+        if (shift == 'Day')
+            event.addClass("AM");
+        else if (shift == 'Afternoon')
+            event.addClass("PM");
+        else if (shift == 'Any')
+            event.addClass("ANY");
+    }
+
+    function scheduler_navigate(e) {
+        e.preventDefault();
+        var changeViewRange = true;
+        var scheduler = e.sender;
+        if (e.action == 'today' || e.action == 'changeDate') {
+            if (scheduler.popup)
+                scheduler.popup.close();
+            if (e.date >= viewStart && e.date <= viewEnd)
+                changeViewRange = false;
+        }
+        if (changeViewRange) {
+            scheduler.date(e.date);
+            reloadScheduler();
+        }
+    }
+
+    function setViewDates(scheduler) {
+        viewDate = scheduler.date();
+        view = scheduler.view();
+        viewStart = view.startDate();
+        viewEnd = view.endDate();
+    }
+
+    function event2model(event) {
+        var model = event.toJSON();
+        model.start = kendo.toString(event.start, 'yyyy-MM-dd');
+        model.end = kendo.toString(event.end, 'yyyy-MM-dd');
+        return model;
+    }
+
+    function toggleEvent(scheduler, event) {
+        var newTypeId = event.TypeId == 0 ? 1 : 0;
+        event.set('TypeId', newTypeId);
+        event.set('Changed', true);
+        scheduler.refresh();    // refresh immediately
+        saveEvent(scheduler, event);
+    }
+
+    function changeEvents(scheduler, curr) {
+        // set current
+        if (!curr.TypeId) {
+            // other same day events already set
+            var events = $.grep(scheduler._data, function (item, index) {
+                return item.start.getTime() == curr.start.getTime() && (item.ShiftId == curr.ShiftId || item.TypeId > 0)
+            });
+            events.forEach(function (event) {
+                toggleEvent(scheduler, event);
+            });
+        }
+        // reset current
+        else
+            toggleEvent(scheduler, curr);
+        //scheduler.refresh();    // refresh after all changes
+    }
+
+    function scheduler_edit(e) {
+        e.preventDefault();
+        if (e.event.ReadOnly) {
+            alert('You can not change a past shift');
+        } else {
+            displayAjaxLoading(true);
+            changeEvents(e.sender, e.event);
+            displayAjaxLoading(false);
+        }
+    }
+
+    function saveEvent(scheduler, event) {
+        var model = event2model(event);
+        //scheduler.saveEvent(model);
+        $.ajax({
+            url: '@Url.Action("_SaveAvailability", "Candidate")',
+            type: 'POST',
+            data: JSON.stringify(model),
+            contentType: 'application/json',
+            cache: false,
+            async: false,
+            success: function (result) {
+                if (!result.Succeed && result.Error) {
+                    alert(result.Error);
+                } else {
+                    event.set('Changed', false);
+                    event.set('Id', result.Id);
+                }
+            },
+        });
+    }
+
+    function scheduler_remove(e) {
+        e.preventDefault();
+        if (!e.event.ReadOnly && e.event.TypeId && e.event.Id > 0) {
+            console.log("To remove event:", e.event);
+            toggleEvent(e.sender, e.event);
+        }
+    }
+
+    function reloadScheduler() { $('#scheduler').data('kendoScheduler').dataSource.read(); }
+
+    function errNotification(s) {
+        $(".notification-wrapper").html('<div class="messageBox messageBoxError"></div><div class="clear"></div>');
+        $(".messageBox").text(s);
+    }
+
+</script>
+
+<div>
+    @(Html.Kendo().Scheduler<Wfm.Web.Models.Candidate.CandidateAvailabilityModel>()
+        .Name("scheduler")
+        .Date(refDate)
+        .StartTime(refDate)
+        .MajorTick(60)
+        .Views(views =>
+        {
+            views.MonthView();
+        })
+        //.Mobile(MobileMode.Auto)
+        .EventTemplateId("event-template")
+        .Editable(editable => editable.Create(false).Update(!readOnly).Destroy(false).Confirmation(false).Move(false).Resize(false))
+        .DataSource(d => d
+            .Model(m =>
+            {
+                m.Id(f => f.UniqueId);
+                m.Field(f => f.UniqueId).DefaultValue(Guid.NewGuid());
+                m.RecurrenceId(f => f.RecurrenceID);
+                m.Field(f => f.IsAllDay).DefaultValue(true);
+                m.Field(f => f.ReadOnly).DefaultValue(false);
+            })
+            .Read(read => read.Action("_CandidateAvailabilityByShift", "Candidate").Data("getScheduleOptions"))
+        )
+        .Events(e =>
+        {
+            e.DataBound("scheduler_dataBound");
+            e.Navigate("scheduler_navigate");
+            e.Remove("scheduler_remove");
+            e.Edit("scheduler_edit");
+        })
+        .AutoBind(true)
+    )
+</div>
+
+<script id="event-template" type="text/x-kendo-template">
+    <div>
+        <div class="k-event-template">#: title #</div>
+    </div>
+</script>

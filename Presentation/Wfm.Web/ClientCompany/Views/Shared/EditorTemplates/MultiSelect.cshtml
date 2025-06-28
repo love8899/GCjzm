@@ -1,0 +1,11 @@
+﻿@model object
+
+@(Html.Kendo().MultiSelectFor(m => m)
+    .Value((IEnumerable<string>)ViewData["Selected"] ?? Enumerable.Empty<string>())
+    .Placeholder((string)ViewData["PlaceHolder"] ?? "None")
+    .DataTextField((string)ViewData["TextField"] ?? "Text")
+    .DataValueField((string)ViewData["ValueField"] ?? "Value")
+    .Enable((bool?)ViewData["Enable"] ?? true)
+    .BindTo((IEnumerable<SelectListItem>)ViewData["Items"] ?? Enumerable.Empty<SelectListItem>())
+    .MaxSelectedItems((int?)ViewData["MaxSelected"] ?? 5)
+)

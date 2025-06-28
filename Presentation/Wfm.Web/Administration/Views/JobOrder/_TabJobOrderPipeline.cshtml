@@ -1,0 +1,1068 @@
+﻿@model JobOrderCandidateModel
+@using Wfm.Core
+@using Wfm.Shared.Models.Common
+@{
+    Layout = "";
+    ViewBag.Title = T("Admin.Candidate.CandidateJobOrders").Text;
+
+    var jobOrderId = ViewBag.JobOrderId;
+    var _workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+
+    var genderService = EngineContext.Current.Resolve<Wfm.Services.Common.IGenderService>();
+    var transportationService = EngineContext.Current.Resolve<Wfm.Services.Common.ITransportationService>();
+    var shiftService = EngineContext.Current.Resolve<Wfm.Services.Common.IShiftService>();
+    var genders = genderService.GetAllGenders();
+    var transportations = transportationService.GetAllTransportations();
+    var shifts = shiftService.GetAllShifts();
+    var scheduleShifts = shifts.Where(x => x.EnableInSchedule);
+
+    var pipelineStatusGroupTemplate = "Status: #=value#";
+    if (permissionService.Authorize("ManageCandidatePlacement") && (_workContext.CurrentAccount.Id == Model.RecruiterId || _workContext.CurrentAccount.Id == Model.OwnerId))
+    {
+        pipelineStatusGroupTemplate = "Status: #=value#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp<button class='groupSelectBtn'>Select All</button>";
+    }
+}
+
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Candidate.CandidateJobOrder")
+    </div>
+    <div class="options">
+        <button class="k-button" onclick="confirmationReport()">Pipeline Report</button>
+        <button id="export-excel" class="k-button" onclick="exportAttendantList()">@T("Admin.Candidate.CandidateJobOrder.AttendantList.Excel").Text</button>
+        <button id="email-placement" class="k-button">Email Placement</button>
+    </div>
+</div>
+
+<div class="pipeline-datepicker-bar">
+    <label for="candidatejoborder-calendar">On:</label>
+    @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+        .Name("candidatejoborder-calendar")
+        .Format("yyyy/MM/dd")
+        .Footer(true)
+        .Value(Model.InquiryDate)
+        .Events(events => events.Change("refreshContent"))
+    )
+    <label for='opening-available'>Requested:</label>
+    @Html.TextBoxFor(m => m.OpeningAvaliable, new { id = "opening-available", size = 3, disabled = true })
+    <label>Placed:</label><b><label id="num_placed">@(Model.Placed)</label></b>
+    <label>Openning:</label><b><label id="num_shortage">@(Model.Shortage)</label></b>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td width="44%"></td>
+        <td width="1%"></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>
+            <div class="grid-title">
+                @Model.InquiryDate.ToLongDateString()
+                <table style="width:50%;float:right;text-align:center">
+                    <tr>
+                        @if (permissionService.Authorize("ManageCandidatePlacement") && (_workContext.CurrentAccount.Id == Model.RecruiterId || _workContext.CurrentAccount.Id == Model.OwnerId))
+                        {
+                            <td><a class="k-button" href="#" id="toggle-selected" title="Toggle status of all selected candidates">Activate / Deactivate</a></td>
+                            <td><a class="k-button" href="#" id="daily-confirm" title="Ask for confirmation from all candidates">Daily Confirmation</a></td>
+                        }
+                        @if (permissionService.Authorize("ApproveTimeSheet"))
+                        {
+                            <td><a class="k-button" href="#" name="check-weekly-worktime" id="check-weekly-worktime">@T("Common.TimeSheet")</a></td>
+                        }
+                    </tr>
+                </table>
+            </div>
+            @(Html.Kendo().Grid<CandidatePipelineSimpleModel>()
+                .Name("candidatejoborder-grid")
+                .Events(events => events.DataBound("onDataBound1").ExcelExport("onExcelExport"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.EmployeeId).Title("Empl#").Width(80)
+                        .ClientTemplate(@Html.ActionLink("#=EmployeeId#", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString());
+
+                    columns.Bound(x => x.Name)
+                        .ClientTemplate("<span title='Home Phone: #=prettyPhone(HomePhone)#\nMobile Phone: #=prettyPhone(MobilePhone)#\nEmail: #=Email#'>#=Name#</span>");
+
+                    columns.ForeignKey(x => x.AvailableShiftId, scheduleShifts, "Id", "ShiftName").Title("Available").Width(80)
+                        .Hidden(Model.InquiryDate < DateTime.Today);
+
+                    columns.Bound(x => x.RatingValue).Width(95)
+                        .ClientTemplate("<div class=\"rating pipeline-rating\" data-rowid=\"#= Id#\"><div style=\"width: #= RatingValue/5*100 #%;\"></div></div>")
+                        .Hidden(true); //Hidden(Model.InquiryDate > DateTime.Today);
+                    columns.Bound(x => x.RatingComment)
+                        .Hidden(true);
+
+                    columns.Bound(x => x.TotalHours).Title("Hours").Hidden().Width(80)
+                        .HeaderHtmlAttributes(new { title = "Total hours in last 1 year" })
+                        .HtmlAttributes(new { style = "text-align:right" })
+                        .ClientTemplate("#=kendo.format('{0:n2}',TotalHours)#");
+
+                    columns.Bound(x => x.IsArrivedToday).Title("In?").Width(60)
+                        .HeaderHtmlAttributes(new { title = "Punched in this day?" })
+                        .ClientTemplate("<span>#if (IsArrivedToday) {#Yes#}else{#No#}#</span>")
+                        .Hidden(Model.InquiryDate > DateTime.Today);
+
+                    columns.Bound(x => x.JobDuration).Width(80).Hidden(Model.InquiryDate >= DateTime.Today)
+                        .HtmlAttributes(new { style = "text-align:right" })
+                        .ClientTemplate("#if (JobDuration) {# #=kendo.format('{0:n2}',JobDuration)# #}else{##}#");
+
+                    columns.Bound(x => x.StatusName).HeaderTemplate("Status").Width(100);
+
+                    columns.Bound(x => x.StatusDisplayText).ClientGroupHeaderTemplate(pipelineStatusGroupTemplate).Hidden();
+
+                    if (permissionService.Authorize("ManageCandidatePlacement") && (_workContext.CurrentAccount.Id == Model.RecruiterId || _workContext.CurrentAccount.Id == Model.OwnerId))
+                    {
+                        columns.Bound(x => x.ToggleButtonText)
+                            .ClientTemplate("<a class=\"k-button toggle-employee-status\" data-rowid=\"#= Id#\" employeeGuid=\"#=CandidateGuid#\">#= ToggleButtonText#</a>")
+                            .HeaderTemplate("Change").HtmlAttributes(new { style = "text-align: center" })
+                            .Width(110);
+                    }
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(90).Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    if (permissionService.Authorize("ManageCandidatePlacement") && (_workContext.CurrentAccount.Id == Model.RecruiterId || _workContext.CurrentAccount.Id == Model.OwnerId))
+                    {
+                        columns.Command(c =>
+                        {
+                            c.Custom("SendQrCode").Click("sendQrCode").Text(" ");
+                            c.Custom("SendEmail").Click("SendConfirmationEmail").Text(" ");
+                        }).Title("Action").HtmlAttributes(new { align = "center" }).Width(60);
+                    }
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Sortable()
+                .Selectable(configurator => configurator.Mode(GridSelectionMode.Multiple))
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(Math.Max(20, Model.OpeningAvaliable))
+                    .Group(groups =>
+                    {
+                        groups.Add(x => x.StatusDisplayText);
+                        //groups.Add(x => x.EmployeeId);
+                    })
+                    .Sort(sort =>
+                    {
+                        //sort.Add(x => x.AvailableShiftId).Descending();
+                        sort.Add(x => x.StatusName);
+                    })
+                    .ServerOperation(false)
+                    .Read(read => read.Action("JobOrderPipelinePlaced", "JobOrder").Data("pipelineGridParameters"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+                .Excel(excel => excel
+                    .AllPages(true)
+                    .FileName("PipelineReport.xlsx")
+                )
+            )
+        </td>
+        <td></td>
+        <td>
+            <div class="grid-title">
+                @T("Admin.JobOrders.Pipeline.PoolTitle")
+                @Html.ActionLink("Go to company pool", "Details", "Company", new { guid = Model.CompanyGuid, tabId = "tab-candidate" }, new { })
+                <table style="width:60%;float:right;text-align:center">
+                    <tr>
+                        <td>
+                            <a id="export-available" class="k-button" onclick="exportAvailable()" style="float:right">Export Available</a>
+                        </td>
+                        <td><a class="k-button" href="#" name="global-search" id="global-search" style="float:right">Search Globally</a></td>
+                        <td><a class="k-button" href="#" name="btnShowEmployeesOther" id="btnShowEmployeesOther" style="float:right">@T("Admin.Candidate.CandidateJobOrder.UnfilteredList").Text</a></td>
+                    </tr>
+                </table>
+            </div>
+            @(Html.Kendo().Grid<CandidatePoolModel>()
+                .Name("candidate-pool-grid")
+                .Events(events => events.DataBound("onDataBound2"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.EmployeeId).Title("Empl#").Width(80)
+                        .ClientTemplate(@Html.ActionLink("#=EmployeeId#", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString());
+
+                    columns.Bound(x => x.FirstName)
+                        .ClientTemplate("<span title='Home Phone: #=prettyPhone(HomePhone)#\nMobile Phone: #=prettyPhone(MobilePhone)#\nEmail: #=Email#'>#=FirstName#</span>");
+
+                    columns.Bound(x => x.LastName)
+                        .ClientTemplate("<span title='Home Phone: #=prettyPhone(HomePhone)#\nMobile Phone: #=prettyPhone(MobilePhone)#\nEmail: #=Email#'>#=LastName#</span>");
+
+                    columns.ForeignKey(x => x.AvailableShiftId, scheduleShifts, "Id", "ShiftName").Title("Available").Width(80)
+                    .Hidden(Model.InquiryDate < DateTime.Today);
+
+                    columns.Bound(x => x.RatingValue).Width(95)
+                        .ClientTemplate("<div class=\"rating pool-rating\" data-rowid=\"#= Id #\"><div style=\"width: #= RatingValue/5*100 #%;\"></div></div>");
+
+                    columns.Bound(x => x.LastWorkingDate).Format("{0:yyyy-MM-dd}").Title("Last Day Worked").Width(85)
+                    .ClientTemplate("#if (LastWorkingDate != null) {# #=kendo.toString(LastWorkingDate,'yyyy-MM-dd')# #}else {# #}#");
+                    columns.Bound(x => x.LastWorkingLocation).Title("Last Location");//.Hidden(Model.InquiryDate >= DateTime.Today);
+                    columns.Bound(x => x.LastWorkingShift).Title("Last Shift").Width(75);
+                    columns.Bound(x => x.TotalWorkingHours).Title("Total Hours").Width(80)
+                    .HtmlAttributes(new { style = "text-align:right" }).ClientTemplate("#=kendo.format('{0:n2}',TotalWorkingHours)#");
+
+                    columns.ForeignKey(x => x.GenderId, genders, "Id", "GenderName").Title(T("Common.Gender").Text).Hidden();
+                    columns.ForeignKey(x => x.TransportationId, transportations, "Id", "TransportationName")
+                    .Title(T("Admin.Candidate.Candidate.Fields.TransportationId").Text).Hidden();
+                    columns.Bound(x => x.MajorIntersection).Hidden(true);
+                    columns.Bound(x => x.PreferredWorkLocation).Hidden(true);
+                    columns.Bound(x => x.Position).Hidden(true);
+                    columns.ForeignKey(x => x.ShiftId, shifts, "Id", "ShiftName").Title(T("Common.Shift").Text).Hidden();
+
+                    columns.Bound(x => x.Note).Hidden();
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    if (permissionService.Authorize("ManageCandidatePlacement") && (_workContext.CurrentAccount.Id == Model.RecruiterId || _workContext.CurrentAccount.Id == Model.OwnerId))
+                    {
+                        columns.Command(c => c.Custom("SendEmail").Text(" ").Click("SendConfirmationEmail"))
+                        .HtmlAttributes(new { style = "text-align: center" }).Width(65);
+                    }
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Sortable()
+                .Selectable(configurator => configurator.Mode(GridSelectionMode.Multiple))
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(20)
+                    .ServerOperation(true)
+                    .Read(read => read.Action("JobOrderPipelinePooled", "JobOrder").Data("CompanyPoolGridParameters"))
+                    .Sort(sort =>
+                    {
+                        sort.Add(x => x.AvailableShiftId).Descending();
+                        sort.Add(x => x.LastWorkingDate).Descending();
+                        sort.Add(x => x.TotalWorkingHours).Descending();
+                        sort.Add(x => x.LastWorkingLocation);
+                        sort.Add(x => x.RatingValue).Descending();
+                    })
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+<div id="check-weekly-worktime-dialog"></div>
+<div id="global-search-dialog"></div>
+<div id="divAuthenticateAdmin"><span id="centeredNotification" style="display:none;"></span></div>
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $('#check-weekly-worktime').click(function () {
+            var dialog = $("#check-weekly-worktime-dialog").data("kendoWindow");
+            if (!dialog) {
+                $("#check-weekly-worktime-dialog").kendoWindow({
+                    title: "Weekly Time Sheet Summary",
+                    modal: true,
+                    resizable: false,
+                    width: 800,
+                    close: function () {
+                    },
+                    refresh: function (e) {
+                        var win = this;
+
+                        $('#btn-cancel').click(function () {
+                            win.close();
+                        })
+
+                        $('#btn-save').click(function () {
+                            var form = $('#joborder-manual-worktime-form');
+                            if (form.valid()) {
+                                var link = '@Url.Action("SaveManualWorkTime", "JobOrder")';
+                                $.ajax({
+                                    type: "POST",
+                                    url: link,
+                                    data: form.serialize(),
+                                    success: function (response) {
+                                        if (response.Result) {
+                                            $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+                                            $(".messageBox").text("Time Sheet is saved.");
+                                            win.close();
+                                        }
+                                        else {
+                                            alert(response.ErrorMessage);
+                                        }
+                                    }
+                                });
+                            }
+                        });
+
+                        $('#btn-btn-attach').click(function () {
+                        });
+
+                        dialog.open();
+                    }
+                });
+                dialog = $("#check-weekly-worktime-dialog").data("kendoWindow");
+            }
+            dialog.center();
+            var calendar = $("#candidatejoborder-calendar").data("kendoDatePicker");
+            var inquiryDate = calendar.value();
+
+            dialog.refresh({
+                url: '@Url.Action("_ManualJobOrderWorkTime", "JobOrder")',
+                type: 'POST',
+                data: { guid: '@Model.JobOrderGuid', inquiryDate: kendo.toString(inquiryDate, 'yyyy-MM-dd') }
+            });
+        });
+
+        var grid = $("#candidatejoborder-grid").data("kendoGrid");
+        grid.table.kendoDropTarget({
+            group: "gridGroup",
+            drop: function (e) {
+                e.draggable.hint.hide();
+                $(e.draggable.hint).find('.hint').each(function () {
+                    var candidateId = $(this).attr('data-PooledCandidateId');
+                    html = moveCandidate(candidateId, true);
+                });
+                refreshContent(e);
+            }
+        });
+
+        $('#global-search').click(function () {
+            var dialog = $("#global-search-dialog").data("kendoWindow");
+            if (!dialog) {
+                $("#global-search-dialog").kendoWindow({
+                    title: "Employee Global Search",
+                    modal: true,
+                    resizable: false,
+                    width: 1200,
+                    height: 750,
+                    close: function () {
+                    },
+                    refresh: function (e) {
+                        dialog.open();
+                        var win = this;
+                        $('#add-selected-employee-to-joborder').click(function () {
+                            var calendar = $("#candidatejoborder-calendar").data("kendoDatePicker");
+                            var startDate = calendar.value();
+                            var grid = $("#candidate-popup-grid").data("kendoGrid");
+                            var candidateIds = [];
+                            grid.select().each(function () {
+                                var dataItem = grid.dataItem($(this));
+                                candidateIds.push(dataItem.Id);
+                            });
+                            $.ajax({
+                                url: '@Url.Action("AddEmmployeesIntoJobOrder", "JobOrder")',
+                                type: 'POST',
+                                data: {
+                                    guid: '@ViewBag.JobOrderGuid', candidateIds: candidateIds, startDate: kendo.toString(startDate, 'yyyy-MM-dd'),
+                                    terminateCurrentPlacement: $('#terminate-current-assignment').is(':checked'), addToCompanyPool: $('#add-to-company-pool').is(':checked')
+                                },
+                                dataType: 'html',
+                                success: function (res) {
+                                    var response = JSON.parse(res);
+                                    if (response.Success == true) {
+                                        refreshContent();
+                                        win.destroy();
+                                    }
+                                    else {
+                                        alert(response.ErrorMessage);
+                                    }
+
+                                }
+                                //error: function (xhr, ajaxOptions, errorThrown) {
+                                //    alert(xhr.responseText);
+                                //}
+                            })
+                        });
+                    }
+                });
+                dialog = $("#global-search-dialog").data("kendoWindow");
+            }
+
+            dialog.refresh({
+                url: '@Url.Action("GetDirectGlobalSearchPopup", "JobOrder")',
+                data: { inquiryDate: kendo.toString($("#candidatejoborder-calendar").data("kendoDatePicker").value(), "yyyy-MM-dd"), companyId: '@(ViewBag.CompanyId)' }
+            });
+            dialog.center();
+        })
+
+        $('#btnShowEmployeesOther').click(function () {
+            var dialog = $("#divAuthenticateAdmin").data("kendoWindow");
+            if (!dialog) {
+                $("#divAuthenticateAdmin").kendoWindow({
+                    title: "Admin Authentication",
+                    modal: true,
+                    resizable: false,
+                    width: 550,
+                    close: function () {
+                    },
+                    refresh: function (e) {
+                        dialog.open();
+                        var win = this;
+                        $('#btnCancelAuthenticate').click(function () {
+                            win.close();
+                        })
+                        $('#btnAuthenticate').click(function () {
+                            win.close();
+                        });
+                    }
+                });
+                dialog = $("#divAuthenticateAdmin").data("kendoWindow");
+            }
+
+            dialog.refresh({
+                url: '@Url.Action("_IncludePlacedCandidates", "JobOrder")',
+                type: 'POST',
+                data: { guid: '@ViewBag.JobOrderGuid' }
+            });
+            dialog.center();
+        });
+
+        var centered = $("#centeredNotification").kendoNotification({
+            stacking: "down",
+            show: onShow,
+            button: true
+        }).data("kendoNotification");
+    });
+
+    function pipelineGridParameters() {
+        return {
+            guid: '@(ViewBag.JobOrderGuid)',
+            inquiryDate: $("#candidatejoborder-calendar").data("kendoDatePicker").value()
+        };
+    }
+
+    function CompanyPoolGridParameters() {
+
+        return {
+            guid: '@(ViewBag.JobOrderGuid)',
+            inquiryDate: $("#candidatejoborder-calendar").data("kendoDatePicker").value(),
+            includePlacedCandidates: '@(ViewBag.IncludePlacedCandidates)'
+        };
+    }
+
+    function refreshPipeline() {
+        var grid = $('#candidatejoborder-grid').data('kendoGrid');
+        grid.dataSource.read();
+    }
+
+    function refreshJobPool() {
+        var grid = $('#candidate-pool-grid').data('kendoGrid');
+        grid.dataSource.read();
+    }
+
+    function onShow(e) {
+        if (!$("." + e.sender._guid)[1]) {
+            var element = e.element.parent(),
+                eWidth = element.width(),
+                eHeight = element.height(),
+                wWidth = $(window).width(),
+                wHeight = $(window).height(),
+                newTop, newLeft;
+
+            newLeft = Math.floor(wWidth / 2 - eWidth / 2);
+            newTop = Math.floor(wHeight / 2 - eHeight / 2);
+
+            e.element.parent().css({ top: newTop, left: newLeft });
+        }
+    }
+
+    var selectedGroup = 'placed';   // for batch activate/deactivate
+
+    function onDataBound1(e) {
+        var grid = e.sender;
+        grid.element.find("tbody tr[class!='k-grouping-row']").each(function () {
+            var currentDataItem = grid.dataItem($(this));
+            var btnSendQrCode = $(this).find(".k-grid-SendQrCode");
+            var btnSendEmail = $(this).find(".k-grid-SendEmail");
+            btnSendQrCode.find("span").addClass("fa fa-qrcode").prop('title', 'Send QR code');
+            btnSendEmail.find("span").addClass("ui-icon ui-icon-mail-open").prop('title', 'Send confirmation email');
+            if (currentDataItem.StatusDisplayText == "Placed")
+                btnSendEmail.remove();
+            else
+                btnSendQrCode.remove();
+            if (currentDataItem.StatusName !== "No status")
+                btnSendEmail.remove();
+        });
+
+        grid.table.kendoDraggable({
+            filter: "tbody > tr",
+            group: "gridGroup",
+            threshold: 100,
+            hint: function (e) {
+                var text = '';
+                grid.select().each(function () {
+                    var dataItem = grid.dataItem($(this));
+                    text += '<div class="hint" data-PlacedCandidateId=' + dataItem.CandidateId + '>' + dataItem.LastName + ', ' + dataItem.FirstName + '</div>';
+                });
+                return $('<div>' + text + '</div>');
+            }
+        });
+
+        $('.pipeline-rating').click(function (e) {
+            var posX = e.pageX - $(this).offset().left;
+            var rating = posX * 5 / $(this).width();
+            var innerWidth = rating * 20;
+            $(this).children('div').css('width', innerWidth + '%');
+            $.ajax({
+                cache: false,
+                url: '@Html.Raw(Url.Action("UpdateCandidateJobOrderRatingValue", "JobOrder"))',
+                data: { candidateJobOrderId: $(this).attr('data-rowid'), rating: rating },
+                dataType: "json",
+                type: 'post',
+                success: function (result) {
+                }
+            });
+        });
+
+        $('.toggle-employee-status').click(function (e) {
+            var calendar = $("#candidatejoborder-calendar").data("kendoDatePicker");
+            var inquiryDate = calendar.value();
+            var candidateJobOrder = $(this).attr('data-rowid');
+            var candidateGuid = $(this).attr("employeeGuid");
+            var thisTag = $(this);
+            $(".notification-wrapper").html('<div class="clear"></div>');
+            if (thisTag.html() == "Deactivate") {
+                $(document.body).append('<div id="make-a-choice"></div>');
+                $("#make-a-choice").kendoWindow({
+                    title: 'Take Action',
+                    modal: true,
+                    resizable: false,
+                    width: 450,
+                    //height: 150,
+                    content: '@Url.Action("MakeADecision", "JobOrder")',
+                    close: function () {
+                        setTimeout(function () {
+                            $('#make-a-choice').kendoWindow('destroy');
+                        }, 200);
+                    },
+                    refresh: function () {
+                        var win = this;
+                        $('#SaveChoice').click(function (e) {
+                            e.preventDefault();
+
+                            $("#num_placed").text(parseInt($("#num_placed").text()) - 1);
+                            $("#num_shortage").text(parseInt($("#num_shortage").text()) + 1);
+                            var choice = $("#choices").data("kendoDropDownList").value();
+                            var url = null;
+                            var data = null;
+
+                            if (choice == 1) {
+                                url = '@Html.Raw(Url.Action("ToggleCandidatePipelineStatus", "JobOrder"))';
+                                data = {
+                                    candidateJobOrderId: candidateJobOrder, currentDate: kendo.toString(inquiryDate, 'yyyy-MM-dd')
+                                };
+                            }
+                            if (choice == 2 || choice == 3) {
+                                var reason = $("#reason").val();
+                                var clientName = $("#clientName").val();
+                                var note = $("#note").val();
+
+                                if (!reason || reason == "-- Select --") {
+                                    alert("The reason field cannot be empty");
+                                    return;
+                                }
+                                else if (reason == 'DNR by Client Request' && !clientName)
+                                {
+                                    alert("Client name is required!");
+                                    return;
+                                }
+                                else if (reason == "Other" && !note)
+                                {
+                                    alert("Note is required!");
+                                    return;
+                                }
+                                var clientId = choice == 2 ? '@(ViewBag.CompanyId)' : null;
+                                url = '@Html.Raw(Url.Action("_AddCandidateToBlacklist", "Candidate"))';
+                                data = { guid: candidateGuid, startDate: kendo.toString(inquiryDate, 'yyyy-MM-dd'), clientId: clientId, reason: reason,note:note,clientName:clientName};
+
+                            }
+                            $.ajax({
+                                cache: false,
+                                url: url,
+                                data:data,
+                                dataType: "Json",
+                                type: 'post',
+                                success: function (response) {
+                                    if (!response.ErrorMessage) {
+                                        refreshPipeline();
+                                    }
+                                    else {
+                                        $(".notification-wrapper").html('<div class="messageBox messageBoxError"></div><div class="clear"></div>');
+                                        $(".messageBox").text(response.ErrorMessage);
+                                    }
+                                    win.close();
+                                }
+                            });
+                        });
+                    }
+                }).data('kendoWindow').center();
+            }
+            else {
+                $.ajax({
+                    cache: false,
+                    url: '@Html.Raw(Url.Action("ToggleCandidatePipelineStatus", "JobOrder"))',
+                    data: { candidateJobOrderId: candidateJobOrder, currentDate: kendo.toString(inquiryDate, 'yyyy-MM-dd') },
+                    dataType: "Json",
+                    type: 'post',
+                    success: function (response) {
+                        if (!response.ErrorMessage) {
+                            $("#num_placed").text(parseInt($("#num_placed").text()) + 1);
+                            $("#num_shortage").text(parseInt($("#num_shortage").text()) - 1);
+                            refreshPipeline();
+                        }
+                        else {
+                            $(".notification-wrapper").html('<div class="messageBox messageBoxError"></div><div class="clear"></div>');
+                            $(".messageBox").text(response.ErrorMessage);
+                        }
+                    }
+                });
+                return;
+            }
+        });
+
+        $('.groupSelectBtn').on('click', function (e) {
+            var currentGroupRow = $(this).closest(".k-grouping-row");
+            grid.select(currentGroupRow.nextUntil(".k-grouping-row", ":not('.k-group-footer')"));
+        });
+    }
+
+    $('#toggle-selected').click(function (e) {
+        var grid = $("#candidatejoborder-grid").data("kendoGrid");
+        var selectedIds = getSelectedIds(grid);
+        if (selectedIds.length == 0) {
+            alert('Please select candidates first');
+            return;
+        }
+        var errors = '';
+        $(".notification-wrapper").html('<div class="clear"></div>');
+        var inquiryDate = $("#candidatejoborder-calendar").data("kendoDatePicker").value();
+        var change = selectedGroup == 'placed' ? -1 : +1;
+        for (var i = 0; i < selectedIds.length; i++) {
+            $.ajax({
+                cache: false,
+                async: false,
+                url: '@Html.Raw(Url.Action("ToggleCandidatePipelineStatus", "JobOrder"))',
+                data: { candidateJobOrderId: selectedIds[i], currentDate: kendo.toString(inquiryDate, 'yyyy-MM-dd') },
+                dataType: "Json",
+                type: 'post',
+                success: function (response) {
+                    if (!response.ErrorMessage) {
+                        $("#num_placed").text(parseInt($("#num_placed").text()) + change);
+                        $("#num_shortage").text(parseInt($("#num_shortage").text()) - change);
+                    }
+                    else
+                        errors += response.ErrorMessage + '<br/>';
+                }
+            });
+            if (errors) break;  // stop on error
+        }
+        refreshPipeline();
+        if (errors)
+            $(".notification-wrapper").html('<div class="messageBox messageBoxError">' + errors + '</div><div class="clear"></div>');
+    });
+
+    function getSelectedIds(grid) {
+        var selectedIds = [];
+        var statusName = '';
+        grid.select().each(function (e) {
+            if (!$(this).hasClass('k-grouping-row')) {
+                var dataItem = grid.dataItem(this);
+                placementId = dataItem.Id
+                statusName = dataItem.StatusName;
+                var included = jQuery.inArray(placementId, selectedIds);
+                if (included == -1) selectedIds.push(placementId);
+            }
+        });
+        if (statusName)
+            selectedGroup = statusName.toLocaleLowerCase();
+        return selectedIds;
+    }
+
+    $('#daily-confirm').click(function (e) {
+        e.preventDefault();
+        var jobOrderGuid = '@(ViewBag.JobOrderGuid)';
+        var refDate = $("#candidatejoborder-calendar").data("kendoDatePicker").value();
+        var routes = '?jobOrderGuid=' + jobOrderGuid + '&refDate=' + kendo.toString(refDate, 'yyyy-MM-dd');
+        $(document.body).append('<div id="daily-confirm-popup"></div>');
+        $("#daily-confirm-popup").kendoWindow({
+            title: "Daily Confirmation",
+            modal: true,
+            resizable: false,
+            width: 420,
+            height: 250,
+            content: '@Url.Action("_DailyConfirmation", "JobOrder")' + routes,
+            close: function () { setTimeout(function () { $('#daily-confirm-popup').kendoWindow('destroy'); }, 200); },
+        }).data('kendoWindow').center();
+
+        @*var refDate = $("#candidatejoborder-calendar").data("kendoDatePicker").value();
+        var today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (refDate < today) {
+            alert('Daily confirmation is for today and after.');
+            return;
+        }
+        var grid = $("#candidatejoborder-grid").data("kendoGrid");
+        if (!grid.dataSource.total()) {
+            alert('The pipeline is empty.');
+            return;
+        }
+        if (confirm('This is to send daily confirmation emails to all candidates. ' +
+            'Their status in pipeline will be reset to "Contacted". ' +
+            'The status will be changed to "Placed" upon confirmation with "Yes".\r\n\r\n' +
+            'Your selected date is ' + kendo.toString(refDate, 'yyyy/MM/dd') + '. Do you want to proceed?')) {
+            $(".notification-wrapper").html('<div class="clear"></div>');
+            $.ajax({
+                cache: false,
+                async: false,
+                url: '@Html.Raw(Url.Action("SendDailyConfirmation", "JobOrder"))',
+                data: { jobOrderGuid: '@(ViewBag.JobOrderGuid)', refDate: kendo.toString(refDate, 'yyyy-MM-dd') },
+                dataType: "Json",
+                type: 'post',
+                success: function (response) {
+                    if (response.ErrorMessage) {
+                        var errors = response.ErrorMessage + '<br/>';
+                        $(".notification-wrapper").html('<div class="messageBox messageBoxError">' + errors + '</div><div class="clear"></div>');
+                    }
+                    alert('The confirmation is sent to ' + response.Done + ' candidates.');
+                    refreshPipeline();
+                }
+            });
+        }*@
+    });
+
+    function moveCandidate(candidateId, moveIntoPipeline) {
+        if (candidateId) {
+            var calendar = $("#candidatejoborder-calendar").data("kendoDatePicker");
+            var inquiryDate = calendar.value();
+            // _PostCandidateMove
+            $.ajax({
+                cache: false,
+                async: false,
+                url: '@Html.Raw(Url.Action("_PostCandidateMove", "JobOrder"))',
+                data: { guid: '@Model.JobOrderGuid', candidateId: candidateId, inquiryDate: kendo.toString(inquiryDate, 'yyyy-MM-dd'), moveIntoPipeline: moveIntoPipeline },
+                type: 'post',
+                success: function (result) {
+                    if (!result.Result) {
+                        alert(result.ErrorMessage);
+                    }
+                },
+                error: function (xhr, ajaxOptions, errorThrown) {
+                    alert(xhr.responseText);
+                }
+            });
+        }
+    }
+
+    function onDataBound2(e) {
+        var grid = e.sender;
+        grid.element.find(".k-grid-SendEmail > span").addClass("ui-icon ui-icon-mail-open").prop('title', 'send confirmation email');
+
+        grid.table.kendoDraggable({
+            filter: "tbody > tr",
+            group: "gridGroup",
+            threshold: 100,
+            hint: function (e) {
+                var text = '';
+                grid.select().each(function () {
+                    var dataItem = grid.dataItem($(this));
+                    text += '<div class="hint" data-PooledCandidateId=' + dataItem.CandidateId + '>' + dataItem.LastName + ', ' + dataItem.FirstName + '</div>';
+                });
+                return $('<div>' + text + '</div>');
+            }
+        });
+        grid.table.kendoDropTarget({
+            group: "gridGroup",
+            drop: function (e) {
+                e.draggable.hint.hide();
+                $(e.draggable.hint).find('.hint').each(function () {
+                    var candidateId = $(this).attr('data-PlacedCandidateId');
+                    moveCandidate(candidateId, false);
+                });
+                refreshContent(e);
+            }
+        });
+
+        $('.pool-rating').click(function (e) {
+            var posX = e.pageX - $(this).offset().left;
+            var rating = posX * 5 / $(this).width();
+            var innerWidth = rating * 20;
+            $(this).children('div').css('width', innerWidth + '%');
+            $.ajax({
+                cache: false,
+                url: '@Html.Raw(Url.Action("UpdateCompanyCandidateRatingValue", "Company"))',
+                data: { companyCandidateId: $(this).attr('data-rowid'), rating: rating },
+                dataType: "json",
+                type: 'post',
+                success: function (result) {
+                }
+            });
+        });
+    }
+
+    function refreshContent(e) {
+        var calendar = $("#candidatejoborder-calendar").data("kendoDatePicker");
+        var inquiryDate = calendar.value();
+        $.ajax({
+            cache: false,
+            url: '@Html.Raw(Url.Action("_TabJobOrderPipeline", "JobOrder", new { guid = Model.JobOrderGuid, inquiryDateString = "XXXXX" }))'.replace('XXXXX', kendo.toString(inquiryDate, 'yyyy-MM-dd')),
+            dataType: "html",
+            success: function (result) {
+                var window = $("#opening-history-window").data("kendoWindow");
+                if (window) {
+                    window.destroy();
+                }
+                window = $("#check-weekly-worktime-dialog").data("kendoWindow");
+                if (window) {
+                    window.destroy();
+                }
+                $('#joborderdetailstabstrip-2').html(result);
+            }
+        });
+    }
+
+    function exportAttendantList() {
+
+        var jobOrderGuid = '@(ViewBag.jobOrderGuid)';
+        var shortJobOrder = '@(ViewBag.shortJobOrder)';
+        var routes = '?guid=' + jobOrderGuid;
+
+        if (shortJobOrder == 'True') {
+            var url = '@Url.Action("ExportExcelAll", "JobOrder", new { guid = "__id__" })';
+            window.open(url.replace('__id__', jobOrderGuid), '_self');
+        }
+        else {
+            $(document.body).append('<div id="export-attendant-list"></div>');
+            $("#export-attendant-list").kendoWindow({
+                title: "Export Attendant List",
+                modal: true,
+                resizable: false,
+                width: 420,
+                height: 120,
+                content: '@Url.Action("_ExportAttendantList", "JobOrder")' + routes,
+                close: function () {
+                    setTimeout(function () {
+                        $('#export-attendant-list').kendoWindow('destroy');
+                    }, 200);
+                },
+                refresh: function (e) {
+                    var win = this;
+                    $('#submit-export').click(function () {
+                        win.close();
+                    })
+                }
+            }).data('kendoWindow').center();
+        }
+    }
+
+    $("#email-placement").click(function (e) {
+        e.preventDefault();
+        var placed = $("#num_placed").text();
+        if ('@ViewBag.ValidSendingEmail' == 'True' && placed > 0) {
+            var calendar = $("#candidatejoborder-calendar").data("kendoDatePicker");
+            var inquiryDate = calendar.value();
+            $(document.body).append('<div id="send-email-window"></div>');
+            $("#send-email-window").kendoWindow({
+                title: "Email",
+                modal: true,
+                resizable: true,
+                width: 800,
+                height: 800,
+                content: '@Url.Action("_EmailJobOrderPlacement", "JobOrder")' + '?guid=' + '@Model.JobOrderGuid' + '&inquiryDate=' + kendo.toString(inquiryDate, 'yyyy-MM-dd'),
+                close: function () {
+                    setTimeout(function () {
+                        $('#send-email-window').kendoWindow('destroy');
+                    }, 200);
+                },
+                refresh: function (e) {
+                    $.validator.unobtrusive.parse(this.element);
+                    var win = this;
+                    $('#cancel-email').click(function () {
+                        $("#send-email-window").kendoWindow('destroy'); //.data("kendoWindow").close();
+                    });
+                    $('#send-email').click(function (e) {
+                        tinyMCE.triggerSave();
+                        e.preventDefault();
+                        $.ajax({
+                            data: $('#email-placement-form').serialize(),
+                            url: '@Html.Raw(Url.Action("_SendJobOrderPlacementEmail", "JobOrder"))',
+                            dataType: "json",
+                            type: 'post',
+                            success: function (result) {
+                                if (!result.Error) {
+                                    $("#send-email-window").data("kendoWindow").close();
+                                    $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+                                    $(".messageBox").text(result.Message);
+                                }
+                                else {
+                                    alert(result.Message);
+                                }
+                            }
+                        });
+                    })
+                }
+
+
+            }).data('kendoWindow').center();
+        }
+        else {
+            alert("You cannot send the placement email to the client. The reason might be one of the followings:\n1. The job order does not have a supervisor and the company does not have a HR.\n2. There is no candidates placed in the job order.");
+        }
+    });
+
+    function sendQrCode(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        $.ajax({
+            url: "@(Url.Action("_SendQrCode", "Candidate"))",
+            data: { candidateId: dataItem.CandidateId },
+            cache: false,
+            async: false,
+            type: 'POST',
+            success: function (result) {
+                if (result.Succeed)
+                    alert('The QR code is sent out successfully.');
+                else
+                    alert('The QR code is NOT sent out.');
+            },
+        });
+    }
+
+    function SendConfirmationEmail(e) {
+        e.preventDefault();
+        var short = $("#num_shortage").text();
+        var calendar = $("#candidatejoborder-calendar").data("kendoDatePicker");
+        var inquiryDate = calendar.value();
+        if (short > 0) {
+            var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+            $(document.body).append('<div id="send-confirmation-email-window"></div>');
+            $("#send-confirmation-email-window").kendoWindow({
+                title: "Email",
+                modal: true,
+                iframe: false,
+                resizable: true,
+                width: 1000,
+                height: 900,
+                scrollable: true,
+                content: '@Url.Action("_EmailJobOrderConfirmation", "JobOrder")' + '?candidateGuid=' + dataItem.CandidateGuid + '&jobOrderGuid=' + '@ViewBag.JobOrderGuid' + '&start=' + kendo.toString(inquiryDate, 'yyyy-MM-dd'),
+                close: function (e) {
+                    setTimeout(function () {
+                        $('#send-confirmation-email-window').kendoWindow('destroy');
+                    }, 200);
+                },
+                refresh: function (e) {
+                    $.validator.unobtrusive.parse(this.element);
+                    var win = this;
+                    $('#cancel-email').click(function () {
+
+                        $("#send-confirmation-email-window").kendoWindow('destroy');
+                    });
+                    $('#send-email').click(function (e) {
+                        e.preventDefault();
+                        $.ajax({
+                            data: $('#email-placement-form').serialize(),
+                            url: '@Html.Raw(Url.Action("_SendJobOrderConfirmationEmail", "JobOrder"))',
+                            dataType: "json",
+                            type: 'post',
+                            success: function (result) {
+                                if (!result.Error) {
+                                    $("#send-confirmation-email-window").data("kendoWindow").close();
+                                    $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+                                    $(".messageBox").text(result.Message);
+                                }
+                                else {
+                                    alert(result.Message);
+                                }
+                            }
+                        });
+                    });
+
+                }
+            }).data('kendoWindow').center();
+        }
+        else {
+            alert("There are no more openings available for the job order since " + kendo.toString(inquiryDate, 'yyyy-MM-dd') + "!");
+        }
+    }
+
+    function exportAvailable() {
+        var companyGuid = '@(Model.CompanyGuid)';
+        var refDate = $("#candidatejoborder-calendar").val();
+        var routes = '?companyGuid=' + companyGuid + '&refDate=' + refDate;
+        $(document.body).append('<div id="export-available-popup"></div>');
+        $("#export-available-popup").kendoWindow({
+            title: "Export Available",
+            modal: true,
+            resizable: false,
+            width: 420,
+            height: 120,
+            content: '@Url.Action("_ExportAvailable", "JobOrder")' + routes,
+            close: function () { setTimeout(function () { $('#export-available-popup').kendoWindow('destroy'); }, 200); },
+            refresh: function (e) {
+                var win = this;
+                $('#submit-export-available').click(function () {
+                    win.close();
+                })
+            }
+        }).data('kendoWindow').center();
+    }
+
+    function confirmationReport() {
+        var grid = $("#candidatejoborder-grid").data("kendoGrid");
+        // Exportable(false) not supported in earlier vesion Kendo
+        grid.hideColumn("ToggleButtonText");
+        //grid.showColumn("TotalHours");
+        grid.saveAsExcel();
+        grid.showColumn("ToggleButtonText");
+        //grid.hideColumn("TotalHours");
+    }
+
+    function onExcelExport(e) {
+        let sheet = e.workbook.sheets[0];
+        let header = sheet.rows[0].cells;
+        for (let i = 0; i < header.length; i++) {
+            header[i].hAlign = 'center';
+        //    if (i == 3)
+        //        header[i].value = 'Total Hours';
+        }
+        let dataRows = sheet.rows.filter(r => r.type === 'data');
+        let items = [];
+        for (let i = 0; i < e.data.length; i++) {
+            items = items.concat(e.data[i].items);
+        }
+        for (let i = 0; i < dataRows.length; i++) {
+            var dataItem = items[i];
+            var row = dataRows[i];
+            for (let j = 0; j < row.cells.length; j++) {
+                if (dataItem.TotalHours >= 300)
+                    row.cells[j].background = "#228B22";
+                else if (dataItem.TotalHours >= 75)
+                    row.cells[j].background = "#FFFF00";
+            //    if (j == 3)
+            //        row.cells[j].format = "#,##0.00";
+            }
+        }
+    }
+
+</script>

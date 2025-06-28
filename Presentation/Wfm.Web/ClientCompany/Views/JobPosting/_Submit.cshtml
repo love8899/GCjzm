@@ -1,0 +1,17 @@
+﻿@{
+    Layout = null;
+
+    var formName = ViewBag.FormName ?? "submit-jobs-form";
+}
+
+<p>
+    @T("Client.JobPost.PublishConfirmation")
+</p>
+@using (Html.BeginForm("_Submit", "JobPosting", FormMethod.Post, new { id = formName }))
+{
+    @Html.Hidden("guid", (Guid)ViewBag.JobPostingGuid)
+    <div class="buttons">
+        <input type="button" class="k-button btn-save" value="@T("Admin.Common.Submit")" />
+        <input type="button" class="k-button btn-cancel" value="@T("Admin.Common.NoCancel")" />
+    </div>
+}

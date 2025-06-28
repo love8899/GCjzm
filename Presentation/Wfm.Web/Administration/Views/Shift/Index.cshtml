@@ -1,0 +1,123 @@
+﻿@using Wfm.Core.Domain.Accounts
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.Shifts").Text;
+
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    var companyService = EngineContext.Current.Resolve<Wfm.Services.Companies.ICompanyService>();
+    var companies = companyService.GetAllCompanies(workContext.CurrentAccount);
+}
+
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration.Shifts") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>   
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<ShiftModel>()
+              .Name("shift-grid")
+              .Columns(columns =>
+                {
+                    if (!workContext.CurrentAccount.IsClientAdministrator())
+                    {
+                        columns.ForeignKey(x => x.CompanyId, companies, "Value", "Text")
+                                .HeaderTemplate(T("Common.Company").Text).Filterable(true);
+                    }
+
+                    columns.Bound(x => x.ShiftName);
+                    columns.Bound(x => x.Description);
+
+                    columns.Bound(x => x.MinStartTime).Format("{0:hh:mm tt}");
+                    columns.Bound(x => x.MaxEndTime).Format("{0:hh:mm tt}");
+                    
+                    columns.Bound(x => x.EnableInRegistration)
+                         .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.EnableInRegistration.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Content/images/") + "active-#= EnableInRegistration #.png)'></div>")
+                        .Width(100);
+                    
+                    columns.Bound(x => x.EnableInSchedule)
+                         .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.EnableInSchedule.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Content/images/") + "active-#= EnableInSchedule #.png)'></div>")
+                        .Width(100);
+
+                    columns.Bound(x => x.IsActive)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Content/images/") + "active-#= IsActive #.png)'></div>")
+                        .Width(100);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#= UpdatedOn!=null? kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm'):' ' #").Width(120).Hidden();
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#= CreatedOn!=null? kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm'):' ' #").Width(120).Hidden(true);
+
+                    columns.Command(command => { command.Destroy().Text(" "); }).Title("Action").Width(60);
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .ToolBar(toolBar => { toolBar.Create(); toolBar.Save(); })
+                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .Batch(true)
+                    .ServerOperation(true)
+                    .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                        model.Field(p => p.Id).Editable(false);
+                        model.Field(p => p.IsActive).DefaultValue(true);
+                        model.Field(p => p.EnableInRegistration).DefaultValue(false);
+                        model.Field(p => p.EnableInSchedule).DefaultValue(false);
+                        //model.Field(p => p.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.Now);
+                        //model.Field(p => p.CreatedOnUtc).Editable(false);
+                    })
+                    .Events(events => events.Error("error_handler"))
+                    .PageSize(20)
+                    .Sort(s => s.Add(m => m.UpdatedOnUtc).Descending())
+                    .Read(read => read.Action("Index", "Shift"))
+                    .Update(update => update.Action("Edit", "Shift"))
+                    .Create(create => create.Action("Create", "Shift"))
+                    .Destroy(destroy => destroy.Action("Delete", "Shift"))
+                    .Events(e => e.Sync(@"function(e){setTimeout(function(){refreshGrid('#shift-grid')})}"))
+                )
+                .Events(e => e.Edit("onEdit"))
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+
+<script type="text/javascript">
+
+    function onEdit(e) {
+        var grid = $("#shift-grid").data("kendoGrid");
+        var editable = true;
+        if (e.model.CompanyId == 0) {
+            if ((!e.model.isNew() && e.container.find("input[name=CompanyId]").data("kendoDropDownList")) ||
+                e.container.find("input[name=MinStartTime]").data("kendoTimePicker") ||
+                e.container.find("input[name=MaxEndTime]").data("kendoTimePicker"))
+                editable = false;
+        }
+        if (!editable)
+            grid.closeCell();
+    }
+
+</script>

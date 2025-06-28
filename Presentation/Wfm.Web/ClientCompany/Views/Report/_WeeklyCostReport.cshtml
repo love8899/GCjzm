@@ -1,0 +1,13 @@
+﻿@{
+    Layout = "_ReportViewerLayout";
+    ViewBag.ReportFile = "ClientWeeklyCostReport";
+
+    var _workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    ViewBag.ReportParameters = new
+    {
+        refDate = ViewBag.refDate,
+        vendorIds = ViewBag.vendorIds,
+        companyIds = _workContext.CurrentAccount.CompanyId,
+        companyName = ViewBag.companyName
+    };
+}

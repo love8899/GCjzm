@@ -1,0 +1,181 @@
+﻿@using System.Linq
+@using Wfm.Services.Companies
+@using Wfm.Services.Common
+
+@model AccountFullModel
+@{
+    Layout = "";
+
+    var accountService = EngineContext.Current.Resolve<Wfm.Services.Accounts.IAccountService>();
+    var accountRoles = accountService.GetAllAccountRoles();
+    var roleDropDownList = accountRoles.Where(ar => ar.IsClientRole == true)
+                           .Select(ar => new SelectListItem(){ Text = ar.AccountRoleName, Value = ar.SystemName }).ToList();
+    // add client admin
+    var clientAdminRole = accountRoles.Where(ar => ar.SystemName == Wfm.Core.Domain.Accounts.AccountRoleSystemNames.ClientAdministrators).FirstOrDefault();
+    roleDropDownList.Add(new SelectListItem() { Text = clientAdminRole.AccountRoleName, Value = clientAdminRole.SystemName });
+}
+
+<script> function filterDepartments() { return { companyLocationId: $("#company-location-id").val() }; } </script>
+
+@using (Html.BeginForm("CreateContact", "Company", FormMethod.Post, new { id = "createcompanycontact-form" }))
+{
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.Username)
+    @Html.HiddenFor(model => model.CompanyId)
+    @Html.HiddenFor(model => model.FranchiseId)
+
+    <div class="section-header">
+        <div class="title">
+            @T("Common.Contact")
+        </div>
+        <div class="options">
+            <input type="submit" id="btn-save" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+        </div>
+    </div>
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Email)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.Email)
+                @Html.WfmValidationMessageFor(model => model.Email)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.FirstName)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.FirstName)
+                @Html.WfmValidationMessageFor(model => model.FirstName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.LastName)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.LastName)
+                @Html.WfmValidationMessageFor(model => model.LastName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Password)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.Password)
+                @Html.WfmValidationMessageFor(model => model.Password)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.RePassword)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.RePassword)
+                @Html.WfmValidationMessageFor(model => model.RePassword)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.AccountRoleSystemName)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                    .Name("AccountRoleSystemName")
+                    .OptionLabel("--Select--")
+                    .BindTo(roleDropDownList)
+                )
+                @Html.WfmValidationMessageFor(model => model.AccountRoleSystemName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model=>model.CompanyLocationName)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownList()
+                    .Name("CompanyLocationId")
+                    .HtmlAttributes(new { id = "company-location-id"})
+                    .OptionLabel("--Select--")
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetCompanyLocations", "Company", new { companyGuid = ViewBag.CompanyGuid });
+                        });
+                    })
+                )
+
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CompanyDepartmentName)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownList()
+                    .Name("CompanyDepartmentId")
+                    .OptionLabel("--Select--")
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .DataSource(source =>
+                    {
+                        source.Read(read =>
+                        {
+                            read.Action("GetCompanyDepartments", "Company").Data("filterDepartments");
+                        })
+                            .ServerFiltering(true);
+                    })
+                    .Enable(false)
+                    .AutoBind(false)
+                    .CascadeFrom("company-location-id")
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.ShiftId)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownListFor(model => model.ShiftId)
+                    .OptionLabel("--Select--")
+                    .DataTextField("Text").DataValueField("Value")
+                    .DataSource(source => source.Read(read => read.Action("GetCascadeShift", "JobOrder", new { companyId = Model.CompanyId })).ServerFiltering(true))
+                )
+            </td>
+        </tr>
+        @*<tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Title)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.Title)
+            </td>
+        </tr>*@
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.WorkPhone)
+            </td>
+            <td class="adminData required">
+                @Html.Kendo().MaskedTextBoxFor(model => model.WorkPhone).Mask("(999) 000-0000")
+                @Html.WfmValidationMessageFor(model => model.WorkPhone)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.MobilePhone)
+            </td>
+            <td class="adminData">
+                @Html.Kendo().MaskedTextBoxFor(model => model.MobilePhone).Mask("(999) 000-0000")
+                @Html.WfmValidationMessageFor(model => model.MobilePhone)
+            </td>
+        </tr>
+    </table>
+}

@@ -1,0 +1,37 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Other Specialties";
+    //var description = siteTitle + " has the capabilities to handle all of your staffing needs for general labourers and semi-skilled workers.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Others</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            In addition to being a preferred staffing partner for a growing number of specialized
+            areas, @siteTitle has the capabilities to handle all of your staffing needs
+            for general labourers and semi-skilled workers. Whether you are looking for permanent,
+            contract or temporary workers, we'll take the time to understand what you're looking
+            for and find reliable and hard-working candidates to fit your needs.
+        </p>
+    </div>
+</div>

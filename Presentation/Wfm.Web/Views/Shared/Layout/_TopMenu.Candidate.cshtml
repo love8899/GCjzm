@@ -1,0 +1,17 @@
+﻿<ul class="top-menu">
+    @Html.Partial("Layout/_CandidateMenu")
+</ul>
+<div class="menu-toggle">Menu</div>
+<ul class="top-menu mobile">
+    @Html.Partial("Layout/_CandidateMenu")
+</ul>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.menu-toggle').click(function () {
+            $(this).siblings('.top-menu.mobile').slideToggle('slow');
+        });
+        $('.top-menu.mobile .sublist-toggle').click(function () {
+            $(this).siblings('.sublist').slideToggle('slow');
+        });
+    });
+</script>

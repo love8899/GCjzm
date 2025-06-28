@@ -1,0 +1,97 @@
+﻿@model Wfm.Client.Models.TimeSheet.CandidateWorkTimeModel
+@using Wfm.Core
+@using Wfm.Services.TimeSheet
+@{
+    Layout = null;
+
+    var formName = ViewBag.FormName ?? "worktime-form";
+
+    var workTimeService = EngineContext.Current.Resolve<IWorkTimeService>();
+    var minWorkHours = workTimeService.GetMinWorkHoursForMealBreak(Model.JobOrderId);
+    var computedNetHours = CommonHelper.RoundUp(workTimeService.CalculateNetWorkTime(Model.GrossWorkTimeInMinutes, minWorkHours, Model.MealTimeInMinutes, Model.BreakTimeInMinutes, 0) / 60, 2);
+}
+
+<script>
+    function recalculateAdjustment() {
+        if (this.value() == null)
+            this.value(0);
+        var adjMinutes = (parseFloat(this.value()) - @computedNetHours) * 60;
+        var numerictextbox = $('#AdjustmentInMinutes').data('kendoNumericTextBox');
+        numerictextbox.value(adjMinutes);
+    }
+    @*function recalculateNet() {
+        if (this.value() == null)
+            this.value(0);
+        var newNetMinutes = @computedNetHours * 60 + parseFloat($('#AdjustmentInMinutes').val());
+        var numerictextbox = $('#net-in-hours').data('kendoNumericTextBox');
+        numerictextbox.value(newNetMinutes / 60);
+    }*@
+</script>
+
+@using (Html.BeginForm("", "", FormMethod.Post, new { id = formName, cwtId = @Model.Id }))
+{
+    var validationSummary = Html.ValidationSummary(true);
+    if (!MvcHtmlString.IsNullOrEmpty(validationSummary))
+    {
+        <div class="message-error">@validationSummary</div>
+    }
+    @Html.HiddenFor(model => model.CandidateWorkTimeStatusId)
+    <div class="fieldset">
+        <div class="form-fields">
+            @Html.InputLineFor(m => m.CandidateId, @T("Common.Employee").Text, rowCls: "inputs",
+                tmplt: "DropDownList", viewData: new { Items = Model.AvaliableCandidates, HtmlAttr = new { @readonly = "readonly" } })
+
+            @Html.InputLineFor(m => m.JobOrderId, @T("Common.JobTitle").Text, rowCls: "inputs",
+                tmplt: "DropDownList", viewData: new { Items = Model.AvailableJobOrders, HtmlAttr = new { @readonly = "readonly" }})
+
+            @Html.InputLineFor(m => m.JobStartDateTime, @T("Common.Date").Text + " / " + @T("Common.Shift").Text, rowCls: "inputs",
+                tmplt: "DropDownList4Obj", viewData: new { Items = Model.AvaliableStartDateTimes, HtmlAttr = new { @readonly = "readonly" }})
+
+            @Html.InputLineFor(m => m.ClockIn, rowCls: "inputs", tmplt: "Time", viewData: new { HtmlAttr = new { @readonly = "readonly" } })
+
+            @Html.InputLineFor(m => m.ClockOut, rowCls: "inputs", tmplt: "Time", viewData: new { HtmlAttr = new { @readonly = "readonly" } })
+
+            @Html.InputLine("ComputedNetHours", @T("Admin.TimeSheet.CandidateWorkTime.Fields.NetWorkTimeInHours").Text, rowCls: "inputs",
+                tmplt: "StringDisplay", viewData: new
+                {
+                    Value = computedNetHours.ToString("F"),
+                    Style = "background-color:yellow !important; text-align:center"
+                })
+
+            @*<div class="inputs">
+                @Html.Label(" ")
+                @Html.Kendo().RadioButton().Name("adjust-by-minutes").HtmlAttributes(new { @name = "adjustment" }).Label("Adj. Minutes")
+                @Html.Kendo().RadioButton().Name("adjust-by-hours").HtmlAttributes(new { @name = "adjustment" }).Label("Adj. Net Hours").Checked(true)
+            </div>*@
+
+            @Html.InputLineFor(m => m.AdjustmentInMinutes, rowCls: "inputs", tmplt: "Decimal",
+                viewData: new { Format = "#", Decimals = 0, Step = 1m, HtmlAttr = new { @readonly = "readonly" } }) @*, OnChange = "recalculateNet", OnSpin = "recalculateNet" })*@
+
+            @Html.InputLineFor(m => m.NetWorkTimeInHours, @T("Client.TimeSheet.CandidateWorkTime.BillableHours").Text, rowCls: "inputs",
+                tmplt: "Decimal", viewData: new { HtmlAttr = new { id = "net-in-hours", autofocus = true }, OnChange = "recalculateAdjustment", OnSpin = "recalculateAdjustment" })
+
+            @Html.InputLineFor(m => m.Note, rowCls: "inputs")
+        </div>
+    </div>
+    
+    <div class="buttons">
+        <input type="button" class="k-button btn-save" value="@T("Admin.Common.Save")" />
+        <input type="button" class="k-button btn-cancel" value="@T("Admin.Common.Cancel")" />
+    </div>
+}
+
+<script>
+    $(function () {
+        enableValidation('@formName');
+        //$("input[name=adjustment]:radio").change(function () {
+        //    if ($("#adjust-by-hours").attr("checked")) {
+        //        $("#AdjustmentInMinutes").data("kendoNumericTextBox").enable(false);
+        //        $("#net-in-hours").data("kendoNumericTextBox").enable(true);
+        //    }
+        //    else {
+        //        $("#AdjustmentInMinutes").data("kendoNumericTextBox").enable(true);
+        //        $("#net-in-hours").data("kendoNumericTextBox").enable(false);
+        //    }
+        //});
+    });
+</script>

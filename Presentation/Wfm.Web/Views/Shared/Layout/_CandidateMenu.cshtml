@@ -1,0 +1,116 @@
+﻿@using Wfm.Web.Framework.HtmlHelpers
+<li>
+    <span onclick="">Dashboard</span>
+    <div class="sublist-toggle"></div>
+    <ul class="sublist first-level">
+        <li>
+            <span class="@Html.SideBarMenuLink("Dashboard", "Index", "Candidate")">
+                @Html.ActionLink("Dashboard", "Index", "Candidate")
+            </span>
+        </li>
+        <li>
+            <span class="@Html.SideBarMenuLink("Announcements", "Announcements", "Candidate")">
+                @Html.ActionLink("Announcements", "Announcements", "Candidate")
+            </span>
+        </li>
+    </ul>
+</li>
+<li>
+    <span class="@Html.SideBarMenuLink("Attachment", "AddCandidateAttachment", "Candidate")">
+        @Html.ActionLink("Attachment", "AddCandidateAttachment", "Candidate")
+    </span>
+</li>
+<li>
+    <span class="@Html.SideBarMenuLink("Key Skill", "CandidateKeySkillIndex", "Candidate")">
+        @Html.ActionLink("Key Skill", "CandidateKeySkillIndex", "Candidate")
+    </span>
+</li>
+<li>
+    <span onclick="">Test</span>
+    <div class="sublist-toggle"></div>
+    <ul class="sublist first-level">
+        <li>
+            <span class="@Html.SideBarMenuLink("Tests", "TestIndex", "Candidate")">
+                @Html.ActionLink("Tests", "TestIndex", "Candidate")
+            </span>
+        </li>
+        <li>
+            <span class="@Html.SideBarMenuLink("Videos", "TestVideo", "Candidate")">
+                @Html.ActionLink("Training Videos", "TestVideo", "Candidate")
+            </span>
+        </li>
+        <li>
+            <span class="@Html.SideBarMenuLink("Materials", "TestMaterial", "Candidate")">
+                @Html.ActionLink("Training Materials", "TestMaterial", "Candidate")
+            </span>
+        </li>
+        <li>
+            <span class="@Html.SideBarMenuLink("Materials", "TestMaterial", "Candidate")">
+                @Html.ActionLink("H & S Orientation", "HSOrientation", "Candidate")
+            </span>
+        </li>
+    </ul>
+</li>
+<li>
+    <span onclick="">Schedule</span>
+    <div class="sublist-toggle"></div>
+    <ul class="sublist first-level">
+        <li>
+            <span class="@Html.SideBarMenuLink("Availability", "Availability", "Candidate")">
+                @Html.ActionLink("Availability", "Availability", "Candidate")
+            </span>
+        </li>
+        <li>
+            <span class="@Html.SideBarMenuLink("Applied Jobs", "AppliedJobs", "Candidate")">
+                @Html.ActionLink("Applied Jobs", "AppliedJobs", "Candidate")
+            </span>
+        </li>
+    </ul>
+</li>
+<li>
+    <span onclick="">Time Sheet</span>
+    <div class="sublist-toggle"></div>
+    <ul class="sublist first-level">
+        <li>
+            <span class="@Html.SideBarMenuLink("Time Entry", "TimeEntry", "Candidate")">
+                @Html.ActionLink("Time Entry", "TimeEntry", "Candidate")
+            </span>
+        </li>
+        <li>
+            <span class="@Html.SideBarMenuLink("Time Sheet History", "WorkTimeByCandidateInWeb", "Candidate")">
+                @Html.ActionLink("Time Sheet History", "WorkTimeByCandidateInWeb", "Candidate")
+            </span>
+        </li>
+        <li>
+            <span class="@Html.SideBarMenuLink("Payment History", "PaymentHistory", "Candidate")">
+                @Html.ActionLink("Payment History", "PaymentHistory", "Candidate")
+            </span>
+        </li>
+        <li>
+            <span class="@Html.SideBarMenuLink("Tax Forms", "TaxForms", "Candidate")">
+                @Html.ActionLink("Tax Forms", "TaxForms", "Candidate")
+            </span>
+        </li>
+    </ul>
+</li>
+<li>
+    <span onclick="">Profile</span>
+    <div class="sublist-toggle"></div>
+    <ul class="sublist first-level">
+        <li>
+            <span class="@Html.SideBarMenuLink("Profile", "ViewProfile", "Candidate")">
+                @Html.ActionLink("Profile", "ViewProfile", "Candidate")
+            </span>
+        </li>
+        <li>
+            <span class="@Html.SideBarMenuLink("Change Password", "ChangePassword", "Candidate")">
+                @Html.ActionLink("Change Password", "ChangePassword", "Candidate")
+            </span>
+        </li>
+        <li>
+            <span class="@Html.SideBarMenuLink("Change Security Questions", "ChangeSecurityQuestions", "Candidate")">
+                @Html.ActionLink("Change Security Questions", "ChangeSecurityQuestions", "Candidate")
+            </span>
+        </li>
+    </ul>
+</li>

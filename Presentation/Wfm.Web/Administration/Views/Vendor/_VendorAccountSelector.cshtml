@@ -1,0 +1,66 @@
+﻿@using Wfm.Services.Accounts
+@using Wfm.Services.Companies
+@using Wfm.Services.Franchises
+
+
+@{
+    var copmanyService = EngineContext.Current.Resolve<ICompanyService>();
+    var vendorService = EngineContext.Current.Resolve<IFranchiseService>();
+    var accountService = EngineContext.Current.Resolve<IAccountService>();
+
+    var companyDropDownList = copmanyService.GetAllCompanies(WorkContext.CurrentAccount);
+    var vendorDropDownList = vendorService.GetAllFranchisesAsSelectList(WorkContext.CurrentAccount);
+
+    var roles = accountService.GetAllAccountRoles().Where(x => x.AccountRoleName.Contains("Vendor"));
+    var roleDropDownList = new List<SelectListItem>();
+    foreach (var r in roles.ToList())
+    {
+        var item = new SelectListItem()
+        {
+            Text = r.AccountRoleName,
+            Value = r.Id.ToString()
+        };
+        roleDropDownList.Add(item);
+    }
+}
+
+
+<br />
+<label class="first-label">Vendor: </label>
+@(Html.Kendo().MultiSelect().Name("Vendor")
+    .BindTo(vendorDropDownList).DataTextField("Text").DataValueField("Value")
+    //.Value(vendorDropDownList.Where(x => x.Value == "1"))
+    .HtmlAttributes(new { style = "width:720px" }).MaxSelectedItems(10))
+
+<br /><br />
+<label class="first-label">Role: </label>
+@(Html.Kendo().MultiSelect().Name("Role")
+    .BindTo(roleDropDownList).DataTextField("Text").DataValueField("Value")
+    .HtmlAttributes(new { style = "width:720px" }).MaxSelectedItems(5))
+
+<br /><br />
+<label class="first-label">Company: </label>
+@(Html.Kendo().MultiSelect().Name("Company")
+    .BindTo(companyDropDownList).DataTextField("Text").DataValueField("Value")
+    .HtmlAttributes(new { style = "width:720px" }).MaxSelectedItems(10))
+
+
+<script type="text/javascript">
+
+    function IsSelectorComplete() {
+        var selector = GetSelector();
+        return selector != null;
+    }
+
+    function GetSelector() {
+        var companyList = $("#Company").val();
+        var vendorList = $("#Vendor").val();
+        var roleList = $("#Role").val();
+        return {
+            CompanyIds: companyList == null ? [] : companyList.map(Number),
+            VendorIds: vendorList == null ? [] : vendorList.map(Number),
+            RoleIds: roleList == null ? [] : roleList.map(Number),
+        };
+    }
+
+</script>

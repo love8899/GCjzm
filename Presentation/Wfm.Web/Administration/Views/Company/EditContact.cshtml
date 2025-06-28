@@ -1,0 +1,79 @@
+﻿@using Wfm.Shared.Models.Accounts
+@model AccountModel
+
+@{
+    ViewBag.Title = T("Admin.Accounts.Account.EditAccountDetails").Text;
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "account-edit-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Accounts.Account.EditAccountDetails")
+            @Html.ActionLink("(" + T("Admin.Companies.Company.CompanyDetails") + ")", "Details", new { guid = ViewBag.CompanyGuid,tabId="tab-contacts" })
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />
+            @Html.ActionLink(T("Admin.Common.Cancel").Text, "CompanyContactDetails", new { guid = Model.AccountGuid }, new { @class = "k-button" })
+        </div>
+    </div>
+<script>
+    $(function () {                                       // <== Doc Ready
+        $("#Email").keyup(function () {                  // When the email is changed
+            $('#Username').val(this.value);                  // copy it over to the mail
+        });
+    });
+
+    $(function () {                                       // <== Doc Ready
+        $("#Email").blur(function () {                  // When the email is autocompleted
+            $('#Username').val(this.value);                  // copy it over to the mail
+        });
+    });
+
+    $(function () {                                       // <== Doc Ready
+        $("#Email").change(function () {                  // When the email is autocompleted
+            $('#Username').val(this.value);                  // copy it over to the mail
+        });
+    });
+</script>
+    @Html.HiddenFor(model => model.IsClientAccount)
+    @Html.HiddenFor(model => model.Id)
+    <table class="adminContent">
+        <tr>
+            <td colspan="2">
+                <div class="statisticsTitle">
+                    @T("Admin.Accounts.Account.LoginInformation")
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Username)
+            </td>
+            <td class="adminData required">
+                @Html.TextBoxFor(model => model.Username, new { @readonly = "readonly", @class = "textBoxAsLabel" })
+                @Html.WfmValidationMessageFor(model => model.Username)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.IsActive)
+            </td>
+            <td class="adminData">
+                @Html.CheckBoxFor(model => model.IsActive)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Email)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.Email)
+                @Html.WfmValidationMessageFor(model => model.Email)
+            </td>
+        </tr>
+    </table>
+
+    @Html.Partial("_CreateOrUpdate.Contact", Model)
+}

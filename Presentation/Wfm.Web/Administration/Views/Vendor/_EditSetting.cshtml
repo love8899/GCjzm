@@ -1,0 +1,56 @@
+﻿@model FranchiseSettingModel
+
+
+@{
+    Layout = "";
+}
+
+
+@using (Html.BeginForm("_SaveSetting", null, FormMethod.Post, new { id = "setting-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+        </div>
+        <div class="options" style="padding-right:20px">
+            <input type="button" id="btn-save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" id="btn-cancel" class="k-button" value="@T("Admin.Common.Cancel")" />
+        </div>
+    </div>
+
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.FranchiseId)
+    @Html.HiddenFor(model => model.Name)
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+    @Html.HiddenFor(model => model.UpdatedOnUtc)
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle" width="20%">
+                @Html.LabelFor(model => model.Name)
+            </td>
+            <td class="adminData required" width="80%">
+                @Html.DisplayFor(model => model.Name)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Value)
+            </td>
+            <td class="adminData">
+                @Html.TextAreaFor(model => model.Value, new { style = "height:200px; width:90%", onkeydown = "return (event.keyCode!=13);" })
+                @Html.ValidationMessageFor(model => model.Value)
+            </td>
+        </tr>
+    </table>
+}
+
+
+@* for jQUery validation *@
+<script>
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+</script>

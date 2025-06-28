@@ -1,0 +1,76 @@
+﻿@using Wfm.Services.Test
+@{
+    var categoryService = EngineContext.Current.Resolve<ITestService>();
+    var categories = categoryService.GetAllCategories().Select(x => new SelectListItem() { Text = x.TestCategoryName, Value = x.Id.ToString() });
+    
+
+}
+
+<script src="@Url.Content("~/Scripts/fileUploadHelper.js")" type="text/javascript"></script>
+<script type="text/javascript">
+
+    function onUploadOverride(e) {
+        var categoryId = $("#TestCategoryId").val();
+        var files = e.files;
+        $.each(files, function () {
+            var isFileSizeValid = validateFileSize(this);
+            if ( !isFileSizeValid) {
+                e.preventDefault(); // This cancels the upload for the file
+            }
+        });
+        e.data = { categoryId: categoryId };
+        
+    }
+
+
+
+    function onCompleteOverride() {
+        onComplete();
+        $("#attachment-window").data("kendoWindow").close();
+    }
+
+</script>
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.Label(T("Common.TestCategory").Text)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().DropDownList()
+                .Name("TestCategoryId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(categories)
+
+            )
+        </td>
+
+    </tr>
+    <tr>
+        <td colspan="2">
+            @(Html.Kendo().Upload()
+                .Name("attachments")
+                .HtmlAttributes(new { style = "height:200px" })
+                .Multiple(true)
+                .Async(async => async
+                    .Save("SaveMaterials", "Test")
+                    .AutoUpload(false)
+                )
+                .Events(events => events
+                    //.Cancel("onCancel")
+                    .Complete("onCompleteOverride")
+                    .Error("onError")
+                    //.Progress("onProgress")
+                    //.Remove("onRemove")
+                    .Success("onSuccess")
+                    .Upload("onUploadOverride")
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+
+

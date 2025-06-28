@@ -1,0 +1,72 @@
+﻿@using Wfm.Admin.Models.Common
+@using Wfm.Services.Security
+@{
+    //var companyGuid = ViewBag.CompanyGuid;
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+}
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration.DNRReasons") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<DNRReasonModel>()
+              .Name("dnr-reasons-grid")
+              .Columns(columns =>
+                {
+                    columns.Bound(x => x.Reason);
+                    columns.Bound(x => x.IsActive).Title(T("Common.IsActive").Text)
+                        .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Content/images/") + "active-#= IsActive #.png)'></div>")
+                        .Width(60);
+
+                    columns.Command(x => { x.Destroy().Text(" "); }).Width(60);
+                })
+        .ToolBar(tool => { tool.Create(); tool.Save(); })
+        .Editable(edit => edit.Mode(GridEditMode.InCell))
+        .EnableCustomBinding(true)
+        .Reorderable(reorder => reorder.Columns(true))
+        .Resizable(resize => resize.Columns(true))
+        .Filterable()
+        .Sortable()
+        .ColumnMenu()
+        .Selectable()
+
+        .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+        .DataSource(dataBinding => dataBinding
+                   .Ajax()
+                    .Events(events => events.Error("error_handler").Sync(@"function(e){setTimeout(function(){refreshGrid('#dnr-reasons-grid',1)})}"))
+                   .Batch(true)
+                   .ServerOperation(true)
+                   .PageSize(20)
+                    .Read(read => read.Action("Index", "DNRReason"))
+                    .Create(create => create.Action("Create", "DNRReason"))
+                    .Update(update => update.Action("Edit", "DNRReason"))
+                    .Destroy(delete => delete.Action("Delete", "DNRReason"))
+
+                   .Model(model =>
+                                {
+                                    model.Id(x => x.Id);
+                                    model.Field(x => x.Reason).Editable(true);
+                                    model.Field(x => x.IsActive).DefaultValue(true);
+
+                                })
+        )
+        .Filterable(filterable => filterable
+            .Extra(false)
+            .Operators(operators => operators
+                .ForString(str => str.Clear()
+                    .Contains("Contains")
+                    .IsEqualTo("Is equal to")
+                    .IsNotEqualTo("Is not equal to")
+                )
+            )
+        )
+            )
+        </td>
+    </tr>
+</table>
+
+    

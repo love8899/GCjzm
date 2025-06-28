@@ -1,0 +1,227 @@
+﻿@using Wfm.Shared.Models.Incident
+@model IEnumerable<IncidentReportModel>
+
+<script type="text/javascript">
+    function editIncidentReport(id) {
+        var dialog = $("#create-edit-incident-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#create-edit-incident-dialog").kendoWindow({
+                title: "Edit Incident Report",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 350,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    var win = this;
+                    $('#close-incident-report').click(function () {
+                        $("#create-edit-incident-dialog").data("kendoWindow").close();
+                    });
+                    $('#save-incident-report').click(function () {
+                        var form = $('#incident-report-form');
+                        if (form.valid()) {
+                            $.ajax({
+                                url: '@Url.Action("_EditIncidentReport")',
+                                type: 'POST',
+                                data: $('#incident-report-form').serialize(),
+                                dataType: 'Json',
+                                success: function (result) {
+                                    if (result.Error) {
+                                        $("#create-edit-incident-dialog").data("kendoWindow").close();
+                                        $('#candidate-incident-grid').data('kendoGrid').dataSource.read();
+                                        $('#candidate-incident-grid').data('kendoGrid').refresh();
+                                    }
+                                }
+                            });
+                        }
+                    })
+                }
+            });
+            dialog = $("#create-edit-incident-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_EditIncidentReport")',
+            data: { incidentReportId: id }
+        });
+        dialog.center();
+        return false;
+    }
+</script>
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Candidate.IncidentHistory")
+    </div>
+    <div class="options">
+        <button id="add-incident" class="k-button">@T("Common.Add")</button>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<IncidentReportModel>()
+                .Name("candidate-incident-grid")
+                .BindTo(Model)
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(80).Hidden();
+                    
+                    columns.Bound(x => x.CompanyName);
+                    columns.Bound(x => x.JobOrderId);
+                    columns.Bound(x => x.LocationName);
+                    columns.Bound(x => x.Position);
+                    columns.Bound(x => x.IncidentDateTimeUtc).ClientTemplate("#=kendo.toString(IncidentDateTimeUtc,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.IncidentCategoryName);
+                    columns.Bound(x => x.Note)
+                        .HtmlAttributes(new { style = "white-space:normal;" });
+                    columns.Bound(x => x.ReportedByUserName).Width(100);
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { x.Id }))
+                        .ClientTemplate("<a class='k-button'  title='" + T("Common.Edit").Text + "'onclick=\"return editIncidentReport(#= Id #)\"><span class='k-icon k-i-pencil'></span></a>" +
+                        "<a class='k-button' title='" + T("Admin.Candidate.CandidateAttachments").Text + "' onclick=\"return manageIncidentReportFiles(#= Id #)\"><span class='fa fa-paperclip'></span></a>" +
+                        "<a class='k-button' title='" + T("Common.Delete").Text + "' onclick=\"return removeIncidentReport(#= Id #)\"><span class='fa fa-trash'></span></a>")
+                        .Width(180)
+                        .Title(T("Admin.Common.Edit").Text);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(true)
+                        .PageSize(20)
+                        .Read(read => read.Action("_TabCandidateIncidentsList", "Candidate", new { candidateGuid = ViewBag.CandidateGuid }))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+<div id="create-edit-incident-dialog"></div>
+<script type="text/javascript">
+    $(function () {
+        $("#add-incident").click(
+            function () {
+                addIncidentReport();
+            });
+    });
+
+    function addIncidentReport() {
+        var dialog = $("#create-edit-incident-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#create-edit-incident-dialog").kendoWindow({
+                title: "New Incident Report",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 350,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    var win = this;
+                    $('#close-incident-report').click(function () {
+                        $("#create-edit-incident-dialog").data("kendoWindow").close();
+                    });
+                    $('#save-incident-report').click(function () {
+                        var form = $('#incident-report-form');
+                        if (form.valid()) {
+                            $.ajax({
+                                url: '@Url.Action("_EditIncidentReport")',
+                                type: 'POST',
+                                data: $('#incident-report-form').serialize(),
+                                dataType: 'Json',
+                                success: function (result) {
+                                    if (result.Error) {
+                                        $("#create-edit-incident-dialog").data("kendoWindow").close();
+                                        $('#candidate-incident-grid').data('kendoGrid').dataSource.read();
+                                        $('#candidate-incident-grid').data('kendoGrid').refresh();
+                                    }
+                                }
+                            });
+                        }
+                    })
+                }
+            });
+            dialog = $("#create-edit-incident-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_NewIncidentReport")',
+            data: { candidateGuid: '@ViewBag.CandidateGuid' }
+        });
+        dialog.center();
+        return false;
+    }
+
+    function removeIncidentReport(id){
+        return gridDelete(function () {
+                $.ajax({
+                    url: '@Url.Action("_RemoveIncidentReport")',
+                    type: 'POST',
+                    data: { incidentReportId: id },
+                    dataType: 'html',
+                    success: function (result) {
+                        if (result == 'done') {
+                            $('#candidate-incident-grid').data('kendoGrid').dataSource.read();
+                            $('#candidate-incident-grid').data('kendoGrid').refresh();
+                        }
+                    }
+                });
+        })
+    }
+
+    function manageIncidentReportFiles(id){
+        var dialog = $("#create-edit-incident-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#create-edit-incident-dialog").kendoWindow({
+                title: "Edit Incident Files",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 350,
+                close: function () {
+                },
+                refresh: function (e) {
+                }
+            });
+            dialog = $("#create-edit-incident-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.open();
+        }
+
+        dialog.refresh({
+            url: '@Url.Action("_ManageIncidentReportFiles")',
+            data: { incidentReportId: id }
+        });
+        dialog.center();
+        return false;
+    }
+</script>

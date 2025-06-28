@@ -1,0 +1,310 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{CCD7F2C9-6A2C-4CF0-8E89-076B8FC0F144}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Wfm.Data</RootNamespace>
+    <AssemblyName>Wfm.Data</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\VersionInfo.cs">
+      <Link>VersionInfo.cs</Link>
+    </Compile>
+    <Compile Include="Extensions.cs" />
+    <Compile Include="DataReaderExtensions.cs" />
+    <Compile Include="DbContextExtensions.cs" />
+    <Compile Include="EfDataProviderManager.cs" />
+    <Compile Include="Initializers\CreateTablesIfNotExist.cs" />
+    <Compile Include="Mapping\Accounts\AccountCompanyMap.cs" />
+    <Compile Include="Mapping\Accounts\AccountDelegateHistoryMap.cs" />
+    <Compile Include="Mapping\Accounts\AccountDelegateMap.cs" />
+    <Compile Include="Mapping\Accounts\AccountPasswordHistoryMap.cs" />
+    <Compile Include="Mapping\Accounts\AccountPasswordPolicyMap.cs" />
+    <Compile Include="Mapping\Announcements\AnnouncementIsReadMap.cs" />
+    <Compile Include="Mapping\Announcements\AnnouncementTargetMap.cs" />
+    <Compile Include="Mapping\Announcements\AnnouncementMap.cs" />
+    <Compile Include="Mapping\Blogs\BlogCommentMap.cs" />
+    <Compile Include="Mapping\Blogs\BlogPostMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidateAppiedJobsMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidateBlacklistMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidateBankAccountMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidateAddressMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidateDirectHireStatusHistoryMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidateAvailabilityMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidateOnboardingStatusMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidatePasswordHistoryMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidatePictureMap.cs" />
+    <Compile Include="Mapping\Candidates\Candidate_Payment_HistoryMap.cs" />
+    <Compile Include="Mapping\Candidates\Candidate_Payment_History_DetailMap.cs" />
+    <Compile Include="Mapping\ClockTime\ClockCandidatemap.cs" />
+    <Compile Include="Mapping\ClockTime\HandTemplateMap.cs" />
+    <Compile Include="Mapping\Common\DNRReasonMap.cs" />
+    <Compile Include="Mapping\Common\JobBoardMap.cs" />
+    <Compile Include="Mapping\Common\SecurityQuestionMap.cs" />
+    <Compile Include="Mapping\Companies\ActivityTypeMap.cs" />
+    <Compile Include="Mapping\Companies\CompanyActivityMap.cs" />
+    <Compile Include="Mapping\Companies\CompanyAttachmentMap.cs" />
+    <Compile Include="Mapping\Companies\CompanyEmailTemplateMap.cs" />
+    <Compile Include="Mapping\Companies\CompanyStatusMap.cs" />
+    <Compile Include="Mapping\Companies\CompanyVendorMap.cs" />
+    <Compile Include="Mapping\Companies\CompanySettingMap.cs" />
+    <Compile Include="Mapping\Companies\QuotationMap.cs" />
+    <Compile Include="Mapping\Employees\EmployeeTD1Map.cs" />
+    <Compile Include="Mapping\Employees\EmployeePayrollTemplateMap.cs" />
+    <Compile Include="Mapping\Features\UserFeatureMap.cs" />
+    <Compile Include="Mapping\Features\FeatureMap.cs" />
+    <Compile Include="Mapping\Franchises\FranchiseSettingMap.cs" />
+    <Compile Include="Mapping\Franchises\VendorCertificateMap.cs" />
+    <Compile Include="Mapping\Invoices\InvoiceIntervalMap.cs" />
+    <Compile Include="Mapping\JobOrders\FeeTypeMap.cs" />
+    <Compile Include="Mapping\Media\DocumentTypeMap.cs" />
+    <Compile Include="Mapping\Candidates\EmployeeTimeChartMap.cs" />
+    <Compile Include="Mapping\Common\AddressTypeMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidateJobOrderMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidateJobOrderStatusHistoryMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidateJobOrderStatusMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidateKeySkillsMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidatesMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidateWorkHistoryMap.cs" />
+    <Compile Include="Mapping\Common\AlertsMap.cs" />
+    <Compile Include="Mapping\Common\PositionMap.cs" />
+    <Compile Include="Mapping\Common\ShiftMap.cs" />
+    <Compile Include="Mapping\Common\SkillMap.cs" />
+    <Compile Include="Mapping\Common\CityMap.cs" />
+    <Compile Include="Mapping\Common\CountryMap.cs" />
+    <Compile Include="Mapping\Common\CurrencyMap.cs" />
+    <Compile Include="Mapping\Common\EthnicTypeMap.cs" />
+    <Compile Include="Mapping\Common\BankMap.cs" />
+    <Compile Include="Mapping\Common\GenderMap.cs" />
+    <Compile Include="Mapping\Common\GenericAttributeMap.cs" />
+    <Compile Include="Mapping\Common\IntersectionMap.cs" />
+    <Compile Include="Mapping\Common\SearchTermMap.cs" />
+    <Compile Include="Mapping\Common\StateProvinceMap.cs" />
+    <Compile Include="Mapping\Common\SalutationMap.cs" />
+    <Compile Include="Mapping\Common\SourceMap.cs" />
+    <Compile Include="Mapping\Common\StatutoryHolidayMap.cs" />
+    <Compile Include="Mapping\Common\TransportationMap.cs" />
+    <Compile Include="Mapping\Common\VetranTypeMap.cs" />
+    <Compile Include="Mapping\Companies\CompanyBillingRatesMap.cs" />
+    <Compile Include="Mapping\Companies\CompanyCandidateMap.cs" />
+    <Compile Include="Mapping\Companies\CompanyJobRoleMap.cs" />
+    <Compile Include="Mapping\Companies\CompanyJobRoleSkillMap.cs" />
+    <Compile Include="Mapping\Companies\CompanyLocationOvertimeRuleMap.cs" />
+    <Compile Include="Mapping\Companies\CompanyOvertimeRuleMap.cs" />
+    <Compile Include="Mapping\Companies\CompanyLocationMap.cs" />
+    <Compile Include="Mapping\Companies\CompanyMap.cs" />
+    <Compile Include="Mapping\Companies\CompanyDepartmentMap.cs" />
+    <Compile Include="Mapping\Companies\CompanyShiftJobRoleMap.cs" />
+    <Compile Include="Mapping\Companies\CompanyShiftMap.cs" />
+    <Compile Include="Mapping\Configuration\SettingMap.cs" />
+    <Compile Include="Mapping\Employees\EmployeeAvailabilityMap.cs" />
+    <Compile Include="Mapping\Employees\EmployeeJobRoleMap.cs" />
+    <Compile Include="Mapping\Employees\EmployeePayrollSettingMap.cs" />
+    <Compile Include="Mapping\Employees\EmployeeMap.cs" />
+    <Compile Include="Mapping\Employees\EmployeeTimeoffBalanceMap.cs" />
+    <Compile Include="Mapping\Employees\EmployeeTimeoffBookingMap.cs" />
+    <Compile Include="Mapping\Employees\EmployeeTimeoffTypeMap.cs" />
+    <Compile Include="Mapping\Employees\EmployeeTypeMap.cs" />
+    <Compile Include="Mapping\Forums\ForumGroupMap.cs" />
+    <Compile Include="Mapping\Forums\ForumMap.cs" />
+    <Compile Include="Mapping\Forums\ForumPostMap.cs" />
+    <Compile Include="Mapping\Forums\ForumSubscriptionMap.cs" />
+    <Compile Include="Mapping\Forums\ForumTopicMap.cs" />
+    <Compile Include="Mapping\Forums\PrivateMessageMap.cs" />
+    <Compile Include="Mapping\Franchises\FranchiseOvertimeRuleMap.cs" />
+    <Compile Include="Mapping\Franchises\FranchiseBankInfoMap.cs" />
+    <Compile Include="Mapping\Franchises\FranchiseAddressMap.cs" />
+    <Compile Include="Mapping\Franchises\FranchiseMap.cs" />
+    <Compile Include="Mapping\Incident\IncidentCategoryMap.cs" />
+    <Compile Include="Mapping\Incident\IncidentReportFileMap.cs" />
+    <Compile Include="Mapping\Incident\IncidentReportTemplateMap.cs" />
+    <Compile Include="Mapping\Incident\IncidentReportMap.cs" />
+    <Compile Include="Mapping\JobOrders\JobOrderCategoryMap.cs" />
+    <Compile Include="Mapping\JobOrders\JobOrderMap.cs" />
+    <Compile Include="Mapping\JobOrders\JobOrderOvertimeRuleMap.cs" />
+    <Compile Include="Mapping\JobOrders\JobOrderOpeningMap.cs" />
+    <Compile Include="Mapping\JobOrders\JobOrderStatusMap.cs" />
+    <Compile Include="Mapping\JobOrders\JobOrderTestCategoryMap.cs" />
+    <Compile Include="Mapping\JobOrders\JobOrderTypeMap.cs" />
+    <Compile Include="Mapping\JobPosting\JobPostMap.cs" />
+    <Compile Include="Mapping\Localization\LanguageMap.cs" />
+    <Compile Include="Mapping\Localization\LocaleStringResourceMap.cs" />
+    <Compile Include="Mapping\Logging\AccessLogMap.cs" />
+    <Compile Include="Mapping\Logging\CandidateActivityLogMap.cs" />
+    <Compile Include="Mapping\Logging\ActivityLogMap.cs" />
+    <Compile Include="Mapping\Logging\ActivityLogTypeMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidateAttachmentMap.cs" />
+    <Compile Include="Mapping\Logging\LogMap.cs" />
+    <Compile Include="Mapping\Media\AttachmentTypeMap.cs" />
+    <Compile Include="Mapping\Media\DownloadMap.cs" />
+    <Compile Include="Mapping\Media\PictureMap.cs" />
+    <Compile Include="Mapping\Messages\CampaignMap.cs" />
+    <Compile Include="Mapping\Messages\ResumeHistoryMap.cs" />
+    <Compile Include="Mapping\Messages\ClientNotificationMap.cs" />
+    <Compile Include="Mapping\Messages\ConfirmationEmailLinkMap.cs" />
+    <Compile Include="Mapping\Messages\ResumeMap.cs" />
+    <Compile Include="Mapping\Messages\MessageTemplateAccountRoleMap.cs" />
+    <Compile Include="Mapping\Messages\EmailAccountMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidateMessageNotificationMap.cs" />
+    <Compile Include="Mapping\Messages\MessageMap.cs" />
+    <Compile Include="Mapping\Messages\MessageTemplateMap.cs" />
+    <Compile Include="Mapping\Accounts\AccountRoleMap.cs" />
+    <Compile Include="Mapping\Accounts\AccountMap.cs" />
+    <Compile Include="Mapping\Messages\NewsLetterSubscriptionMap.cs" />
+    <Compile Include="Mapping\Messages\MessageHistoryMap.cs" />
+    <Compile Include="Mapping\Messages\QueuedEmailMap.cs" />
+    <Compile Include="Mapping\Messages\MessageCategoryMap.cs" />
+    <Compile Include="Mapping\Payroll\Check_StatusMap.cs" />
+    <Compile Include="Mapping\Payroll\OvertimeRuleSettingMap.cs" />
+    <Compile Include="Mapping\Payroll\OvertimeTypeMap.cs" />
+    <Compile Include="Mapping\Payroll\PayFrequencyTypeMap.cs" />
+    <Compile Include="Mapping\Payroll\PayGroupMap.cs" />
+    <Compile Include="Mapping\Payroll\Payroll_BatchMap.cs" />
+    <Compile Include="Mapping\Payroll\Payroll_CalendarMap.cs" />
+    <Compile Include="Mapping\Payroll\Payroll_ItemMap.cs" />
+    <Compile Include="Mapping\Payroll\Payroll_Item_SubTypeMap.cs" />
+    <Compile Include="Mapping\Payroll\Payroll_Item_TypeMap.cs" />
+    <Compile Include="Mapping\Payroll\TaxFormBoxMap.cs" />
+    <Compile Include="Mapping\Policies\PasswordPolicyMap.cs" />
+    <Compile Include="Mapping\Policies\RoundingPolicyMap.cs" />
+    <Compile Include="Mapping\Policies\BreakPolicyMap.cs" />
+    <Compile Include="Mapping\Policies\SchedulePolicyMap.cs" />
+    <Compile Include="Mapping\Policies\MealPolicyMap.cs" />
+    <Compile Include="Mapping\Scheduling\EmployeeScheduleDailyBreakMap.cs" />
+    <Compile Include="Mapping\Scheduling\EmployeeScheduleDailyMap.cs" />
+    <Compile Include="Mapping\Scheduling\EmployeeScheduleMap.cs" />
+    <Compile Include="Mapping\Scheduling\EmployeeScheduleValidationResultMap.cs" />
+    <Compile Include="Mapping\Scheduling\ScheduleJobOrderMap.cs" />
+    <Compile Include="Mapping\Scheduling\SchedulePeriodMap.cs" />
+    <Compile Include="Mapping\Scheduling\ScheduleStatusHistoryMap.cs" />
+    <Compile Include="Mapping\Scheduling\ShiftScheduleDailyDemandAdjustmentMap.cs" />
+    <Compile Include="Mapping\Scheduling\ShiftScheduleDailyMap.cs" />
+    <Compile Include="Mapping\Scheduling\ShiftScheduleMap.cs" />
+    <Compile Include="Mapping\Security\PermissionRecordMap.cs" />
+    <Compile Include="Mapping\Seo\UrlRecordMap.cs" />
+    <Compile Include="Mapping\Tasks\ScheduleTaskMap.cs" />
+    <Compile Include="Mapping\TaxForm\RL1\RL1_2015_Map.cs" />
+    <Compile Include="Mapping\TaxForm\RL1\RL1_2016_Map.cs" />
+    <Compile Include="Mapping\TaxForm\RL1\RL1_2017_Map.cs" />
+    <Compile Include="Mapping\TaxForm\RL1\RL1_2018_Map.cs" />
+    <Compile Include="Mapping\TaxForm\RL1\RL1_2021_Map.cs" />
+    <Compile Include="Mapping\TaxForm\RL1\RL1_2020_Map.cs" />
+    <Compile Include="Mapping\TaxForm\RL1\RL1_2019_Map.cs" />
+    <Compile Include="Mapping\TaxForm\RL1\RL1_Base_Map.cs" />
+    <Compile Include="Mapping\TaxForm\T4\T4_2015_Map.cs" />
+    <Compile Include="Mapping\TaxForm\T4\T4_2016_Map.cs" />
+    <Compile Include="Mapping\TaxForm\T4\T4_2017_Map.cs" />
+    <Compile Include="Mapping\TaxForm\T4\T4_2018_Map.cs" />
+    <Compile Include="Mapping\TaxForm\T4\T4_2021_Map.cs" />
+    <Compile Include="Mapping\TaxForm\T4\T4_2020_Map.cs" />
+    <Compile Include="Mapping\TaxForm\T4\T4_2019_Map.cs" />
+    <Compile Include="Mapping\TaxForm\T4\T4_Base_Map.cs" />
+    <Compile Include="Mapping\Tests\CandidateTestLinkMap.cs" />
+    <Compile Include="Mapping\Tests\TestCategoryMap.cs" />
+    <Compile Include="Mapping\Tests\TestChoiceMap.cs" />
+    <Compile Include="Mapping\Tests\TestMaterialMap.cs" />
+    <Compile Include="Mapping\Tests\TestQuestionMap.cs" />
+    <Compile Include="Mapping\Candidates\CandidateTestResultMap.cs" />
+    <Compile Include="Mapping\ClockTime\CompanyClockDeviceMap.cs" />
+    <Compile Include="Mapping\ClockTime\CandidateClockTimeMap.cs" />
+    <Compile Include="Mapping\ClockTime\CandidateSmartCardMap.cs" />
+    <Compile Include="Mapping\TimeSheet\CandidateWorkOverTimeMap.cs" />
+    <Compile Include="Mapping\TimeSheet\CandidateWorkTimeLogMap.cs" />
+    <Compile Include="Mapping\TimeSheet\CandidateMissingHourMap.cs" />
+    <Compile Include="Mapping\TimeSheet\CandidateWorkTimeMap.cs" />
+    <Compile Include="Mapping\TimeSheet\MissingHourDocumentMap.cs" />
+    <Compile Include="Mapping\TimeSheet\ClientTimeSheetDocumentMap.cs" />
+    <Compile Include="Mapping\WSIB\CandidateWSIBCommonRateMap.cs" />
+    <Compile Include="Mapping\WSIB\WSIBMap.cs" />
+    <Compile Include="QueryableExtensions.cs" />
+    <Compile Include="SqlServerDataProvider.cs" />
+    <Compile Include="IDbContext.cs" />
+    <Compile Include="WfmObjectContext.cs" />
+    <Compile Include="EfRepository.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="EfStartUpTask.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Wfm.Core\Wfm.Core.csproj">
+      <Project>{6BDA8332-939F-45B7-A25E-7A797260AE59}</Project>
+      <Name>Wfm.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <Target Name="CleanFolders" AfterTargets="Clean">
+    <RemoveDir Directories="$(ProjectDir)bin" />
+    <RemoveDir Directories="$(ProjectDir)obj" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,717 @@
+﻿@using Wfm.Core
+@using Wfm.Core.Domain.JobOrders
+@using Wfm.Services.DirectoryLocation
+@using Wfm.Services.Security
+@using Wfm.Core.Domain.Accounts
+
+@model JobOrderModel
+
+@{
+    ViewBag.Title = T("Admin.JobOrder.JobOrder.JobOrderDetails").Text;
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    var _workContext = EngineContext.Current.Resolve<IWorkContext>();
+    ViewBag.SearchArea = "JobOrder";
+    var jobTitle = string.Concat(Model.Id, ": ", Model.JobTitle);
+    if (permissionService.Authorize("ViewCompanyBillingRates") || permissionService.Authorize("ViewCompanyPayRates"))
+    {
+        jobTitle = string.Concat(jobTitle, string.Format(" ({0:c})", Model.PayRate));
+    }
+}
+
+@if (permissionService.Authorize(StandardPermissionProvider.ManageCandidateWorkTime))
+{
+    @(Html.Kendo().Window()
+    .Name("calculatecandidateworktime-window")
+    .Title(T("Admin.TimeSheet.CalculateCandidateWorkTime.Calculate").Text)
+    .Content(@<text>@Html.Action("_CalculateCandidateWorkTime", "JobOrder", routeValues: new { guid = Model.JobOrderGuid, jobOrderStartDate = Model.StartDate, jobOrderEndDate = Model.EndDate, inquiryDateString = string.Format("{0:d}", Model.ReferenceDate) })</text>)
+    .Width(700)
+    .Draggable(true)
+    .Modal(true)
+    .Visible(false)
+    .Actions(actions => actions.Minimize().Maximize().Close())
+)
+}
+<div class="section-header">
+    <div class="title">
+        @jobTitle
+        @Html.ActionLink("(" + T("Admin.JobOrder.JobOrder.BackToList") + ")", "Index")
+        @Html.HiddenFor(m => m.Id, new { @id = "hidden-job-order-id" })
+    </div>
+    <div class="options">
+        <button id="publish-job-Order" class="k-button">@T("Admin.JobPosting.Publish")</button>
+        @if (permissionService.Authorize(StandardPermissionProvider.ManageCandidateWorkTime))
+        {
+            <button id="calculate-worktime" class="k-button">@T("Admin.TimeSheet.CalculateCandidateWorkTime.Calculate")</button>
+        }
+        @if (permissionService.Authorize(StandardPermissionProvider.ManageJobOrders) && (_workContext.CurrentFranchise.EnableStandAloneJobOrders || _workContext.CurrentFranchise.IsDefaultManagedServiceProvider) && Model.JobPostingId == null)
+        {
+            @Html.ActionLink(T("Admin.JobOrder.JobOrder.CopyJobOrder").Text, "CopyJobOrder", new { guid = Model.JobOrderGuid }, new { @class = "k-button" })
+        }
+        @if (permissionService.Authorize(StandardPermissionProvider.UpdateJobOrder) && (_workContext.CurrentAccount.IsAdministrator() || _workContext.CurrentAccount.IsVendorAdmin() || _workContext.CurrentAccount.Id == Model.OwnerId || _workContext.CurrentAccount.Id == Model.RecruiterId))
+        {
+            @Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { guid = Model.JobOrderGuid }, new { @class = "k-button" })
+            <button id="close-joborder-btn" class="k-button">Close</button>
+        }
+        @Html.HiddenFor(x => x.StartDate)
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        var startDate = new Date($("#StartDate").val());
+        var currdate = new Date();
+        if (startDate>currdate)
+        {
+            $("#calculate-worktime").hide();
+        }
+        $("#calculate-worktime").bind("click", function () {
+            var calendar = $("#candidatejoborder-calendar").data("kendoDatePicker");
+            var inquiryDate = calendar.value();
+            $("#FromDate").data("kendoDatePicker").value(inquiryDate);
+            $("#calculatecandidateworktime-window").data("kendoWindow").center().open();
+        });
+
+        $("#publish-job-Order").bind("click", function (e) {
+            e.preventDefault();
+
+            var guid = '@Model.JobOrderGuid';
+
+            $(document.body).append('<div id="publish-job-order-window"></div>');
+            $("#publish-job-order-window").kendoWindow({
+                title: "Publish",
+                modal: true,
+                resizable: true,
+                width: 450,
+                height: 150,
+                content: '@Url.Action("_PublishJobOrderToOtherPlatform", "JobOrder")',
+                close: function () {
+                    setTimeout(function () {
+                        $('#publish-job-order-window').kendoWindow('destroy');
+                    }, 200);
+                },
+                refresh: function (e) {
+                    var win = this;
+                    $('#btn-cancel').click(function () {
+                        win.close();
+                    })
+                    $('#btn-publish').click(function () {
+                        var platforms = $("#JobBoards").data("kendoMultiSelect").value();
+                        var link = '@Url.Action("_PublishJobOrder", "JobOrder")' + '?guid=' + guid + '&platforms='+platforms;
+                        $.ajax({
+                            type: "POST",
+                            url: link,
+                            success: function (response) {
+                                if (response.Result) {
+                                    $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+                                    $(".messageBox").text("Job Order Published to selected platform(s).");
+                                    win.close();
+                                }
+                                else {
+                                    alert(response.ErrorMessage);
+                                }
+                            }
+                        });
+
+                    });
+                }
+            }).data('kendoWindow').center();
+        });
+    });
+</script>
+
+@* Tabs *@
+@Html.Kendo().TabStrip().Name("joborderdetailstabstrip").Items(x =>
+{
+    x.Add().Text(T("Common.BasicInformation").Text).Content(JobOrderBasicInfoTab().ToHtmlString()).Selected(false)
+        .HtmlAttributes(new { id = "tab-basic-info" });
+    x.Add().Text(T("Admin.JobOrder.JobOrder.PipelineInformation").Text).Content(Html.Action("_TabJobOrderPipeline", new { jobOrderId = Model.Id, inquiryDateString = string.Format("{0:d}", Model.ReferenceDate), ViewBag.IncludePlacedCandidates }).ToHtmlString()).Selected(true)
+        .HtmlAttributes(new { id = "tab-pipeline" });
+    x.Add().Text(T("Common.Openings").Text).LoadContentFrom(Url.Action("_TabOpenings", "JobOrder", new { guid = Model.JobOrderGuid })).HtmlAttributes(new { id = "tab-openings" });
+    if (permissionService.Authorize("ManageOvertimeRule"))
+    {
+        x.Add().Text(T("Common.OvertimeRule").Text).LoadContentFrom(Url.Action("_TabJobOrderOvertimeRule", "JobOrder", new { guid = Model.JobOrderGuid }))
+            .HtmlAttributes(new { id = "tab-overtime-rule" });
+    }
+})
+
+@* Tab 1 : JobOrder basic info *@
+@helper JobOrderBasicInfoTab()
+{
+    var account = EngineContext.Current.Resolve<IWorkContext>();
+
+    <table class="adminContent">
+        <tr>
+            <td colspan="4">
+                <div class="statisticsTitle">
+                    @T("Common.CompanyInformation")
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CompanyId)
+            </td>
+            <td class="adminData">
+                @Html.ActionLink(Model.CompanyModel.CompanyName, "Details", "Company", new { guid = Model.CompanyModel.CompanyGuid }, new { target = "_blank" })
+            </td>
+            @if (!account.CurrentAccount.IsVendor())
+            {
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.CompanyContactId)
+                </td>
+                <td class="adminData">
+                    @if (@Model.CompanyContactModel != null)
+                    {
+                        <div>
+                            @Model.CompanyContactModel.FirstName @Model.CompanyContactModel.LastName
+                        </div>
+                    }
+                </td>
+            }
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Admin.JobOrder.JobOrder.Fields.JobOrderLocation")
+            </td>
+            @if (Model.CompanyLocationModel == null)
+            {
+                <td class="adminData"></td>
+            }
+            else
+            {
+                var cityService = EngineContext.Current.Resolve<ICityService>();
+                var stateProvinceService = EngineContext.Current.Resolve<IStateProvinceService>();
+                var countryService = EngineContext.Current.Resolve<ICountryService>();
+                var city = cityService.GetCityById(Model.CompanyLocationModel.CityId);
+                var stateProvince = stateProvinceService.GetStateProvinceById(Model.CompanyLocationModel.StateProvinceId);
+                var country = countryService.GetCountryById(Model.CompanyLocationModel.CountryId);
+
+                <td class="adminData">
+                    @(String.IsNullOrWhiteSpace(Model.CompanyLocationModel.UnitNumber) ? "" : Model.CompanyLocationModel.UnitNumber + " - ")
+                    @(String.IsNullOrWhiteSpace(Model.CompanyLocationModel.AddressLine1) ? "" : Model.CompanyLocationModel.AddressLine1 + ",")
+                    @(String.IsNullOrWhiteSpace(Model.CompanyLocationModel.AddressLine2) ? "" : Model.CompanyLocationModel.AddressLine2 + ",")
+                    @(String.IsNullOrWhiteSpace(Model.CompanyLocationModel.AddressLine3) ? "" : Model.CompanyLocationModel.AddressLine3 + ",")
+                    @city.CityName,
+                    @stateProvince.StateProvinceName,
+                    @country.CountryName
+                    @Model.CompanyLocationModel.PostalCode
+
+                    @Html.Action("MapLookup", "Directory", new
+                    {
+                        Model.CompanyLocationModel.AddressLine1,
+                        city.CityName,
+                        stateProvince.StateProvinceName,
+                        country.CountryName
+                    })
+                </td>
+            }
+            @if (!account.CurrentAccount.IsVendor())
+            {
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.CompanyContactModel.WorkPhone)
+                </td>
+                <td class="adminData">
+                    @if (Model.CompanyContactModel != null)
+                    {
+                        @Model.CompanyContactModel.WorkPhone.ToPrettyTelephone()
+                    }
+                </td>
+            }
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CompanyDepartmentName)
+            </td>
+            <td class="adminData">
+                @if (@Model.CompanyDepartmentModel != null)
+                {
+                    <div>
+                        @Model.CompanyDepartmentModel.DepartmentName
+                    </div>
+                }
+            </td>
+            @if (!account.CurrentAccount.IsVendor())
+            {
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.CompanyContactModel.Email)
+                </td>
+                <td class="adminData">
+                    @if (Model.CompanyContactModel != null)
+                    {
+                        @Model.CompanyContactModel.Email
+                    }
+                </td>
+            }
+        </tr>
+        <tr>
+            <td colspan="4">
+                <div class="statisticsTitle">
+                    @T("Admin.JobOrder.JobOrder.JobOrderDetails")
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Id)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.Id)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobOrderStatusId)
+            </td>
+            <td class="adminData">
+                @Model.JobOrderStatusModel.JobOrderStatusName
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobTitle)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.JobTitle)
+            </td>
+            @if (!account.CurrentAccount.IsVendor())
+            {
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.IsPublished)
+                </td>
+                <td class="adminData">
+                    @{
+                        var isPublished = "~/Content/images/active-" + Model.IsPublished.ToString().ToLower() + ".png";
+                    }
+                    <img alt='Hot' src="@Url.Content(isPublished)" />
+                </td>
+            }
+        </tr>
+        <tr>
+            @*<td class="adminTitle">
+                    @Html.LabelFor(model => model.OpeningNumber)
+                </td>
+                <td class="adminData">
+                    @Html.DisplayFor(model => model.OpeningNumber)
+                </td>*@
+            @if (!account.CurrentAccount.IsVendor())
+            {
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.IsInternalPosting)
+                </td>
+                <td class="adminData">
+                    @{
+                        var isInternalPosting = "~/Content/images/active-" + Model.IsInternalPosting.ToString().ToLower() + ".png";
+                    }
+                    <img alt='Internal' src="@Url.Content(isInternalPosting)" />
+                </td>
+            }
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.IsHot)
+            </td>
+            <td class="adminData">
+                @{
+                    var ishot = "~/Content/images/active-" + Model.IsHot.ToString().ToLower() + ".png";
+                }
+                <img alt='Hot' src="@Url.Content(ishot)" />
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobOrderTypeId)
+            </td>
+            <td class="adminData">
+                @Model.JobOrderTypeModel.JobOrderTypeName
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.LabourType, T("Admin.JobOrder.LabourType").Text)
+            </td>
+            <td class="adminData">
+                @Model.LabourTypeName
+            </td>
+
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobOrderCategoryId)
+            </td>
+            <td class="adminData">
+                @Model.JobOrderCategoryModel.CategoryName
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.ShiftId)
+            </td>
+            <td class="adminData">
+                @Model.ShiftModel.ShiftName
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CompanyJobNumber)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CompanyJobNumber)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.StartDate)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.StartDate)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.StartTime)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.StartTime)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EndDate)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.EndDate)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EndTime)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.EndTime)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.PositionId)
+            </td>
+            <td class="adminData">
+                @Html.DisplayTextFor(model => model.PositionName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobDescription)
+            </td>
+            <td class="adminData" colspan="3">
+                @Html.Raw(Model.JobDescription)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Note)
+            </td>
+            <td class="adminData" colspan="3">
+                @Html.DisplayTextFor(model => model.Note)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.RecruiterId)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.RecruiterName)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.OwnerId)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.OwnerName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.UpdatedOn)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.UpdatedOn)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CreatedOn)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CreatedOn)
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4">
+                <div class="statisticsTitle">
+                    @T("Admin.JobOrder.JobOrder.PolicyInformation")
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SchedulePolicyId)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.SchedulePolicyName)
+            </td>
+            <td class="adminTitle"></td>
+            <td class="adminData"></td>
+        </tr>
+
+        @PaymentInformation(account)
+
+        <tr>
+            <td colspan="4">
+                <div class="statisticsTitle">
+                    @T("Common.WorkingDays")
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">@Html.LabelFor(model => model.MondaySwitch)</td>
+            <td class="adminData"><img alt='' src="@Url.Content("~/Content/images/active-" + Model.MondaySwitch.ToString().ToLower() + ".png")" /></td>
+            <td class="adminTitle">@Html.LabelFor(model => model.TuesdaySwitch)</td>
+            <td class="adminData"><img alt='' src="@Url.Content("~/Content/images/active-" + Model.TuesdaySwitch.ToString().ToLower() + ".png")" /></td>
+        </tr>
+        <tr>
+            <td class="adminTitle">@Html.LabelFor(model => model.WednesdaySwitch)</td>
+            <td class="adminData"><img alt='' src="@Url.Content("~/Content/images/active-" + Model.WednesdaySwitch.ToString().ToLower() + ".png")" /></td>
+            <td class="adminTitle">@Html.LabelFor(model => model.ThursdaySwitch)</td>
+            <td class="adminData"><img alt='' src="@Url.Content("~/Content/images/active-" + Model.ThursdaySwitch.ToString().ToLower() + ".png")" /></td>
+        </tr>
+        <tr>
+            <td class="adminTitle">@Html.LabelFor(model => model.FridaySwitch)</td>
+            <td class="adminData"><img alt='' src="@Url.Content("~/Content/images/active-" + Model.FridaySwitch.ToString().ToLower() + ".png")" /></td>
+            <td class="adminTitle">@Html.LabelFor(model => model.SaturdaySwitch)</td>
+            <td class="adminData"><img alt='' src="@Url.Content("~/Content/images/active-" + Model.SaturdaySwitch.ToString().ToLower() + ".png")" /></td>
+        </tr>
+        <tr>
+            <td class="adminTitle">@Html.LabelFor(model => model.SundaySwitch)</td>
+            <td class="adminData"><img alt='' src="@Url.Content("~/Content/images/active-" + Model.SundaySwitch.ToString().ToLower() + ".png")" /></td>
+            <td class="adminTitle">@Html.LabelFor(model => model.IncludeHolidays)</td>
+            <td class="adminData"><img alt='' src="@Url.Content("~/Content/images/active-" + Model.IncludeHolidays.ToString().ToLower() + ".png")" /></td>
+        </tr>
+        <tr>
+            <td colspan="4">
+                <div class="statisticsTitle">
+                    @T("Common.OtherInformation")
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.RequireSafetyShoe)
+            </td>
+            <td class="adminData">
+                @{
+                    var requireSafetyShoe = "~/Content/images/active-" + Model.RequireSafetyShoe.ToString().ToLower() + ".png";
+                }
+                <img alt='' src="@Url.Content(requireSafetyShoe)" />
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.RequireSafeEquipment)
+            </td>
+            <td class="adminData">
+                @{
+                    var requireSafeEquipment = "~/Content/images/active-" + Model.RequireSafeEquipment.ToString().ToLower() + ".png";
+                }
+                <img alt='' src="@Url.Content(requireSafeEquipment)" />
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                Required tests
+            </td>
+            <td class="adminData">
+                @Html.Action("JobOrderTest", new { guid = Model.JobOrderGuid, editMode = false })
+            </td>
+            <td class="adminTitle"></td>
+            <td class="adminData"></td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.HiringDurationExpiredDate)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.HiringDurationExpiredDate)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EstimatedFinishingDate)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.EstimatedFinishingDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.HoursPerWeek)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.HoursPerWeek)
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EstimatedMargin)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.EstimatedMargin)
+            </td>
+        </tr>
+        @if (Model.IsPublished)
+        {
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.MonsterPostingId, T("Common.MonsterPostingId").Text)
+                </td>
+                <td class="adminData">
+                    @Html.DisplayFor(model => model.MonsterPostingId)
+                </td>
+            </tr>
+        }
+    </table>
+}
+
+
+@helper PaymentInformation(IWorkContext account)
+{
+    var isAdmin = account.CurrentAccount.AccountRoles.First().SystemName == "Administrators" ||
+                  account.CurrentAccount.AccountRoles.First().SystemName == "PayrollAdministrators";
+    var featureService = EngineContext.Current.Resolve<Wfm.Services.Features.IFeatureService>();
+    var invoicingEnabled = featureService.IsFeatureEnabled("Admin", "Invoicing");
+
+    <tr>
+        <td colspan="4">
+            <div class="statisticsTitle">
+                @T("Admin.JobOrder.JobOrder.JobOrderPaymentInformation")
+            </div>
+        </td>
+    </tr>
+
+    if (isAdmin)
+    {
+        <tr>
+            @if (invoicingEnabled)
+            {
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.BillingRate)
+                </td>
+                <td class="adminData">
+                    @Model.BillingRate
+                </td>
+            }
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.PayRate)
+            </td>
+            <td class="adminData">
+                @Model.PayRate
+            </td>
+        </tr>
+        <tr>
+            @if (invoicingEnabled)
+            {
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.OvertimeBillingRate)
+                </td>
+                <td class="adminData">
+                    @Model.OvertimeBillingRate
+                </td>
+            }
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.OvertimePayRate)
+            </td>
+            <td class="adminData">
+                @Model.OvertimePayRate
+            </td>
+        </tr>
+        <tr>
+            @if (invoicingEnabled)
+            {
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.MaxRate)
+                </td>
+                <td class="adminData">
+                    @Model.MaxRate
+                </td>
+            }
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Salary)
+            </td>
+            <td class="adminData">
+                @Model.Salary
+            </td>
+        </tr>
+    }
+    else
+    {
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.PayRate)
+            </td>
+            <td class="adminData">
+                @Model.PayRate
+            </td>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Salary)
+            </td>
+            <td class="adminData">
+                @Model.Salary
+            </td>
+        </tr>
+    }
+}
+
+
+<script type="text/javascript">
+
+    $(document).ready(function() {
+        //var tabIndex = 1;
+        var tabId = '@(ViewBag.TabId)';
+        if (tabId)
+            tabIndex = $("#" + tabId).index();
+        else
+            tabIndex = 1;
+        $("#joborderdetailstabstrip").data("kendoTabStrip").select(tabIndex);
+    });
+
+    $("#close-joborder-btn").bind("click", closeJobOrder);
+
+    function closeJobOrder(e) {
+        e.preventDefault();
+
+        var guid = '@Model.JobOrderGuid';
+
+        $(document.body).append('<div id="close-joborder"></div>');
+        $("#close-joborder").kendoWindow({
+            title: "Close Job Order",
+            modal: true,
+            resizable: false,
+            width: 480,
+            height: 200,
+            content: '@Url.Action("_SetJobOrderEndDate", "JobOrder")' + '?guid=' + guid,
+            close: function () {
+                setTimeout(function () {
+                    $('#close-joborder').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-cancel').click(function () {
+                    win.close();
+                })
+                $('#btn-save').click(function () {
+                    var form = $('#close-joborder-form');
+                    if (form.valid()) {
+                        var link = '@Url.Action("_SetJobOrderEndDate", "JobOrder")' + '?guid=' + guid;
+                        $.ajax({
+                            type: "POST",
+                            url: link,
+                            data: form.serialize(),
+                            success: function (response) {
+                                if (response.Result) {
+                                    $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+                                    $(".messageBox").text("Job Order End Date is set.");
+                                    win.close();
+                                }
+                                else {
+                                    alert(response.ErrorMessage);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }).data('kendoWindow').center();
+    }
+
+</script>

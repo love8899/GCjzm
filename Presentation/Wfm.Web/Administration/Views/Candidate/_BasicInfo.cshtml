@@ -1,0 +1,338 @@
+﻿@model CandidateModel
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts;
+@{
+    Layout = null;
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Username)
+        </td>
+        <td class="adminData">
+            @Model.Username
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.FirstName)
+        </td>
+        <td class="adminData">
+            @Model.FirstName
+        </td>
+        <td class="adminTitle" rowspan="4"></td>
+        <td class="adminData picture-td" rowspan="4">
+            <img alt="@Model.Id" src="@Model.PictureThumbnailUrl" />
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.LastName)
+        </td>
+        <td class="adminData">
+            @Model.LastName
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EmployeeId)
+        </td>
+        <td class="adminData">
+            @Model.EmployeeId
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.GenderId)
+        </td>
+        <td class="adminData">
+            @Model.GenderModel.GenderName
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Email)
+        </td>
+        <td class="adminData">
+            @Model.Email
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.SocialInsuranceNumber)
+        </td>
+        <td class="adminData">
+            @Model.SocialInsuranceNumber.ToPrettySocialInsuranceNumber()
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.HomePhone)
+        </td>
+        <td class="adminData">
+            @Model.HomePhone.ToPrettyTelephone()
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Age)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.Age)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.MobilePhone)
+        </td>
+        <td class="adminData">
+            @Model.MobilePhone.ToPrettyTelephone()
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CurrentPay)
+        </td>
+        <td class="adminData">
+            @Model.CurrentPay
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EmergencyPhone)
+        </td>
+        <td class="adminData">
+            @Model.EmergencyPhone.ToPrettyTelephone()
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.DesiredPay)
+        </td>
+        <td class="adminData">
+            @Model.DesiredPay
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.SalutationId)
+        </td>
+        <td class="adminData">
+            @Model.SalutationModel.SalutationName
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.JobTitle)
+        </td>
+        <td class="adminData">
+            @Model.JobTitle
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsActive)
+        </td>
+        <td class="adminData">
+            @{
+                var isActive = "~/Content/images/active-" + Model.IsActive.ToString().ToLower() + ".png";
+            }
+            <img alt='Internal' src="@Url.Content(isActive)" />
+        </td>
+
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.InactiveReason)
+        </td>
+        <td class="adminData">
+            @Model.InactiveReason
+        </td>
+    </tr>
+
+
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsBanned)
+        </td>
+        <td class="adminData">
+            @{
+                var isBanned = "~/Content/images/active-" + Model.IsBanned.ToString().ToLower() + ".png";
+
+            }
+            <img alt='Internal' src="@Url.Content(isBanned)" />
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.BannedReason)
+        </td>
+        <td class="adminData">
+            @Model.BannedReason
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsHot)
+        </td>
+        <td class="adminData">
+            @{
+                var isHot = "~/Content/images/active-" + Model.IsHot.ToString().ToLower() + ".png";
+            }
+            <img alt='Internal' src="@Url.Content(isHot)" />
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CurrentEmployer)
+        </td>
+        <td class="adminData">
+            @Model.CurrentEmployer
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.ShiftId)
+        </td>
+        <td class="adminData">
+            @if(Model.ShiftId.HasValue)
+            {
+            @Model.ShiftModel.ShiftName            
+            }
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.SourceId)
+        </td>
+        <td class="adminData">
+            @if (Model.SourceId.HasValue)
+            {
+                @Model.SourceModel.SourceName
+            }
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.TransportationId)
+        </td>
+        <td class="adminData">
+            @if (Model.TransportationModel!=null)
+            { 
+            @Model.TransportationModel.TransportationName
+            }
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CanRelocate)
+        </td>
+        <td class="adminData">
+            @Model.CanRelocate
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.BestTimetoCall)
+        </td>
+        <td class="adminData">
+            @Model.BestTimetoCall
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.PreferredWorkLocation)
+        </td>
+        <td class="adminData">
+            @Model.PreferredWorkLocation
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.MajorIntersection1)
+        </td>
+        <td class="adminData">
+            @Model.MajorIntersection1 / @Model.MajorIntersection2
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.DisabilityStatus)
+        </td>
+        <td class="adminData">
+            @Model.DisabilityStatus
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.DateAvailable)
+        </td>
+        <td class="adminData">
+            @if (Model.DateAvailable.HasValue)
+            {
+                @Model.DateAvailable
+            }
+        </td>
+        @if(!workContext.CurrentAccount.IsVendor()&&commonSettings.DisplayVendor)
+        { 
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.FranchiseName)
+        </td>
+        <td class="adminData">
+            @Model.FranchiseName
+        </td>
+        }
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Education)
+        </td>
+        <td class="adminData">
+            @Model.Education
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.UseForDirectPlacement)
+        </td>
+        <td class="adminData">
+            @{
+                var useForDirectPlacement = "~/Content/images/active-" + Model.UseForDirectPlacement.ToString().ToLower() + ".png";
+            }
+            <img alt='Internal' src="@Url.Content(useForDirectPlacement)" />
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EnteredBy)
+        </td>
+        <td class="adminData">
+            @Model.EnteredName
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EthnicTypeModel.EthnicTypeName)
+        </td>
+        <td class="adminData">
+            @if (Model.EthnicTypeId.HasValue)
+            {
+                @Model.EthnicTypeModel.EthnicTypeName
+            }
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Model.Entitled
+        </td>
+        <td class="adminData">
+            @Html.LabelFor(model => model.Entitled)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.VetranTypeId)
+        </td>
+        <td class="adminData">
+            @if (Model.VetranTypeId.HasValue)
+            {
+                @Model.VetranTypeModel.VetranTypeName
+            }
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Note)
+        </td>
+        <td class="adminData" colspan="3">
+            @Html.DisplayTextFor(model => model.Note)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.UpdatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.UpdatedOn)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CreatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.CreatedOn)
+        </td>
+    </tr>
+</table>

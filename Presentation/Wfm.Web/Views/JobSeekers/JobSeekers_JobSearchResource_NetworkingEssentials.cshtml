@@ -1,0 +1,75 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Networking Essentials";
+    //var description = "To build your network beyond your initial contacts, consider attending industry-related events or job fairs; attending community events or joining community organizations;";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Networking Essentials</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            You may have heard the expression, “it’s not what you now, but who you now that
+            matters.” This can be especially true when searching for new employment. Even though
+            knowledge is power, you must still be able to take that knowledge and sell yourself
+            to your potential employer.
+        </p>
+        <p>
+            When looking for your dream job, sending out a search party is always smarter than
+            searching on your own. It is always a good idea to start by making a list of your
+            initial contacts. Here are some ideas for who you might want to include:
+        </p>
+        <b>
+            Initial Contacts: People You Know
+        </b>
+        <p>
+            Family, friends, and associates can be your greatest networking contacts in searching
+            for a job. It is necessary to rank these people according to their ability in helping
+            you out. Keep in mind that your contact should be someone that works at the company
+            or that knows someone important at the company. It is also beneficial to find out
+            if he/she is in good standing with the person they know.
+        </p>
+        <p>
+            The list below will give you some ideas for your initial contacts:
+        </p>
+        <ul>
+            <li>Co-workers - current and former</li>
+            <li>Employers - current and former</li>
+            <li>Business club members and executives</li>
+            <li>Politicians, Town Council Members</li>
+            <li>Suppliers</li>
+            <li>College alumni</li>
+            <li>Teachers - including college professors and advisors</li>
+            <li>Social acquaintances - from clubs and organizations</li>
+            <li>Neighbours - current and former</li>
+            <li>Family contacts</li>
+            <li>Relatives</li>
+        </ul>
+        <b>
+            Casting a Wider Net: True Networking
+        </b>
+        <p>
+            To build your network beyond your initial contacts, consider attending industry-related
+            events or job fairs; attending community events or joining community organizations;
+            and joining social networking websites, such as LinkedIn or BranchOut.
+        </p>
+    </div>
+</div>

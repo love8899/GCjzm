@@ -1,0 +1,602 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{210541AD-F659-47DA-8763-16F36C5CD2F4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Wfm.Services</RootNamespace>
+    <AssemblyName>Wfm.Services</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Aspose.OCR">
+      <HintPath>..\..\packages\wfmCustom\ASPOSE\Aspose.OCR.dll</HintPath>
+    </Reference>
+    <Reference Include="Aspose.Pdf">
+      <HintPath>..\..\packages\wfmCustom\ASPOSE\Aspose.Pdf.dll</HintPath>
+    </Reference>
+    <Reference Include="Aspose.Words">
+      <HintPath>..\..\packages\wfmCustom\ASPOSE\Aspose.Words.dll</HintPath>
+    </Reference>
+    <Reference Include="Autofac">
+      <HintPath>..\..\packages\Autofac.3.5.2\lib\net40\Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="AutoMapper, Version=4.1.1.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\AutoMapper.4.1.1\lib\net45\AutoMapper.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="BouncyCastle.Crypto, Version=1.8.2.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
+      <HintPath>..\..\packages\BouncyCastle.1.8.2\lib\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="Bytescout.Document">
+      <HintPath>..\..\packages\wfmCustom\Bytescout.Document.dll</HintPath>
+    </Reference>
+    <Reference Include="CanadianTaxTable, Version=5.5.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\CanadianTaxTable\CanadianTaxTable.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EPPlus, Version=4.0.4.0, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\EPPlus.4.0.4\lib\net20\EPPlus.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageResizer">
+      <HintPath>..\..\packages\ImageResizer.3.4.3\lib\ImageResizer.dll</HintPath>
+    </Reference>
+    <Reference Include="itextsharp, Version=5.5.7.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\iTextSharp.5.5.7\lib\itextsharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MailKit, Version=2.0.0.0, Culture=neutral, PublicKeyToken=4e064fe7c44a8f1b, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\MailKit.2.0.6\lib\net45\MailKit.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+    </Reference>
+    <Reference Include="MimeKit, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bede1c8a46c66814, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\MimeKit.2.0.6\lib\net45\MimeKit.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="RestSharp, Version=105.2.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\RestSharp.105.2.2\lib\net46\RestSharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="RsiDotNetDLL, Version=5.0.0.0, Culture=neutral, PublicKeyToken=11d948a84312b819, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\HandPunch\RsiDotNetDLL.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.Helpers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Mvc, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.AspNet.Mvc.5.2.3\lib\net45\System.Web.Mvc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.Razor.3.2.3\lib\net45\System.Web.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Twilio.Api, Version=3.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Twilio.4.7.2\lib\3.5\Twilio.Api.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Twilio.Mvc, Version=3.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Twilio.Mvc.3.2.1\lib\3.5\Twilio.Mvc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Twilio.Twiml, Version=3.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Twilio.TwiML.3.5.0\lib\3.5\Twilio.Twiml.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\VersionInfo.cs">
+      <Link>VersionInfo.cs</Link>
+    </Compile>
+    <Compile Include="Accounts\AccountPasswordPolicyService.cs" />
+    <Compile Include="Accounts\AccountRegistrationResult.cs" />
+    <Compile Include="Accounts\AccountExtentions.cs" />
+    <Compile Include="Accounts\ChangePasswordRequest.cs" />
+    <Compile Include="Accounts\IAccountPasswordPolicyService.cs" />
+    <Compile Include="Candidates\CandidateAppliedJobsService.cs" />
+    <Compile Include="Candidates\CandidateAvailabilityService.cs" />
+    <Compile Include="Candidates\CandidateDirectHireStatusHistoryService.cs" />
+    <Compile Include="Candidates\ICandidateAppliedJobsService.cs" />
+    <Compile Include="Candidates\ICandidateAvailabilityService.cs" />
+    <Compile Include="Candidates\ICandidateDirectHireStatusHistoryService.cs" />
+    <Compile Include="Candidates\EmployeeSeniorityAlertTask.cs" />
+    <Compile Include="Candidates\InvalidSINAlertTask.cs" />
+    <Compile Include="ClockTime\ClockCandidateService.cs" />
+    <Compile Include="ClockTime\HandTemplateService.cs" />
+    <Compile Include="ClockTime\IClockCandidateService.cs" />
+    <Compile Include="ClockTime\IHandTemplateService.cs" />
+    <Compile Include="ClockTime\LoadHandPunchLogTask.cs" />
+    <Compile Include="ClockTime\SyncClockTimeTask.cs" />
+    <Compile Include="ClockTime\RefreshClockCandidateTask.cs" />
+    <Compile Include="Cms\IWidgetPlugin.cs" />
+    <Compile Include="Cms\IWidgetService.cs" />
+    <Compile Include="Cms\WidgetService.cs" />
+    <Compile Include="Common\DNRReasonService.cs" />
+    <Compile Include="Common\IAccountRoleService.cs" />
+    <Compile Include="Common\AccountRoleService.cs" />
+    <Compile Include="Common\IDNRReasonService.cs" />
+    <Compile Include="Common\IJobBoardService.cs" />
+    <Compile Include="Common\IWebService.cs" />
+    <Compile Include="Common\JobBoardService.cs" />
+    <Compile Include="Common\WebService.cs" />
+    <Compile Include="Companies\CompanyAttachmentService.cs" />
+    <Compile Include="Companies\CompanyEmailTemplateService.cs" />
+    <Compile Include="Companies\OrgNameService.cs" />
+    <Compile Include="Companies\CompanySettingService.cs" />
+    <Compile Include="Companies\ICompanyAttachmentService.cs" />
+    <Compile Include="Companies\ICompanyEmailTemplateService.cs" />
+    <Compile Include="Companies\IOrgNameService.cs" />
+    <Compile Include="Companies\ICompanySettingService.cs" />
+    <Compile Include="Companies\IQuotationService.cs" />
+    <Compile Include="Companies\QuotationService.cs" />
+    <Compile Include="Employees\EmployeePayrollTemplateService.cs" />
+    <Compile Include="Employees\IEmployeePayrollTemplateService.cs" />
+    <Compile Include="Employees\IEmployeeTD1Service.cs" />
+    <Compile Include="Employees\EmployeeTD1Service.cs" />
+    <Compile Include="Franchises\FranchiseAddressService.cs" />
+    <Compile Include="Franchises\IFranciseAddressService.cs" />
+    <Compile Include="Franchises\IFranchiseSettingService.cs" />
+    <Compile Include="Franchises\FranchiseSettingService.cs" />
+    <Compile Include="Invoices\IInvoiceIntervalService.cs" />
+    <Compile Include="Invoices\InvoiceIntervalService.cs" />
+    <Compile Include="JobOrders\DailyCleanUpCandidateJobOrderTask.cs" />
+    <Compile Include="Messages\ConfirmationEmailLinkService.cs" />
+    <Compile Include="Messages\EmailReceiver.cs" />
+    <Compile Include="Messages\IEmailReceiver.cs" />
+    <Compile Include="Messages\IResumeHistoryService.cs" />
+    <Compile Include="Messages\IResumeService.cs" />
+    <Compile Include="Messages\ResumeHistoryService.cs" />
+    <Compile Include="Messages\ResumeService.cs" />
+    <Compile Include="Messages\ResumeDownloadTask.cs" />
+    <Compile Include="Messages\TextMessageSender.cs" />
+    <Compile Include="Messages\IConfirmationEmailLinkService.cs" />
+    <Compile Include="Messages\ITextMessageSender.cs" />
+    <Compile Include="Employees\CandidateWSIBCommonRateService.cs" />
+    <Compile Include="Employees\ICandidateWSIBCommonRateService.cs" />
+    <Compile Include="Payroll\IPayGroupService.cs" />
+    <Compile Include="Payroll\IPayrollItemService.cs" />
+    <Compile Include="Payroll\IPayrollSettingService.cs" />
+    <Compile Include="Payroll\ITaxFormBoxService.cs" />
+    <Compile Include="Payroll\ITaxFormService.cs" />
+    <Compile Include="Payroll\PayGroupService.cs" />
+    <Compile Include="Payroll\PayrollItemService.cs" />
+    <Compile Include="Payroll\PayrollSettingService.cs" />
+    <Compile Include="Payroll\TaxFormBoxService.cs" />
+    <Compile Include="Payroll\TaxFormService.cs" />
+    <Compile Include="Reports\OneWeekFollowUpTask.cs" />
+    <Compile Include="Security\PasswordChangeResult.cs" />
+    <Compile Include="Announcements\IAnnouncementService.cs" />
+    <Compile Include="Announcements\AnnouncementService.cs" />
+    <Compile Include="Authentication\FormsAuthenticationService.cs" />
+    <Compile Include="Authentication\IAuthenticationService.cs" />
+    <Compile Include="Blogs\BlogExtensions.cs" />
+    <Compile Include="Blogs\BlogService.cs" />
+    <Compile Include="Blogs\IBlogService.cs" />
+    <Compile Include="Caching\ClearCacheTask.cs" />
+    <Compile Include="Candidates\AttendanceListService.cs" />
+    <Compile Include="Candidates\CandidateBlacklistService.cs" />
+    <Compile Include="Candidates\CandidateExtentions.cs" />
+    <Compile Include="Candidates\CanadiateJobOrderService.cs" />
+    <Compile Include="Candidates\CandidateJobOrderPlacementService.cs" />
+    <Compile Include="Candidates\CandidateJobOrderStatusHistoryService.cs" />
+    <Compile Include="Candidates\CandidateJobOrderStatusService.cs" />
+    <Compile Include="Candidates\CandidateKeySkillService.cs" />
+    <Compile Include="Candidates\CandidatePictureService.cs" />
+    <Compile Include="Candidates\CandidateAddressService.cs" />
+    <Compile Include="Candidates\CandidateService.cs" />
+    <Compile Include="Candidates\CandidateWorkHistoryService.cs" />
+    <Compile Include="Candidates\ChangePasswordRequest.cs" />
+    <Compile Include="Candidates\EmployeeTimeChartHistoryService.cs" />
+    <Compile Include="Candidates\IAttendanceListService.cs" />
+    <Compile Include="Candidates\ICandidateAddressService.cs" />
+    <Compile Include="Candidates\ICandidateJobOrderPlacementService.cs" />
+    <Compile Include="Candidates\ICandidateJobOrderService.cs" />
+    <Compile Include="Candidates\ICandidateJobOrderStatusHistoryService.cs" />
+    <Compile Include="Candidates\ICandidateJobOrderStatusService.cs" />
+    <Compile Include="Candidates\ICandidateKeySkillService.cs" />
+    <Compile Include="Candidates\ICandidatePictureService.cs" />
+    <Compile Include="Candidates\ICandidateBlacklistService.cs" />
+    <Compile Include="Candidates\ICandidateService.cs" />
+    <Compile Include="Candidates\ICandidateWorkHistoryService.cs" />
+    <Compile Include="Candidates\ICandidateTestResultService.cs" />
+    <Compile Include="Candidates\CandidateTestResultService.cs" />
+    <Compile Include="Candidates\IEmployeeTimeChartHistoryService.cs" />
+    <Compile Include="Candidates\UpdateCandidateStatusTask.cs" />
+    <Compile Include="Common\AddressTypeService.cs" />
+    <Compile Include="Common\ISecurityQuestionService.cs" />
+    <Compile Include="Common\SecurityQuestionService.cs" />
+    <Compile Include="Common\EthnicTypeService.cs" />
+    <Compile Include="Common\GenderService.cs" />
+    <Compile Include="Common\IAddressTypeService.cs" />
+    <Compile Include="Common\IEthnicTypeService.cs" />
+    <Compile Include="Common\IGenderService.cs" />
+    <Compile Include="Common\IIntersectionService.cs" />
+    <Compile Include="Common\IntersectionService.cs" />
+    <Compile Include="Common\ISalutationService.cs" />
+    <Compile Include="Common\IPositionService.cs" />
+    <Compile Include="Common\ISkillService.cs" />
+    <Compile Include="Common\IShiftService.cs" />
+    <Compile Include="Candidates\ICandidateBankAccountService.cs" />
+    <Compile Include="Common\ISourceService.cs" />
+    <Compile Include="Common\ITransportationService.cs" />
+    <Compile Include="Common\IVetranTypeService.cs" />
+    <Compile Include="Common\SalutationService.cs" />
+    <Compile Include="Common\PositionService.cs" />
+    <Compile Include="Common\ShiftService.cs" />
+    <Compile Include="Common\SkillService.cs" />
+    <Compile Include="Candidates\CandidateBankAccountService.cs" />
+    <Compile Include="ClockTime\LoadPunchClockFilesTask.cs" />
+    <Compile Include="Common\BankService.cs" />
+    <Compile Include="Common\FulltextService.cs" />
+    <Compile Include="Common\GenericAttributeExtensions.cs" />
+    <Compile Include="Common\GenericAttributeService.cs" />
+    <Compile Include="Common\IBankService.cs" />
+    <Compile Include="Common\IFulltextService.cs" />
+    <Compile Include="Common\IGenericAttributeService.cs" />
+    <Compile Include="Common\IPdfService.cs" />
+    <Compile Include="Common\ISearchTermService.cs" />
+    <Compile Include="Common\KeepAliveTask.cs" />
+    <Compile Include="Common\GenericResult.cs" />
+    <Compile Include="Common\PdfService.cs" />
+    <Compile Include="Common\SearchTermService.cs" />
+    <Compile Include="Common\SourceService.cs" />
+    <Compile Include="Common\TransportationService.cs" />
+    <Compile Include="Common\VetranTypeService.cs" />
+    <Compile Include="Companies\ActivityTypeService.cs" />
+    <Compile Include="Companies\CompanyActivityService.cs" />
+    <Compile Include="Companies\CompanyBillingService.cs" />
+    <Compile Include="Companies\CompanyCandidateService.cs" />
+    <Compile Include="Companies\CompanyDepartmentService.cs" />
+    <Compile Include="Companies\CompanyOvertimeRuleService.cs" />
+    <Compile Include="Companies\CompanyStatusService.cs" />
+    <Compile Include="Companies\CompanyVendorService.cs" />
+    <Compile Include="Companies\CompanyDivisionService.cs" />
+    <Compile Include="Companies\IActivityTypeService.cs" />
+    <Compile Include="Companies\ICompanyActivityService.cs" />
+    <Compile Include="Companies\ICompanyOvertimeRuleService.cs" />
+    <Compile Include="Companies\ICompanyStatusService.cs" />
+    <Compile Include="Companies\ICompanyVendorService.cs" />
+    <Compile Include="Companies\RecruiterCompanyService.cs" />
+    <Compile Include="Companies\CompanyService.cs" />
+    <Compile Include="Companies\CompanyContactService.cs" />
+    <Compile Include="Companies\ICompanyCandidateService.cs" />
+    <Compile Include="Companies\ICompanyContactService.cs" />
+    <Compile Include="Companies\ICompanyBillingService.cs" />
+    <Compile Include="Companies\ICompanyDepartmentService.cs" />
+    <Compile Include="Companies\ICompanyDivisionService.cs" />
+    <Compile Include="Companies\IRecruiterCompanyService.cs" />
+    <Compile Include="Companies\ICompanyService.cs" />
+    <Compile Include="Configuration\ISettingService.cs" />
+    <Compile Include="Configuration\SettingExtensions.cs" />
+    <Compile Include="Configuration\SettingService.cs" />
+    <Compile Include="DirectoryLocation\StateProvinceService.cs" />
+    <Compile Include="DirectoryLocation\CityService.cs" />
+    <Compile Include="DirectoryLocation\CountryService.cs" />
+    <Compile Include="DirectoryLocation\IStateProvinceService.cs" />
+    <Compile Include="DirectoryLocation\ICityService.cs" />
+    <Compile Include="DirectoryLocation\ICountryService.cs" />
+    <Compile Include="DirectoryLocation\MapLookupService.cs" />
+    <Compile Include="DirectoryLocation\IMapLookupService.cs" />
+    <Compile Include="Employees\EmployeeService.cs" />
+    <Compile Include="Employees\IEmployeeService.cs" />
+    <Compile Include="Employees\ITimeoffService.cs" />
+    <Compile Include="Employees\TimeoffService.cs" />
+    <Compile Include="Events\EventPublisher.cs" />
+    <Compile Include="Events\EventPublisherExtensions.cs" />
+    <Compile Include="Events\IConsumer.cs" />
+    <Compile Include="Events\IEventPublisher.cs" />
+    <Compile Include="Events\ISubscriptionService.cs" />
+    <Compile Include="Events\SubscriptionService.cs" />
+    <Compile Include="ExportImport\ImportResult.cs" />
+    <Compile Include="ExportImport\ImportManager.cs" />
+    <Compile Include="ExportImport\ExportManager.cs" />
+    <Compile Include="ExportImport\IImportManager.cs" />
+    <Compile Include="ExportImport\IExportManager.cs" />
+    <Compile Include="Features\UserFeatureService.cs" />
+    <Compile Include="Features\FeatureService.cs" />
+    <Compile Include="Features\IUserFeatureService.cs" />
+    <Compile Include="Features\IFeatureService.cs" />
+    <Compile Include="Forums\ForumExtensions.cs" />
+    <Compile Include="Forums\ForumService.cs" />
+    <Compile Include="Forums\IForumService.cs" />
+    <Compile Include="Franchises\CertificateExpireSoonReminderTask.cs" />
+    <Compile Include="Franchises\FranchiseService.cs" />
+    <Compile Include="Franchises\IFranchiseService.cs" />
+    <Compile Include="Franchises\IVendorCertificateService.cs" />
+    <Compile Include="Franchises\VendorCertificateService.cs" />
+    <Compile Include="Helpers\GenericHelper.cs" />
+    <Compile Include="Helpers\IGenericHelper.cs" />
+    <Compile Include="Helpers\DateTimeHelper.cs" />
+    <Compile Include="Helpers\DateTimeSettings.cs" />
+    <Compile Include="Helpers\IDateTimeHelper.cs" />
+    <Compile Include="Helpers\MediaHelper.cs" />
+    <Compile Include="Incident\IIncidentService.cs" />
+    <Compile Include="Incident\IncidentService.cs" />
+    <Compile Include="JobOrders\AlertMissingClockInOutTask.cs" />
+    <Compile Include="JobOrders\BasicJobOrderInfoService.cs" />
+    <Compile Include="JobOrders\CleanJobOrderPipelineTask.cs" />
+    <Compile Include="JobOrders\DirectHireJobOrderService.cs" />
+    <Compile Include="JobOrders\IBasicJobOrderInfoService.cs" />
+    <Compile Include="JobOrders\IDirectHireJobOrderService.cs" />
+    <Compile Include="JobOrders\IJobOrderTestCategoryService.cs" />
+    <Compile Include="JobOrders\IJobOrderCategoryService.cs" />
+    <Compile Include="JobOrders\IJobOrderService.cs" />
+    <Compile Include="JobOrders\IJobOrderStatusService.cs" />
+    <Compile Include="JobOrders\IJobOrderTypeService.cs" />
+    <Compile Include="JobOrders\IOTRulesForJobOrderService.cs" />
+    <Compile Include="JobOrders\JobOrderTestCategoryService.cs" />
+    <Compile Include="JobOrders\JobOrderCategoryService.cs" />
+    <Compile Include="JobOrders\JobOrderService.cs" />
+    <Compile Include="JobOrders\JobOrderStatusService.cs" />
+    <Compile Include="JobOrders\JobOrderTypeService.cs" />
+    <Compile Include="JobOrders\OTRulesForJobOrderService.cs" />
+    <Compile Include="JobOrders\RemindSendingPlacementTask.cs" />
+    <Compile Include="JobPosting\IJobPostService.cs" />
+    <Compile Include="JobPosting\JobPostingReminderTask.cs" />
+    <Compile Include="JobPosting\JobPostService.cs" />
+    <Compile Include="Localization\ILanguageService.cs" />
+    <Compile Include="Localization\ILocalizationService.cs" />
+    <Compile Include="Localization\ILocalizedEntityService.cs" />
+    <Compile Include="Localization\LanguageService.cs" />
+    <Compile Include="Localization\LocalizationExtensions.cs" />
+    <Compile Include="Localization\LocalizationService.cs" />
+    <Compile Include="Localization\LocalizedEntityService.cs" />
+    <Compile Include="Logging\AccessLogService.cs" />
+    <Compile Include="Logging\ActivityLogService.cs" />
+    <Compile Include="Logging\DefaultLogger.cs" />
+    <Compile Include="Logging\IAccessLogService.cs" />
+    <Compile Include="Logging\IActivityLogService.cs" />
+    <Compile Include="Logging\ILogger.cs" />
+    <Compile Include="Logging\LoggingExtensions.cs" />
+    <Compile Include="Logging\NullLogger.cs" />
+    <Compile Include="Media\AttachmentService.cs" />
+    <Compile Include="Media\DocumentTypeService.cs" />
+    <Compile Include="Media\AttachmentTypeService.cs" />
+    <Compile Include="Media\DownloadService.cs" />
+    <Compile Include="Media\Extensions.cs" />
+    <Compile Include="Media\IAttachmentService.cs" />
+    <Compile Include="Media\IDocumentTypeService.cs" />
+    <Compile Include="Media\IAttachmentTypeService.cs" />
+    <Compile Include="Media\IDownloadService.cs" />
+    <Compile Include="Media\IPictureService.cs" />
+    <Compile Include="Media\PictureService.cs" />
+    <Compile Include="Media\ResizeType.cs" />
+    <Compile Include="Messages\IClientNotificationService.cs" />
+    <Compile Include="Messages\IMessageService.cs" />
+    <Compile Include="Messages\IMessageCategoryService.cs" />
+    <Compile Include="Messages\IMessageTemplateService.cs" />
+    <Compile Include="Messages\INewsLetterSubscriptionService.cs" />
+    <Compile Include="Messages\IWorkflowMessageService.cs" />
+    <Compile Include="Messages\ClientNotificationService.cs" />
+    <Compile Include="Messages\MessageService.cs" />
+    <Compile Include="Messages\MessageCategoryService.cs" />
+    <Compile Include="Messages\MessageTemplateService.cs" />
+    <Compile Include="Messages\MessageTokenProvider.cs" />
+    <Compile Include="Messages\WorkflowMessageService.cs" />
+    <Compile Include="Candidates\IPaymentHistoryService.cs" />
+    <Compile Include="Payroll\OTDailyTask.cs" />
+    <Compile Include="Candidates\PaymentHistoryService.cs" />
+    <Compile Include="Payroll\OvertimeRuleSettingService.cs" />
+    <Compile Include="Payroll\IOvertimeRuleSettingService.cs" />
+    <Compile Include="Policies\IBreakPolicyService.cs" />
+    <Compile Include="Policies\IMealPolicyService.cs" />
+    <Compile Include="Policies\IPasswordPolicyService.cs" />
+    <Compile Include="Policies\ISchedulePolicyService.cs" />
+    <Compile Include="Policies\IRoundingPolicyService.cs" />
+    <Compile Include="Policies\BreakPolicyService.cs" />
+    <Compile Include="Policies\MealPolicyService.cs" />
+    <Compile Include="Policies\PasswordPolicyService.cs" />
+    <Compile Include="Policies\SchedulePolicyService.cs" />
+    <Compile Include="Policies\RoundingPolicyService.cs" />
+    <Compile Include="Scheduling\AutoScheduleService.cs" />
+    <Compile Include="Scheduling\IAutoScheduleService.cs" />
+    <Compile Include="Scheduling\ISchedulingDemandService.cs" />
+    <Compile Include="Scheduling\SchedulingDemandService.cs" />
+    <Compile Include="TaxForm\RL1\IRL1BaseService.cs" />
+    <Compile Include="TaxForm\RL1\RL1Helper.cs" />
+    <Compile Include="TaxForm\RL1\RL1_2015Service.cs" />
+    <Compile Include="TaxForm\RL1\RL1_2016Service.cs" />
+    <Compile Include="TaxForm\RL1\RL1_2017Service.cs" />
+    <Compile Include="TaxForm\RL1\RL1_2018Service.cs" />
+    <Compile Include="TaxForm\RL1\RL1_2021Service.cs" />
+    <Compile Include="TaxForm\RL1\RL1_2020Service.cs" />
+    <Compile Include="TaxForm\RL1\RL1_2019Service.cs" />
+    <Compile Include="TaxForm\T4\IT4BaseService.cs" />
+    <Compile Include="TaxForm\T4\T4Helper.cs" />
+    <Compile Include="TaxForm\T4\T4_2015Service.cs" />
+    <Compile Include="TaxForm\T4\T4_2016Service.cs" />
+    <Compile Include="TaxForm\T4\T4_2017Service.cs" />
+    <Compile Include="TaxForm\T4\T4_2018Service.cs" />
+    <Compile Include="TaxForm\T4\T4_2021Service.cs" />
+    <Compile Include="TaxForm\T4\T4_2020Service.cs" />
+    <Compile Include="TaxForm\T4\T4_2019Service.cs" />
+    <Compile Include="Test\CandidateTestLinkService.cs" />
+    <Compile Include="Test\ICandidateTestLinkService.cs" />
+    <Compile Include="TimeSheet\CreateMatchedWorkedTimesTask.cs" />
+    <Compile Include="TimeSheet\IMissingHourDocumentService.cs" />
+    <Compile Include="TimeSheet\ITimeSheetService.cs" />
+    <Compile Include="TimeSheet\IMissingHourService.cs" />
+    <Compile Include="TimeSheet\MissingHourDocumentService.cs" />
+    <Compile Include="TimeSheet\MaxAnnualHoursReachedAlertTask.cs" />
+    <Compile Include="TimeSheet\MissingHourFollowUpAlertTask.cs" />
+    <Compile Include="TimeSheet\PendingApprovalReminderAlertTask.cs" />
+    <Compile Include="TimeSheet\CalculateCandidateWorkTimeTask.cs" />
+    <Compile Include="Messages\CampaignService.cs" />
+    <Compile Include="Messages\EmailAccountService.cs" />
+    <Compile Include="Messages\EmailSender.cs" />
+    <Compile Include="Messages\ICampaignService.cs" />
+    <Compile Include="Messages\IEmailAccountService.cs" />
+    <Compile Include="Messages\IEmailSender.cs" />
+    <Compile Include="Messages\IMessageTokenProvider.cs" />
+    <Compile Include="Messages\IQueuedEmailService.cs" />
+    <Compile Include="Messages\ITokenizer.cs" />
+    <Compile Include="Messages\MessageHistoryService.cs" />
+    <Compile Include="Messages\IMessageHistoryService.cs" />
+    <Compile Include="Messages\QueuedEmailService.cs" />
+    <Compile Include="Messages\QueuedMessagesSendTask.cs" />
+    <Compile Include="Messages\Token.cs" />
+    <Compile Include="Messages\Tokenizer.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="Reports\IReportMethod.cs" />
+    <Compile Include="Reports\IReportService.cs" />
+    <Compile Include="Reports\ProcessReportRequest.cs" />
+    <Compile Include="Reports\ReportMethodType.cs" />
+    <Compile Include="Reports\ReportService.cs" />
+    <Compile Include="Accounts\AccountService.cs" />
+    <Compile Include="Accounts\IAccountService.cs" />
+    <Compile Include="Security\EncryptionService.cs" />
+    <Compile Include="Security\IEncryptionService.cs" />
+    <Compile Include="Security\IPermissionProvider.cs" />
+    <Compile Include="Security\IPermissionService.cs" />
+    <Compile Include="Security\PasswordHelper.cs" />
+    <Compile Include="Security\PermissionService.cs" />
+    <Compile Include="Security\StandardPermissionProvider.cs" />
+    <Compile Include="Seo\BaseSitemapGenerator.cs" />
+    <Compile Include="Seo\ISitemapGenerator.cs" />
+    <Compile Include="Seo\IUrlRecordService.cs" />
+    <Compile Include="Seo\SeoExtensions.cs" />
+    <Compile Include="Seo\SitemapGenerator.cs" />
+    <Compile Include="Seo\UpdateFrequency.cs" />
+    <Compile Include="Seo\UrlRecordService.cs" />
+    <Compile Include="PayrollCalendar\PayrollCalendarService.cs" />
+    <Compile Include="Tasks\DateService.cs" />
+    <Compile Include="PayrollCalendar\IPayrollCalendarService.cs" />
+    <Compile Include="Tasks\IScheduleTaskService.cs" />
+    <Compile Include="Tasks\ITask.cs" />
+    <Compile Include="Tasks\ScheduleTaskService.cs" />
+    <Compile Include="Tasks\Task.cs" />
+    <Compile Include="Tasks\TaskManager.cs" />
+    <Compile Include="Tasks\TaskThread.cs" />
+    <Compile Include="Test\ITestService.cs" />
+    <Compile Include="Test\TestService.cs" />
+    <Compile Include="ClockTime\ClockDeviceService.cs" />
+    <Compile Include="ClockTime\ClockTimeService.cs" />
+    <Compile Include="ClockTime\IClockTimeService.cs" />
+    <Compile Include="ClockTime\IClockDeviceService.cs" />
+    <Compile Include="ClockTime\ISmartCardService.cs" />
+    <Compile Include="ClockTime\SmartCardService.cs" />
+    <Compile Include="TimeSheet\IWorkTimeService.cs" />
+    <Compile Include="TimeSheet\TimeSheetService.cs" />
+    <Compile Include="TimeSheet\MissingHourService.cs" />
+    <Compile Include="TimeSheet\WorkTimeService.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WSIB\IWSIBService.cs" />
+    <Compile Include="WSIB\WSIBService.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Wfm.Core\Wfm.Core.csproj">
+      <Project>{6bda8332-939f-45b7-a25e-7a797260ae59}</Project>
+      <Name>Wfm.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Wfm.Data\Wfm.Data.csproj">
+      <Project>{ccd7f2c9-6a2c-4cf0-8e89-076b8fc0f144}</Project>
+      <Name>Wfm.Data</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="CleanFolders" AfterTargets="Clean">
+    <RemoveDir Directories="$(ProjectDir)bin" />
+    <RemoveDir Directories="$(ProjectDir)obj" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

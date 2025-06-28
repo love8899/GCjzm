@@ -1,0 +1,24 @@
+﻿@model SettingModel
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.Settings.EditSettingDetails").Text;
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "setting-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Configuration.Settings.EditSettingDetails") @Html.ActionLink("(" + T("Admin.Configuration.Settings.BackToList") + ")", "Index")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />
+            <span id="settings-delete" class="k-button">@T("Common.Delete")</span>
+        </div>
+    </div>
+
+    @Html.Partial("_CreateOrUpdate", Model)
+}
+
+@Html.DeleteConfirmation("settings-delete")

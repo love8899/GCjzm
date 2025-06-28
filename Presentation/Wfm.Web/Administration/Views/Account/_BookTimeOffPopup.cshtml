@@ -1,0 +1,163 @@
+﻿@using Wfm.Shared.Models.Employees
+
+@model EmployeeTimeoffBookingModel
+
+
+<script>
+
+    function onDateChange() {
+        toggleTimes();
+        refreshTimeoffTotalHours();
+    }
+
+    function onTimeChange() {
+        refreshTimeoffTotalHours();
+    }
+
+    function refreshTimeoffTotalHours() {
+        var startDate = kendo.toString($('#TimeOffStartDateTime').val(), "yyyy-MM-dd");
+        var endDate = kendo.toString($('#TimeOffEndDateTime').val(), "yyyy-MM-dd");
+        var startTime = kendo.toString($('#StartTime').val(), "HH:mm");
+        var endTime = kendo.toString($('#EndTime').val(), "HH:mm");
+        $.ajax({
+            url: '@Url.Action("GetHoursBetweenDates", "Account")',
+            cache: false,
+            type: 'POST',
+            data: {
+                start: startDate == endDate ? startDate + ' ' + startTime : startDate,
+                end: startDate == endDate ? endDate + ' ' + endTime : endDate,
+                employeeId: @Model.EmployeeIntId,
+                thisBookingId: @Model.Id,
+            },
+            dataType: 'html',
+            success: function (result) {
+                $('#timeoff-total-hours').val(result);
+            }
+        });
+    }
+
+</script>
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "timeoff-booking-form" }))
+{
+    <div class="section-header">
+        <div class="options" style="margin-right:20px">
+            <input type="button" name="save" id="save-timeoff-booking" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" name="close" id="close-timeoff-booking" class="k-button" value="@T("Common.Close")" />
+        </div>
+    </div>
+    <br />
+
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.EmployeeIntId)
+    @Html.HiddenFor(model => model.BookedByAccountId)
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle" width="25%">
+                @Html.LabelFor(model => model.EmployeeTimeoffTypeId)
+            </td>
+            <td class="adminData required" width="75%">
+                @(Html.Kendo().DropDownList()
+                    .Name("EmployeeTimeoffTypeId")
+                    .OptionLabel("--Select--")
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .BindTo(Model.TimeoffTypeList)
+                )
+                @Html.WfmValidationMessageFor(model => model.EmployeeTimeoffTypeId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.TimeOffStartDateTime)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePickerFor(model => model.TimeOffStartDateTime)
+                .Format("yyyy-MM-dd")
+                .Start(CalendarView.Month)
+                .Events(e => e.Change("onDateChange")))
+                @Html.WfmValidationMessageFor(model => model.TimeOffStartDateTime)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.TimeOffEndDateTime)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePickerFor(model => model.TimeOffEndDateTime)
+                .Format("yyyy-MM-dd")
+                .Start(CalendarView.Month)
+                .Events(e => e.Change("onDateChange")))
+                @Html.WfmValidationMessageFor(model => model.TimeOffEndDateTime)
+            </td>
+        </tr>
+        <tr class="time-row">
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.StartTime)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().TimePickerFor(model => model.StartTime).HtmlAttributes(new { type = "text" })
+                .Format("HH:mm")
+                .Events(e => e.Change("onTimeChange")))
+                @Html.WfmValidationMessageFor(model => model.StartTime)
+            </td>
+        </tr>
+        <tr class="time-row">
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EndTime)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().TimePickerFor(model => model.EndTime).HtmlAttributes(new { type = "text" })
+                .Format("HH:mm")
+                .Events(e => e.Change("onTimeChange")))
+                @Html.WfmValidationMessageFor(model => model.EndTime)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                <label for="timeoff-total-hours">Timeoff Total Hours</label>
+            </td>
+            <td class="adminData">
+                <input id="timeoff-total-hours" readonly type="text" class="k-widget k-input"/>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Note)
+            </td>
+            <td class="adminData">
+                @(Html.TextAreaFor(model => model.Note, new { @class = "k-widget k-input", style = "height:50px;width:90%;" }))
+            </td>
+        </tr>
+    </table>
+}
+
+
+<script>
+
+    $(function () {
+        onDateChange();
+    })
+
+    function toggleTimes() {
+        var startDate = kendo.toString($('#TimeOffStartDateTime').val(), "yyyy-MM-dd");
+        var endDate = kendo.toString($('#TimeOffEndDateTime').val(), "yyyy-MM-dd");
+        var startTime = kendo.toString($('#StartTime').val(), "HH:mm");
+        var endTime = kendo.toString($('#EndTime').val(), "HH:mm");
+        if (startDate == endDate) {
+            if (@(Model.Id) == 0) {
+                if (!startTime || startTime == "00:00")
+                    $('#StartTime').data('kendoTimePicker').value('09:00');
+                if (!endTime || endTime == "00:00")
+                    $('#EndTime').data('kendoTimePicker').value('17:00');
+            }
+            $('.time-row').show();
+        }
+        else {
+            $('.time-row').hide();
+        }
+    }
+
+</script>

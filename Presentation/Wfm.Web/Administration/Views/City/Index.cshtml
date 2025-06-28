@@ -1,0 +1,95 @@
+﻿@using Wfm.Services.DirectoryLocation;
+
+@model IEnumerable<CityModel>
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.Cities").Text;
+
+    var countryService = EngineContext.Current.Resolve<ICountryService>();
+    var stateProvinceService = EngineContext.Current.Resolve<IStateProvinceService>();
+    var countries = countryService.GetAllCountries();
+    var stateProvinces = stateProvinceService.GetAllStateProvinces();
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration.Cities") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+    <div class="options">
+        @Html.ActionLink(T("Common.Add").Text, "Create", null, new { @class = "k-button" })
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CityModel>()
+              .Name("city-grid")
+              .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(50);
+
+                    columns.Bound(x => x.CityName).Width(250);
+
+                    columns.ForeignKey(x => x.StateProvinceId, stateProvinces, "Id", "StateProvinceName").Width(250);
+
+                    columns.ForeignKey(x => x.CountryId, countries, "Id", "CountryName").Width(250);
+
+                    //columns.Bound(x => x.IsActive).Centered().Width(20)              
+                    //      .ClientTemplate("<input name='IsActive<#= Id #>' id='IsActive l<#= Id#>' disabled type='checkbox' <#= IsActive ? checked='checked' : '' #> />").Title("IsActive");
+                    
+                    columns.Bound(x => x.IsActive)
+                        .Template(
+                            @<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />
+                        )
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsActive #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(100);
+
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                        .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { x.Id }))
+                        .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/City/Edit/") + "#= Id #\">" + "<span class='k-icon k-i-pencil'></span></a>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(50)
+                        .Title(T("Admin.Common.Edit").Text);
+
+                    //columns.Command(command => { command.Edit(); command.Destroy(); }).Width(200);
+
+                })
+                //.Editable(editable => { editable.DisplayDeleteConfirmation(true); editable.Mode(Kendo.Mvc.UI.GridEditMode.InLine); })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("Index", "City"))
+                    //.Model(model => model.Id(c => c.Id))
+                    //.Destroy(update => update.Action("EditingInline_Destroy", "Grid"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

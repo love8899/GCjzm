@@ -1,0 +1,22 @@
+﻿@model bool
+
+@if (Model)
+{
+    <p>
+        @ViewBag.Message
+    </p> 
+}
+else
+{
+    <p>
+        Please select one of the following reasons to fix the issue?
+    </p>
+    <ul class="fieldlist">
+        <li>
+            @Html.RadioButton("reason", "0" ,true) Mismatched JobOrder
+        </li>
+        <li>
+            @Html.RadioButton("reason","1" ) Miss punch in / out
+        </li>
+    </ul>
+}

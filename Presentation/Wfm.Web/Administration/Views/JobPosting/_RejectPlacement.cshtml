@@ -1,0 +1,61 @@
+﻿@{
+    string comment = ViewBag.Comment;
+    
+    var reasonDropDownList = new List<SelectListItem>();
+    reasonDropDownList.Add(new SelectListItem() { Text = "Banned (in DNR list)" });
+    reasonDropDownList.Add(new SelectListItem() { Text = "Other" });
+}
+
+
+@using (Html.BeginForm("_RejectPlacement", "JobPosting", FormMethod.Post, new { id = "reject-form" }))
+{
+    <br />
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle" width="17%">
+                Reason
+            </td>
+            <td width="3%"></td>
+            <td class="adminData required" width="80%">
+                @(Html.Kendo().DropDownList().Name("reason")
+                        .OptionLabel("--Select--")
+                        .BindTo(reasonDropDownList)
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                Comment
+            </td>
+            <td></td>
+            <td class="adminData required">
+                @Html.TextArea("comment", comment, new { style = "width:300px;height:90px" })
+            </td>
+        </tr>
+    </table>
+
+    <br />
+    <div style="text-align: center">
+        <input type="button" id="submit-reject" class="k-button" value="Submit" style="text-align:center" />
+    </div>
+}
+
+
+<script type="text/javascript">
+
+    function validateInput() {
+        var result = false;
+        var reason = $("#reason").val();
+        var comment = $("#comment").val();
+
+        if (!reason)
+            alert("Please give a reason!");
+       else if (!comment)
+            alert("Comment is required!");
+        else
+            result = true;
+
+        return result;
+    }
+
+</script>

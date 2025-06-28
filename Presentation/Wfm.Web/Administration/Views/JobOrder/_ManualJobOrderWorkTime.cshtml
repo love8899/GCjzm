@@ -1,0 +1,181 @@
+﻿@using Wfm.Core.Domain.TimeSheet
+
+@model JobOrderWorkTimeModel
+
+@using (Html.BeginForm("", "", FormMethod.Post, new { id = "joborder-manual-worktime-form" }))
+{
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(m => m.JobOrder.Id)
+    @Html.HiddenFor(m => m.WeekEndSaturdayDate)
+    
+    <div class="section-header" style="padding-bottom: 35px;">
+        <div class="grid-title">
+            Weekly Job Order Work Time Summary - Week ending: @Model.WeekEndSaturdayDate.ToShortDateString()
+        </div>
+        <div class="options">
+            <input type="button" id="btn-attach" class="k-button" value="@T("Admin.JobOrder.Pipeline.WeeklyWorkTime.Attach")" />
+            <input type="button" id="btn-save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" id="btn-cancel" class="k-button" value="@T("Admin.Common.Cancel")" />
+        </div>
+    </div>
+    <div>
+        <h3>Disclaimer</h3>
+        Data entered in this page will directly affect payroll and client billing. <strong>Proof of client document</strong> must be attached for tracking purpose. Users' discretion is advised. Tempus Workforce is not responsible for any data discrepancy clients entered with documentation proof.
+    </div>
+    <div id="attachment-list">
+        @Html.Partial("_DocumentListView", Model.ClientTimeSheetDocuments)
+    </div>
+    <table style="text-align:left;">
+        <tr>
+            <td class="adminTitle">
+                @T("Common.JobOrderId"):
+            </td>
+            <td class="adminData">
+                @Html.DisplayTextFor(m => m.JobOrder.Id)
+            </td>
+            <td class="adminTitle">
+                @T("Common.CompanyName"):
+            </td>
+            <td class="adminData">
+                @Html.DisplayTextFor(m => m.JobOrder.CompanyName)
+            </td>
+            <td class="adminTitle">
+                @T("Common.Department"):
+            </td>
+            <td class="adminData">
+                @Html.DisplayTextFor(m => m.JobOrder.CompanyDepartmentName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Common.Location"):
+            </td>
+            <td class="adminData">
+                @Html.DisplayTextFor(m => m.JobOrder.CompanyLocationName)
+            </td>
+            <td class="adminTitle">
+                @T("Admin.JobOrder.JobOrder.Fields.Supervisor"):
+            </td>
+            <td class="adminData">
+                @Html.DisplayTextFor(m => m.JobOrder.Supervisor)
+            </td>
+            <td class="adminTitle">
+                @T("Common.Shift"):
+            </td>
+            <td class="adminData">
+                @Html.DisplayTextFor(m => m.JobOrder.ShiftName)
+            </td>
+        </tr>
+        <tr>
+            <td colspan="6">
+                <table class="alternate_color KeyTable">
+                    <thead>
+                        <tr>
+                            <th>@T("Common.Id")</th>
+                            <th>@T("Common.Name")</th>
+                            <th>@System.DayOfWeek.Sunday.ToString() <br /> @Model.WeekEndSaturdayDate.AddDays(-6).ToShortDateString()</th>
+                            <th>@System.DayOfWeek.Monday.ToString() <br /> @Model.WeekEndSaturdayDate.AddDays(-5).ToShortDateString()</th>
+                            <th>@System.DayOfWeek.Tuesday.ToString() <br /> @Model.WeekEndSaturdayDate.AddDays(-4).ToShortDateString()</th>
+                            <th>@System.DayOfWeek.Wednesday.ToString() <br /> @Model.WeekEndSaturdayDate.AddDays(-3).ToShortDateString()</th>
+                            <th>@System.DayOfWeek.Thursday.ToString() <br /> @Model.WeekEndSaturdayDate.AddDays(-2).ToShortDateString()</th>
+                            <th>@System.DayOfWeek.Friday.ToString() <br /> @Model.WeekEndSaturdayDate.AddDays(-1).ToShortDateString()</th>
+                            <th>@System.DayOfWeek.Saturday.ToString() <br /> @Model.WeekEndSaturdayDate.ToShortDateString()</th>
+                            <th>@T("Admin.JobOrder.Pipeline.WeeklyWorkTime.Total")</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.ManualWorkTimeEntries.Count; i++)
+                        {
+                            var entry = Model.ManualWorkTimeEntries[i];
+                            <tr class='manual-worktime-row'>
+                                <td>@entry.CandidateId</td>@Html.HiddenFor(m => m.ManualWorkTimeEntries[i].CandidateId)
+                                <td>@string.Format("{0} {1}", entry.CandidateFirstName, entry.CandidateLastName)</td>
+                                @for (int j = 0; j < 7; j++)
+                                {
+                                    <td>
+                                        @Html.HiddenFor(m => m.ManualWorkTimeEntries[i].WorkHoursEditableWeekdays[j])
+                                        @Html.TextBoxFor(m => m.ManualWorkTimeEntries[i].WorkHoursWeekdays[j],
+                                        entry.WorkHoursEditableWeekdays[j] ? (object)(new { maxlength = 5, @class = "noborder-daily-hour", @min = "0", @max = "50" })
+                                        : (object)(new { @class = "noborder-daily-hour", @readonly = true }))
+                                    </td>
+                                }
+                                <td id='@string.Format("total-cell-{0}", i)' class='total-cell'></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    </table>
+}
+<div id="attach-window"></div>
+
+<script src="@Url.Content("~/Scripts/keyTable.js")" type="text/javascript"></script>
+<script type="text/javascript">
+    function calculateTotalCell() {
+        $('.manual-worktime-row').each(function () {
+            var total = 0;
+            $(this).find('.noborder-daily-hour').each(function () {
+                total += Number($(this).val());
+            });
+            $(this).children('.total-cell').html(total.toString());
+        });
+    }
+
+    function refreshList() {
+        $.ajax({
+            url: '@Url.Action("_ListClientTimeSheetDocuments", "JobOrder")',
+            type: 'post',
+            data: {guid: '@Model.JobOrder.JobOrderGuid', startDate: '@Model.WeekEndSaturdayDate.AddDays(-6).ToShortDateString()', 
+                endDate: '@Model.WeekEndSaturdayDate.ToShortDateString()'},
+            dataType: 'html',
+            success: function (result) {
+                if (result) {
+                    $('#attachment-list').html(result);
+                }
+            }
+        });
+    }
+
+    $(function () {
+        $("#btn-attach").bind("click", function ()
+        {
+            var dialog = $("#attach-window").data("kendoWindow");
+            if (!dialog) {
+                $("#attach-window").kendoWindow({
+                    title: "Attachment",
+                    modal: true,
+                    
+                    resizable: false,
+                    width: 800,
+                    close: function () {
+                    },
+                    refresh: function (e) {
+                        var win = this;
+                        dialog.open();
+                    }
+                });
+                dialog = $("#attach-window").data("kendoWindow");
+            }
+            dialog.refresh({
+                url: '@Url.Action("_UploadAttachment", "JobOrder")',
+                data: { jobOrderId : '@Model.JobOrder.Id', startDate : '@Model.WeekEndSaturdayDate.AddDays(-6)', endDate : '@Model.WeekEndSaturdayDate'}
+            });
+            dialog.center();
+        });
+
+        $('.noborder-daily-hour').blur(function () {
+            calculateTotalCell();
+        });
+        
+    });
+
+    $(document).ready(function () {
+        calculateTotalCell();
+        //
+        var keys = new KeyTable();
+        keys.event.focus(null, null, function (node, row, col) {
+            $(node).find('input').focus();
+        });
+    });
+</script>

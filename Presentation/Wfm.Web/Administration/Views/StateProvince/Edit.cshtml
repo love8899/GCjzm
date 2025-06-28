@@ -1,0 +1,109 @@
+﻿@using Wfm.Core
+@using Wfm.Services.Accounts
+
+@model StateProvinceModel
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.StateProvince.EditStateProvinceDetails").Text;
+    var _workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var accountService = EngineContext.Current.Resolve<IAccountService>();
+    var allAccounts = accountService.GetAllAccountsAsQueryable(_workContext.CurrentAccount);
+}
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "stateProvince-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Configuration.StateProvince.EditStateProvinceDetails") @Html.ActionLink("(" + T("Admin.Configuration.StateProvince.BackToList") + ")", "Index")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />
+            <span id="stateProvince-delete" class="delete-button k-button" data-url='@Url.Action("Delete", "StateProvince", new {id = Model.Id })'>@T("Common.Delete")</span>
+            @*@Html.ActionLink("Delete me", "Delete", "StateProvince", new {id = Model.Id }, new { onclick="return confirm('Are you sure you want to click this link?')" })*@
+        </div>
+    </div>
+
+    @Html.Partial("_CreateOrUpdate", Model)
+}
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration.StatutoryHoliday")
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<StatutoryHolidayModel>()
+              .Name("statutory-holiday-grid")
+              .Columns(columns =>
+              {
+                  columns.Bound(x => x.StatutoryHolidayName).Width(150);
+                  columns.Bound(x => x.HolidayDate).ClientTemplate("#=kendo.toString(HolidayDate,'yyyy-MM-dd')#").Width(120);
+
+                  columns.Bound(x => x.IsActive)
+                       .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                       .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                       .Width(80);
+
+                  columns.Bound(x => x.Note).Width(250);
+
+                  columns.ForeignKey(x => x.EnteredBy, allAccounts, "Id", "Username").Width(100);
+                  columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                  columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                  columns.Command(x => x.Destroy().Text(" ")).Width(60);
+
+              })
+                .ToolBar(tool => { tool.Create(); tool.Save(); })
+                .EnableCustomBinding(false)
+                .Editable(edit => edit.Mode(GridEditMode.InCell))
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .Batch(true)
+                    .Read(read => read.Action("ListOfStatutoryHolidays", "StateProvince", new { stateProvinceId = ViewBag.StateProvinceId }))
+                    .Update(update => update.Action("UpdateStatutoryHolidays", "StateProvince"))
+                    .Create(create => create.Action("CreateStatutoryHolidays", "StateProvince"))
+                    .Destroy(Delete => Delete.Action("DeleteStatutoryHolidays", "StateProvince"))
+                    .PageSize(10)
+                    .Group(x => x.Add(model => model.Year))
+                    .Model(model =>
+                    {
+                        model.Id(x => x.Id);
+                        //model.Field(x => x.Year).Editable(false);
+                        model.Field(x => x.StateProvinceId).Editable(false).DefaultValue(ViewBag.StateProvinceId);
+                        model.Field(x => x.StatutoryHolidayName).Editable(true);
+                        model.Field(x => x.HolidayDate).Editable(true).DefaultValue(DateTime.Today);
+                        model.Field(x => x.EnteredBy).Editable(false).DefaultValue(_workContext.CurrentAccount.Id);
+                        model.Field(x => x.Note).Editable(true);
+                        model.Field(x => x.IsActive).Editable(true).DefaultValue(true);
+                        model.Field(p => p.CreatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        model.Field(p => p.UpdatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        model.Field(p => p.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(p => p.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+
+                    })
+                )
+               .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+
+        </td>
+    </tr>
+</table>

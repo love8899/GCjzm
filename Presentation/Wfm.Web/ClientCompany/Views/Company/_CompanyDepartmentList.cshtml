@@ -1,0 +1,50 @@
+﻿@model IEnumerable<CompanyDepartmentModel>
+
+@{
+    Layout = "";
+}
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CompanyDepartmentModel>()
+                .Name("companydepartment-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.DepartmentName);
+                    columns.Bound(x => x.CompanyLocationName).Hidden();
+
+                    columns.Bound(x => x.IsActive).Width(80)                     
+.ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")            
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" });
+
+                    //columns.Bound(x => x.UpdatedOn).Format("{0:yyyy-MM-dd HH:mm}").Width(120);
+                    //columns.Bound(x => x.CreatedOn).Format("{0:yyyy-MM-dd HH:mm}").Width(120);
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax().Group(g=> g.Add(c=>c.CompanyLocationName))
+                    .ServerOperation(false)
+                    .PageSize(20)
+                    .Read(read => read.Action("_CompanyDepartmentList", "Company"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

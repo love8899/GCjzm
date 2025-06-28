@@ -1,0 +1,95 @@
+﻿@using Wfm.Core.Domain.Candidates;
+@model Wfm.Core.Domain.Candidates.PaymentHistory
+@{
+    Layout = null;
+}
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.PayPeriodStart, "Pay Period Start")
+        </td>           
+        <td class="adminData">
+            @Html.Kendo().TextBoxFor(model => model.PayPeriodStart).Format("{0:MM/dd/yyyy}").Enable(false)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.PayPeriodEnd, "Pay Period End")
+        </td>
+        <td class="adminData">
+            @Html.Kendo().TextBoxFor(model => model.PayPeriodEnd).Format("{0:MM/dd/yyyy}").Enable(false)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.PaymentDate, "Payment Date")
+        </td>
+        <td class="adminData">
+            @Html.Kendo().TextBoxFor(model => model.PaymentDate).Format("{0:MM/dd/yyyy}").Enable(false)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.ChequeNumber, "Cheque #")
+        </td>
+        <td class="adminData">
+            @Html.Kendo().TextBoxFor(model => model.ChequeNumber).Enable(false)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.DirectDepositNumber, "Bank File #")
+        </td>
+        <td class="adminData">
+            @Html.Kendo().TextBoxFor(model => model.DirectDepositNumber).Enable(false)
+        </td>
+        <td class="adminData" colspan="2">
+            <table>
+                <tr>
+                    <td class="adminTitle">@Html.LabelFor(model => model.IsEmailed, "Is Emailed")</td>
+                    <td class="adminData">@Html.CheckBoxFor(model => model.IsEmailed, new { disabled = "disabled" })</td>
+                    <td class="adminTitle">@Html.LabelFor(model => model.IsPrinted, "Is Printed")</td>
+                    <td class="adminData">@Html.CheckBoxFor(model => model.IsPrinted, new { @disabled = "disabled" })</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Note)
+        </td>
+        <td class="adminData" colspan="5">
+            @Html.Kendo().TextBoxFor(model => model.Note).HtmlAttributes(new { style = "width:90%" }).Enable(false)
+        </td>
+    </tr>
+    <tr>
+        <td colspan="6">
+            @(Html.Kendo().Grid<PaymentDetail>()
+                .Name("paymentdetails-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(p => p.GroupName).ClientGroupHeaderTemplate("#=value.split('-')[1]#").Hidden();
+                    columns.Bound(p => p.DisplayCode).Width(60).Title("Code");
+                    columns.Bound(p => p.Description).Width(180);
+
+                    columns.Bound(p => p.Unit).Format("{0:n2}").HtmlAttributes(new { style = "text-align: right" })
+                        .ClientTemplate("#if (Unit) {# #= kendo.format('{0:n2}',Unit) # #}else{# #}#").Width(80);
+                    columns.Bound(p => p.Rate).Format("{0:n4}").HtmlAttributes(new { style = "text-align: right" })
+                        .ClientTemplate("#if (Rate) {# #= kendo.format('{0:n4}',Rate) # #}else{# #}#").Width(90);
+                    columns.Bound(p => p.Amount).Format("{0:n2}").HtmlAttributes(new { style = "text-align: right; font-weight: bold;" })
+                        .ClientTemplate("#if (Amount) {# #= kendo.format('{0:n2}',Amount) # #}else{# #}#");
+                    columns.Bound(p => p.YTD_Unit).Format("{0:n2}").Title("YTD Unit").HtmlAttributes(new { style = "text-align: right" })
+                        .ClientTemplate("#if (YTD_Unit) {# #= kendo.format('{0:n2}',YTD_Unit) # #}else{# #}#");
+                    columns.Bound(p => p.YTD_Amount).Format("{0:n2}").Title("YTD Amount").HtmlAttributes(new { style = "text-align: right" })
+                        .ClientTemplate("#if (YTD_Amount) {# #= kendo.format('{0:n2}',YTD_Amount) # #}else{# #}#");
+
+                    columns.Bound(p => p.JobOrder_Id).Title("Job Order").Width(90)
+                        .ClientTemplate("#if (JobOrder_Id) {# #=JobOrder_Id# #}else{# #}#");
+                })
+                .Resizable(resize => resize.Columns(true))
+                .AutoBind(true)
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Read(read => read.Action("_PaymentDetails", "Employee", new { historyId = Model.PaymentHistory_Id }))
+                    .Group(g => g.Add(x => x.GroupName))
+                    //.Sort(s => s.Add(x => x.Code))
+                )
+            )
+        </td>
+    </tr>
+</table>

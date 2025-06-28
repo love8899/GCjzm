@@ -1,0 +1,106 @@
+﻿@using Wfm.Core.Infrastructure
+@using Wfm.Core.Domain.Common
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Franchise Opportunities";
+    //var description = "Starting your own employment services agency has never been easier! Discover the benefits of a partnership with Great Connections Employment Services.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle;
+}
+@section left {
+    @Html.Partial("Layout/_ContactSideBar")
+}
+
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Connecting entrepreneurs with great opportunities</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            Starting your own employment services agency has never been easier! Discover the
+            benefits of a partnership with @siteTitle Employment Services. If you are
+            a professional interested in starting your own staffing business to maximize your
+            income potential, @siteTitle could be solution you have been looking for.
+            <br />
+            <br />
+            @siteTitle is a full-cycle employment firm that provides human resource solutions
+            to companies in a multitude of industries, including leading consumer goods, financial
+            services, manufacturing, engineering and other Fortune 500 companies.
+        </p>
+        <b>The @siteTitle franchise opportunity</b>
+        <p>
+            Buying a @siteTitle franchise allows you to set up your own business without
+            starting from scratch. Instead, you’ll benefit from having access to our tried and
+            tested formula, and benefit from the experience and support of our team. We provide
+            the expertise, training, and infrastructure you need to provide superior direct
+            placement, contract and temporary personnel hiring services to companies.
+        </p>
+        <b>Who we’re looking for</b>
+        <p>
+            Our franchise concept provides a professional and flexible workforce solution to
+            a variety of businesses and with ample territory nationally. We are seeking hands-on
+            entrepreneurs with solid business knowledge, who understand a profit and loss statement,
+            with effective relationship management skills and who are hungry to grow their own
+            business. We will consider all backgrounds and experience, but professionals with
+            staffing, human resources, sales, and management experience are preferred.
+        </p>
+        <b>Why staffing?</b>
+        <p>
+            Staffing is a large and growing industry. It is currently more than a $100 billion
+            a year business and is projected to grow to more than $164 billion in North America
+            by 2018.
+            <br />
+            <br />
+            Staffing agencies are filling an increasingly prominent role as a value added intermediary
+            between employers and employees. In fact, over the next decade, the staffing industry
+            is expected to grow faster and add more jobs than most other industries. This growth
+            builds on an already exceptional track record as the industry has also been consistently
+            strong for the past several decades.
+        </p>
+        <b>Area specialties</b>
+        <p>
+            From management, sales and marketing and financial and accounting functions – to
+            manufacturing, engineering, supply chain, IT, administrative personnel and more,
+            @siteTitle provides the best qualified candidates in the market.
+        </p>
+        <ul>
+            <li>Management and Executive</li>
+            <li>Sales and Marketing</li>
+            <li>Financial and Accounting</li>
+            <li>Information Technology</li>
+            <li>Life Sciences</li>
+            <li>Engineering</li>
+            <li>Industrial and Manufacturing</li>
+            <li>Call Centre and Customer Service</li>
+            <li>Supply Chain, Logistics and Warehousing</li>
+            <li>Administrative and Office</li>
+            <li>Skilled Trades</li>
+            <li>Others</li>
+        </ul>
+        <b>
+            To learn more about franchising opportunities currently available through @siteTitle,
+            please contact:
+        </b>
+        <p>
+            Shaun Levy<br />
+            President<br />
+            <br />
+            @siteTitle<br />
+            5050 Dufferin Street, Unit #109<br />
+            North York, Ontario M3H 5T5<br />
+            <br />
+            Tel: (416) 850-5060<br />
+            Email: shaunlevy@gc-employment.com<br />
+        </p>
+    </div>
+</div>

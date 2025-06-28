@@ -1,0 +1,18 @@
+﻿<div class="section-header">
+    <div class="title">
+        @T("Admin.Resumes")
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr><td width="18%"></td><td width="2%"></td><td width="80%"></td><td></td></tr>
+    <tr>
+        <td>
+            @Html.Partial("_MessageFilter")
+        </td>
+        <td></td>
+        <td id="message-grid">
+            @Html.Partial("_MessageGrid")
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,109 @@
+﻿@using Wfm.Core.Domain.TimeSheet
+
+
+@model EditCandidateWorkTimeStatusModel
+
+
+@{
+    //var excludedStatusIds = new int[] { (int)CandidateWorkTimeStatus.Matched, (int)CandidateWorkTimeStatus.Approved, (int)CandidateWorkTimeStatus.Processed };
+    var excludedStatusIds = new int[] { (int)CandidateWorkTimeStatus.Matched, (int)CandidateWorkTimeStatus.Processed };
+    var availableCandidateWorkTimeStatus = CandidateWorkTimeStatus.Voided.ToSelectList(false, excludedStatusIds).ToList();
+}
+
+
+@using (Html.BeginForm("", "", FormMethod.Post, new { id = "change-worktimestatus-form" }))
+{
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.CandidateWorkTimeId)
+
+    <div class="section-header" style="padding:10px;">
+        <div class="title">
+        </div>
+        <div class="options">
+            <input type="button" id="btn-save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" id="btn-cancel" class="k-button" value="@T("Admin.Common.Cancel")" />
+        </div>
+    </div>
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle" style="width:30%">
+                @Html.LabelFor(model => model.EmployeeFirstName)
+            </td>
+            <td class="adminData" style="width:70%">
+                @Html.DisplayFor(model => model.EmployeeFirstName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EmployeeLastName)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.EmployeeLastName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CompanyName, "Company")
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CompanyName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobTitle)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.JobTitle)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobStartDateTime)
+            </td>
+            <td class="adminData">
+                @String.Format("{0:yyyy-MMM-dd HH:mm}", Model.JobStartDateTime)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobEndDateTime)
+            </td>
+            <td class="adminData">
+                @String.Format("{0:yyyy-MMM-dd HH:mm}", Model.JobEndDateTime)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CandidateWorkTimeStatusId)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                            .Name("CandidateWorkTimeStatusId")
+                            .OptionLabel("--Select--")
+                            .DataTextField("Text")
+                            .DataValueField("Value")
+                            .BindTo(availableCandidateWorkTimeStatus).HtmlAttributes(new { style = "width:90%" })
+                )
+                @Html.WfmValidationMessageFor(model => model.CandidateWorkTimeStatusId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle" style="vertical-align: top">
+                @Html.LabelFor(model => model.Note, "Reason")
+            </td>
+            <td class="adminData required">
+                @Html.TextAreaFor(model => model.Note, new { style = "height:80px;width:90%;", placeholder = "Please input the reason for status changes." })
+                @Html.WfmValidationMessageFor(model => model.Note)
+            </td>
+        </tr>
+    </table>
+}
+<script>
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+</script>

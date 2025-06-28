@@ -1,0 +1,4 @@
+﻿@model object
+
+@Html.TextBoxFor(model => model, new {@class="k-textbox", type="email" ,placeholder = ViewData.ModelMetadata.Watermark})
+@*@Html.TextBox("", ViewData.TemplateInfo.FormattedModelValue, new {@class="k-textbox", placeholder = ViewData.ModelMetadata.Watermark})*@

@@ -1,0 +1,78 @@
+﻿@using Wfm.Core
+
+
+@model CompanyCandidateModel
+
+
+@using (Html.BeginForm("", "", FormMethod.Post, new { id = "edit-candidate-form" } ))
+{
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.CompanyId)
+
+    <div class="section-header">
+        <div class="title">
+            Edit Candidate in Pool
+        </div>
+        <div class="options">
+            <input type="button" id="btn-save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" id="btn-cancel" class="k-button" value="@T("Admin.Common.Cancel")" />
+        </div>
+    </div>
+
+    <table class="adminContent" style="padding:10px;">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CandidateId, "Employee ID")
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CandidateId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Position, "Position")
+            </td>
+            <td class="adminData">
+                @Html.Kendo().TextBoxFor(model => model.Position)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.StartDate, "Start Date")
+            </td>
+            <td class="adminData">
+                @Html.Kendo().DatePickerFor(model => model.StartDate).Format("yyyy-MM-dd")
+                @Html.WfmValidationMessageFor(model => model.StartDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EndDate, "End Date")
+            </td>
+            <td class="adminData">
+                @Html.Kendo().DatePickerFor(model => model.EndDate).Format("yyyy-MM-dd").Enable(false)
+                @Html.WfmValidationMessageFor(model => model.EndDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Note, "Note")
+            </td>
+            <td class="adminData">
+                @Html.TextAreaFor(model => model.Note, new { style = "height:100px;width:90%;", maxlength = 255 })
+                @Html.WfmValidationMessageFor(model => model.Note)
+            </td>
+        </tr>
+    </table>
+}
+
+
+@* for jQUery validation *@
+<script>
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+</script>

@@ -1,0 +1,13 @@
+﻿@{
+    Layout = "_ReportViewerLayout";
+    ViewBag.ReportFile = "ClientEmployeeListReport";
+
+    ViewBag.ReportParameters = new
+    {
+        start = ViewBag.StartDate,
+        end = ViewBag.EndDate,
+        company = ViewBag.CompanyId,
+        companyName = ViewBag.CompanyName,
+        franchiseId = 0
+    };
+}

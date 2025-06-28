@@ -1,0 +1,66 @@
+﻿@model IEnumerable<CompanyModel>
+@{
+    //page title
+    ViewBag.Title = T("Admin.QuickSearch.CompanyResult").Text;
+    ViewBag.SearchArea = "Company";
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Common.Companies") search result for "@ViewBag.SearchKey"
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CompanyModel>()
+                .Name("company-grid")
+                .BindTo(Model)
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(70);
+
+                    columns.Bound(x => x.CompanyName)
+                        //.Template(x => Html.ActionLink(x.CompanyName, "Details", "Company", new { Id = x.Id }, new { target = "_blank" }))
+                        .ClientTemplate(@Html.ActionLink("#= CompanyName #", "Details", "Company", new { guid = "#= CompanyGuid #" }, new { target = "_blank" }).ToHtmlString()).Width(300);
+
+                    columns.Bound(x => x.WebSite);
+                    columns.Bound(x => x.KeyTechnology);
+                    columns.Bound(x => x.Note).Hidden();
+
+                    columns.Bound(x => x.IsActive)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsActive #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80)
+                        .Title("Active");
+
+                    columns.Bound(x => x.UpdatedOn).Format("{0:yyyy-MM-dd HH:mm}").Filterable(false).Sortable(false).Width(125);
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(20)
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,79 @@
+﻿@model TestChoiceModel
+
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+@Html.HiddenFor(model => model.TestQuestionId)
+@Html.HiddenFor(model => model.DisplayOrder)
+
+<table class="adminContent">
+    <tr>
+        <td colspan="2">
+            <div class="statisticsTitle">
+                @T("Common.TestQuestion") : @Model.TestQuestionQuestion
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.TestChoiceText)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.TestChoiceText)
+            @Html.WfmValidationMessageFor(model => model.TestChoiceText)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.TestChoiceValue)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.TestChoiceValue)
+            @Html.WfmValidationMessageFor(model => model.TestChoiceValue)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.ImageFileLocation)
+        </td>
+        <td class="adminData">
+            @if (!string.IsNullOrWhiteSpace(@Model.ImageFileUrl))
+            {
+                <img alt="" src="@Model.ImageFileUrl" width="300" /> <br/>
+            }
+            @Html.EditorFor(model => model.ImageFileLocation)
+            @(Html.Kendo().Upload()
+                  .Name("attachments")
+                  .Multiple(true)
+                  .Async(async => async
+                      .AutoUpload(false)
+                  )
+              )
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsActive)
+        </td>
+        <td class="adminData">
+            @Html.CheckBoxFor(model => model.IsActive)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CreatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.CreatedOn)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.UpdatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.UpdatedOn)
+        </td>
+    </tr>
+</table>

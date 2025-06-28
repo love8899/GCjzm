@@ -1,0 +1,101 @@
+﻿@using Wfm.Admin.Models.Employee
+@using Wfm.Services.DirectoryLocation;
+@using Wfm.Services.WSIBS
+@using Wfm.Core
+@{
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var stateProvinceService = EngineContext.Current.Resolve<IStateProvinceService>();  
+    var stateProvinces = stateProvinceService.GetAllStateProvinces();
+    var wsibService  = EngineContext.Current.Resolve<IWSIBService>();
+    var wsibCodes = wsibService.GetAllWSIBs().Select(x => new SelectListItem() { Text = String.Concat(x.Code, " - ", x.Description), Value = x.Code }).ToList();
+}
+<script src="@Url.Content("~/Scripts/admin.common.js?version=1.8")" type="text/javascript"></script>
+<script type="text/javascript">
+    function filterWSIBCode() {
+        var model = getCurrentEditedModel("#wcb-rate-grid");
+        return {
+            stateProvinceId: model.ProvinceId
+        };
+    }
+    function getCurrentEditedModel(gridName) {
+        var grid = $(gridName).data("kendoGrid");
+        var editRow = grid.tbody.find("tr:has(.k-edit-cell)");
+        return grid.dataItem(editRow);
+    }
+
+    function gridParameter()
+    {
+        return { guid: '@ViewBag.CandidateGuid' };
+    }
+</script>
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Employee.WCBRate")
+    </div>
+    <div class="options">
+    </div>
+</div>
+<br />
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateWSIBCommonRateModel>()
+                .Name("wcb-rate-grid")
+                .Columns(columns =>
+                {
+                    columns.ForeignKey(x => x.ProvinceId, stateProvinces, "Id", "StateProvinceName").Title(T("Common.StateProvinces").Text).Width(100).HtmlAttributes(new { style = "white-space: normal" });
+                    columns.ForeignKey(p => p.Code, wsibCodes, "Value", "Text").EditorTemplateName("WSIBCodeEditor").Width(100);
+                    columns.Bound(p => p.StartDate).Width(100).Format("{0:yyyy-MM-dd}");
+                    columns.Bound(p => p.EndDate).Width(180).Format("{0:yyyy-MM-dd}");
+                    columns.Bound(p => p.Ratio).Format("{0:p2}").Width(120).EditorTemplateName("DecimalNullable");
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Command(x => x.Destroy().Text(" ")).Width(80);
+                })
+                .ToolBar(t => { t.Save(); t.Create(); })
+                .Editable(e => e.Mode(GridEditMode.InCell))
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Batch(true)
+                    .ServerOperation(true)
+                    .Events(events => events.Error("error_handler"))
+                    .PageSize(20)
+                    .Destroy(d => d.Action("DestroyWCBRate", "Employee"))
+                    .Create(d => d.Action("CreateWCBRate", "Employee").Data("gridParameter"))
+                    .Update(d => d.Action("UpdateWCBRate", "Employee").Data("gridParameter"))
+                    .Read(read => read.Action("_TabWCBRate", "Employee").Data("gridParameter"))
+                    .Model(m => {
+                        m.Id(x => x.Id);
+                        m.Field(x => x.ProvinceId).Editable(true).DefaultValue(71);
+                        m.Field(x => x.Code).Editable(true).DefaultValue(string.Empty);
+                        m.Field(x => x.StartDate).Editable(true).DefaultValue(DateTime.Today);
+                        m.Field(x => x.EndDate).Editable(true).DefaultValue(DateTime.Today);
+                        m.Field(x => x.Ratio).Editable(true).DefaultValue(0.00m);
+                        m.Field(x => x.CandidateId).Editable(false).DefaultValue(ViewBag.CandidateId);
+                        m.Field(x => x.EnteredBy).Editable(false).DefaultValue(workContext.CurrentAccount.Id);
+                        m.Field(x => x.CreatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        m.Field(x => x.UpdatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        m.Field(x => x.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        m.Field(x => x.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                    })
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

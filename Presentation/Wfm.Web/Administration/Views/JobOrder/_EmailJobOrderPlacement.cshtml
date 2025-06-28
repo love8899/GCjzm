@@ -1,0 +1,167 @@
+﻿@model QueuedEmailModel
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.System.QueuedEmails.EditQueuedEmailDetails").Text;
+}
+<div class="content">
+    <div class="notification-wrapper">
+        @Html.Partial("Notifications")
+    </div>
+</div>
+@if(Model!=null)
+{ 
+    using (Html.BeginForm(null, null, FormMethod.Post, new { id = "email-placement-form" }))
+    {
+        @Html.ValidationSummary(false)
+        @Html.HiddenFor(model => model.Id)
+        @Html.HiddenFor(model => model.CreatedOnUtc)
+        @Html.HiddenFor(model => model.UpdatedOnUtc)
+        @Html.HiddenFor(model => model.ReplyTo)
+        @Html.HiddenFor(model => model.ReplyToName)
+        @Html.HiddenFor(model => model.SentTries)
+        @Html.HiddenFor(model => model.SentOn)
+        @Html.HiddenFor(model => model.EmailAccountName)
+        @Html.HiddenFor(model => model.Priority)
+        @Html.HiddenFor(model => model.EmailAccountId)
+        @Html.HiddenFor(model => model.FromAccountId)
+        @Html.HiddenFor(model => model.ToAccountId)
+        @Html.HiddenFor(model => model.MessageCategoryId)
+        @Html.HiddenFor(model => model.AttachmentFileName)
+        @Html.HiddenFor(model => model.AttachmentFileName2)
+        @Html.HiddenFor(model => model.AttachmentFileName3)
+        @Html.HiddenFor(model => model.AttachmentFile)
+        @Html.HiddenFor(model => model.AttachmentFile2)
+        @Html.HiddenFor(model => model.AttachmentFile3)
+        @Html.HiddenFor(model => model.AttachmentTypeId)
+        @Html.HiddenFor(model => model.AttachmentTypeId2)
+        @Html.HiddenFor(model => model.AttachmentTypeId3)
+        @Html.HiddenFor(model => model.AttachmentFilePath)
+        @Html.HiddenFor(model => model.ConfirmationEmailLinkId)
+        @Html.ValidationSummary(true)
+
+        <div class="section-header">
+            <div class="options">
+                <input type="button" name="send" id="send-email" class="k-button" value="@T("Common.Send")" />
+                <input type="button" name="cancel" id="cancel-email" class="k-button" value="@T("Admin.Common.Cancel")" />
+            </div>
+        </div>
+
+        <table class="adminContent">
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.From)
+                </td>
+                <td class="adminData required">
+                    @Html.EditorFor(model => model.From)
+                    @Html.WfmValidationMessageFor(model => model.From)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.FromName)
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.FromName)
+                    @Html.WfmValidationMessageFor(model => model.FromName)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.To)
+                </td>
+                <td class="adminData required">
+                    @Html.EditorFor(model => model.To)
+                    @Html.WfmValidationMessageFor(model => model.To)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.ToName)
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.ToName)
+                    @Html.WfmValidationMessageFor(model => model.ToName)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.CC)
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.CC)
+                    @Html.WfmValidationMessageFor(model => model.CC)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.Bcc)
+                </td>
+                <td class="adminData">
+                    @Html.EditorFor(model => model.Bcc)
+                    @Html.WfmValidationMessageFor(model => model.Bcc)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.Subject)
+                </td>
+                <td class="adminData required" style="padding-right:20px;">
+                    @Html.Kendo().TextBoxFor(model => model.Subject).HtmlAttributes(new { style = "width:100%" })
+                    @Html.WfmValidationMessageFor(model => model.Subject)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.Body)
+                </td>
+                <td class="adminData" style="padding-right:20px;">
+                    @Html.EditorFor(model => model.Body, "RichEditor2")
+                    @Html.WfmValidationMessageFor(model => model.Body)
+                </td>
+            </tr>
+            @if (!String.IsNullOrEmpty(Model.AttachmentFilePath))
+            {
+                <tr>
+                    <td class="adminTitle">
+                        @Html.LabelFor(model => model.FullPath)
+                    </td>
+                    <td class="adminData">
+                        @Html.DisplayFor(model => model.FullPath)
+                    </td>
+                </tr>
+            }
+            @if (!String.IsNullOrEmpty(Model.AttachmentFileName))
+            {
+                <tr>
+                    <td class="adminTitle">
+                        @Html.Label(T("Admin.Candidate.Attachments").Text):
+                    </td>
+                    <td class="adminData">
+                        @Html.DisplayFor(model => model.AttachmentFileName)
+                    </td>
+                </tr>
+            }
+            @if (!String.IsNullOrEmpty(Model.AttachmentFileName2))
+            {
+                <tr>
+                    <td class="adminTitle">
+                    </td>
+                    <td class="adminData">
+                        @Html.DisplayFor(model => model.AttachmentFileName2)
+                    </td>
+                </tr>
+            }
+            @if (!String.IsNullOrEmpty(Model.AttachmentFileName3))
+            {
+                <tr>
+                    <td class="adminTitle">
+                    </td>
+                    <td class="adminData">
+                        @Html.DisplayFor(model => model.AttachmentFileName3)
+                    </td>
+                </tr>
+            }
+        </table>
+    }
+}

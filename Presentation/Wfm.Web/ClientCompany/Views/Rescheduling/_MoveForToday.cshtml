@@ -1,0 +1,80 @@
+﻿@model Wfm.Shared.Models.Search.SearchTimeSheetModel
+@{ 
+    var gridName = "candidateworktime-grid";
+    var serverOperation = true;
+}
+
+<div class="content">
+    <div class="form-horizontal">
+        <div class="panel-group">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    @Html.Partial("_SearchTimeSheets", Model, new ViewDataDictionary
+                    {
+                        { "GridName", gridName }
+                    })
+                    @(Html.Kendo().Grid<CandidateWorkTimeModel>().Name("candidateworktime-grid")
+                        .Events(e => e.DataBound("onDataBound"))
+                        .Columns(columns =>
+                        {
+                            columns.Bound(x => x.EmployeeId).Title("No.")
+                                .HeaderHtmlAttributes(new { title = "Employee number" })
+                                .HtmlAttributes(new { @class = "col-xs-1 cell-lg-1" })
+                                .ClientTemplate("<a onclick=getCandidateInfo('#=CandidateGuid#')>#=EmployeeId#</a>");
+
+                            //columns.Bound(x => x.EmployeeFirstName).Title(T("Common.FirstName").Text);
+                            //columns.Bound(x => x.EmployeeLastName).Title(T("Common.LastName").Text);
+                            columns.Bound(x => x.EmployeeFirstName).Title(T("Common.Name").Text)
+                                .ClientTemplate("#=EmployeeFirstName# #=EmployeeLastName#");
+
+                            //columns.Bound(x => x.JobOrderId).Hidden();
+                            columns.Bound(x => x.JobTitle)
+                                .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0" });
+
+                            //columns.Bound(x => x.LocationName)
+                            columns.ForeignKey(x => x.CompanyLocationId, Model.AvailableLocations, "Value", "Text")
+                                .HtmlAttributes(new { @class = "col-xxs-0" });
+                            //columns.Bound(x => x.DepartmentName)
+                            columns.ForeignKey(x => x.CompanyDepartmentId, Model.AvailableDepartments, "Value", "Text")
+                                .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0" });
+                            //columns.Bound(x => x.ContactName).Title("Supervisor")
+                            columns.ForeignKey(x => x.CompanyContactId, Model.AvailableContacts, "Value", "Text").Title("Supervisor")
+                                .HtmlAttributes(new { @class = "col-xxs-0" });
+
+                            columns.Bound(x => x.JobStartDateTime).Format("{0:HH:mm}").Title("Start")
+                                .HtmlAttributes(new { @class = "col-xxs-0 col-md-1 cell-lg-1" });
+                            columns.Bound(x => x.JobEndDateTime).Format("{0:HH:mm}").Title("End")
+                                .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0 cell-lg-1" });
+                            columns.Bound(x => x.ClockIn).Format("{0:yyyy-MM-dd HH:mm}")
+                                .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-2 cell-lg-2" });
+                            columns.Bound(x => x.ClockOut).Format("{0:yyyy-MM-dd HH:mm}")
+                                .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-2 cell-lg-2" });
+
+                            columns.Command(x => x.Custom("Move").Click("moveToShift")).Title(T("Common.Action").Text)
+                                .HtmlAttributes(new { @class = "col-xs-1 cell-lg-1", align = "center"});
+                        })
+                        .Sortable()
+                        .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50 }).Refresh(true))
+                        .DataSource(ds => ds.Ajax().ServerOperation(serverOperation).PageSize(10)
+                            .Read(read => read.Action("Index", "Rescheduling").Data("onRead"))
+                            .Sort(x => x.Add(m => m.JobStartDateTime))
+                        )
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function moveToShift(e) {
+        var theRow = this.dataItem($(e.currentTarget).closest("tr"));
+        // Employee has not punched in, worktime is not created yet. Id refers to placement
+        var url = '@Url.Action("_JobReschedule", "Rescheduling")' + '?placementId=' + theRow.Id + '&refDate=' + $('#startDate').val().toLocaleString();
+        // Employee has punched in, worktime is already created. Id refers to worktimeId
+        if (theRow.ClockIn != null && theRow.ClockOut == null)
+            url = '@Url.Action("MoveToOtherShift", "Rescheduling")' + '?workTimeId=' + theRow.Id + '&refDate=' + $('#startDate').val().toLocaleString()
+        var win = newWindow(url, undefined, 800, 600);
+        window.onDone = function () { reloadGridByName('@gridName'); }
+    }
+</script>

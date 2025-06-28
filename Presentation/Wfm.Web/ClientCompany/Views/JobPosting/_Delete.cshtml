@@ -1,0 +1,17 @@
+﻿@{
+    Layout = null;
+
+    var formName = ViewBag.FormName ?? "delete-jobs-form";
+}
+
+<p>
+    @T("Common.DeleteConfirmation")
+</p>
+@using (Html.BeginForm("_Delete", "JobPosting", FormMethod.Post, new { id = formName }))
+{
+    @Html.Hidden("guid", (Guid)ViewBag.JobPostingGuid)
+    <div class="buttons">
+        <input type="button" class="k-button btn-save" value="@T("Common.Delete")" />
+        <input type="button" class="k-button btn-cancel" value="@T("Admin.Common.NoCancel")" />
+    </div>
+}

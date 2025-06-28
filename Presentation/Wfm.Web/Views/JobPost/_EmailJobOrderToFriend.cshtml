@@ -1,0 +1,71 @@
+﻿@model JobOrderEmailAFriendModel
+@using reCAPTCHA.MVC
+@using Wfm.Web.Models.JobOrder
+@{
+    Layout = null;
+}
+
+@using (Ajax.BeginForm("EmailJobOrderAFriend", "JobPost",
+    new AjaxOptions {
+        OnSuccess = "onSuccess",
+    },
+    new { @id = "email-form" }))
+{
+    var validationSummary = Html.ValidationSummary(true);
+    if (!MvcHtmlString.IsNullOrEmpty(validationSummary))
+    {
+        <div class="message-error">@validationSummary</div>
+    }
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.JobOrderId)
+    <div class="fieldset">
+        <div class="form-fields">
+            <div class="inputs">
+                @Html.LabelFor(model => model.FriendEmail)
+                @Html.TextBoxFor(model => model.FriendEmail, new { @class = "friend-email", placeholder = "friend email address" })
+                @Html.RequiredHint()
+                @Html.ValidationMessageFor(model => model.FriendEmail)
+            </div>
+            <div class="inputs">
+                @Html.LabelFor(model => model.YourEmailAddress)
+                @Html.TextBoxFor(model => model.YourEmailAddress, new { @class = "your-email", placeholder = "your email address" })
+                @Html.RequiredHint()
+                @Html.ValidationMessageFor(model => model.YourEmailAddress)
+            </div>
+            <div class="inputs">
+                @Html.LabelFor(model => model.PersonalMessage)
+                @Html.TextAreaFor(model => model.PersonalMessage, new { @class = "personal-message", placeholder = "message" })
+                @Html.ValidationMessageFor(model => model.PersonalMessage)
+            </div>
+            <div class="inputs">
+                @Html.Label("Are you a human?")
+                <div class="captcha-box" style="display:inline-block">
+                    @Html.reCaptcha()
+                </div>
+                @Html.ValidationMessage("ReCaptcha")
+            </div>
+        </div>
+    </div>
+    <div class="buttons">
+        <input type="submit" name="send-email" class="button-1 send-email-a-friend-button" value="@T("Admin.Common.Send")" />
+    </div>
+}
+
+<script type="text/javascript" language=javascript>
+
+    $.validator.unobtrusive.parse(document);
+
+    function onSuccess(data) {
+        var popup = $(this).parent();
+        if (data.success) {
+            if (data.msg) {
+                //displayNotification(data.msg, 'success');
+                displayPopupNotification(data.msg, 'success');
+            }
+            popup.dialog('destroy').remove();
+        } else {
+            popup.html(data);
+        }
+    }
+
+</script>

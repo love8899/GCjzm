@@ -1,0 +1,166 @@
+﻿@{
+    var startDate = DateTime.Today.AddDays(-1);
+    var endDate = DateTime.Today;
+
+    var _workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    var _franchiseService = EngineContext.Current.Resolve<Wfm.Services.Franchises.IFranchiseService>();
+    var vendors = _franchiseService.GetAllFranchisesAsSelectList(_workContext.CurrentAccount);
+    var _clockDeviceService = EngineContext.Current.Resolve<Wfm.Services.ClockTime.IClockDeviceService>();
+    var clockCompanies = _clockDeviceService.GetAllClockDevicesAsQueryable().Select(x => x.CompanyLocation.Company).Distinct()
+        .Select(x => new { x.Id, x.CompanyName}).AsEnumerable();
+    if (_workContext.CurrentAccount.IsLimitedToFranchises)
+    {
+        var _companyVendorService = EngineContext.Current.Resolve<Wfm.Services.Companies.ICompanyVendorService>();
+        var vendorCompanies = _companyVendorService.GetAllCompaniesByVendorId(_workContext.CurrentAccount.FranchiseId)
+            .Select(x => new { x.Company.Id, x.Company.CompanyName }).AsEnumerable();
+        clockCompanies = from cc in clockCompanies
+                         join vc in vendorCompanies on cc equals vc
+                         select cc;
+    }
+    var companies = clockCompanies.Select(x => new SelectListItem()
+    {
+        Text = x.CompanyName,
+        Value = x.Id.ToString()
+    }).OrderBy(x => x.Text);
+}
+
+
+<style type="text/css">
+    .k-multiselect.k-header {
+        /*border-color: #94c0d2;*/
+        text-align: left;
+        float: none;
+        vertical-align: middle;
+        display: inline-block;
+        margin-left: 10px;
+        margin-right: 20px;
+    }
+</style>
+
+
+@(Html.Kendo().PanelBar().Name("search-bar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text(String.Format(T("Common.ReportParameters").Text, T("Report.ClockTimeExceptionReport").Text))
+            .Expanded(true)
+            .Content(@<div class="panel">
+                <br />
+                <label class="first-label">Company: </label>
+                @(Html.Kendo().DropDownList().Name("CompanyId").HtmlAttributes(new { style = "width:300px" })
+                    .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                    //.DataSource(source => source.Read(read => { read.Action("GetCascadeCompaniesWithPunchClocks", "Common"); }))
+                    .BindTo(companies)
+                    .Events(e => e.DataBound("onCompanyChange").Change("onCompanyChange")))
+
+                <label>Locations: </label>
+                @(Html.Kendo().MultiSelect().Name("Locations").HtmlAttributes(new { style = "width:600px" })
+                    .Placeholder("Select locations...").DataTextField("Text").DataValueField("Value")
+                    .Value(new[] { "-1" }).MaxSelectedItems(10))
+
+                <br /><br />
+                <label class="first-label">Vendors: </label>
+                @if (!WorkContext.CurrentAccount.IsLimitedToFranchises)
+                {
+                    @(Html.Kendo().MultiSelect().Name("Vendors").HtmlAttributes(new { style = "width:600px" })
+                    .Placeholder("Select vendors...").DataTextField("Text").DataValueField("Value")
+                    .BindTo(vendors).MaxSelectedItems(10))
+                }
+
+                <br /><br />
+                <label class="first-label">From: </label>
+                @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("fromDate").Value(startDate.ToString("yyyy-MM-dd")).Events(e => e.Change("startDateChange"))
+                <label class="first-label">To: </label>
+                @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("toDate").Value(endDate.ToString("yyyy-MM-dd"))
+
+                <div style="text-align: center">
+                    <br />@(Html.Kendo().Button().Name("loadReport").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text))<br /><br />
+                </div>
+
+            </div>);
+    })
+)
+
+<br />
+
+<div id="report"></div>
+
+
+<script type="text/javascript">
+
+    $("#loadReport").bind("click", function () {
+        loadReport();
+    });
+
+    function loadReport() {
+        var companyId = $("#CompanyId").val();
+        if (!companyId) {
+            alert("Please select a company!");
+        }
+        else {
+            var ids = $("#Locations").val();
+            var locationIds = ids ? ids.join() : '';
+            var vendorIds = '';
+            if ($("#Vendors").length) {
+                ids = $("#Vendors").val();
+                if (ids)
+                    vendorIds = ids.join();
+            }
+            else
+                vendorIds = '@(_workContext.CurrentAccount.FranchiseId)'
+
+            var fromDate = $("#fromDate").val();
+            var toDate = $("#toDate").val();
+            if (!fromDate) {
+                alert("Please select the start date!");
+            }
+            else if (!toDate) {
+                alert("Please select the end date!");
+            }
+            else {
+                $("#report").load("_ClockTimeExceptionReport", {
+                    companyId: companyId,
+                    locationIds: locationIds,
+                    vendorIds: vendorIds,
+                    fromDate: fromDate,
+                    toDate: toDate
+                });
+            }
+        }
+    }
+
+    function startDateChange() {
+        var startDate = this.value(),
+            endPicker = $("#toDate").data("kendoDatePicker"), endDate = endPicker.value();
+
+        if (startDate) {
+            startDate = new Date(startDate);
+            endPicker.min(startDate);
+        }
+    }
+
+    function onCompanyChange(e) {
+        var opts = {
+            companyId: $('#CompanyId').val()
+        };
+
+        bindLocations(opts);
+    }
+
+    function bindLocations(opts) {
+        if (opts.companyId) {
+            var locDs = new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: '@Url.Action("GetCascadeLocations", "Common")?companyId=' + opts.companyId
+                    }
+                }
+            });
+            var msLocations = $('#Locations').data('kendoMultiSelect');
+            msLocations.setDataSource(locDs);
+            msLocations.refresh();
+            msLocations.value('-1');
+        }
+    }
+
+</script>

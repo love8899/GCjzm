@@ -1,0 +1,260 @@
+﻿@using System.Linq
+@using Wfm.Core.Domain.TimeSheet;
+@using Wfm.Services.Franchises;
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts;
+
+@{
+    Layout = "";
+
+    var today = DateTime.Today;
+    var delta = DayOfWeek.Sunday - today.DayOfWeek;
+    var lastSaturday = today.AddDays(delta - 1);
+    var startDate = today.AddDays(delta - 14);
+    var endDate = lastSaturday;
+    var excludedStatusIds = new int[] { (int)CandidateWorkTimeStatus.Matched, };
+    var availableWorkTimeStatus = CandidateWorkTimeStatus.PendingApproval.ToSelectList(false, excludedStatusIds).ToList();
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var franchises = franchiseService.GetAllFranchises();
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+
+<script type="text/javascript">
+    function onRead(e) {
+        return {
+            startDate: $("#startDate").val(),
+            endDate: $("#endDate").val(),
+        };
+    }
+</script>
+
+<div class="section-header" style="padding-bottom:20px">
+    <div class="options">
+        @Html.Label("startDate", T("Admin.Common.From").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("startDate").Value(startDate)
+        @Html.Label("endDate", T("Admin.Common.To").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("endDate").Value(endDate)
+        @Html.Kendo().Button().Name("loadWorkTimeChanges").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text)
+        <a id="exportexcel-selected" class="k-button">@T("Admin.Common.Invoice").Text</a>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+                @(Html.Kendo().Grid<WorkTimeChangeAfterInvoiceModel>()
+                    .Name("worktime-change-grid")
+                    .Events(events => events.DataBound("onDataBound"))
+                    .Columns(columns =>
+                    {
+                        columns.Bound(x => x).Filterable(false).Sortable(false)
+                            .ClientTemplate("<input type='checkbox' name='checkedRecords' value='#= CandidateWorkTimeBaseModel.Id #' class='checkboxGroups2'/>")
+                            .Title("<input id='mastercheckbox2' type='checkbox'/>")
+                            .HtmlAttributes(new { style = "text-align:center" }).Width(30);
+
+                        columns.Bound(x => x.CandidateWorkTimeBaseModel.CompanyName).Title(T("Common.Company").Text);
+
+                        columns.Bound(x => x.CandidateWorkTimeBaseModel.Year).Width(60).Hidden(true);
+                        columns.Bound(x => x.CandidateWorkTimeBaseModel.WeekOfYear).Title(T("Common.Week").Text)
+                            .ClientTemplate("#=CandidateWorkTimeBaseModel.WeekOfYear#/#=CandidateWorkTimeBaseModel.Year#")
+                            .Width(80);
+
+                        if (!workContext.CurrentAccount.IsVendor()&&commonSettings.DisplayVendor)
+                        {
+                            columns.ForeignKey(x => x.CandidateWorkTimeBaseModel.FranchiseId, franchises, "Id", "FranchiseName").Title(T("Common.Vendor").Text);
+                        }
+
+                        columns.Bound(x => x.CandidateWorkTimeBaseModel.EmployeeId).Title(T("Common.Employee").Text)
+                            .ClientTemplate(@Html.ActionLink("#=CandidateWorkTimeBaseModel.EmployeeId#", "Details", "Candidate", new { guid = "#=CandidateWorkTimeBaseModel.CandidateGuid#" }, new { target = "_blank" }).ToHtmlString())
+                            .Width(90);
+
+                        columns.Bound(x => x.CandidateWorkTimeBaseModel.EmployeeLastName).Width(100);
+                        columns.Bound(x => x.CandidateWorkTimeBaseModel.EmployeeFirstName).Width(100);
+
+                        columns.Bound(x => x.CandidateWorkTimeBaseModel.JobOrderId).Title(T("Common.JobOrder").Text)
+                            .ClientTemplate(@Html.ActionLink("#=CandidateWorkTimeBaseModel.JobOrderId#", "Details", "JobOrder", new { guid = "#=CandidateWorkTimeBaseModel.JobOrderGuid#" }, new { target = "_blank" }).ToHtmlString())
+                            .Width(60);
+
+                        columns.Bound(x => x.CandidateWorkTimeBaseModel.JobTitle).Hidden(true);
+                        //columns.Bound(x => x.CandidateWorkTimeBaseModel.JobShift).Hidden(true);
+
+                        columns.Bound(x => x.CandidateWorkTimeBaseModel.LocationName).Hidden(true);
+                        columns.Bound(x => x.CandidateWorkTimeBaseModel.DepartmentName).Hidden(true);
+                        columns.Bound(x => x.CandidateWorkTimeBaseModel.ContactName).Hidden(true);
+
+                        columns.Bound(x => x.CandidateWorkTimeBaseModel.JobStartDateTime).Title(T("Common.StartDate").Text)
+                            .ClientTemplate("#=kendo.toString(kendo.parseDate(CandidateWorkTimeBaseModel.JobStartDateTime),'yyyy-MM-dd HH:mm')#")
+                            .Width(120);
+                        columns.Bound(x => x.CandidateWorkTimeBaseModel.JobEndDateTime).Title(T("Common.EndDate").Text)
+                            .ClientTemplate("#=kendo.toString(kendo.parseDate(CandidateWorkTimeBaseModel.JobEndDateTime),'yyyy-MM-dd HH:mm')#")
+                            .Width(120).Hidden(true);
+
+                        columns.ForeignKey(x => x.CandidateWorkTimeBaseModel.CandidateWorkTimeStatusId, availableWorkTimeStatus, "Value", "Text")
+                            .Title("Latest Status")
+                            .Width(100).Hidden(true);
+
+                        columns.Bound(x => x.CandidateWorkTimeBaseModel.InvoiceDate)
+                            .ClientTemplate("#if (CandidateWorkTimeBaseModel.InvoiceDate != null){# #=kendo.toString(kendo.parseDate(CandidateWorkTimeBaseModel.InvoiceDate),'yyyy-MM-dd HH:mm')# #}#")
+                            .Width(120);
+
+                        columns.Bound(x => x.CandidateWorkTimeLogModel.OriginalHours).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right" })
+                            //.HtmlAttributes(new { @class = "boldColumn" })
+                            .ClientGroupFooterTemplate("<span style='float: right'>#= kendo.toString(sum, 'n') #</span>")
+                            .Width(60);
+
+                        columns.Bound(x => x.CandidateWorkTimeLogModel.NewHours).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right" })
+                            //.HtmlAttributes(new { @class = "boldColumn" })
+                            .ClientGroupFooterTemplate("<span style='float: right'>#= kendo.toString(sum, 'n') #</span>")
+                            .Width(60);
+
+                        columns.Bound(x => x.CandidateWorkTimeLogModel.LatestChange).Format("{0:n2}").HtmlAttributes(new { style = "text-align:right" })
+                            //.HtmlAttributes(new { @class = "boldColumn" })
+                            .ClientGroupFooterTemplate("<span style='float: right'>#= kendo.toString(sum, 'n') #</span>")
+                            .Width(60);
+
+                        columns.Bound(x => x.CandidateWorkTimeLogModel.CreatedOn).Title("Updated On")
+                            .ClientTemplate("#=kendo.toString(kendo.parseDate(CandidateWorkTimeLogModel.CreatedOn),'yyyy-MM-dd HH:mm')#")
+                            .Width(120);
+
+                        columns.Bound(x => x.CandidateWorkTimeLogModel.Reason)
+                            .Width(80);
+                    })
+                    .EnableCustomBinding(true)
+                    .Reorderable(reorder => reorder.Columns(true))
+                    .Resizable(resize => resize.Columns(true))
+                    .Filterable()
+                    .Sortable()
+                    .ColumnMenu()
+                    .Selectable()
+                    .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                    .DataSource(ds => ds
+                        .Ajax()
+                        .ServerOperation(false)
+                        .PageSize(30)
+                        .Read(read => read.Action("ChangesAfterInvoice", "TimeSheet").Data("onRead"))
+                        .Model(model =>
+                        {
+                            model.Id(x => x.CandidateWorkTimeBaseModel.Id);
+                            model.Field(x => x.CandidateWorkTimeBaseModel.EmployeeId);
+                            model.Field(x => x.CandidateWorkTimeBaseModel.JobOrderId);
+                            model.Field(x => x.CandidateWorkTimeBaseModel.WeekOfYear);
+                        })
+                        .Aggregates(aggregates =>
+                        {
+                            //aggregates.Add(a => a.CandidateWorkTimeBaseModel.CompanyName).Count();
+                            aggregates.Add(a => a.CandidateWorkTimeLogModel.OriginalHours).Sum();
+                            aggregates.Add(a => a.CandidateWorkTimeLogModel.NewHours).Sum();
+                            aggregates.Add(a => a.CandidateWorkTimeLogModel.LatestChange).Sum();
+                        })
+                        .Group(groups =>
+                        {
+                            groups.Add(x => x.CandidateWorkTimeBaseModel.CompanyName);
+                            //groups.AddDescending(x => x.CandidateWorkTimeBaseModel.WeekOfYear);
+                        })
+
+                    )
+                    .Filterable(filterable => filterable
+                        .Extra(false)
+                        .Operators(operators => operators
+                            .ForString(str => str.Clear()
+                                .Contains("Contains")
+                                .IsEqualTo("Is equal to")
+                                .IsNotEqualTo("Is not equal to")
+                            )
+                        )
+                    )
+            )
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+
+    var selectedIds2 = [];
+
+    $(document).ready(function () {
+
+        $('#mastercheckbox2').click(function () {
+            $('.checkboxGroups2').attr('checked', $(this).is(':checked')).change();
+        });
+
+        //wire up checkboxes.
+        $('#worktime-change-grid').on('change', 'input[type=checkbox][id!=mastercheckbox2]', function (e) {
+            var $check = $(this);
+            if ($check.is(":checked") == true) {
+                var checked = jQuery.inArray($check.val(), selectedIds2);
+                if (checked == -1) {
+                    //add id to selectedIds.
+                    selectedIds2.push($check.val());
+                }
+            }
+            else {
+                var checked = jQuery.inArray($check.val(), selectedIds2);
+                if (checked > -1) {
+                    //remove id from selectedIds.
+                    selectedIds2 = $.grep(selectedIds2, function (item, index) {
+                        return item != $check.val();
+                    });
+                }
+            }
+            updateMasterCheckbox2();
+        });
+
+    });
+
+    function onDataBound(e) {
+        $('#worktime-change-grid input[type=checkbox][id!=mastercheckbox2]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds2);
+            //set checked based on if current checkbox's value is in selectedIds.
+            $(this).attr('checked', checked > -1);
+        });
+
+        updateMasterCheckbox2();
+    }
+
+    function updateMasterCheckbox2() {
+        var numChkBoxes = $('#worktime-change-grid input[type=checkbox][id!=mastercheckbox2]').length;
+        var numChkBoxesChecked = $('#worktime-change-grid input[type=checkbox][checked][id!=mastercheckbox2]').length;
+        $('#mastercheckbox2').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+
+</script>
+
+@using (Html.BeginForm("ExportWorkTimeChangesToXlsx", "TimeSheet", FormMethod.Post, new { id = "exporttoxlsx-selected-form" }))
+{
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+    <input type="hidden" id="hidenStartDate" name="hidenStartDate" value="" />
+    <input type="hidden" id="hidenEndDate" name="hidenEndDate" value="" />
+}
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $('#exportexcel-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds2.join(",");
+            $('#exporttoxlsx-selected-form #selectedIds').val(ids);
+            $('#exporttoxlsx-selected-form #hidenStartDate').val($("#startDate").val());
+            $('#exporttoxlsx-selected-form #hidenEndDate').val($("#endDate").val());
+            if ($("#Status").val() == null) {
+                $('#exporttoxlsx-selected-form #hidenStatus').val("");
+            }
+            else {
+                $('#exporttoxlsx-selected-form #hidenStatus').val($("#Status").val().join());
+            }
+            $('#exporttoxlsx-selected-form').submit();
+
+            return false;
+        });
+
+    });
+
+    $("#loadWorkTimeChanges").click(function () {
+        selectedIds2 = [];
+        refreshGrid("#worktime-change-grid");
+    });
+
+</script>

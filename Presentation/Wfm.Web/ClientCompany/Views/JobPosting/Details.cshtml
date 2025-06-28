@@ -1,0 +1,216 @@
+﻿@model JobPostingModel
+@using Wfm.Core;
+@using Wfm.Shared.Models.JobPosting;
+@using Wfm.Services.Features;
+@{
+    ViewBag.PageTitle = T("Admin.Common.Details").Text;
+    ViewBag.BackTo = Html.ActionLink("(" + T("Client.JobPost.BackToList") + ")", "Index");
+    ViewBag.Highlight = Model.JobTitle;
+
+    ViewBag.Title = T("Admin.Common.Details").Text;
+    Html.SetActiveMenuItemSystemName("JobPostingDetails");
+
+    var gridName = "details-grid";
+    var serverOperation = true;
+
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var startDate = ViewBag.StartDate;
+
+    var userFeatureService = EngineContext.Current.Resolve<IUserFeatureService>();
+    bool publishFeatureEnabled = userFeatureService.CheckFeatureByName(workContext.CurrentAccount.CompanyId, "Publish Job Posting");
+}
+
+@section Options {
+    <div class="date-ref">
+        @Html.Label("FromDate", "From ")
+        @Html.Editor("fromDate", "Date", new { Value = startDate, Min = Model.StartDate, Max = Model.EndDate ?? DateTime.MaxValue, OnChange = "startDateChange" })
+    </div>
+}
+
+@Html.Partial("_Details", Model)
+@if (publishFeatureEnabled)
+{
+    @(Html.Kendo().Grid<JobPostingPublishModel>().Name(gridName)
+        .Events(events => events.DataBound("onDataBound").DetailExpand("onDetailExpand").DetailInit("onDetailInit"))
+        .Columns(columns =>
+        {
+            columns.Bound(x => x.VendorName).Title("Vendor")
+                .ClientFooterTemplate("Total");
+
+            columns.Bound(x => x.BillingRateCode).Title("Job Code")
+                .HeaderHtmlAttributes(new { title = "Job code for billing" })
+                .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0" })
+                .ClientTemplate("#if (BillingRateCode == null) {# <span style=\"color:red\">Billing rates not defined</span> #}else{# #= BillingRateCode # #}#");
+
+            columns.Bound(x => x.Opening).HtmlAttributes(new { align = "right" })
+                .HtmlAttributes(new { @class = "col-xxs-3 col-xs-2 col-sm-2 col-md-1 cell-lg-2" })
+                .ClientTemplate("<span>#= Opening > 0 || JobOrderId > 0 ? Opening : '' #</span>")
+                .EditorViewData(new { minValue = 1, maxValue = Model.NumberOfOpenings })
+                .ClientFooterTemplate("<span style='float: right'>#=sum#</span>");
+
+            columns.Bound(x => x.JobOrderId).Title("Job Order").HtmlAttributes(new { align = "center" })
+                .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0 cell-lg-2" })
+                .ClientTemplate("#if (JobOrderId == 0) {# #}else{# #=JobOrderId# #}#");
+
+            columns.Bound(x => x.Placed).HtmlAttributes(new { align = "right" })
+                .HtmlAttributes(new { @class = "col-xxs-3 col-xs-2 col-sm-2 col-md-1 cell-lg-2" })
+                .ClientTemplate("#if (Opening > 0) {# #= Placed # #}else{# #}#")
+                .ClientFooterTemplate("<span style='float: right'>#=sum#</span>");
+
+            columns.Bound(x => x.Shortage).HtmlAttributes(new { align = "right" })
+                .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-2 col-md-1 cell-lg-2" })
+                .ClientTemplate("#if (Opening > 0) {# #= Shortage # #}else{# #}#")
+                .ClientFooterTemplate("<span style='float: right'>#=sum#</span>");
+        })
+        .ToolBar(toolBar => { if (ViewBag.Publishable) toolBar.Save(); })
+        .Editable(editable => editable.Mode(GridEditMode.InCell))
+        .Sortable()
+        .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50 }).Refresh(true))
+        .DataSource(ds => ds.Ajax().PageSize(10).Batch(true).ServerOperation(serverOperation)
+            .Read(read => read.Action("_GetPublishStatus", "JobPosting").Data("gridParameters"))
+            .Update(update => update.Action("_PublishJobPosting", "JobPosting").Data("gridParameters"))
+            .Model(model =>
+            {
+                model.Id(x => x.VendorId);
+                model.Field(x => x.VendorId).Editable(false);
+                model.Field(x => x.VendorName).Editable(false);
+                model.Field(x => x.BillingRateCode).Editable(false);
+                model.Field(x => x.JobOrderId).Editable(false);
+                model.Field(x => x.VendorId).Editable(false);
+                model.Field(x => x.Placed).Editable(false);
+                model.Field(x => x.Shortage).Editable(false);
+            })
+            .Events(events => events.Error("onError").Sync("onSync"))
+            .Sort(sorts =>
+            {
+                sorts.Add(x => x.Opening).Descending();
+                sorts.Add(x => x.JobOrderId).Descending();
+                sorts.Add(x => x.VendorId);
+            })
+            .Aggregates(a =>
+            {
+                a.Add(x => x.Opening).Sum();
+                a.Add(x => x.Placed).Sum();
+                a.Add(x => x.Shortage).Sum();
+            })
+            .Events(events => events.Error("onError").Sync("onSync"))
+        )
+        .Events(e => e.Edit("onEdit"))
+        .ClientDetailTemplateId("placedTemplate")
+    )
+}
+
+<script id="placedTemplate" type="text/x-kendo-template">
+    @(Html.Kendo().Grid<PlacementRejectionModel>().Name("grid_#=JobOrderId#")
+        .Events(e => e.DataBound("onDetailDataBound"))
+        .Columns(columns =>
+        {
+            columns.Bound(x => x.EmployeeId).Title("No.")
+                .HeaderHtmlAttributes(new { title = "Employee number" })
+                .HtmlAttributes(new { @class = "col-xs-2 cell-lg-2" })
+                .ClientTemplate("<a onclick=getCandidateInfo('\\#=CandidateGuid\\#')>\\#=EmployeeId\\#</a>");
+
+            columns.Bound(x => x.CandidateName).Title("Name")
+                .HtmlAttributes(new { @class = "col-xs-3" });
+
+            columns.Bound(x => x.IsBanned).Title("Banned")
+                .HeaderHtmlAttributes(new { title = "In DNR list ?" })
+                .HtmlAttributes(new { @class = "col-xxs-0 col-xs-2 cell-lg-2", align = "center" })
+                .ClientTemplate("\\#if (IsBanned) {\\# <img alt='' src='" + Url.Content("~/Content/images/ico-banned.png") + "' /> \\#}else{\\# \\#}\\#");
+
+            columns.Bound(x => x.BannedReason).Title("Reason")
+                .HtmlAttributes(new { @class = "col-xxs-0 col-xs-3" });
+
+            columns.Command(command => { command.Custom("Reject").Click("rejectPlacement"); }).Title(T("Common.Action").Text)
+                .HtmlAttributes(new { @class = "col-xs-2 cell-lg-2", align = "center" });
+        })
+        .DataSource(ds => ds.Ajax().PageSize(5)
+            .Read(read => read.Action("GetJobOrderPlacedCandidates", "JobPosting", new { jobOrderId = "#=JobOrderId#" }).Data("pipelineGridParameters"))
+        )
+        .Pageable()
+        .Sortable()
+        .ToClientTemplate()
+    )
+</script>
+
+@section scripts {<script type="text/javascript">
+
+    $(function () { initSearchAndGrid(null, '@gridName'); });
+
+    function startDateChange() { reloadGridByName('@gridName'); }
+    function endDateChange() { reloadGridByName('@gridName'); }
+
+    function onDataBound(e) {
+        setGridResponsive(e.sender);
+        setGridRows(e.sender);
+    }
+
+    function setGridRows(grid) {
+        $('a.k-grid-save-changes').text('Save');
+        $('a.k-grid-cancel-changes').text('Cancel');
+        grid.tbody.find('>tr').each(function () {
+            var dataItem = grid.dataItem(this);
+            if (!dataItem.Placed) {
+                $(this).find(".k-hierarchy-cell a").removeClass("k-icon");
+            }
+            markEditableCells(grid, $(this))
+        })
+    }
+
+    function gridParameters() {
+        return {
+            guid: '@(ViewBag.JobPostingGuid)',
+            refDate: $("#fromDate").data("kendoDatePicker").value()
+        };
+    }
+
+    function onEdit(e) {
+        if (!e.model.BillingRateCode || '@(ViewBag.Publishable)' === 'False') {
+            e.sender.closeCell();
+        }
+    }
+
+    function onError(e) {
+        if (e.errors) {
+            var message = "Errors:\n\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value)
+                    $.each(value.errors, function () { message += this + "\n"; });
+            });
+            popupNotification(message, 'error');
+        }
+    }
+
+    function onSync(e) { reloadGridByName('@gridName'); }
+
+    function pipelineGridParameters() {
+        return {
+            refDate: $("#fromDate").data("kendoDatePicker").value()
+        };
+    }
+
+    function onDetailDataBound(e) { setGridResponsive(e.sender); }
+
+    function refreshDetailGrid(jobOrderId) { reloadGridByName('grid_' + jobOrderId); }
+
+    function onDetailInit(e) { }
+
+    function onDetailExpand(e) { }
+
+    function rejectPlacement(e) {
+        var grid = this;
+        var formName = 'reject-form';
+        var dataItem = grid.dataItem($(e.currentTarget).closest("tr"));
+        var jobOrderId = dataItem.JobOrderId;
+        var candidateId = dataItem.CandidateId;
+        var refDate = kendo.toString($("#fromDate").data("kendoDatePicker").value(), 'yyyy-MM-dd');
+        var getUrl = '@Url.Action("_RejectPlacement")' + '?jobOrderId=' + jobOrderId;
+        getUrl += '&candidateId=' + candidateId + '&refDate=' + refDate + '&formName=' + formName;
+        var postUrl = '@Url.Action("_RejectPlacement")';
+        popupPost('reject-placement', getUrl, 'Reject placement', 480, formName, postUrl,
+            'Candidate ' + candidateId + ' is removed from job order ' + jobOrderId,
+            function (result) { refreshDetailGrid(jobOrderId); reloadGrid(grid); }
+        );
+    }
+
+</script>}

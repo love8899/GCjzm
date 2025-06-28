@@ -1,0 +1,88 @@
+﻿@using Kendo.Mvc.UI;
+
+@model IEnumerable<AccessLogModel>
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Logging.AccessLog").Text;
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Logging.AccessLog")
+    </div>
+    <div class="options">
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<AccessLogModel>()
+                .Name("accesslog-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(70).Hidden();
+                    columns.Bound(x => x.AccountId).Filterable(ftb => ftb.Cell(cell => cell.Enabled(false))).Width(100)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" });
+
+                    columns.Bound(x => x.Username)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Width(220);
+
+                    columns.Bound(x => x.IpAdress)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Width(120);
+                    columns.Bound(x => x.UserAgent)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+
+                    columns.Bound(x => x.IsSuccessful)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsSuccessful.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsSuccessful #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(160);
+
+                    columns.Bound(x => x.Description)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+
+                    columns.Bound(x => x.UpdatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120);
+                    columns.Bound(x => x.CreatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120).Hidden(true);
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false).Width(60)
+                            .Template(x => Html.ActionLink(T("Admin.Common.Details").Text, "Details", new { x.Id }))
+                            .ClientTemplate("<a href=\"" + @Url.Content("~/Admin/AccessLog/Details/") + "#= Id #\">" + T("Admin.Common.Details").Text + "</a>")
+                            .Title("");
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(true))
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("Index", "AccessLog"))
+                )
+                //.Filterable(filterable => filterable
+                //    .Extra(false)
+                //    .Operators(operators => operators
+                //        .ForString(str => str.Clear()
+                //            .Contains("Contains")
+                //            .IsEqualTo("Is equal to")
+                //            .IsNotEqualTo("Is not equal to"))
+                //    )
+                //)
+            )
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,32 @@
+﻿@model JobOrderDateModel
+
+
+@{
+    ViewBag.Title = "Export Attendant List";
+    var date = DateTime.Today.Date < Model.StartDate ? Model.StartDate : DateTime.Today.Date;
+}
+
+
+@using (Html.BeginForm("ExportExcelAll", "JobOrder", new { guid = ViewBag.JobOrderGuid }, FormMethod.Post, new { id = "export-form" }))
+{
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">Start Date</td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                    .Name("startDate")
+                    .Format("yyyy-MM-dd")
+                    .Min(Model.StartDate)
+                    .Max((Model.EndDate.HasValue ? Model.EndDate.Value : DateTime.MaxValue))
+                    .Value(date)
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle"></td>
+            <td class="adminData">
+                <input type="submit" id="submit-export" value="Export" name="submit" class="k-button" />
+            </td>
+        </tr>
+    </table>
+}

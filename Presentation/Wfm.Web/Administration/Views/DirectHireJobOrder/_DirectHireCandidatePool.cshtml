@@ -1,0 +1,90 @@
+﻿
+<div class="section-header">
+    <div class="title">
+        @T("Admin.JobOrders.Pipeline.PoolTitle")
+    </div>
+    <div class="options">
+        <button id="btnAddToPipeline" class="k-button">Add</button>
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<DirectHireCandidatePoolListModel>()
+               .Name("candidate-pool-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Hidden();
+
+                    columns.Bound(x => x.EmployeeId).Width(90)
+                        .ClientTemplate(@Html.ActionLink("#=EmployeeId#", "Details","Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString());
+
+                    columns.Bound(x => x.LastName);
+                    columns.Bound(x => x.FirstName);
+
+                    columns.Bound(x => x.KeySkill)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+
+                    columns.Bound(x => x.Note)
+                       .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+
+                    columns.Bound(x => x.YearsOfExperience)
+                       .Width(90).Hidden(true);
+
+                    columns.Bound(x => x.LastUsedDate)
+                        .ClientTemplate("#= (LastUsedDate == null) ? ' ' :kendo.toString(LastUsedDate,'yyyy-MM-dd')#")
+                        .Width(90);
+
+                    columns.Bound(x => x.UpdatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#= (UpdatedOnUtc == null) ? ' ' : kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120).Hidden(true);
+
+                    columns.Bound(x => x.CreatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#= (CreatedOnUtc == null) ? ' ' : kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120).Hidden(true);
+
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Sortable()
+                .Selectable(configurator => configurator.Mode(GridSelectionMode.Single))
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(true)
+                        .PageSize(10)
+                        .Read(read => read.Action("GetDirectHireCandidatePoolList", "DirectHireJobOrder"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+            </td>
+        </tr>
+    </table>
+            <script type="text/javascript">
+                $('#btnAddToPipeline').on('click', function () {
+                    var grid = $("#candidate-pool-grid").data("kendoGrid");
+                    var selectedRows = $(".k-state-selected", "#candidate-pool-grid");
+                    if (selectedRows.length > 0) {
+                        var selectedItem = grid.dataItem(selectedRows[0]);
+                        var candidateId = selectedItem.CandidateId;
+                        moveCandidate(candidateId);
+                    }
+                    else {
+                        alert('Please select candidate.');
+                    }
+                });
+
+            </script>

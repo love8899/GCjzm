@@ -1,0 +1,246 @@
+﻿@using Wfm.Services.Franchises
+@{
+    ViewBag.Title = T("Admin.Vendors.MassEmail").Text;
+
+    var vendorService = EngineContext.Current.Resolve<IFranchiseService>();
+    var vendors = vendorService.GetAllFranchisesAsQueryable(WorkContext.CurrentAccount).ToList();
+}
+
+<br />
+
+@(Html.Kendo().PanelBar().Name("search-bar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text("Email message")
+            .Expanded(false)
+            .Content(@<div class="panel">
+                @Html.Partial("_EmailMessage")
+            </div>);
+        panelbar.Add().Text("Choose vendor acounts")
+            .Expanded(false)
+            .Content(@<div class="panel">
+                @Html.Partial("_AdvancedSearch")
+            </div>);
+    })
+)
+
+<br />
+
+<div class="section-header">
+    <div class="title">
+        Target @T("Common.Vendor") @T("Common.Account")
+    </div>
+    <div class="options">
+        <button id="MassEmail2Selected" class="k-button">Send To Selected</button>
+        <button id="MassEmail2All" class="k-button">Send To All</button>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<AccountsViewModel>()
+                  .Name("vendoraccount-grid")
+                  .Events(events => events.DataBound("onDataBound"))
+                  .Columns(columns =>
+                  {
+                        columns.Bound(x => x).Filterable(false).Sortable(false)
+                            .ClientTemplate("<input type='checkbox' name='checkedRecords' value='#= Id #' class='checkboxGroups'/>")
+                            .Title("<input id='mastercheckbox' type='checkbox'/>")
+                            .Width(25);
+
+                        columns.ForeignKey(x => x.FranchiseId, vendors, "Id", "FranchiseName");                      
+                      
+                        columns.Bound(x => x.Id).Width(60).Hidden();
+
+                        columns.Bound(x => x.LastName).Width(100)
+                            .ClientTemplate(@Html.ActionLink("#=LastName#", "Details", "AccountManager", new { guid = "#=AccountGuid#" }, new { target = "_blank" }).ToHtmlString());
+                        columns.Bound(x => x.FirstName).Width(100)
+                            .ClientTemplate(@Html.ActionLink("#=FirstName#", "Details", "AccountManager", new { guid = "#=AccountGuid#" }, new { target = "_blank" }).ToHtmlString());
+
+                        columns.Bound(x => x.AccountRoleSystemName).Width(180);
+                        columns.Bound(x => x.Username).Width(100);
+
+                        columns.Bound(x => x.Email).Width(180);
+
+                        columns.Bound(x => x.WorkPhone).ClientTemplate("#= prettyPhone(WorkPhone) #").Width(150);
+                        columns.Bound(x => x.MobilePhone).ClientTemplate("#= prettyPhone(MobilePhone) #").Width(110);
+
+                        columns.Bound(x => x.IsActive)
+                             .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                            .Filterable(false).Width(80);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("_GetTargetVendorAccounts", "Vendor").Data("onRead"))
+                    .Sort(sorts => sorts.Add(x => x.FranchiseId))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+
+<script type="text/javascript">
+
+    var selectedIds = [];
+
+    $(document).ready(function () {
+
+        $("#MassEmail2Selected").bind("click", massEmail2Selected);
+        $("#MassEmail2All").bind("click", massEmail2All);
+
+        $('#mastercheckbox').click(function () {
+            $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+        });
+
+        //wire up checkboxes.
+        $('#vendoraccount-grid').on('change', 'input[type=checkbox][id!=mastercheckbox]', function (e) {
+            var $check = $(this);
+            if ($check.is(":checked") == true) {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked == -1) {
+                    //add id to selectedIds.
+                    selectedIds.push($check.val());
+                }
+            }
+            else {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked > -1) {
+                    //remove id from selectedIds.
+                    selectedIds = $.grep(selectedIds, function (item, index) {
+                        return item != $check.val();
+                    });
+                }
+            }
+            updateMasterCheckbox();
+        });
+
+    });
+
+    function onDataBound(e) {
+        $('#vendoraccount-grid input[type=checkbox][id!=mastercheckbox]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds);
+            //set checked based on if current checkbox's value is in selectedIds.
+            $(this).attr('checked', checked > -1);
+        });
+
+        updateMasterCheckbox();
+    }
+
+    function updateMasterCheckbox() {
+        var numChkBoxes = $('#vendoraccount-grid input[type=checkbox][id!=mastercheckbox]').length;
+        var numChkBoxesChecked = $('#vendoraccount-grid input[type=checkbox][checked][id!=mastercheckbox]').length;
+        $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+
+    //function refreshGird() {
+    //    var grid = $("#vendoraccount-grid").data("kendoGrid");
+    //    grid.dataSource.page(1);
+    //    grid.dataSource.read();
+    //}
+
+    function massEmail2Selected(e) {
+        e.preventDefault();
+
+        if (!IsMessageReady())
+            alert("The message is incomplete. Please doouble check.");
+        else {
+            if (selectedIds.length > 0) {
+                var goAhead = confirm("Are you sure to send the email message to " + selectedIds.length + " vendor account(s)?")
+                if (goAhead) {
+                    var ids = selectedIds.join();
+                    var message = GetMessage();
+                    $.ajax({
+                        url: "@(Url.Action("_MassEmail2Selected", "Vendor"))",
+                        data: { systemAccount: message.SystemAccount, subject: message.Subject, message: message.Body, selectedIds: ids },
+                        cache: false,
+                        async: false,
+                        type: 'POST',
+                        success: function (result) {
+                            if (result.ErrorMessage) {
+                                alert(result.ErrorMessage);
+                            }
+                            else {
+                                alert('The email will be sent to ' + result.Done + ' vendor account(s)');
+                            }
+                        },
+                        error: function (data) {
+                            alert(data.responseText);
+                        }
+                    });
+                    return false;
+                }
+            } else {
+                alert('Please select candidates from the grid.');
+            }
+        }
+    }
+
+    function massEmail2All(e) {
+        e.preventDefault();
+
+        if (!IsMessageReady())
+            alert("The message is incomplete. Please doouble check.");
+        else {
+            var grid = $("#vendoraccount-grid").data("kendoGrid");
+            var total = grid.dataSource.total();
+            if (total > 0) {
+                var goAhead = confirm("Are you sure to send the email message to " + total + " vendor account(s)?")
+                if (goAhead) {
+                    var message = GetMessage();
+                    var data2post = JSON.stringify({
+                        systemAccount: message.SystemAccount, subject: message.Subject, message: message.Body,
+                        selector: GetSelector(),
+                    });
+                    $.ajax({
+                        url: "@(Url.Action("_MassEmail2All", "Vendor"))",
+                        data: data2post,
+                        contentType: 'application/json',
+                        cache: false,
+                        async: false,
+                        type: 'POST',
+                        success: function (result) {
+                            if (result.ErrorMessage) {
+                                alert(result.ErrorMessage);
+                            }
+                            else {
+                                alert('The email will be sent to ' + result.Done + ' vendor account(s)');
+                            }
+                        },
+                        error: function (data) {
+                            alert(data.responseText);
+                        }
+                    });
+                    return false;
+                }
+            } else {
+                alert('Please re-search to get some candidates.');
+            }
+        }
+    }
+
+</script>

@@ -1,0 +1,2 @@
+DataProvider: sqlserver
+DataConnectionString: Data Source=GC-USER\SQLEXPRESS;Initial Catalog=Workforce4;Integrated Security=SSPI; Persist Security Info=False;MultipleActiveResultSets=True

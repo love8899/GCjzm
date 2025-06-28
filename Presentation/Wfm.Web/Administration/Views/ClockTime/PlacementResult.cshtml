@@ -1,0 +1,37 @@
+﻿@model List<PlacementResultModel>
+@{
+    bool ischecked = true;
+}
+@if (Model == null || Model.Count <= 0)
+{
+    <p>
+        The candidate has not been placed in any job orders yet. Please go to "Candidate Placement" step to do placement!
+    </p>
+}
+else
+{
+    <p>
+        Which job order listed below should the punch record belong to?
+    </p>
+    <ul class="fieldlist">
+        @foreach (var data in Model)
+        {
+            if(data.Guessed)
+            {
+                <li style="color:deepskyblue;display:list-item">
+                    @Html.RadioButton("jobOrder", String.Concat(data.Date.ToString("MM/dd/yyyy"), "-",data.JobOrderId,"-",data.CandidateMatchedWorkTimeId ), ischecked) @String.Concat(data.JobOrderId, " - ", data.JobTitle, " on ", data.Date.ToString("MM/dd/yyyy"),data.Guessed?" (Guessed job order)":"")
+                </li>
+            }
+            else
+            {
+                <li style="display:list-item">
+                    @Html.RadioButton("jobOrder", String.Concat(data.Date.ToString("MM/dd/yyyy"), "-", data.JobOrderId), ischecked) @String.Concat(data.JobOrderId, " - ", data.JobTitle, " on ", data.Date.ToString("MM/dd/yyyy"), data.Guessed ? " (Guessed job order)" : "")
+                </li>
+            }
+            ischecked = false;
+
+
+        }
+    </ul>
+    <br />
+}

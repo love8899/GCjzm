@@ -1,0 +1,132 @@
+﻿@using Wfm.Services.Candidates
+@using Wfm.Services.Companies
+
+@{
+    var candidateJobOrderService = EngineContext.Current.Resolve<ICandidateJobOrderStatusService>();
+    var candidateJobOrderStatus = candidateJobOrderService.GetAllCandidateJobOrderStatus().Where(s => !s.ForDirectHire);
+    var candidateJobOrderStatusDropDownList = new List<SelectListItem>();
+
+    foreach (var c in candidateJobOrderStatus)
+    {
+        var item = new SelectListItem()
+        {
+            Text = c.StatusName,
+            Value = c.Id.ToString()
+        };
+        candidateJobOrderStatusDropDownList.Add(item);
+    }
+}
+
+<script type="text/javascript">
+
+    function filterLocations() { return { companyId: $("#CompanyId").val() }; }
+
+    function filterDepartments() { return { locationId: $("#LocationId").val() }; }
+
+    function filterJobOrders() {
+        return {
+            companyId: $('[name="CompanyId"]').val(),
+            locationId: $('[name="LocationId"]').val(),
+            departmentId: $('[name="DepartmentId"]').val(),
+            startDateString: $('[name="start"]').val(),
+            endDateString: $('[name="end"]').val()
+        };
+    }
+
+    function startDateChange() {
+    }
+
+    function endDateChange() {
+    }
+
+    function statusChange() {
+    }
+
+    function GetPipelineProfile() {
+        var jobOrderId = $("#JobOrderId").val();
+        var startDate = $("#startDate").data("kendoDatePicker").value();
+        var endDate = $("#endDate").data("kendoDatePicker").value();
+        var statusList = $("#Placement").val();
+        return {
+            JobOrderId: parseInt(jobOrderId),
+            StartDate: startDate == null ? null : startDate.toISOString().split('T')[0],
+            EndDate: endDate == null ? null : endDate.toISOString().split('T')[0],
+            StatusIds: statusList == null ? [] : statusList.map(Number),
+        };
+    }
+
+    function IsPipelineProfileComplete() {
+        var profile = GetPipelineProfile();
+        return !isNaN(profile.JobOrderId) && profile.StartDate != null && profile.EndDate != null;
+    }
+
+</script>
+<br />
+<label class="first-label">@T("Common.Company")</label>
+@(Html.Kendo().ComboBox().Name("CompanyId")
+    .HtmlAttributes(new { data_bind = "value:CompanyId", style = "width: 250px" })
+    .DataTextField("Text")
+    .DataValueField("Value")
+    .Placeholder("Select a company...")
+    .DataSource(source =>
+        source.Read(read => read.Action("GetCascadeCompanies", "JobOrder")).ServerFiltering(true)
+    )
+)
+
+<label>@T("Common.Location")</label>
+@(Html.Kendo().DropDownList().Name("LocationId")
+    .HtmlAttributes(new { data_bind = "value:LocationId", style = "width: 250px" })
+    .DataTextField("Text")
+    .DataValueField("Value")
+    .OptionLabel("Select a location...")
+    .DataSource(source =>
+        source.Read(read => read.Action("GetCascadeLocations", "Common").Data("filterLocations")).ServerFiltering(true)
+    )
+    .Enable(false)
+    .AutoBind(false)
+    .CascadeFrom("CompanyId")
+)
+
+<label>@T("Common.Department")</label>
+@(Html.Kendo().DropDownList().Name("DepartmentId")
+    .HtmlAttributes(new { data_bind = "value:DepartmentId", style = "width: 250px" })
+    .DataTextField("Text")
+    .DataValueField("Value")
+    .OptionLabel("Select a department...")
+    .DataSource(source =>
+        source.Read(read => read.Action("GetCascadeDepartments", "Common").Data("filterDepartments")).ServerFiltering(true)
+    )
+    .Enable(false)
+    .AutoBind(false)
+    .CascadeFrom("LocationId")
+)
+
+
+<label>@T("Common.JobOrders")</label>
+@(Html.Kendo().DropDownList().Name("JobOrderId")
+    .HtmlAttributes(new { data_bind = "value:JobOrderId", style = "width: 400px" })
+    .DataTextField("Text")
+    .DataValueField("Value")
+    .OptionLabel("Select a job order...")
+    .DataSource(source =>
+        source.Read(read => read.Action("GetCascadeJobOrders", "JobOrder").Data("filterJobOrders")).ServerFiltering(true)
+    )
+    .Enable(false)
+    .AutoBind(false)
+    .CascadeFrom("DepartmentId")
+)
+
+<br /><br />
+
+<label class="first-label">@T("Admin.Common.From")</label>
+@Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("startDate").Value(DateTime.Today.AddDays(-7)).Events(e => e.Change("startDateChange"))
+
+<label>@T("Admin.Common.To")</label>
+@Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("endDate").Value(DateTime.Today).Events(e => e.Change("endDateChange"))
+
+<label>Status: </label>
+@(Html.Kendo().MultiSelect().Name("Placement")
+    .BindTo(candidateJobOrderStatusDropDownList)
+    .DataTextField("Text").DataValueField("Value")
+    .Value(candidateJobOrderStatusDropDownList.Where(x => x.Value == "1" || x.Value == "12"))
+    .HtmlAttributes(new { style = "width:480px" }).MaxSelectedItems(5).Events(e => e.Change("statusChange")))

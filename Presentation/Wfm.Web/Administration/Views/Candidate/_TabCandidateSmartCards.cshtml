@@ -1,0 +1,240 @@
+﻿@if (ViewBag.DisplayHeader == null || ViewBag.DisplayHeader)
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.TimeClocks.CandidateSmartCards")
+        </div>
+        <div class="options">
+            <button class="k-button" onclick="return printSmartCard(event);">Print</button>
+            <button class="k-button" onclick="return sendQrCode(event);">Send&nbsp;<i class="fa fa-qrcode"></i></button>
+        </div>
+    </div>
+}
+
+<script src="@Url.Content("~/Scripts/admin.common.js?version=1.8")" type="text/javascript"></script>
+<script type="text/javascript">
+    function onSync(e) {
+        refreshGrid('#candidatesmartcardmodel-grid');
+    }
+</script>
+
+@using (Html.BeginForm("GetCandidateSmartCardPdf", "Candidate", FormMethod.Post, new { id = "card-pdf-form" }))
+{
+    <input type="hidden" id="guid" name="guid" value="" />
+    <input type="hidden" id="bitmapName" name="bitmapName" value="" />
+}
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateSmartCardModel>()
+                .Name("candidatesmartcardmodel-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.SmartCardUid).EditorTemplateName("SmartCardUidEditor")
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+
+                    columns.Bound(x => x.IsActive)
+                       .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" });
+
+                    columns.Bound(x => x.ActivatedDate).Format("{0:yyyy-MM-dd}");
+
+                    columns.Bound(x => x.DeactivatedDate).Format("{0:yyyy-MM-dd HH:mm}");
+                    columns.Bound(x => x.ReasonForDeactivation)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+
+                    columns.Bound(x => x.Note)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains"))).Hidden(true);
+
+                    columns.Bound(x => x.UpdatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120);
+                    columns.Bound(x => x.CreatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Enabled(false)))
+                        .ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120).Hidden(true);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Sortable()
+                .Selectable()
+                .ToolBar(toolBar => { toolBar.Create(); toolBar.Save(); })
+                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                .Pageable(x => x.PageSizes(new[] { 5, 10, 20 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .Batch(true)
+                    .ServerOperation(false)
+                    .PageSize(5)
+                    .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                        model.Field(p => p.CandidateSmartCardGuid).DefaultValue(Guid.NewGuid());
+                        model.Field(p => p.CandidateId).DefaultValue(ViewBag.CandidateId);
+                        model.Field(p => p.CandidateGuid).DefaultValue(ViewBag.CandidateGuid);
+                        model.Field(p => p.SmartCardUid);
+                        model.Field(p => p.IsActive).DefaultValue(true);
+                        model.Field(p => p.ActivatedDate).DefaultValue(DateTime.Today);
+                        model.Field(p => p.DeactivatedDate);
+                        model.Field(p => p.ReasonForDeactivation);
+                        model.Field(p => p.Note);
+                        model.Field(p => p.UpdatedOnUtc).DefaultValue(DateTime.UtcNow).Editable(false);
+                        model.Field(p => p.CreatedOnUtc).DefaultValue(DateTime.UtcNow).Editable(false);
+                        model.Field(p => p.CreatedOn).DefaultValue(DateTime.Now).Editable(false);
+                        model.Field(p => p.UpdatedOn).DefaultValue(DateTime.Now).Editable(false);
+                    })
+                    .Read(read => read.Action("_TabCandidateSmartCardsList", "Candidate", new { candidateGuid = ViewBag.CandidateGuid }))
+                    .Update(update => update.Action("_EditSmartCard", "SmartCard"))
+                    .Create(create => create.Action("_AddSmartCard", "SmartCard"))
+                    .Events(events => events.Error("error_handler").Sync("onSync"))
+                )
+            )                  
+        </td>
+    </tr>
+</table>
+
+
+<script type="text/javascript">
+
+    // css style for smart card
+    var style = '';
+
+    function printElement(elem, title) {
+        newPopup($(elem).html(), title);
+    }
+
+    function newPopup(data, title) {
+        var win = window.open('', title, '');
+        win.document.write('<html><head><title>' + title + '</title>');
+        win.document.write('<link href="@Url.Content("~/Administration/Content/tempus.css")" rel="stylesheet" type="text/css" />');
+        win.document.write('</head><body>');
+        win.document.write(data);
+        win.document.write('</body></html>');
+
+        win.document.close(); // necessary for IE >= 10
+        win.focus(); // necessary for IE >= 10
+
+        // wait for image load
+        setTimeout(function () {
+            win.print();
+            win.close();
+        }, 1000);
+    }
+
+    function printSmartCard(e) {
+        e.preventDefault();
+
+        var card = getCardLayout();
+        if (card) {
+            card = setSmartCard(card);
+            card = setPhoto(card);
+            card = setBarcode(card);
+            var page = setPage('Smart Card', card);
+            var win = window.open('', 'Smart Card', '');
+            win.document.write(page);
+            win.document.close(); // necessary for IE >= 10
+            win.focus(); // necessary for IE >= 10
+            // wait for image load
+            setTimeout(function () {
+                win.print();
+                win.close();
+            }, 1000);
+        }
+        else
+            alert('Cannot get smart card layout.');
+
+        return false;
+    }
+
+    function getCardLayout() {
+        var layout = '';
+        $.ajax({
+            url: "@(Url.Action("_GetSmartCardLayout", "Vendor"))",
+            cache: false,
+            async: false,
+            type: 'GET',
+            dataType: 'html',
+            success: function (result) {
+                layout = result;
+            },
+        });
+        return layout;
+    }
+
+    function setSmartCard(card) {
+        var error = '';
+        $.ajax({
+            url: "@(Url.Action("_GetSmartCardVendorInformation", "Vendor"))",
+            data: { franchiseId: '@(ViewBag.FranchiseId)' },
+            cache: false,
+            async: false,
+            type: 'POST',
+            success: function (result) {
+                style = result.Style;
+                card = card.replace('<div id="logo" class="row"><img alt="Logo"></div>', '<div id="logo" class="row"><img src="data:image/bmp;base64,' + result.LogoStr + '" alt="Logo"></div>');
+                var name = result.NamePrefix + '@(ViewBag.FullName)';
+                card = card.replace('<div id="fullname" class="row">Name</div>', '<div id="fullname" class="row">' + name + '</div>');
+                var id = result.IdPrefix + '@(ViewBag.CandidateId)';
+                card = card.replace('<div id="employeeid" class="row">ID</div>', '<div id="employeeid" class="row">' + id + '</div>');
+                card = card.replace('<div id="note" class="row">Note</div>', '<div id="note" class="row">' + result.NoteText + '</div>');
+            },
+        });
+        return card;
+    }
+
+    function setPhoto(card) {
+        $.ajax({
+            url: "@(Url.Action("_GetCandidatePhoto", "Candidate"))",
+            data: { candidateId: '@(ViewBag.CandidateId)' },
+            cache: false,
+            async: false,
+            type: 'POST',
+            success: function (result) {
+                card = card.replace('<div id="photo" class="row"><img alt="Photo"></div>', '<div id="photo" class="row"><img src="data:image/bmp;base64,' + result.PhotoStr + '" alt="Photo"></div>');
+            },
+        });
+        return card;
+    }
+
+    function setBarcode(card) {
+        return card.replace('<div id="barcode" class="row">Bar Code</div>',
+            '<div id="barcode" class="row">@Html.GenerateQrCode((string)ViewBag.QrCodeStr, 1000, 1000, 0)</div>')
+    }
+
+    function setPage(title, card) {
+        var page = '<html><head><title>' + title + '</title>';
+        page += '<link href="@Url.Content("~/Administration/Content/tempus.css")" rel="stylesheet" type="text/css" />';
+        if (!style)
+            page += '<link href="@Url.Content("~/Administration/Content/smartcard.css")" rel="stylesheet" type="text/css" />';
+        else
+            page += '<style>\r\n' + style + '\r\n</style>';
+        page += '<script src="https://code.jquery.com/jquery-2.2.2.min.js">' + '<\/script>';
+        page += '</head><body>';
+        page += card;
+        page += '<script>window.onload = function () { scaleImages(); };<\/script>';
+        page += '</body></html>';
+        return page;
+    }
+
+    function sendQrCode(e) {
+        $.ajax({
+            url: "@(Url.Action("_SendQrCode", "Candidate"))",
+            data: { candidateId: '@(ViewBag.CandidateId)' },
+            cache: false,
+            async: false,
+            type: 'POST',
+            success: function (result) {
+                if (result.Succeed)
+                    alert('The QR code is sent out successfully.');
+                else
+                    alert('The QR code is NOT sent out.');
+            },
+        });
+    }
+
+</script>

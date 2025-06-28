@@ -1,0 +1,54 @@
+﻿@model Wfm.Client.Models.Accounts.AccountDelegateModel
+@{
+    Layout = null;
+
+    var formName = (string)ViewBag.FormName;
+}
+
+<script type="text/javascript">
+    $(function () {
+        enableValidation('@formName');
+    });
+    function onChange() {
+        var end = $("#end-date").data("kendoDatePicker");
+        var startDate = $("#start-date").data("kendoDatePicker").value();
+        end.min(startDate);
+        if (end.value() < startDate)
+            end.value(startDate);
+    }
+</script>
+
+@using (Html.BeginForm("UpdateDelegate", "Account", FormMethod.Post, new { id = formName }))
+{
+    var validationSummary = Html.ValidationSummary(true);
+    if (!MvcHtmlString.IsNullOrEmpty(validationSummary))
+    {
+        <div class="message-error">@validationSummary</div>
+    }
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.AccountId)
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+    @Html.HiddenFor(model => model.UpdatedOnUtc)
+    
+    <div class="fieldset">
+        <div class="form-fields">
+            @Html.InputLineFor(m => m.DelegateAccountId, T("Admin.Accounts.Account.Delegate.Account").Text, rowCls: "inputs",
+                tmplt: "DropDownList", viewData: new { Items = Model.AvaliableAccounts })
+
+            @Html.InputLineFor(m => m.StartDate, rowCls: "inputs",
+                tmplt: "Date", viewData: new { Format = "yyyy-MM-dd", Id = "start-date", OnChange = "onChange" })
+
+            @Html.InputLineFor(m => m.EndDate, rowCls: "inputs",
+                tmplt: "Date", viewData: new { Format = "yyyy-MM-dd", Id = "end-date", OnChange = "onChange" })
+
+            @Html.InputLineFor(m => m.Remark, rowCls: "inputs",
+                tmplt: "Text", viewData: new { PlaceHolder = "Please input remarks if any" })
+        </div>
+    </div>
+    
+    <div class="buttons">
+        <input type="button" class="k-button btn-save" value="@T("Admin.Common.Save")" />
+        <input type="button" class="k-button btn-cancel" value="@T("Admin.Common.Cancel")" />
+    </div>
+}

@@ -1,0 +1,95 @@
+﻿@using Wfm.Services.Security
+@using Wfm.Services.DirectoryLocation;
+
+@{
+    Layout = "";
+    var companyGuid = ViewBag.CompanyGuid;
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+
+    var cityService = EngineContext.Current.Resolve<ICityService>();
+    var stateProvinceService = EngineContext.Current.Resolve<IStateProvinceService>();
+    var countryService = EngineContext.Current.Resolve<ICountryService>();
+    var cities = cityService.GetAllCities();
+    var stateProvinces = stateProvinceService.GetAllStateProvinces();
+    var countries = countryService.GetAllCountries();
+}
+
+<script src="@Url.Content("~/Scripts/admin.common.js?version=1.8")" type="text/javascript"></script>
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Companies.Company.Locations")
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CompanyLocationListModel>()
+                .Name("companylocation-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.LocationName);
+                    columns.Bound(x => x.AddressLine1);
+                    columns.Bound(x => x.AddressLine2);
+                    columns.Bound(x => x.AddressLine3);
+
+                    columns.ForeignKey(x => x.CountryId, countries, "Id", "CountryName").Width(150).EditorTemplateName("CountryEditor");
+                    columns.ForeignKey(x => x.StateProvinceId, stateProvinces, "Id", "StateProvinceName").Width(150).EditorTemplateName("StateProvinceEditor");
+                    columns.ForeignKey(x => x.CityId, cities, "Id", "CityName").Width(150).EditorTemplateName("CityEditor");
+                    columns.Bound(x => x.PostalCode).EditorTemplateName("PostalCodeEditor").Width(100);
+
+                    columns.Bound(x => x.PrimaryPhone).ClientTemplate("#= prettyPhone(PrimaryPhone) #").EditorTemplateName("PhoneEditor").Width(110);
+                    columns.Bound(x => x.SecondaryPhone).ClientTemplate("#= prettyPhone(SecondaryPhone) #").EditorTemplateName("PhoneEditor").Width(110).Hidden();
+                    columns.Bound(x => x.FaxNumber).ClientTemplate("#= prettyPhone(FaxNumber) #").EditorTemplateName("PhoneEditor").Width(110).Hidden();
+                    columns.Bound(x => x.UnitNumber).Width(110).Hidden();
+                    columns.Bound(x => x.IsActive)
+                        .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+
+                    if (permissionService.Authorize("ManageCompanyLocations"))
+                    {
+                        columns.Command(command => { command.Destroy().Text(" "); }).Width(100);
+                    }
+
+                })
+                .ToolBar(toolBar => { if (permissionService.Authorize("ManageCompanyLocations")) { toolBar.Save(); toolBar.Create(); } })
+                .Editable(editable => { if (permissionService.Authorize("ManageCompanyLocations")) { editable.Mode(GridEditMode.InCell);} })
+                .EnableCustomBinding(false)
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Batch(true)
+                    .Read(read => read.Action("_CompanyLocationList", "Company", new { companyGuid = companyGuid }))
+                            .Events(events => events.Error("error_handler").Change("onChange"))
+                    .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                        model.Field(p => p.CompanyId).Editable(false).DefaultValue(ViewBag.CompanyId);
+                        model.Field(p => p.CityId).Editable(true).DefaultValue(0);
+                        model.Field(p => p.StateProvinceId).Editable(true).DefaultValue(0);
+                        model.Field(p => p.CountryId).Editable(true).DefaultValue(0);
+                        model.Field(p => p.IsActive).Editable(true).DefaultValue(true);
+                        model.Field(p => p.CreatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        model.Field(p => p.UpdatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        model.Field(p => p.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        model.Field(p => p.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+
+                    })
+                    .Create(update => update.Action("_CreateNewLocation", "Company"))
+                    .Update(update => update.Action("_EditLocation", "Company"))
+                    .Destroy(update => update.Action("_DeleteLocation", "Company"))
+                )
+            )
+        </td>
+    </tr>
+</table>
+

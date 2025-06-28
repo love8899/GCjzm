@@ -1,0 +1,22 @@
+﻿@model CandidateSmartCardModel
+
+@{
+    //page title
+    ViewBag.Title = T("Common.SmartCard").Text;
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "candidatesmartcard-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Common.SmartCard")
+            @Html.ActionLink("(" + T("Admin.TimeClocks.CandidateSmartCard.BackToAddSmartCard") + ")", "AddSmartCard")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            @Html.ActionLink(T("Admin.Common.Cancel").Text, "Details", new { Id = Model.CandidateId }, new { @class = "k-button" })
+        </div>
+    </div>
+
+    @Html.Partial("_CreateOrUpdate", Model)
+}

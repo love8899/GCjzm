@@ -1,0 +1,93 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    ViewBag.Title = "Privacy Policy | Leading Staffing and Employment Agency - " + siteTitle + " Employment";
+    ViewBag.Description = siteTitle + " Employment has a wide range of services including Contract Hire, Permanent Hire, Executive Search, Payroll Services and much more.";
+    ViewBag.Keywords = siteTitle + " Employment,GC,Jobs,Job Agency,Employment Agency,Staffing,Temporary Staffing,Permanent Staffing,Mass Recruitment Services,Temporary Foreign Worker Program";
+}
+
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Privacy Policy</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            This statement provides information on our policy and practices with regard to the
+            collection and use of personal information. @siteTitle Employment Services
+            Inc. (“@siteTitle” or the “Company”) reserves the right to amend this privacy
+            policy (the “Policy”) at any time, without notice.
+        </p>
+        <b>Personal information</b>
+        <p>
+            Personal information is information about an identified or identifiable individual.
+            Personal information may include your name, e-mail address, and other information
+            about you collected electronically, in person or by telephone.
+        </p>
+        <b>How is personal information collected and used?</b>
+        <p>
+            When you register with this web site (the “Site”) you will be asked to provide certain
+            information including, without limitation, a valid email address (your "Information").
+            In addition to the terms and conditions that may be detailed on this page and in
+            the privacy statement, you understand and agree that this Site may disclose to third
+            parties, on an anonymous basis or otherwise, certain information contained in your
+            registration application.
+            <br />
+            <br />
+            This Site will not disclose your name, address, e-mail address or telephone number
+            without your prior consent on the Site, except to the extent necessary or appropriate
+            to comply with applicable laws or in legal proceedings where such information is
+            relevant. As a user, you are responsible for your own communications and are responsible
+            for the consequences of their posting. You must not, and by using this Site you
+            agree not to, do the following things: post material that is copyrighted, unless
+            you are the copyright owner or have the permission of the copyright owner to post
+            it; post material that reveals trade secrets, unless you own them or have the permission
+            of the owner; post material that infringes on any other intellectual property rights
+            of others or on the privacy or publicity rights of others; post material that is
+            obscene, defamatory, threatening, harassing, abusive, hateful, or embarrassing to
+            another user or any other person or entity; post a sexually-explicit image or statement;
+            post advertisements or solicitations of business.
+        </p>
+        <b>Is personal information protected? </b>
+        <p>
+            Security standards and procedures to safeguard personal information are maintained
+            in order to prevent unauthorized use, alteration or removal of personal information.
+            Access to personal information is limited to those who require access in order to
+            perform their assigned duties.
+        </p>
+        <b>Collection and use of web site visitor information </b>
+        <p>
+            @siteTitle collects information about the Internet protocol address, type
+            of browser used, the date and time of each visit, and the Internet protocol address
+            of the locations to which each visitor linked for each visit made to this Site.
+            This information is used strictly for statistical reporting purposes only. The Company
+            makes no attempt to link these Internet protocol addresses with the identity of
+            individuals visiting the web site.
+        </p>
+        <b>Use of "cookies" </b>
+        <p>
+            @siteTitle may use “cookies” technology to obtain non-personal information
+            from visitors to this site. Cookies are information files that your web browser
+            places on your computer when you visit a web site. Most browsers accept cookies
+            automatically, but can be configured not to accept them or to indicate when a cookie
+            is being sent. The Company does not extract personal information in this process
+            nor do we provide this information to third parties. Cookies allow us to customize
+            your user interface to speed up the navigation process and to make the site experience
+            more efficient.
+        </p>
+        <b>Links </b>
+        <p>
+            This Site may contain links to other sites. @siteTitle makes every effort
+            to link only to web sites that share our high standards. We try our best to ensure
+            these links are reputable, but the privacy and data collection practices on any
+            linked web sites are entirely separate from the Company and are not covered by this
+            Policy. Other web sites that may contain material that the Company does not approve
+            of may also link to this site without our knowledge or consent. @siteTitle
+            has no responsibility for the content, policies or actions of these web sites.
+        </p>
+    </div>
+</div>

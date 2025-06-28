@@ -1,0 +1,213 @@
+﻿@model IEnumerable<SelectListItem>
+@{
+    ViewBag.PageTitle = T("Admin.Accounts.Account.DelegateTitle").Text;
+    ViewBag.BackTo = @Html.ActionLink("back to profile", "Details");
+    var collapsePanelId = "addDelegate";
+    ViewBag.CollapsePanelId = collapsePanelId;
+
+    ViewBag.Title = T("Admin.Accounts.Account.DelegateTitle").Text;
+    Html.SetActiveMenuItemSystemName("Delegate");
+
+    var gridName = "delegate-grid";
+}
+
+@section Options {
+    @*for modal dilaog*@
+    @*<button type="button" class="btn bg-blue" onclick="return addDelegate(event);">
+            <i class="fa fa-plus-square"></i>
+            @T("Common.Add")
+        </button>*@
+    @*for new window*@
+    @*<button type="button" class="btn bg-blue" onclick="getDelegateWindow();">
+                <i class="fa fa-plus"></i>
+                @T("Common.Add")
+            </button>
+        <input type="button" id="btnRefreshDelegates" onclick="return refreshDelegateGrid();" style="display: none" />*@
+    @*for in page form*@
+    <button type="button" class="btn bg-blue" data-toggle="collapse" data-target="#@collapsePanelId" aria-expanded="false">
+        <i class="fa fa-plus-square"></i>
+        @T("Common.Add")
+    </button>
+}
+
+<p>
+    You can delegate your role for a specific period of time to another user so he/she can perform some operations on behalf of you. Delegates <strong>cannot</strong> access your profile or change your password. If on mobile, rotate to <b>landscape</b> mode to see more columns and actions.
+</p>
+@(Html.Kendo().Grid<AccountDelegateModel>()
+    .Name("delegate-grid")
+    .Columns(columns =>
+    {
+        columns.ForeignKey(x => x.DelegateAccountId, Model, "Value", "Text").Title("Delegate")
+            .HeaderHtmlAttributes(new { title = "Delegate account" })
+            .HtmlAttributes(new { @class = "col-xxs-4 col-xs-3 col-sm-3 col-md-3 col-lg-2" })
+            .EditorTemplateName("AccountSelector")
+            .EditorViewData(new { AvailableAccounts = Model });
+        columns.Bound(x => x.StartDate).Title("From").Format("{0:yyyy-MM-dd}")
+            .HeaderHtmlAttributes(new { title = "Start date" })
+            .HtmlAttributes(new { @class = "col-xxs-4 col-xs-3 col-sm-3 col-md-2 col-lg-2" })
+            .EditorTemplateName("Date");
+        columns.Bound(x => x.EndDate).Title("To").Format("{0:yyyy-MM-dd}")
+            .HeaderHtmlAttributes(new { title = "End date" })
+            .HtmlAttributes(new { @class = "col-xxs-4 col-xs-3 col-sm-3 col-md-2 col-lg-2" })
+            .EditorTemplateName("Date");
+        columns.Bound(x => x.Remark).HtmlAttributes(new { @class = "col-md-2 col-lg-2" });
+        columns.Bound(x => x.IsActive).Title("Effective")
+            .HtmlAttributes(new { style = "text-align:center", @class = "col-lg-1" })
+            //.ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#");
+            .ClientTemplate("#if (IsActive == true) {# <i class='fa fa-check true-icon'/> #}else{# <i class='fa fa-times false-icon'/> #}#");
+
+        columns.Bound(x => x.UpdatedOnUtc)
+            .ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#")
+            .HtmlAttributes(new { @class = "col-lg-1" });
+
+        columns.Command(command =>
+        {
+            command.Edit().Text(" ").UpdateText(" ").CancelText(" ");
+            command.Custom("History").Click("showDelegateHistory");
+        }).Title("Action")
+            .HtmlAttributes(new { style = "text-align:center", @class = "col-xs-3 col-sm-3 col-md-3 col-lg-2" });
+    })
+    .Editable(editable => editable.Mode(GridEditMode.InLine))
+    .EnableCustomBinding(true)
+    .Reorderable(reorder => reorder.Columns(true))
+    .Resizable(resize => resize.Columns(true))
+    .Filterable()
+    .Sortable()
+    .ColumnMenu(cfg => cfg.Columns(false).Sortable(false))
+    //.Selectable()
+    .Pageable(x => x.PageSizes(new[] { 5, 10, 20 }).Refresh(true))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .ServerOperation(false)
+        .PageSize(5)
+        .Read(read => read.Action("GetDelegates", "Account"))
+        .Update(update => update.Action("UpdateDelegate", "Account"))
+        .Model(model =>
+        {
+            model.Id(m => m.Id);
+            model.Field(m => m.DelegateAccountId);
+            model.Field(m => m.StartDate);
+            model.Field(m => m.EndDate);
+            model.Field(m => m.Remark);
+            model.Field(m => m.IsActive).Editable(false);
+            model.Field(m => m.UpdatedOnUtc).Editable(false);
+        })
+        .Events(e => e.RequestEnd("onRequestEnd").Error("onError"))
+    )
+    .Filterable(filterable => filterable
+        .Extra(false)
+        .Operators(operators => operators
+            .ForString(str => str.Clear()
+                .Contains("Contains")
+                .IsEqualTo("Is equal to")
+                .IsNotEqualTo("Is not equal to")
+            )
+        )
+    )
+    .ClientDetailTemplateId("delegateHistory")
+    .Events(e => e.DataBound("onDataBound").Edit("onEdit").Save("onSave").Cancel("onCancel"))
+)
+
+<script id="delegateHistory" type="text/x-kendo-template">
+    @(Html.Kendo().Grid<AccountDelegateHistoryModel>()
+        .Name("delegate-history-#=Id#")
+        .Columns(columns =>
+        {
+            columns.Bound(x => x.DelegateAccountName);
+            columns.Bound(x => x.LoginDateTime).Format("{0:yyyy-MM-dd HH:mm:ss}");
+        })
+        .DataSource(ds => ds.Ajax().ServerOperation(false).PageSize(5)
+            .Read(read => read.Action("_DelegateHistory", "Account", new { id = "#=Id#" }))
+        )
+        .Pageable()
+        .ToClientTemplate()
+    )
+</script>
+
+@section scripts {<script type="text/javascript">
+
+    $(function () {
+        setCollapseContent('@collapsePanelId', '@Url.Action("_DelegatePopup")' + '/0',
+            { viewName: '_EditDelegate', panelName: '@collapsePanelId' });
+    });
+
+    function addDelegate(e) {
+        var formName = 'delegate-form';
+        var getUrl = '@Url.Action("_DelegatePopup", "Account")' + '/0' + '?formName=' + formName;
+        var postUrl = '@Url.Action("UpdateDelegate")';
+        popupPost('delegate-dialog', getUrl, 'Add delegate', 480, formName, postUrl,
+            'New dalaget is added', function (result) { refreshDelegateGrid(); }
+        );
+    }
+
+    function getDelegateWindow() {
+        javascript:OpenWindow('@(Url.Action("DelegateWindow", "Account"))', 500, 500, true);
+        return false;
+    }
+
+    function showDelegateHistory(e) {
+        e.preventDefault();
+         var row = $(e.currentTarget).closest("tr");
+         //var dataItem = this.dataItem(row);
+         var link = row.find("td.k-hierarchy-cell .k-icon");
+         link.click();
+         row.next().find(".k-hierarchy-cell").hide();
+    }
+
+    function refreshDelegateGrid() { reloadGridByName('@gridName'); }
+
+    function onDataBound(e) {
+        applyCommandIcons(e);
+        $('#@gridName').find(".k-hierarchy-cell, .k-hierarchy-col").hide();     //get rid of detail icon
+
+        // TODO: auto setup, upon bootstrap prefix
+        setGridColumnClass(e.sender, ["Remark"], 'visible-md visible-lg');
+        setGridColumnClass(e.sender, ["IsActive", "UpdatedOnUtc"], 'visible-lg');
+        setGridColumnClass(e.sender, [], 'hidden-xxs');
+    }
+
+    function applyCommandIcons(e) {
+        $(".k-grid-edit").attr('title', 'Change').html('<i class="fa fa-pencil"></i>');
+        $(".k-grid-History").attr('title', 'History').html('<i class="fa fa-history"></i>');
+    }
+
+    function onRequestEnd(e) {
+        if (e.type !== 'read' && e.response) {
+            if (!e.response.Succeed) {
+                e.sender.cancelChanges();
+                popupNotification(e.response.Error, "error");
+                //displayAdminNotification(e.response.ErrorMessage, "error");
+            }
+        }
+    }
+
+    function onError(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) { if ('errors' in value) $.each(value.errors, function () { message += this + "\n"; }); });
+            popupNotification(message, "error");
+            refreshDelegateGrid();
+        }
+    }
+
+    function onEdit(e) {
+        if (e.model.Id === 0) {
+            // do something
+        }
+    }
+
+    function onSave(e) {
+        var isValid = true;
+        var error = "";
+        if (!isValid || error) {
+            e.preventDefault();
+            popupNotification(error, "error");
+        }
+    }
+
+    function onCancel(e) {
+        e.preventDefault();
+        refreshDelegateGrid();
+    }
+
+</script>}

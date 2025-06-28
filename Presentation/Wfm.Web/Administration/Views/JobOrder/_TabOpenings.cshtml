@@ -1,0 +1,183 @@
+﻿@{
+    Layout = null;
+
+    var refDate = (DateTime?)ViewBag.RefDate ?? DateTime.Today;
+    var startDate = refDate.AddDays(DayOfWeek.Sunday - refDate.DayOfWeek);
+    var endDate = startDate.AddDays(6);
+
+    bool readOnly = ViewBag.ReadOnly != null ? ViewBag.ReadOnly : false;
+}
+
+<style type="text/css">
+    .k-scheduler-footer {
+        display: none;
+    }
+    /*.k-scheduler-table tr {
+        height: 48px !important;
+    }*/
+    .opening-event {
+        margin-top: 8px;
+    }
+</style>
+
+<script type="text/javascript">
+    function scheduler_dataBinding(e) { customizeHeader(e.sender, true); }
+    function scheduler_dataBound(e) {
+        e.sender.dataSource.data().forEach(function (eventData) {
+            var event = $('div.k-event[data-uid="' + eventData['uid'] + '"]');
+            var classStr = 'opening-event';
+            event.addClass(classStr);
+            if (eventData.NoWork) {
+                event.attr('title', eventData.NoWorkNote);
+                event.addClass('no-work');
+            }
+        });
+    }
+    function customizeHeader(scheduler, hideRes) {
+        if (hideRes)    // resources column
+            scheduler.element.find('.k-scheduler-layout > tbody > tr td:nth-child(1) .k-scheduler-times .k-scheduler-table').hide();
+        var view = scheduler.view();
+        var header = scheduler.element.find('.k-scheduler-header-wrap > table > tbody');
+        header.find('tr:eq(0) th').each(function (i, ele) { // header dates
+            $(this).text(kendo.toString(view._dates[i], view.options.name === 'TimelineWeekView' ? 'ddd, MMM dd' : 'dd'));
+        });
+        view.timesHeader.hide(); header.find('tr:eq(1)').hide(); //view.times.hide();   // header times
+    }
+    function event2model(event) {
+        var model = event.toJSON();
+        model.start = kendo.toString(event.start, 'yyyy-MM-dd');
+        model.end = kendo.toString(event.end, 'yyyy-MM-dd');
+        return model;
+    }
+    function scheduler_edit(e) {
+        if (!e.event.JobOrderId) {
+            alert('@(T("Admin.Openings.NoJobOrders").Text)');
+            e.preventDefault();
+        } else if (e.event.ReadOnly) {
+            alert('@(T("Admin.Openings.ReadOnlyReminder").Text)');
+            e.preventDefault();
+        } else {
+            setTimeout(function () {
+                $('.k-window-title').text('@T("Common.Openings").Text')
+            }, 0)
+        }
+    }
+    function scheduler_save(e) {
+        e.preventDefault();
+        var error = validateDates();
+        if (error)
+            alert(error);
+        else {
+            var model = event2model(e.event);
+            $.ajax({
+                url: '@Url.Action("SaveOpening", "JobOrder")',
+                type: 'POST',
+                data: JSON.stringify(model),
+                contentType: 'application/json',
+                cache: false,
+                async: false,
+                success: function (result) {
+                    if (!result.Succeed && result.Error)
+                        alert(result.Error);
+                    else
+                        reloadSchedules();
+                },
+            });
+        }
+    }
+    function scheduler_remove(e) {
+        e.preventDefault();
+        if (e.event.ReadOnly)
+            alert('@(T("Admin.Openings.ReadOnlyReminder").Text)');
+        else {
+            model = event2model(e.event);
+            $.ajax({
+                url: '@Url.Action("RemoveOpening", "JobOrder")',
+                type: 'POST',
+                data: model,
+                cache: false,
+                async: false,
+                success: function (result) {
+                    if (!result.Succeed)
+                        alert(result.Error);
+                    else
+                        reloadSchedules();
+                },
+            });
+        }
+    }
+    function reloadSchedules() { $('#opening-scheduler').data('kendoScheduler').dataSource.read(); }
+    function validateDates() {
+        var error = '';
+        var startDate = $('#startDate').val();
+        var endDate = $('#endDate').val();
+        if (endDate && startDate > endDate)
+            error ='@(T("Common.EndDate.LaterThanStartDate").Text)';
+        return error;
+    }
+    function getScheduleOptions() {
+        var view = $('#opening-scheduler').data('kendoScheduler').view();
+        return {
+            jobOrderGuid: '@ViewBag.JobOrderGuid',
+            startDate: view.startDate().toISOString(),
+            endDate: view.endDate().toISOString()
+        };
+    }
+</script>
+
+<div class="section-header">
+    <div class="title">
+        @T("Common.Openings")
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Scheduler<Wfm.Admin.Models.JobOrder.OpeningModel>().Name("opening-scheduler")
+                .Date(refDate).StartTime(refDate).MajorTick(60)
+                .Views(views =>
+                {
+                    views.TimelineWeekView(timeline => timeline.EventHeight(30).WorkDayCommand(false)).Title(T("Common.Weekly").Text)
+                        .ColumnWidth(10).MajorTick(60 * 24).MinorTickCount(1).SelectedDateFormat(" {0:d} ~ {1:d}");
+                    views.TimelineMonthView(timeline => timeline.EventHeight(30).WorkDayCommand(false)).Title(T("Common.Monthly").Text)
+                        .ColumnWidth(10).MajorTick(60 * 24).MinorTickCount(1).SelectedDateFormat(" {0:d} ~ {1:d}");
+                })
+                .Resources(r => { r.Add(m => m.JobOrderId).Title("JobOrder").Name("JobOrders")
+                    .DataTextField("Text").DataValueField("Value").DataColorField("Color")
+                    .BindTo(new[] { new { Text = "-", Value = ViewBag.JobOrderId, Color = string.Empty } });
+                })
+                .Group(group => group.Resources("JobOrders").Orientation(SchedulerGroupOrientation.Vertical))
+                .GroupHeaderTemplate("#=text#")
+                .EventTemplateId("event-template")
+                .Editable(editable => editable.TemplateName("OpeningEditor").Create(!readOnly).Update(!readOnly).Destroy(!readOnly).Confirmation(true).Move(false).Resize(false))
+                .DataSource(d => d
+                    .Model(m =>
+                    {
+                        m.Id(f => f.UniqueId);
+                        m.Field(f => f.UniqueId).DefaultValue(Guid.NewGuid());
+                        m.RecurrenceId(f => f.RecurrenceID);
+                        m.Field(f => f.IsAllDay).DefaultValue(true);
+                        m.Field(f => f.ReadOnly).DefaultValue(false);
+                    })
+                    .Read(r => r.Action("_JobOrderOpenings", "JobOrder").Data("getScheduleOptions"))
+                    .ServerOperation(true)
+                    .Events(e => e.Sync("reloadSchedules"))
+                )
+                .Events(e =>
+                {
+                    e.DataBinding("scheduler_dataBinding");
+                    e.DataBound("scheduler_dataBound");
+                    e.Save("scheduler_save");
+                    e.Remove("scheduler_remove");
+                    e.Edit("scheduler_edit");
+                })
+            )
+        </td>
+    </tr>
+</table>
+
+<script id="event-template" type="text/x-kendo-template">
+    <div>
+        <div class="k-event-template">#:title#</div>
+    </div>
+</script>

@@ -1,0 +1,240 @@
+﻿@using Wfm.Services.Companies;
+@using Wfm.Services.Franchises;
+@using Wfm.Services.Security
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts;
+@using Wfm.Services.WSIBS;
+
+@{
+    Layout = "";
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    var companyService = EngineContext.Current.Resolve<ICompanyService>();
+    var companyLocationService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+    int companyId = companyService.GetCompanyByGuid(ViewBag.CompanyGuid).Id;
+    var companyLocations = companyLocationService.GetAllCompanyLocationsByCompanyId(companyId).OrderBy(x => x.LocationName);
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var vendors = franchiseService.GetAllFranchises().OrderBy(x => x.FranchiseName);
+    var positionService = EngineContext.Current.Resolve<Wfm.Services.Common.IPositionService>();
+    var positions = positionService.GetAllPositionByCompanyId(companyId);
+    var wsibService = EngineContext.Current.Resolve<IWSIBService>();
+    var wsibs = wsibService.GetAllWSIBs().Select(x => new SelectListItem() { Text = String.Concat(x.Code, " - ", x.Description), Value = x.Code }).ToList();
+
+    var featureService = EngineContext.Current.Resolve<Wfm.Services.Features.IFeatureService>();
+    var invoicingEnabled = featureService.IsFeatureEnabled("Admin", "Invoicing") && !workContext.CurrentAccount.IsRecruiterOrRecruiterSupervisor();
+        
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+
+@if (permissionService.Authorize("ManageCompanyBillingRates"))
+{
+    <div class="section-header">
+        <div class="options">
+                <a id="printtopdf-selected" class="k-button">@T("Admin.Common.PrintToPdf.Selected").Text</a>
+                <a id="exportexcel-selected" class="k-button">@T("Admin.Common.ExportToExcel.Selected").Text</a>
+                @Html.ActionLink(T("Common.Add").Text, "CreateNewBillingRate", "Company", new { companyGuid = ViewBag.CompanyGuid }, new { @class = "k-button" })
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    function FormatDate(deactivatedDate) {
+        var html = "";
+        if (deactivatedDate != null) {
+            html = kendo.toString(deactivatedDate, 'yyyy-MM-dd HH:mm');
+        }
+        return html;
+    }
+    function onDataBound(e) {
+        $('#companybillingrate-grid input[type=checkbox][id!=mastercheckbox]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds);
+            //set checked based on if current checkbox's value is in selectedIds.
+            $(this).attr('checked', checked > -1);
+        });
+        updateMasterCheckbox();
+    }
+</script>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CompanyBillingRateModel>().Name("companybillingrate-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x).IncludeInMenu(false).Filterable(false).Sortable(false)
+                        .ClientTemplate("<input type='checkbox' name='checkedRecords' value='#= Id #' class='checkboxGroups'/>")
+                        .Title("<input id='mastercheckbox' type='checkbox'/>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(30);
+
+                    if (!workContext.CurrentAccount.IsVendor() && commonSettings.DisplayVendor)
+                        columns.ForeignKey(x => x.FranchiseId, vendors, "Id", "FranchiseName").Width(150).Title(T("Common.Vendor").Text).Hidden();
+
+                    columns.ForeignKey(x => x.CompanyLocationId, companyLocations, "Id", "LocationName").Width(150);
+                    columns.ForeignKey(x => x.WSIBCode, wsibs, "Value", "Text");
+                    columns.Bound(x => x.RateCode);
+                    columns.ForeignKey(x => x.PositionId, positions, "Id", "Name");
+                    columns.Bound(x => x.ShiftCode);
+
+                    if (invoicingEnabled)
+                        columns.Bound(x => x.RegularBillingRate).ClientTemplate("#= kendo.toString(RegularBillingRate, 'c') #");
+                    columns.Bound(x => x.RegularPayRate).ClientTemplate("#= kendo.toString(RegularPayRate, 'c') #").Title("Reg. pay before vacation");
+                    if (invoicingEnabled)
+                        columns.Bound(x => x.OvertimeBillingRate).ClientTemplate("#= kendo.toString(OvertimeBillingRate, 'c') #");
+                    columns.Bound(x => x.OvertimePayRate).ClientTemplate("#= kendo.toString(OvertimePayRate, 'c') #").Title("OT pay before vacation");
+                    if (invoicingEnabled)
+                        columns.Bound(x => x.BillingTaxRate).ClientTemplate("#= kendo.toString(BillingTaxRate, 'p3') #").Width(70).Hidden();
+
+                    columns.Bound(x => x.WeeklyWorkHours);
+                    columns.Bound(x => x.Note).Hidden();
+
+                    columns.Bound(x => x.IsActive)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsActive #.png' />")
+                        .Width(80);
+
+                    columns.Bound(x => x.EffectiveDate).ClientTemplate("#=kendo.toString(EffectiveDate,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.DeactivatedDate).ClientTemplate("#= FormatDate(data.DeactivatedDate)#").Width(120);
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    if (permissionService.Authorize("ManageCompanyBillingRates"))
+                    {
+                        columns.Bound(x => x.Id).Title("Quot.").IncludeInMenu(false).Filterable(false).Sortable(false)
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" }).Width(60)
+                            .ClientTemplate("#if (DefaultQuotationId) {# <a class='k-button' title='Quotaions' onclick=\"return viewQuotations(#=Id#)\"><span class='fa fa-paperclip'></span></a> #}else{# #}#");
+
+                        columns.Bound(x => x.Id).IncludeInMenu(false).Filterable(false).Sortable(false)
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                            .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { x.Id }))
+                            .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/Company/EditBillingRate/") + "#= Id #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                            .Width(50)
+                            .Title(T("Admin.Common.Edit").Text);
+
+                        columns.Bound(x => x.Id).IncludeInMenu(false).Filterable(false).Sortable(false)
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                            //.Template(x => Html.ActionLink(T("Admin.Common.Copy").Text, "Copy", new { x.Id }))
+                            .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/Company/CopyBillingRate/") + "#= Id #\"><span class='k-icon k-i-restore'></span></a>")
+                            .Width(50)
+                            .Title(T("Admin.Common.Copy").Text);
+                    }
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataBinding => dataBinding
+                    .Ajax()
+                    .ServerOperation(true)
+                    .Sort(sort =>
+                    {
+                        sort.Add("DeactivatedDate").Ascending();
+                        sort.Add("EffectiveDate").Descending();
+                    })
+                    .Read(read => read.Action("_TabCompanyBillingRates", "Company", new { companyGuid = ViewBag.CompanyGuid }))
+                    .PageSize(20)
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+                .Events(events => events.DataBound("onDataBound"))
+            )
+        </td>
+    </tr>
+</table>
+@using (Html.BeginForm("ExportCompanyBillingRateToXlsx", "Company", FormMethod.Post, new { id = "exporttoxlsx-selected-form" }))
+{
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+}
+@using (Html.BeginForm("ExportCompanyBillingRateToPDF", "Company", FormMethod.Post, new { id = "printtopdf-selected-form" }))
+{
+    <input type="hidden" id="selectedIds" name="selectedIds" value="" />
+}
+<script type="text/javascript">
+    var selectedIds = [];
+
+    $(document).ready(function () {
+        $('#mastercheckbox').click(function () {
+            $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+        });
+
+        //wire up checkboxes.
+        $('#companybillingrate-grid').on('change', 'input[type=checkbox][id!=mastercheckbox]', function (e) {
+            var $check = $(this);
+            if ($check.is(":checked") == true) {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked == -1) {
+                    //add id to selectedIds.
+                    selectedIds.push($check.val());
+                }
+            }
+            else {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked > -1) {
+                    //remove id from selectedIds.
+                    selectedIds = $.grep(selectedIds, function (item, index) {
+                        return item != $check.val();
+                    });
+                }
+            }
+            updateMasterCheckbox();
+        });
+    });
+
+    function updateMasterCheckbox() {
+        var numChkBoxes = $('#companybillingrate-grid input[type=checkbox][id!=mastercheckbox]').length;
+        var numChkBoxesChecked = $('#companybillingrate-grid input[type=checkbox][checked][id!=mastercheckbox]').length;
+        $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+
+    $(document).ready(function () {
+        $('#exportexcel-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds.join(",");
+            $('#exporttoxlsx-selected-form #selectedIds').val(ids);
+            $('#exporttoxlsx-selected-form').submit();
+            return false;
+        });
+        $('#printtopdf-selected').click(function (e) {
+            e.preventDefault();
+            var ids = selectedIds.join(",");
+            $('#printtopdf-selected-form #selectedIds').val(ids);
+            $('#printtopdf-selected-form').submit();
+            return false;
+        });
+    });
+
+    function viewQuotations(id) {
+        $(document.body).append('<div id="quotationDialog"></div>');
+        $("#quotationDialog").kendoWindow({
+            title: "Quotations",
+            modal: true,
+            resizable: false,
+            width: 480,
+            //height: 160,
+            content: {
+                url: '@Url.Action("_Quotations", "Company")',
+                data: { billingRateId: id },
+                type: "POST"
+            },
+            close: function () {
+                $('#quotationDialog').kendoWindow('destroy');
+            },
+            refresh: function (e) {}
+        }).data('kendoWindow').center();
+    }
+
+</script>

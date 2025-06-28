@@ -1,0 +1,119 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Writing Effective Job Search Letters";
+    //var description = "No matter what kind of letter you are writing, it has to be well presented and very well written. It needs to be completely free of grammar and spelling errors.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Writing Effective Job Search Letters</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            There are three categories of job search letters:
+        </p>
+        <ol>
+            <li>Cover letters</li>
+            <li>Thank you letters</li>
+            <li>Follow-up letters</li>
+        </ol>
+        <p>
+            No matter what kind of letter you are writing, it has to be well presented and very
+            well written. It needs to be completely free of grammar and spelling errors. Proofread
+            every piece of correspondence and have a trusty friend read your letters and offer
+            comments and suggestions. In addition, make sure the name and address on the envelope
+            is correct. Simple mistakes can lead to missed opportunities.
+        </p>
+        <p>
+            <b>Cover Letters: </b>
+        </p>
+        <p>
+            A cover letter is just as important as a résumé. It introduces you to the company
+            and allows you to tailor your qualifications to the job opening. It is also meant
+            to generate interest and get you an interview. To do this, it needs to be concise
+            (we recommend you keep it to one page) and catchy. It should not be a synopsis of
+            your job history, or a long-winded self-description using words like "assertive"
+            or "highly motivated." Instead, demonstrate these qualities by describing your accomplishments.
+            Here are the main components of a cover letter:
+        </p>
+        <ul>
+            <li>Subject (Impact to gain airtime) this is your headline</li>
+            <li>First sentence (The Why) what’s in it for you</li>
+            <li>
+                Followed by what’s in it for them. What are your highlights that are relevant to
+                the job?
+            </li>
+            <li>Key achievements</li>
+            <li>Career summary</li>
+            <li>Career objectives</li>
+        </ul>
+        <p>
+            The final sentence should be a call to action. This should be a compelling statement
+            motivating the interviewer to meet with you to discuss your suitability for the
+            position further.
+        </p>
+        <p>
+            <b>Thank You Letters: </b>
+        </p>
+        <p>
+            Send a thank you letter after your first meeting with a business contact name. Thanking
+            your potential employer expresses gratitude, appreciation, and interest in the position.
+            A thank you letter should be sent within 24 hours of an in-person conversation.
+        </p>
+        <p>
+            <b>For example:</b> I enjoyed meeting with you to discuss the position of Design
+            Engineer with LMOC Corporation. I appreciate your open and honest answers to my
+            questions.
+        </p>
+        <p>
+            This position is exactly what I have been looking for, and I sincerely hope that
+            I am the person you are looking for as well. I can be reached next week at (416)
+            333-3333. I look forward to talking to you further.
+        </p>
+        <p>
+            Yours truly, John Smith
+        </p>
+        <p>
+            <b>Follow-up Letters: </b>
+        </p>
+        <p>
+            After meeting with a colleague or business contact or after conversing at a job
+            fair, send a follow-up letter. This is not just a "Thanks for your time." It is
+            an opportunity for you to review the conversation and describe your qualifications.
+            You should include similar information you might include in a cover letter. Listed
+            below are some excellent points describing when and how to follow up.
+        </p>
+        <p>
+            <b>Keep the following points in mind: </b>
+        </p>
+        <ul>
+            <li>Mail your letter within 48 hours of the meeting.</li>
+            <li>Address your contact by name and title.</li>
+            <li>Express appreciation for his/her time.</li>
+            <li>
+                Review the important points of your conversation (to show you were listening and
+                remind the recruiter/interviewer of your conversation).
+            </li>
+            <li>Express enthusiasm for the project and/or company.</li>
+            <li>Ask for the assignment or an interview if appropriate.</li>
+            <li>Include a copy of your résumé.</li>
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,79 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Leading Staffing and Employment Agency";
+    //var description = "See why " + siteTitle + " is a preferred staffing partner for Fortune 500 and other industry leading companies, as well as enterprising local firms.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Employers</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            See why @siteTitle is a preferred staffing partner for Fortune 500 and other
+            industry leading companies, as well as enterprising local firms.
+        </p>
+        <div class="product-grid bestsellers">
+            <div class="item-grid">
+                <div class="item-box">
+                    <div class="product-item">
+                        <div class="picture">
+                            <a href="@Url.Action("ContactUs", "Home")">
+                                <img alt="Request Staff" src="/Content/images/cms/jobSeeker-SearchPosition.jpg" title="Request Staff" />
+                            </a>
+                        </div>
+                        <div class="details">
+                            <h2 class="product-title">
+                                <a href="@Url.Action("ContactUs", "Home")">Request Staff</a>
+                            </h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-box">
+                    <div class="product-item">
+                        <div class="picture">
+                            <a href="@Url.Action("Employers_StaffingSolutions", "Employers")">
+                                <img alt="Staffing Solutions" src="/Content/images/cms/jobSeeker-Registration.jpg" title="Staffing Solutions" />
+                            </a>
+                        </div>
+                        <div class="details">
+                            <h2 class="product-title">
+                                <a href="@Url.Action("Employers_StaffingSolutions", "Employers")">Staffing Solutions</a>
+                            </h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-box">
+                    <div class="product-item">
+                        <div class="picture">
+                            <a href="@Url.Action("Employers_AreaSpecialties", "Employers")">
+                                <img alt="Area Specialties" src="/Content/images/cms/jobSeeker-JobCategory.jpg" title="Area Specialties" />
+                            </a>
+                        </div>
+                        <div class="details">
+                            <h2 class="product-title">
+                                <a href="@Url.Action("Employers_AreaSpecialties", "Employers")">Area Specialties</a>
+                            </h2>
+                        </div>
+                    </div>
+                </div>
+        </div>
+    </div>
+</div>

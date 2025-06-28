@@ -1,0 +1,8 @@
+﻿@model DayOfWeek
+
+@(Html.Kendo().DropDownListFor(m => m)
+        .OptionLabel("None")
+        .BindTo(Model.ToSelectList(true))
+)
+
+

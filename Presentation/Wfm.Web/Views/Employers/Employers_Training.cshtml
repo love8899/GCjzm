@@ -1,0 +1,40 @@
+﻿@using Wfm.Core.Infrastructure
+@using Wfm.Core.Domain.Common
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Training";
+    //var description = "At " + siteTitle + " we help ensure your employees have the necessary skills for today’s ever-changing marketplace.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Training</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            Today’s workforce requires an ongoing investment in training and development. The
+            pace of technological, social and economic change is now so rapid that knowledge
+            and skills can become outdated and irrelevant.
+        </p>
+        <p>
+            At @siteTitle we help ensure your employees have the necessary skills for
+            today’s ever-changing marketplace. Ask your @siteTitle representative for
+            further details.
+        </p>
+    </div>
+</div>

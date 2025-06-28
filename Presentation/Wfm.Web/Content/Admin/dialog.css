@@ -1,0 +1,242 @@
+﻿/*
+    copied from DefaultClean theme
+*/
+.ui-dialog {
+	max-width: 90%;
+	border: 1px solid #ddd;
+	box-shadow: 0 0 2px rgba(0,0,0,0.15);
+	overflow: hidden;
+	background-color: #fff;
+	/*override jQuery UI styles, do not delete doubled properties*/
+	border-radius: 0;
+	padding: 0;
+	font: normal 14px Arial, Helvetica, sans-serif;
+}
+.ui-dialog:before {
+	content: "";
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0,0,0,0.5);
+}
+.ui-dialog-titlebar {
+	border-bottom: 1px solid #ddd;
+	overflow: hidden;
+	background-color: #eee;
+	padding: 10px 15px;
+	/*override jQuery UI styles, do not delete doubled properties*/
+	border-width: 0 0 1px;
+	border-radius: 0;
+	background-image: none;
+	padding: 10px 15px !important;
+	font-weight: normal;
+	cursor: auto !important;
+}
+.ui-dialog-titlebar > span {
+	float: left;
+	font-size: 18px;
+	color: #444;
+	/*override jQuery UI styles, do not delete doubled properties*/
+	margin: 0 !important;
+}
+.ui-dialog-titlebar button {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 42px;
+	height: 42px;
+	border: none;
+	overflow: hidden;
+	background: url('../images/close.png') center no-repeat;
+	font-size: 0;
+	/*override jQuery UI styles, do not delete doubled properties*/
+	top: 0 !important;
+	right: 0 !important;
+	width: 42px !important;
+	height: 42px !important;
+	margin: 0 !important;
+	border: none !important;
+	border-radius: 0;
+	background: url('images/close.png') center no-repeat !important;
+	padding: 0 !important;
+}
+.ui-dialog-titlebar button span {
+	display: none !important;
+}
+.ui-dialog-content {
+	padding: 15px;
+	line-height: 20px;
+	/*override jQuery UI styles, do not delete doubled properties*/
+	background-color: #fff !important;
+	padding: 15px 15px 20px 15px !important;
+	color: #777;
+}
+.ui-dialog-content .page{
+    min-height: 0;
+}
+.ui-dialog-content .page-title{
+    min-height: 0;
+    margin: 0 0 15px;
+    padding: 0px 10px 10px 10px;
+    text-align: center;
+}
+.ui-dialog-content .page-title h1{
+    font-size: 24px;
+    line-height: 30px;
+}
+.ui-dialog-content .back-in-stock-subscription-page {
+    text-align: center;
+}
+.ui-dialog-content .back-in-stock-subscription-page .tooltip{
+    margin-bottom: 10px;
+}
+.ui-dialog-content .back-in-stock-subscription-page .button-1{
+	border: none;
+	background-color: #4ab2f1;
+    padding: 10px 15px;
+	font-size: 15px;
+	color: #fff;
+	text-transform: uppercase;
+}
+.ui-dialog-content .back-in-stock-subscription-page .button-1:hover {
+	background-color: #248ece;
+}
+
+/*
+    customization
+*/
+
+.ui-dialog-content {
+    height: auto !important;
+}
+
+.ui-dialog .form-fields {
+    position: relative;
+    border-top: 1px solid #e6e6e6;
+    background-color: #f9f9f9;
+    padding: 15px 15px;
+}
+
+.ui-dialog .fieldset {
+    margin-bottom: 15px;
+}
+
+.ui-dialog .inputs {
+    position: relative;
+    margin: 0 0 15px;
+    text-align: center;
+    white-space: nowrap;
+    font-size: 14px;
+}
+
+.ui-dialog .inputs::after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+.ui-dialog .inputs label {
+    display: block;
+    width: 100%;
+    /*margin: 0 0 10px;*/
+    margin: 0 10px 0 0;
+    text-align: center;
+    vertical-align: middle;
+    font-weight: 400;
+    color: #444;
+}
+
+.ui-dialog .inputs > input[type="text"],
+.ui-dialog .inputs input[type="password"],
+.ui-dialog .inputs select,
+.ui-dialog .inputs textarea,
+.ui-dialog .k-dropdown,
+.ui-dialog .k-datetimepicker,
+.ui-dialog .k-datepicker {
+    width: 400px;
+    max-width: 100%;
+    background-color: #fff;
+}
+
+.ui-dialog .buttons {
+    text-align: center;
+    /*margin-bottom: 15px;*/
+}
+
+button.ui-dialog-titlebar-close:focus {
+    outline: none;
+}
+
+.ui-dialog .required {
+    font-size: 20px;
+    font-weight: normal;
+    color: #e4434b;
+    vertical-align: middle;
+    margin-left: 3px;
+}
+
+.ui-dialog .field-validation-error {
+    display: block;
+    text-align: center;
+    margin-top: 5px;
+}
+
+/*@media all and (min-width: 769px) {*/
+@media all and (min-width: 768px) {
+    .ui-dialog .inputs {
+        text-align: left;
+    }
+    .ui-dialog .inputs label {
+        width: 25%;
+        display: inline-block;
+        text-align: right;
+        /*vertical-align: middle;*/
+    }
+    .ui-dialog .inputs .label-wrapper {
+        display: inline-block;
+        width: 25%;
+        margin-right: 10px;
+    }
+    .ui-dialog .inputs .label-wrapper label {
+        width: 100%;
+        margin-right: 0;
+    }
+    .ui-dialog .inputs > input[type="text"],
+    .ui-dialog .inputs .k-dropdown,
+    .ui-dialog .inputs .k-datepicker,
+    .ui-dialog .inputs .k-datetimepicker,
+    .ui-dialog .inputs .captcha-box {
+        width: 65%;
+        text-align: left;
+    }
+    .ui-dialog .inputs textarea {
+        width: 65%;
+        min-height: 100px;
+    }
+    .ui-dialog .inputs .input-group-required {
+        width: 65%;
+    }
+    .ui-dialog .inputs .input-group-required input,
+    .ui-dialog .inputs .input-group-required .k-dropdown,
+    .ui-dialog .inputs .input-group-required .k-datepicker,
+    .ui-dialog .inputs .input-group-required .k-datetimepicker,
+    .ui-dialog .inputs .input-group-required .captcha-box,
+    .ui-dialog .inputs .input-group-required textarea {
+        width: 100%;
+    }
+}
+
+
+/*@media all and (min-width: 1001px) {*/
+@media all and (min-width: 992px) {
+    .ui-dialog .inputs {
+        text-align: left;
+    }
+    .ui-dialog .inputs label {
+        display: inline-block;
+        margin: 0 10px 0 0;
+        text-align: right;
+    }
+}

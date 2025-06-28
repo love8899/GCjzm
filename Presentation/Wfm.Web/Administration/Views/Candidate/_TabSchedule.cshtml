@@ -1,0 +1,229 @@
+﻿@using Wfm.Core.Domain.Candidates
+@{
+    var candidateGuid = ViewBag.CandidateGuid;
+    var candidateName = ViewBag.CandidateName;
+    var candidateId = ViewBag.CandidateId;
+    
+    DateTime today = ViewBag.RefDate;
+    var delta = DayOfWeek.Sunday - today.DayOfWeek;
+    var startDate = today.AddDays(delta);
+    var endDate = startDate.AddDays(6);
+    
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+}
+@if (ViewBag.OnBoarded)
+{ 
+<script type="text/javascript">
+    function scheduler_dataBound(e) {
+        //$('div .k-event').removeClass('k-event-inverse');
+        e.sender._data.forEach(function (eventDetails) {
+            if (eventDetails['StatusId'] == 12) {
+                $('div.k-event[data-uid="' + eventDetails['uid'] + '"]').addClass('active-event');
+            } else {
+                $('div.k-event[data-uid="' + eventDetails['uid'] + '"]').addClass('inactive-event');
+            }
+        });
+    }
+
+    function toStdString(d) {
+        if (d == null)
+            return "9999-12-31";
+        return d.toISOString().split('T')[0];
+    }
+
+    function event2model(event) {
+        var model = event.toJSON();
+        model.start = toStdString(event.start);
+        model.end = toStdString(event.end);
+        return model;
+    }
+
+    function scheduler_edit(e) {
+        if (e.event.ReadOnly) {
+            alert('You cannot create/edit this placement, there might be several reasons causing this issue:\n' +
+                    '1. You do not have the permission to edit or create placement.\n' +
+                    '2. You are not the recruiter or owner of the job order.\n' +
+                    '3. The candidate is not active or is not onboarded yet.\n' +
+                    '4. The job order does not belong to your vendor.');
+            e.preventDefault();
+        }
+    }
+
+    function scheduler_save(e) {
+        var model = event2model(e.event);
+        $.ajax({
+            url: '@Url.Action("SavePlacement", "Candidate")',
+            type: 'POST',
+            data: { placement: model },
+            cache: false,
+            async: false,
+            success: function (result) {
+                if (!result.Succeed && result.Error) {
+                    alert(result.Error);
+                }
+                else
+                    refreshScheduler();
+            },
+        });
+    }
+
+    function scheduler_remove(e) {
+        if (e.event.ReadOnly) {
+            alert('You cannot delete this placement, there might be several reasons causing this issue:\n' +
+               '1. You do not have the permission to delete placement.\n' +
+               '2. You are not the recruiter or owner of the job order.\n' +
+               '3. The candidate is not active or is not onboarded yet.\n' +
+               '4. The job order does not belong to your vendor.');
+            e.preventDefault();
+        }
+        else {
+            model = event2model(e.event);
+            $.ajax({
+                url: '@Url.Action("RemovePlacement", "Candidate")',
+                type: 'POST',
+                data: { placement: model },
+                cache: false,
+                async: false,
+                success: function (result) {
+                    if (!result.Succeed) {
+                        alert(result.Error);
+                        //errNotification(result.Error);
+                    }
+                },
+            });
+        }
+    }
+
+    function refreshScheduler() {
+        var scheduler = $('#scheduler').data('kendoScheduler');
+        scheduler.dataSource.read();
+        //scheduler.view(scheduler.view().name);
+    }
+
+    function errNotification(s) {
+        $(".notification-wrapper").html('<div class="messageBox messageBoxError"></div><div class="clear"></div>');
+        $(".messageBox").text(s);
+    }
+    function getAvailableOpening() {
+        var jobOrderId = $('[name="JobOrderId"]').val();
+        var refDate = $('[name="start"]').val();
+        //alert(jobOrderId);
+        $.ajax({
+            url: '@Url.Action("GetAvailableOpeningById", "JobOrder")' + '?jobOrderId=' + jobOrderId + '&refDate=' + refDate,
+            type: 'Post',
+            dataType: 'Json',
+            success: function (data) {
+                $("#AvailableOpening").val(data.remain);
+            }
+        })
+    }
+    function onStartChange() {
+        var startDate = $('#startDate').val();
+        var endDate = $('#endDate').val();
+        if (endDate && startDate > endDate)
+            alert('Start date should be less than or equal to the end date');
+        else
+            getAvailableOpening();
+    }
+</script>
+
+<style type="text/css">
+    .active-event {
+        background-color: cornflowerblue;
+    }
+    .inactive-event {
+        background-color: lightsteelblue;
+    }
+    .k-scheduler-timelineWeekview > tbody > tr:nth-child(1) .k-scheduler-table tr:nth-child(2) {
+        display: none;
+    }
+</style>
+
+@(Html.Kendo().Scheduler<CandidateScheduleModel>()
+    .Name("scheduler")
+    .Date(today)
+    .StartTime(today)
+    .MajorTick(60)
+    .Views(views =>
+    {
+        //views.TimelineView(timeline => timeline.EventHeight(50));
+        views.TimelineWeekView(timeline => timeline.EventHeight(120).WorkDayCommand(false)).Title("Weekly").ColumnWidth(10).MajorTick(60 * 24).MinorTickCount(1);
+        views.TimelineMonthView(timeline =>
+        {
+            timeline.StartTime(startDate);
+            timeline.EndTime(endDate);
+            timeline.MajorTick(60 * 24);
+            timeline.EventHeight(120);
+            timeline.WorkDayCommand(false);
+        }).Title("Monthly").ColumnWidth(15);
+    })
+    .EventTemplateId("event-template")
+    //.DateHeaderTemplate("<strong>#=kendo.toString(date, 'd')#</strong>")
+    //.Editable(editable => editable.TemplateId("editor"))
+    .Editable(editable => editable.TemplateName("ScheduleEditor").Move(false).Resize(false))
+    //.MajorTimeHeaderTemplate("<strong>#=kendo.toString(date, 'h')#</strong><sup>00</sup>")
+    //.Timezone("EST")
+    .Group(group => group.Resources("Candidates").Orientation(SchedulerGroupOrientation.Vertical))
+    .Resources(resource =>
+            {
+                resource.Add(m => m.CandidateId)
+                    .Title("Candidate")
+                    .Name("Candidates")
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .BindTo(new[] {
+                        new { Text = candidateName, Value = candidateId }
+                    });
+            })
+    .DataSource(d => d
+            .Model(m =>
+            {
+                m.Id(f => f.CandidateJobOrderId);
+                m.Field(f => f.Title).DefaultValue("No title");
+                m.RecurrenceId(f => f.RecurrenceID);
+                m.Field(f => f.Title).DefaultValue("No title");
+                m.Field(f => f.IsAllDay).DefaultValue(true);
+                if (permissionService.Authorize("ManageCandidatePlacement") && ViewBag.IsActive && ViewBag.OnBoarded)
+                    m.Field(f => f.ReadOnly).DefaultValue(false);
+                else
+                    m.Field(f => f.ReadOnly).DefaultValue(true);
+                    
+            })
+            .Read(read => read.Action("_TabSchedule", "Candidate", new { candidateGuid = candidateGuid }))
+            .Events(e => e.Sync("refreshScheduler"))
+    )
+    .Events(e => {
+        //e.DataBinding("scheduler_dataBinding");
+        e.DataBound("scheduler_dataBound");
+        //e.Change("scheduler_change");
+        e.Save("scheduler_save");
+        e.Remove("scheduler_remove");
+        //e.Cancel("scheduler_cancel");
+        e.Edit("scheduler_edit");
+        //e.Add("scheduler_add");
+        //e.MoveStart("scheduler_moveStart");
+        //e.Move("scheduler_move");
+        //e.MoveEnd("scheduler_moveEnd");
+        //e.ResizeStart("scheduler_resizeStart");
+        //e.Resize("scheduler_resize");
+        //e.ResizeEnd("scheduler_resizeEnd");
+        //e.Navigate("scheduler_navigate");
+    })
+)
+
+<script id="event-template" type="text/x-kendo-template">
+    <div>
+        <div class="k-event-template">
+            <a href="@Url.Content("~/Admin/JobOrder/Details")?guid=#: JobOrderGuid #" target="_blank">#: title #</a>&nbsp;&nbsp;&nbsp;&nbsp;[#: Status #]
+        </div>
+        <div class="k-event-template">#: description #</div>
+        <div class="k-event-template">#: CompanyName # - #: RecruiterName #</div>
+    </div>
+</script>
+}
+else
+{
+    <p id="not-onboarded-warning">
+        Please onboard the candidate before placement!
+    </p>
+}

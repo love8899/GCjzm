@@ -1,0 +1,42 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Training and Development";
+    //var description = siteTitle + " help you become more marketable and by helping you gain the necessary knowledge for today’s ever-changing job market.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Training and Development</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            It is now generally acknowledged that training is a continuing and lifelong process.
+            The pace of technological, social and economic change is now so rapid that an initial
+            period of professional or occupational training can only provide the foundations
+            of knowledge, skills and attitudes on which further development must take place
+            if in order for you to remain current and competent.
+        </p>
+        <p>
+            At @siteTitle we help you become more marketable and by helping you gain
+            the necessary knowledge for today’s ever-changing job market. As a @siteTitle
+            associate you have free, unlimited access to our Training and Development Center.
+        </p>
+    </div>
+</div>

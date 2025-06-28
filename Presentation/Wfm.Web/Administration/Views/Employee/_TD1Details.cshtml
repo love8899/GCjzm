@@ -1,0 +1,248 @@
+﻿@model Wfm.Admin.Models.Employee.EmployeeTD1Model
+@{
+    Layout = null;
+}
+
+<div class="section-header">
+    <div class="title">
+        @ViewBag.ProvinceName
+    </div>
+    <div class="options">
+        <input type="button" id="UpdateTD1" class="k-button" value="Save"  onclick="updateTD1()"/>
+        <input type="button" id="RefreshTD1" class="k-button" value="Cancel"  onclick="refreshTD1()"/>
+    </div>
+</div>
+@using (Html.BeginForm("_UpdateTD1", "Employee", FormMethod.Post, new { id = "td1-form" }))
+{
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(m => m.EmployeeTD1_Id)
+    @Html.HiddenFor(m => m.CandidateId)
+    @Html.HiddenFor(m => m.Year)
+    @Html.HiddenFor(m => m.Province_Code)
+
+    <table class="adminContent">
+        <tr>
+            <td class="basic-amounts" width="45%">
+                @TD1BasicAmounts()
+            </td>
+            <td width="10%"></td>
+            <td class="addtional-amounts" width="45%">
+                @TD1AdditionalAmounts()
+            </td>
+        </tr>
+    </table>
+}
+@helper TD1BasicAmounts()
+{
+    var provincesWithChildAmount = new List<string>() { "CA", "SK", "YT" };
+    <table>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.Basic_Amount, "Basic Amount")
+            </td>
+            <td class="adminData">
+                @Html.Kendo().NumericTextBoxFor(m => m.Basic_Amount).Min(0).HtmlAttributes(new { style = "width:135px" })
+                @Html.ValidationMessageFor(m => m.Basic_Amount)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.Age_Amount, "Age Amount")
+            </td>
+            <td class="adminData">
+                @Html.Kendo().NumericTextBoxFor(m => m.Age_Amount).Min(0).HtmlAttributes(new { style = "width:135px" })
+                @Html.ValidationMessageFor(m => m.Age_Amount)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.Eligible_Dependant_Amount, "Eligible Dependant Amount")
+            </td>
+            <td class="adminData">
+                @Html.Kendo().NumericTextBoxFor(m => m.Eligible_Dependant_Amount).Min(0).HtmlAttributes(new { style = "width:135px" })
+                @Html.ValidationMessageFor(m => m.Eligible_Dependant_Amount)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.Amount_Transferred_From_Dependant, "Amount Transferred from Dependant")
+            </td>
+            <td class="adminData">
+                @Html.Kendo().NumericTextBoxFor(m => m.Amount_Transferred_From_Dependant).Min(0).HtmlAttributes(new { style = "width:135px" })
+                @Html.ValidationMessageFor(m => m.Amount_Transferred_From_Dependant)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(m => m.Disablility_Amount, "Disablility Amount")
+            </td>
+            <td class="adminData">
+                @Html.Kendo().NumericTextBoxFor(m => m.Disablility_Amount).Min(0).HtmlAttributes(new { style = "width:135px" })
+                @Html.ValidationMessageFor(m => m.Disablility_Amount)
+            </td>
+        </tr>
+        @if (provincesWithChildAmount.Contains(Model.Province_Code))
+        {
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(m => m.Child_Amount, "Child Amount")
+                </td>
+                <td class="adminData">
+                    @Html.Kendo().NumericTextBoxFor(m => m.Child_Amount).Min(0).HtmlAttributes(new { style = "width:135px" })
+                    @Html.ValidationMessageFor(m => m.Child_Amount)
+                </td>
+            </tr>
+        }
+        else
+        {
+            <tr><td colspan="2">&nbsp;</td></tr>
+        }
+        @if (Model.Province_Code == "QC")
+        {
+            <tr><td colspan="2">&nbsp;</td></tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(m => m.Amount_For_Workers_65_Or_Older, "Amount for Workers 65 or Older")
+                </td>
+                <td class="adminData">
+                    @Html.Kendo().NumericTextBoxFor(m => m.Amount_For_Workers_65_Or_Older).Min(0).HtmlAttributes(new { style = "width:135px" })
+                    @Html.ValidationMessageFor(m => m.Amount_For_Workers_65_Or_Older)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(m => m.QC_Deductions, "QC Deduction")
+                </td>
+                <td class="adminData">
+                    @Html.Kendo().NumericTextBoxFor(m => m.QC_Deductions).Min(0).HtmlAttributes(new { style = "width:135px" })
+                    @Html.ValidationMessageFor(m => m.QC_Deductions)
+                </td>
+            </tr>
+        }
+    </table>
+}
+@helper TD1AdditionalAmounts()
+{
+    if (Model.Province_Code != "QC")
+    {
+        <table>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(m => m.Spouse_Amount, "Spouse Amount")
+                </td>
+                <td class="adminData">
+                    @Html.Kendo().NumericTextBoxFor(m => m.Spouse_Amount).Min(0).HtmlAttributes(new { style = "width:135px" })
+                    @Html.ValidationMessageFor(m => m.Spouse_Amount)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(m => m.Pension_Income_Amount, "Pension Income Amount")
+                </td>
+                <td class="adminData">
+                    @Html.Kendo().NumericTextBoxFor(m => m.Pension_Income_Amount).Min(0).HtmlAttributes(new { style = "width:135px" })
+                    @Html.ValidationMessageFor(m => m.Pension_Income_Amount)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(m => m.Caregiver_Amount, "Caregiver Amount")
+                </td>
+                <td class="adminData">
+                    @Html.Kendo().NumericTextBoxFor(m => m.Caregiver_Amount).Min(0).HtmlAttributes(new { style = "width:135px" })
+                    @Html.ValidationMessageFor(m => m.Caregiver_Amount)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(m => m.Infirm_Dependant_Amount, "Infirm Dependant Amount")
+                </td>
+                <td class="adminData">
+                    @Html.Kendo().NumericTextBoxFor(m => m.Infirm_Dependant_Amount).Min(0).HtmlAttributes(new { style = "width:135px" })
+                    @Html.ValidationMessageFor(m => m.Infirm_Dependant_Amount)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(m => m.Amount_Transferred_From_Spouse, "Amount Transferred from Spouse")
+                </td>
+                <td class="adminData">
+                    @Html.Kendo().NumericTextBoxFor(m => m.Amount_Transferred_From_Spouse).Min(0).HtmlAttributes(new { style = "width:135px" })
+                    @Html.ValidationMessageFor(m => m.Amount_Transferred_From_Spouse)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(m => m.Tuition_Amounts, "Tuition / Edudation Amount")
+                </td>
+                <td class="adminData">
+                    @Html.Kendo().NumericTextBoxFor(m => m.Tuition_Amounts).Min(0).HtmlAttributes(new { style = "width:135px" })
+                    @Html.ValidationMessageFor(m => m.Tuition_Amounts)
+                </td>
+            </tr>
+            @if (Model.Province_Code == "SK")
+            {
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(m => m.Senior_Supplementary_Amount, "Senior Supplementary Amount")
+                </td>
+                <td class="adminData">
+                    @Html.Kendo().NumericTextBoxFor(m => m.Senior_Supplementary_Amount).Min(0).HtmlAttributes(new { style = "width:135px" })
+                    @Html.ValidationMessageFor(m => m.Senior_Supplementary_Amount)
+                </td>
+            </tr>
+            }
+            else
+            {
+            <tr><td colspan="2">&nbsp;</td></tr>
+            }
+            @if (Model.Province_Code == "MB")
+            {
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(m => m.Family_Tax_Benefit, "Family Tax Benefit")
+                </td>
+                <td class="adminData">
+                    @Html.Kendo().NumericTextBoxFor(m => m.Family_Tax_Benefit).Min(0).HtmlAttributes(new { style = "width:135px" })
+                    @Html.ValidationMessageFor(m => m.Family_Tax_Benefit)
+                </td>
+            </tr>
+            }
+        </table>
+    }
+}
+<script type="text/javascript">
+
+    function refreshTD1() {
+       loadDetails('@(ViewBag.ProvinceName)', '@(Model.EmployeeTD1_Id)');
+    };
+
+    function updateTD1() {
+        //e.preventDefault();
+        var form = $('#td1-form');
+        if (form.valid()) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("_UpdateTD1", "Employee")',
+                data: form.serialize(),
+                success: function (response) {
+                    if (response.Result) {
+                        refreshOverview();
+                        alert("TD1 for is updated");
+                    }
+                    else {
+                        alert(response.ErrorMessage);
+                    }
+                }
+            });
+        }
+    }
+
+</script>
+
+<style>
+#details-cell .k-numerictextbox .k-input {
+    width: 100px;
+    text-align: right;
+}
+</style>

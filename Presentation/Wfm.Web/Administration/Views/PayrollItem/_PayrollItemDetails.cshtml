@@ -1,0 +1,121 @@
+﻿@model Wfm.Admin.Models.Payroll.PayrollItemDetailModel
+<style>
+    .section-header {
+        height: 60px;
+    }
+</style>
+<script src="@Url.Content("~/Scripts/admin.common.js?version=1.8")" type="text/javascript"></script>
+<script type="text/javascript">
+    function gridParameter() {
+        return { year: $("#refYear").val(), payrollItemId: '@Model.ID' };
+    }
+    function getPayrollItemId() {
+        return { payrollItemId: '@Model.ID' };
+    }
+</script>
+@Html.Kendo().TabStrip().Name("payroll-items-details-tabstrip").Items(x =>
+{
+    x.Add().Text(T("Common.BasicInformation").Text).Content(PayrollItemBasicInfoTab().ToHtmlString()).HtmlAttributes(new { id = "tab-basic-information" });
+    x.Add().Text(T("Common.TaxFormSetting").Text).Content(TaxFormSettingTab().ToHtmlString()).HtmlAttributes(new { id = "tab-tax-form-setting" });
+}).Events(e => e.Select("onTabChange"))
+
+@helper PayrollItemBasicInfoTab()
+{
+    <div id="basic-info-div">
+        @Html.Partial("_TabBasicSettings", Model)
+    </div>
+}
+@helper TaxFormSettingTab()
+{
+    <div class="section-header">
+        <div class="title">
+            Tax Form Assignment
+        </div>
+        <div class="options">
+            @(Html.Kendo().DatePicker().Name("refYear").HtmlAttributes(new { type = "text", style = "width:150px" })
+            .Depth(CalendarView.Decade).Start(CalendarView.Decade).Format("yyyy")
+            .Value(DateTime.Today).Max(DateTime.Today.AddYears(1))
+            .Events(e => e.Change("refreshTaxFormSetting")))
+        </div>
+    </div>
+    <table class="adminContent">
+        <tr>
+            <td>
+                @(Html.Kendo().Grid<TaxFormBoxModel>()
+                .Name("tax-form-setting-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.IsSelected).Title("")
+                        .ClientTemplate("#if (IsSelected == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80);
+                    columns.Bound(x => x.Id).Hidden();
+                    columns.Bound(x => x.Form).Width(100).Hidden();
+                    columns.Bound(x => x.Box).Width(180);
+                    columns.Bound(x => x.Name);
+                })
+                .ToolBar(x => x.Save())
+                .Editable(x => x.Mode(GridEditMode.InCell))
+                .Selectable()
+                .ColumnMenu()
+                .Filterable()
+                .Sortable()
+                .Scrollable(s => s.Height(500))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .Batch(true)
+                    .Update(update => update.Action("_UpdateTaxFormBox", "PayrollItem").Data("getPayrollItemId"))
+                    .Model(m =>
+                    {
+                        m.Id(x => x.Id);
+                        m.Field(x => x.Id).Editable(false);
+                        m.Field(x => x.IsSelected).Editable(true).DefaultValue(false);
+                        m.Field(x => x.Form).Editable(false);
+                        m.Field(x => x.Box).Editable(false);
+                        m.Field(x => x.Name).Editable(false);
+                    })
+                    .Group(x => x.Add(a => a.Form))
+                    .ServerOperation(false)
+                    .Read(read => read.Action("_GetTaxFormBox", "PayrollItem").Data("gridParameter"))
+                )
+                )
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+    $(function () {
+        bindButtonsForPayrollItems();
+        var tabIndex = '@(ViewBag.TabIndex)';
+        $("#payroll-items-details-tabstrip").data("kendoTabStrip").select(tabIndex);
+    });
+    function bindButtonsForPayrollItems() {
+        $('#UpdatePayrollItem').click(updatePayrollItem);
+
+        $('#RefreshPayrollItem').click(function () {
+            loadDetails('@Model.ID');
+        });
+    }
+
+    function updatePayrollItem(e) {
+        e.preventDefault();
+        var form = $('#payroll-item-form');
+        if (form.valid()) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("_UpdatePayrollItem", "PayrollItem")',
+                data: form.serialize(),
+                success: function (response) {
+                    if (response.Result) {
+                        refreshPayrollItems();
+                        alert("Payroll Item is updated");
+                    }
+                    else {
+                        alert(response.ErrorMessage);
+                    }
+                }
+            });
+        }
+    }
+</script>
+

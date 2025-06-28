@@ -1,0 +1,92 @@
+﻿@model CandidateActivityLogModel
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Logging.ActivityLog.Details").Text;
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "candidateactivitylog-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Logging.ActivityLog.Details").Text @Html.ActionLink("(" + T("Admin.Logging.ActivityLog.BackToList") + ")", "Index")
+        </div>
+        <div class="options">
+        </div>
+    </div>
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Id)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.Id)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.ActivityLogTypeModel.Description)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.ActivityLogTypeModel.Description)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CandidateId)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CandidateId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CandidateName)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CandidateName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.FranchiseId)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.FranchiseId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.FranchiseName)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.FranchiseName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.ActivityLogDetail)
+            </td>
+            <td class="adminData">
+                @Html.DisplayTextFor(model => model.ActivityLogDetail)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CreatedOnUtc)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CreatedOnUtc)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.UpdatedOnUtc)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.UpdatedOnUtc)
+            </td>
+        </tr>
+    </table>
+}

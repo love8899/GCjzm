@@ -1,0 +1,76 @@
+﻿@using Wfm.Web.Models.Candidate
+@model CandidateUpdateProfileModel
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    ViewBag.Title = "ViewProfile";
+}
+
+<div class="page candidate-page">
+    <div class="page-body">
+        <div class="result">
+        </div>
+    </div>
+    <div class="fieldset">
+        <div class="form-fields">
+            <div class="inputs">
+                @Html.LabelFor(model => model.EmployeeId)
+                @Html.TextBoxFor(model => model.EmployeeId, new { @readonly = "readonly" })
+            </div>
+            <div class="inputs">
+                @Html.LabelFor(model => model.Email)
+                @Html.TextBoxFor(model => model.Email, new { @readonly = "readonly" })
+            </div>
+            <div class="inputs">
+                @Html.LabelFor(model => model.SalutationModel.SalutationName)
+                @Html.TextBoxFor(model => model.SalutationModel.SalutationName, new { @readonly = "readonly" })
+                @Html.RequiredHint()
+            </div>
+            <div class="inputs">
+                @Html.LabelFor(model => model.FirstName)
+                @Html.TextBoxFor(model => model.FirstName, new { @readonly = "readonly" })
+            </div>
+            <div class="inputs">
+                @Html.LabelFor(model => model.LastName)
+                @Html.TextBoxFor(model => model.LastName, new { @readonly = "readonly" })
+            </div>
+            <div class="inputs">
+                @Html.LabelFor(model => model.BirthDate)
+                @Html.TextBoxFor(model => model.BirthDate, "{0:MM/dd/yyyy}", new { @readonly = "readonly" })
+            </div>
+            <div class="inputs">
+                @Html.LabelFor(model => model.HomePhone)
+                @Html.TextBox("HomePhone", Model.HomePhone.ToPrettyTelephone(), new { @readonly = "readonly" })
+            </div>
+            <div class="inputs">
+                @Html.LabelFor(model => model.MobilePhone)
+                @Html.TextBox("MobilePhone", Model.MobilePhone.ToPrettyTelephone(), new { @readonly = "readonly" })
+            </div>
+            <div class="inputs">
+                @Html.LabelFor(model => model.EmergencyPhone)
+                @Html.TextBox("EmergencyPhone", Model.EmergencyPhone.ToPrettyTelephone(), new { @readonly = "readonly" })
+            </div>
+            <div class="inputs">
+                @Html.LabelFor(model => model.TransportationModel.TransportationName)
+                @Html.TextBoxFor(model => model.TransportationModel.TransportationName, new { @readonly = "readonly" })
+                @Html.RequiredHint()
+            </div>
+            <div class="inputs">
+                @Html.LabelFor(model => model.MajorIntersection1, T("Admin.Candidate.Candidate.Fields.MajorIntersection1").Text)
+                @Html.TextBox("MajorIntersection1", Model.MajorIntersection1 + " / " + Model.MajorIntersection2, new { @readonly = "readonly" })
+            </div>
+            <div class="inputs">
+                @Html.LabelFor(model => model.Education)
+                @Html.TextBoxFor(model => model.Education, new { @readonly = "readonly" })
+            </div>
+            <div class="inputs">
+                @Html.LabelFor(model => model.PreferredWorkLocation)
+                @Html.TextBoxFor(model => model.PreferredWorkLocation, new { @readonly = "readonly" })
+            </div>
+        </div>
+    </div>
+    <div class="buttons">
+        @Html.ActionLink(T("Web.Candidate.Candidate.UpdateProfile").Text, "UpdateProfile", null, new { @class = "button-1" })
+    </div>
+</div>

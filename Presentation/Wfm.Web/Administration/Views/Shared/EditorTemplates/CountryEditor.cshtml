@@ -1,0 +1,12 @@
+﻿@model int
+@(Html.Kendo().DropDownListFor(m => m)
+        .OptionLabel("Select Country...")
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .DataSource(dataSource =>
+        {
+            dataSource.Read(read => read.Action("GetCascadeCountries", "Common"))
+                    .ServerFiltering(true);
+        })
+)
+@*@Html.ValidationMessageFor(m => m)*@

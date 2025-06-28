@@ -1,0 +1,23 @@
+﻿@using Wfm.Core.Infrastructure
+@using Wfm.Core.Domain.Common
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    ViewBag.Title = "Confirmation";
+    ViewBag.Keywords = siteTitle + " Employment,GC,Jobs,Job Agency,Employment Agency,Staffing,Temporary Staffing,Permanent Staffing,Mass Recruitment Services,Temporary Foreign Worker Program";
+}
+
+@section left {
+    @Html.Partial("Layout/_AccountSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Confirmation</h1>
+    </div>
+    <div class="page-body">
+        <h3 style="color:red">@ViewBag.Message</h3>
+    </div>
+</div>

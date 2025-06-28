@@ -1,0 +1,93 @@
+﻿@model Wfm.Shared.Models.Search.SearchAttendanceModel
+@{
+    Layout = "_SearchLayout.cshtml";
+    ViewBag.FromDate = Model.sf_From.ToShortDateString();
+    ViewBag.ToDate = Model.sf_To.ToShortDateString();
+
+    var minDate = Model.MinDate();
+    var today = DateTime.Today;
+    var yesterday = today.AddDays(-1);
+
+    var defaultTitle = (string)ViewData["DefaultTitle"] ?? string.Empty;
+    var allowAll = String.IsNullOrWhiteSpace(defaultTitle);
+
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+
+@section DateRange {
+    @Html.EditorFor(x => x.sf_From, "Date", new { Min = Model.MinDate(), Max = Model.MaxDate(), OnChange = "onFromChange" })
+    <i class="fa fa-angle-right"></i>
+    @*@Html.EditorFor(x => x.sf_To, "Date", new { Min = Model.MinDate(), Max = Model.MaxDate(), OnChange = "onToChange", HtmlAttr = new { @readonly = "readonly" } })*@
+    @Html.EditorFor(x => x.sf_To, "Date", new { Min = Model.MinDate(), Max = Model.MaxDate(), OnChange = "onToChange", HtmlAttr = new { @readonly = "readonly"} })
+    <script type="text/javascript">
+        function onFromChange(e) {
+            var toPicker = $("#sf_To").data("kendoDatePicker");
+            toPicker.value(this.value()); toPicker.trigger('change');   // refresh grid anyway
+        }
+        function onToChange(e) { $('#btn-search').click(); }
+    </script>
+}
+
+@section Shortcuts {
+    @if (allowAll)
+    {
+        <button class="btn btn-sm btn-info btn-flat bg-dark-blue margin-r-5" id="btn-all" title="All attendance list">All</button>
+    }
+    else
+    {
+        <button class="btn btn-sm btn-info btn-flat bg-dark-blue margin-r-5" id="btn-default" title="@defaultTitle">Default</button>
+    }
+    <button class="btn btn-sm btn-info btn-flat bg-blue margin-r-5" id="btn-last" title="Yesterday's attendance list">Last</button>
+    <button class="btn btn-sm btn-info btn-flat bg-light-blue" id="btn-this" data-chart-period="week" title="today's attendance list">This</button>
+    <script type="text/javascript">
+        $("#btn-this").on("click", function () {
+            reloadByDataRange('@(today.ToShortDateString())', '@(today.ToShortDateString())');
+        });
+        $("#btn-last").on("click", function () {
+            reloadByDataRange('@(yesterday.ToShortDateString())', '@(yesterday.ToShortDateString())');
+        });
+        $("#btn-default").on("click", function () {
+            reloadByDataRange('@(Model.sf_From.ToShortDateString())', '@(Model.sf_To.ToShortDateString())');
+        });
+        $("#btn-all").on("click", function () {
+            reloadByDataRange('@(minDate.ToShortDateString())', '@(today.ToShortDateString())');
+        });
+    </script>
+}
+
+@Html.Hidden("sf_ClientTime")   @*, DateTime.UtcNow.ToString("s"))*@
+<div class="col-md-6">
+    @Html.InputFor(x => x.sf_ShiftStartTime, "Time")
+    @Html.InputFor(x => x.sf_CandidateId, "String")
+    @Html.InputFor(x => x.sf_EmployeeId)
+    @Html.InputFor(x => x.sf_EmployeeFirstName)
+    @Html.InputFor(x => x.sf_EmployeeLastName)
+</div>
+<div class="col-md-6">
+    @*@if (commonSettings.DisplayVendor)
+        {
+            @Html.InputFor(x => x.sf_FranchiseId, "DropDownList", new { Items = Model.AvaliableVendors })
+        }*@
+
+    @Html.InputFor(x => x.sf_CompanyLocationId, "DropDownList", new { Items = Model.AvailableLocations })
+
+    @Html.InputFor(x => x.sf_CompanyDepartmentId, "CascadeDropDownList",
+        new { Controller = "Company", Action = "GetCascadeDepartments", OnData = "filterDepartments", From = "sf_CompanyLocationId" })
+    <script>function filterDepartments() { return { locationId: $("#sf_CompanyLocationId").val(), addNone: false }; }</script>
+
+    @Html.InputFor(x => x.sf_CompanyContactId, "DropDownList", new { Items = Model.AvailableContacts })
+
+    @Html.InputFor(x => x.sf_JobTitle)
+
+    @Html.InputFor(x => x.sf_Status, "DropDownList4Obj", new { Items = Model.AvailableStatus })
+</div>
+
+@section scripts {<script type="text/javascript">
+    $(function () { setHiddenSearchFields(); });
+    function setHiddenSearchFields() {
+        var utcTimeNow = (new Date()).toJSON();
+        remoteSearch.sf_ClientTime = utcTimeNow;
+        localSearch.sf_ClientTime = utcTimeNow;
+        $('#sf_ClientTime').val(utcTimeNow);
+    }
+</script>}

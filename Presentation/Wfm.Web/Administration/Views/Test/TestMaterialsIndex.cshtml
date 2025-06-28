@@ -1,0 +1,108 @@
+﻿@using Wfm.Services.Media
+@using Wfm.Services.Test
+@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.TestMaterials").Text;
+    var attachmentTypeService = EngineContext.Current.Resolve<IAttachmentTypeService>();
+    var attachmentTypes = attachmentTypeService.GetAllAttachmentTypes();
+    var categoryService = EngineContext.Current.Resolve<ITestService>();
+    var categories = categoryService.GetAllCategories().Select(x => new SelectListItem() { Text = x.TestCategoryName, Value = x.Id.ToString() });
+    
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration.TestMaterials")  @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+    <div class="options">
+        <div class="k-button" id="upload-test-materials">@T("Common.Upload")</div>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+           @(Html.Kendo().Grid<TestMaterialModel>()
+                .Name("test-materials-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.AttachmentFileName).Title(T("admin.common.file").Text);
+                    columns.ForeignKey(x => x.TestCategoryId, categories, "Value", "Text").Title(T("Common.TestCategory").Text).Width(250);
+                    columns.ForeignKey(x => x.AttachmentTypeId, attachmentTypes, "Id", "TypeName").Title(T("Admin.Candidate.CandidateAttachment.Fields.AttachmentTypeId").Text).Width(250);
+                    columns.Bound(x => x.Id)
+                        .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/Test/DownloadTestMaterial?guid=") + "#= TestMaterialGuid #\"><span class='fa fa-download'></span></a>")
+                        .HtmlAttributes(new { style = "text-align:center", title = T("Common.Download").Text })
+                        .Title(T("Common.Download").Text)
+                        .Width(90);
+                    columns.Bound(x => x.UpdatedOnUtc)
+                        .Template(x => x.UpdatedOn.Value.ToString("yyyy-MM-dd HH:mm"))
+                        .ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc)
+                        .Template(x => x.CreatedOn.Value.ToString("yyyy-MM-dd HH:mm"))
+                        .ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Command(commands =>
+                        {
+                            commands.Destroy().Text(" ");
+                        })
+                        .HtmlAttributes(new { style = "vertical-align:middle", title = T("Common.Delete").Text })
+                        .Width(80);
+
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(30)
+                    .Read(read => read.Action("TestMaterialsList", "Test"))
+                    .Destroy(update => update.Action("DeleteMaterial", "Test"))
+                    .Model(m => m.Id("Id"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+        )
+        </td>
+    </tr>
+</table>
+<div id="upload-window"></div>
+<script type="text/javascript">
+    $("#upload-test-materials").click(function () {
+
+
+
+        var dialog = $("#upload-window").data("kendoWindow");
+        if (!dialog) {
+            $("#upload-window").kendoWindow({
+                title: "Upload",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 250,
+            });
+            dialog = $("#upload-window").data("kendoWindow");
+        }
+        else {
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_UploadTestMaterial", "Test")'
+        });
+        dialog.center();
+        return false;
+    });
+</script>
+

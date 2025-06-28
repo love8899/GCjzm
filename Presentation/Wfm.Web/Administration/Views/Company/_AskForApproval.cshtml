@@ -1,0 +1,98 @@
+﻿@model QueuedEmailModel
+@{ Layout = null; }
+
+
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "askforapproval-form" }))
+{
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.EmailAccountId)
+    @Html.HiddenFor(model => model.Priority)
+    @*@Html.HiddenFor(model => model.FromName)
+    @Html.HiddenFor(model => model.FromAccountId)
+    @Html.HiddenFor(model => model.ToName)
+    @Html.HiddenFor(model => model.ToAccountId)*@
+    @Html.HiddenFor(model => model.MessageCategoryId)
+    @Html.HiddenFor(model => model.AttachmentFileName)
+    @Html.HiddenFor(model => model.AttachmentFile)
+    
+    @Html.Hidden("selectedIds", (string)(ViewBag.SelectedIds))
+
+    <div class="section-header">
+        <div class="title">
+        </div>
+        <div class="options" style="margin-right: 20px">
+            <input type="button" id="btn-send" name="send" class="k-button" value="@T("Common.Send")" />
+        </div>
+    </div>
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle" width="10%">
+                From
+            </td>
+            <td class="adminData required" width="90%">
+                @Html.EditorFor(model => model.From)
+                @Html.ValidationMessageFor(model => model.From)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                To
+            </td>
+            <td class="adminData required">
+                @Html.TextBoxFor(model => model.To, new { @class = "k-textbox", style = "width:75%" })
+                @Html.ValidationMessageFor(model => model.To)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                CC
+            </td>
+            <td class="adminData">
+                @Html.TextBoxFor(model => model.CC, new { @class = "k-textbox", style = "width:75%" })
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Subject)
+            </td>
+            <td class="adminData required">
+                @Html.TextBoxFor(model => model.Subject, new { @class = "k-textbox", style = "width:95%" })
+                @Html.ValidationMessageFor(model => model.Subject)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Body)
+            </td>
+            <td class="adminData required">
+                @*@Html.TextAreaFor(model => model.Body, new { style = "height:270px;width:95%;", maxlength = "4000" })*@
+                @Html.Kendo().Editor().Name("Body").HtmlAttributes(new { style = "height:270px;width:95%;", maxlength = "4000" })
+                @Html.ValidationMessageFor(model => model.Body)
+            </td>
+        </tr>
+        @if (!String.IsNullOrWhiteSpace(Model.AttachmentFileName))
+        {
+            var attachmentLink = String.Concat("data:text/plain;charset=utf-8;base64,", Convert.ToBase64String(Model.AttachmentFile));
+            <tr>
+                <td class="adminTitle">
+                    Attachment
+                </td>
+                <td class="adminData required">
+                    <a href="@attachmentLink" download="@(Model.AttachmentFileName)">@(Model.AttachmentFileName)</a>
+                </td>
+            </tr>
+        }
+    </table>
+}
+
+
+<script>
+    // for jQuery validation
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+</script>

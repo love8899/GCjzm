@@ -1,0 +1,538 @@
+.main-header > .navbar,
+.content-wrapper, 
+.right-side, 
+.main-footer 
+{
+    margin-left: 0;
+}
+
+/*.main-header .container {
+    background: url(../Admin/images/tempus_logo.png) no-repeat 15px 7px;
+    padding-left: 70px;
+}*/
+
+.main-header .container .navbar-header a.navbar-brand {
+    background: url(../Admin/images/gc_logo.png) no-repeat 10px 10px;
+    padding-left: 50px;
+}
+
+.main-header .navbar-custom-menu {
+    float: right;
+}
+
+@media only screen and (min-width: 768px) {
+    .navbar-collapse.pull-left + .navbar-custom-menu {
+        right: 0;
+    }
+}
+
+.main-header .navbar .nav > li.user > a > .fa {
+    margin-right: 0;
+}
+
+#ajaxBusy span {
+    margin: 5px 10px 0 0;
+}
+
+.content-wrapper {
+    padding-bottom: 1px;    /* avoid black space before footer */
+}
+
+.cardAnnouncement .pull-right {
+    margin-top: -25px;
+    margin-right: -5px;
+}
+
+.content {
+    padding: 0 15px;
+}
+
+#dialog-notifications-success {
+    color: green;
+}
+
+#dialog-notifications-error {
+    color: red;
+}
+
+#dialog-notifications-warning {
+    color: darkorange;
+}
+
+.form-horizontal .form-group .input-group {
+    width: 100% !important;
+}
+
+.form-horizontal .form-group input[type="text"],
+.form-horizontal .form-group input[type="password"],
+.form-horizontal .form-group select,
+.form-horizontal .form-group textarea,
+.form-horizontal .form-group .k-textbox,
+.form-horizontal .form-group .k-numerictextbox,
+.form-horizontal .form-group .k-dropdown,
+.form-horizontal .form-group .k-datepicker,
+.form-horizontal .form-group .k-timepicker,
+.form-horizontal .form-group .k-datetimepicker,
+.form-horizontal .form-group .k-multiselect {
+    width: 400px !important;
+    max-width: 94% !important;
+}
+
+.form-horizontal .form-group .mce-tinymce {
+    display: inline-block;
+    max-width: 94% !important;
+}
+
+.validation-summary-errors {
+    margin-bottom: 10px;
+}
+
+.k-grid.k-widget > table {
+    min-width: 0;
+}
+
+.k-pager-sizes.k-label, .k-pager-info.k-label {
+    display: none;
+}
+
+.k-grid-header th.k-header {
+    background-image: none;
+    background-color: #f4f4f4;
+    border: 1px solid #e3e3e3;
+    border-left-color: rgb(227, 227, 227);
+    border-left-style: solid;
+    border-left-width: 1px;
+    border-left: none;
+    border-left-width: medium;
+    font-weight: bold;
+    padding: 10px 8px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.k-grid table tr.k-state-selected:hover > td {
+    background: #3c8dbc;
+}
+
+.k-grid table tr.k-alt.k-state-selected td {
+    background-color: #3c8dbc;
+}
+
+@media only screen and (min-width: 992px) {
+    .k-grid .k-autocomplete,
+    .k-grid .k-combobox,
+    .k-grid .k-numerictextbox,
+    .k-grid .k-dropdown,
+    .k-grid .k-selectbox
+    /*.k-grid .k-textbox*/ {
+        width: 300px !important;
+        max-width: 100%;
+    }
+}
+
+.k-grid .k-timepicker, 
+.k-grid .k-datetimepicker, 
+.k-grid .k-datepicker 
+{
+    width: 120px !important;
+    max-width: 100%;
+}
+
+.k-grid .k-picker-wrap .k-select, 
+.k-grid .k-numeric-wrap .k-select, 
+.k-grid .k-dropdown-wrap .k-select {
+    width: 1.9em !important;
+}
+
+@media only screen and (max-width: 767px) {
+    .k-grid tbody .k-button {
+        min-width: 32px !important;
+    }
+
+    .k-grid tbody .k-button .fa {
+        padding-right: 0 !important;
+        margin: 0 auto !important;
+    }
+}
+
+@media all and (min-width: 768px) {
+
+    .k-pager-info.k-label {
+        display: inline;
+    }
+
+    .k-grid tbody .k-button {
+        min-width: 64px;
+    }
+
+    /*.k-button[title='Edit']:after,*/
+    .k-grid-edit:after {
+        content: " Edit";
+    }
+
+    .k-grid-update:after {
+        content: "OK";
+    }
+
+    .k-grid-cancel:after {
+        content: "No";
+    }
+
+    .k-grid-History:after {
+        content: " History";
+    }
+
+    .k-grid-download:after {
+        content: " Download";
+    }
+
+    /* hide level 2 grouping */
+    /*.k-grid table tbody .k-grouping-row:nth-of-type(4n+2),
+    .k-grid table tr .k-group-cell:nth-child(2) {
+        display: none;
+    }*/
+}
+
+@media all and (min-width: 576px) {
+    .k-pager-sizes.k-label {
+        display: inline;
+    }
+}
+
+.clocktime-error {
+    color: #ff9900;
+    font-weight: 700;
+}
+
+.clocktime-warning {
+    color: #FF0066;
+    font-weight: 700;
+}
+
+.worktime-adjusted {
+    color: #006d24;
+    font-weight: 700;
+}
+
+.worktime-warning {
+    color: #FF0066;
+    font-weight: 700;
+}
+
+.overtime-warning {
+    color: #FF6600;
+    font-weight: 700;
+}
+
+@media only screen and (max-width: 575px) {
+    .k-grid-header th.k-with-icon .k-link {
+        margin: -0.5em -0.6em -0.4em -0.6em;
+    }
+}
+
+.popup .form-horizontal .label-wrapper {
+    float: right;
+}
+
+@media only screen and (max-width: 767px) {
+    .popup .form-horizontal .label-wrapper {
+        float: none;
+    }
+}
+
+@media only screen and (min-width: 768px) {
+    .popup .form-horizontal .control-label {
+        padding-top: 0;
+    }
+}
+
+td.k-group-cell {
+    background-color: #e3e3e3 !important;
+    border-top: none !important;
+}
+
+input[readonly],
+/*.k-widget[aria-readonly=true],*/
+.k-input[readonly] {
+    background-color: #eee !important;
+    cursor: not-allowed !important;
+}
+
+.k-widget[aria-readonly=true] > .k-dropdown-wrap {
+    background-color: #eee !important;
+    cursor: not-allowed !important;
+}
+
+a[disabled] {
+    cursor: not-allowed !important;
+}
+
+.overtime-message,
+.candidate-alert-message {
+    padding-left: 10px;
+    display: none;
+}
+
+.overtime-message {
+    color: darkred;
+}
+
+.candidate-alert-message {
+    color: darkgoldenrod;
+}
+
+@media only screen and (min-width: 768px) {
+    .overtime-message,
+    .candidate-alert-message {
+        display: inline;
+    }
+}
+
+.k-radio:checked + .k-radio-label::after {
+    top: 2px;
+    left: 2px;
+}
+
+.k-radio-label {
+    text-align: left !important;
+}
+
+.k-grid .k-button,
+.k-grid-edit,
+.k-grid-Adjust,
+.k-grid-Approve,
+.k-grid-Reject {
+    min-width: 12px !important;
+}
+
+.k-grid .k-button .fa,
+.k-grid-edit .fa,
+.k-grid-Adjust .fa,
+.k-grid-Approve .fa,
+.k-grid-Reject .fa {
+    padding-right: 0 !important;
+}
+
+.k-grid-header th.k-with-icon .k-link {
+    margin-right: 6px;
+}
+
+.k-grouping-row p span {
+    font-weight: normal;
+}
+
+@media only screen and (max-width: 1199px) {
+    .k-grouping-row td {
+        text-align: center;
+    }
+    .k-grouping-row p {
+        display: inline;
+    }
+}
+
+.input-group-required {
+    display: inline-block;
+    width: 60%;
+}
+
+.input-group-required .input-group-btn {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 3px;
+}
+
+#search-box {
+    padding: 0 10px;
+}
+
+#search-box .box-title {
+    padding: 10px 0;
+}
+
+.date-range {
+    width: 256px;
+    padding: 3px 3px;
+    margin: 0 auto;
+}
+
+.date-ref {
+    padding: 3px 3px;
+    margin: 0 auto;
+}
+
+.date-range .fa {
+    padding-left: 5px;
+}
+
+.date-ref .k-input,
+.date-range .k-input {
+    background-color: yellow;
+}
+
+.date-range .k-datepicker {
+    display: inline-block;
+    width: 114px !important;
+    padding: 0;
+    margin-bottom: 0;
+}
+
+.date-ref .k-select,
+.date-range .k-select {
+    width: 32px !important;
+}
+
+.short-text {
+    display: inline-block;
+    width: 100px;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: middle;
+    background-color: #eee;
+    cursor:not-allowed;
+}
+
+@media only screen and (max-width: 575px) {
+    .date-range {
+        float: right;
+        display: inline-block;
+        margin: 0 0;
+    }
+    .date-ref .k-datepicker {
+        display: inline-block;
+        width: 114px !important;
+        padding: 0;
+        margin-bottom: 0;
+    }
+    #search-box .box-title .fa {
+        vertical-align: middle;
+    }
+}
+
+.k-window .k-ext-dialog-buttons {
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+}
+
+.k-window .k-window-titlebar {
+    height: 1.1em;
+}
+
+.k-window div.k-window-content {
+    overflow: hidden;
+}
+
+tr.k-alt.disabled td[role='gridcell'],
+.disabled {
+    background-color: peachpuff !important;
+}
+
+.k-detail-row > td.k-detail-cell, .k-detail-row.k-alt > td.k-detail-cell {
+    background-color: lightskyblue !important;
+}
+
+.content-header .highlight {
+    width: 400px;
+    max-width: 100%;
+    padding: 6px 0 3px;
+    margin: 0 auto;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+}
+
+@media only screen and (max-width: 575px) {
+    .k-grid-edit-row > td > .k-numerictextbox {
+        min-width: 64px !important;
+    }
+}
+
+.editable {
+    background-color: lightyellow;
+}
+
+.k-grid table tr.k-alt td.editable {
+    background-color: lemonchiffon;
+}
+
+tr.k-state-selected .editable {
+    background-color: initial;
+}
+
+.acc-wizard .btn-link {
+    font-size: 16px;
+    font-weight: 500;
+    padding: 0;
+    line-height: 1.1;
+    border:none;
+    vertical-align: top;
+}
+
+th, td {
+    padding: .4em .6em;
+}
+
+.navbar-nav > .user-menu > .dropdown-menu > .user-footer {
+    background-color: #d9edf7;
+}
+
+div[class^='col-'] span[class^='field-validation-'] {
+    display: block;
+}
+
+.field-validation-valid {   /* fix BS3 resetForm() issue */
+    display: none !important;
+}
+
+@media only screen and (max-width: 575px) {
+    .form-horizontal .label-wrapper {
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+@media only screen and (min-width: 768px) {
+    .form-horizontal .label-wrapper {
+        float: right;
+        margin: 0;
+    }
+}
+
+.panel-body div.form-group:nth-of-type(1) {
+    padding-top: 5px;
+}
+
+.form-horizontal .k-autocomplete, 
+.form-horizontal .k-combobox, 
+.form-horizontal .k-numerictextbox, 
+.form-horizontal .k-dropdown, 
+.form-horizontal .k-selectbox, 
+.form-horizontal .k-textbox, 
+.form-horizontal .k-colorpicker, 
+.form-horizontal .k-timepicker, 
+.form-horizontal .k-datetimepicker, 
+.form-horizontal .k-datepicker {
+    height: 34px !important;
+}
+
+
+
+
+/*
+    page specific
+*/
+/* hide level 1 group cell */
+#timesheetapproval-grid.k-grid table tr .k-group-cell:nth-child(1), 
+#dailyattendance-grid.k-grid table tr .k-group-cell:nth-child(1), 
+#payperiodtimechart-grid.k-grid table tr .k-group-cell:nth-child(1) {
+    display: none;
+}
+
+@media only screen and (max-width: 1199px) {
+    #job-post-list.k-grid table tr .k-group-cell:nth-child(1)
+    , #job-post-list.k-grid table tr .k-group-cell:nth-child(2)
+    {
+        display: none;
+    }
+}

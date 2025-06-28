@@ -1,0 +1,46 @@
+﻿@{
+    Layout = "_ReportLayout";
+    ViewBag.ReportTitle = "Total hours by supervisor";
+
+    ViewBag.Title = "Total hours by supervisor";
+    Html.SetActiveMenuItemSystemName("TotalHoursBySupervisorReport");
+
+    var startDate = DateTime.Today.AddDays(DayOfWeek.Sunday - DateTime.Today.DayOfWeek - 7);
+    var endDate = startDate.AddDays(6);
+}
+
+@Html.InputLine("fromDate", "From", tmplt: "Date", viewData: new { Value = startDate, OnChange = "startDateChange" })
+@Html.InputLine("toDate", "To", tmplt: "Date", viewData: new { Value = endDate })
+
+<script type="text/javascript">
+    var reportParams = {};
+    var reportUrl = '_TotalHoursBySupervisor';
+    function valParams() {
+        var result = false;
+        var fromDate = $("#fromDate").val();
+        var toDate = $("#toDate").val();
+        if (!fromDate)
+            popupNotification('Please select start date!', 'error');
+        else if (!toDate)
+            popupNotification('Please select end date!', 'error');
+        else {
+            result = true;
+            reportParams = {
+                startDate: fromDate,
+                endDate: toDate
+            };
+        }
+        return result;
+    }
+    function startDateChange() {
+        var startDate = this.value();
+        var endPicker = $("#toDate").data("kendoDatePicker");
+        if (startDate) {
+            startDate = new Date(startDate);
+            endPicker.min(startDate);
+            var suggestedDt = new Date(startDate);
+            suggestedDt.setDate(suggestedDt.getDate() + 6);
+            endPicker.value(suggestedDt);
+        }
+    }
+</script>

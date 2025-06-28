@@ -1,0 +1,243 @@
+﻿@{
+    ViewBag.Title = T("Admin.EmployeeSeniority").Text;
+    var companyService = EngineContext.Current.Resolve<Wfm.Services.Companies.ICompanyService>();
+    var companies = companyService.GetAllCompaniesAsQueryable(null);
+    var today = DateTime.Today;
+    var fromDate = today.AddMonths(-3);
+    var toDate = today;
+    var placedFrom = toDate.AddDays(-14);
+    var placedTo = today.AddDays(7);
+}
+<script>
+    function onToDateChange(e) {
+        var toDate = this.value();
+        var placedFrom = new Date(toDate);
+        var placedTo = new Date(toDate);
+        placedFrom.setDate(placedFrom.getDate() - 14);
+        placedTo.setDate(placedTo.getDate() + 7);
+        var placedFromPicker = $('#placedFrom').data('kendoDatePicker');
+        var placedToPicker = $('#placedTo').data('kendoDatePicker');
+        placedFromPicker.value(placedFrom); placedFromPicker.trigger('change');
+        placedToPicker.value(placedTo); placedToPicker.trigger('change');
+    }
+</script>
+<div class="section-header">
+    <div class="title">
+        @T("Admin.EmployeeSeniority")
+    </div>
+</div>
+<div class="clearer"></div>
+<div class="adminContent">
+    @(Html.Kendo().PanelBar().Name("search-bar")
+        .ExpandMode(PanelBarExpandMode.Multiple)
+        .Items(panelbar =>
+        {
+            panelbar.Add().Text(String.Format(T("Common.ReportParameters").Text, ""))
+                .Expanded(true)
+                .Content(@<div class="panel">
+                    <br />
+                    &nbsp;@Html.Label("dateField", T("Common.Date").Text):
+                    &nbsp;@Html.Kendo().DropDownList().Name("dateField").Items(i =>
+                           {
+                               i.Add().Text("First hire date").Value("FirstHireDate");
+                               i.Add().Text("Last hire date").Value("LastHireDate").Selected(true);
+                               i.Add().Text("Last working day").Value("LastWorkingDay");
+                           }).HtmlAttributes(new { style = "width:250px" })
+                    &nbsp;@Html.Label("fromDate", T("Admin.Common.From").Text)
+                    &nbsp;@Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("fromDate").Value(fromDate)
+                    &nbsp;@Html.Label("toDate", T("Admin.Common.To").Text)
+                    &nbsp;@Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("toDate").Value(toDate).Events(e => e.Change("onToDateChange"))
+                    <br /><br />
+                    &nbsp;&nbsp;@Html.CheckBox("exlcudePlaced", true)&nbsp;<label>Exclude those placed&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                    &nbsp;@Html.Label("placedFrom", T("Admin.Common.From").Text)
+                    &nbsp;@Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("placedFrom").Value(placedFrom)
+                    &nbsp;@Html.Label("placedTo", T("Admin.Common.To").Text)
+                    &nbsp;@Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("placedTo").Value(placedTo)
+                    <br /><br />
+                    &nbsp;@Html.Label("Company", T("Common.Company").Text + ": ")
+                    @(Html.Kendo().ComboBox().Name("companyId").HtmlAttributes(new { style = "width: 400px" })
+                        .DataTextField("Text").DataValueField("Value").Placeholder(T("Common.CompanyId.IsRequired").Text)
+                        .DataSource(ds => ds.Read("GetCascadeCompanies", "Common"))
+                    )
+                    <div style="margin-right: 20px; text-align: right">
+                        @Html.Kendo().Button().Name("loadEmployeeSeniority").Events(e => e.Click("reloadData")).HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text)
+                        <a id="exportexcel" class="k-button" onclick="exportToExcel()">@T("Admin.Common.ExportToExcel").Text</a>
+                        <a id="sendalert" class="k-button" onclick="sendAlert()">Send Alert</a>
+                        <br /><br />
+                    </div>
+                </div>);
+        })
+    )
+</div>
+<br />
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<Wfm.Core.Domain.Candidates.EmployeeSeniority>()
+                .Name("employee-seniority-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.CandidateId).Width(80)
+                        .ClientTemplate(@Html.ActionLink("#=CandidateId#", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString());
+
+                    columns.Bound(x => x.FirstName);
+                    columns.Bound(x => x.LastName);
+
+                    columns.Bound(x => x.HomePhone);
+                    columns.Bound(x => x.MobilePhone);
+                    columns.Bound(x => x.Email);
+                    columns.Bound(x => x.AddressLine1).Hidden();
+                    columns.Bound(x => x.AddressLine2).Hidden();
+                    columns.Bound(x => x.City).Hidden();
+                    columns.Bound(x => x.Province).Hidden();
+                    columns.Bound(x => x.Country).Hidden();
+                    columns.Bound(x => x.PostalCode).Hidden();
+
+                    columns.Bound(x => x.FirstHireDate).ClientTemplate("#if (FirstHireDate) {# #= kendo.toString(FirstHireDate, 'yyyy-MM-dd') # #}#");
+                    columns.Bound(x => x.LastHireDate).ClientTemplate("#if (LastHireDate) {# #= kendo.toString(LastHireDate, 'yyyy-MM-dd') # #}#");
+
+                    columns.Bound(x => x.FirstDayWorked).ClientTemplate("#if (FirstDayWorked) {# #= kendo.toString(FirstDayWorked, 'yyyy-MM-dd') # #}#");
+                    columns.Bound(x => x.LastDayWorked).ClientTemplate("#if (LastDayWorked) {# #= kendo.toString(LastDayWorked, 'yyyy-MM-dd') # #}#");
+                    columns.ForeignKey(x => x.LastClientWorked, companies, "Id", "CompanyName").Title(T("Common.Company").Text);
+
+                    columns.Bound(x => x.TerminationDate).ClientTemplate("#if (TerminationDate) {# #= kendo.toString(TerminationDate, 'yyyy-MM-dd') # #}#");
+
+                    columns.Bound(x => x.ROE_Date).Title(T("Admin.ROE.IssueDate").Text)
+                        .ClientTemplate("#if (ROE_Date) {# #= kendo.toString(ROE_Date, 'yyyy-MM-dd') # #}#");
+                    columns.Bound(x => x.ROE_Reason).Title(T("Admin.ROE.Reason").Text)
+                        .ClientTemplate("#if (ROE_Reason) {# #=ROE_Reason# #}#");
+
+                    columns.Bound(x => x.DNR_Date).Title(T("Admin.DNR.Date").Text)
+                        .ClientTemplate("#if (DNR_Date) {# #= kendo.toString(DNR_Date, 'yyyy-MM-dd') # #}#");
+                    columns.Bound(x => x.DNR_Reason).Title(T("Admin.DNR.Reason").Text)
+                        .ClientTemplate("#if (DNR_Reason) {# #=DNR_Reason# #}#");
+
+                    columns.Bound(x => x.FirstPlacement).ClientTemplate("#if (FirstPlacement) {# #= kendo.toString(FirstPlacement, 'yyyy-MM-dd') # #}#");
+                    columns.Bound(x => x.LastPlacement).ClientTemplate("#if (LastPlacement) {# #= kendo.toString(LastPlacement, 'yyyy-MM-dd') # #}#");
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(20)
+                    .Read(read => read.Action("EmployeeSeniority", "Report").Data("getOptions"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+@using (Html.BeginForm("ExportEmployeeSeniority", "Report", FormMethod.Post, new { id = "exporttoxlsx-form" }))
+{
+    <input type="hidden" id="_dateField" name="_dateField" value="" />
+    <input type="hidden" id="_fromDate" name="_fromDate" value="" />
+    <input type="hidden" id="_toDate" name="_toDate" value="" />
+    <input type="hidden" id="_exlcudePlaced" name="_exlcudePlaced" value="" />
+    <input type="hidden" id="_placedFrom" name="_placedFrom" value="" />
+    <input type="hidden" id="_placedTo" name="_placedTo" value="" />
+    <input type="hidden" id="_companyId" name="_companyId" value="" />
+}
+<script type="text/javascript">
+    var filteredByCompany = false;
+    function reloadData() {
+        $("#employee-seniority-grid").data("kendoGrid").dataSource.read();
+        if ($('#companyId').val())
+            filteredByCompany = true;
+    }
+    function getOptions() {
+        return {
+            dateField: $("#dateField").val(),
+            fromDate: $("#fromDate").val(),
+            toDate: $("#toDate").val(),
+            exlcudePlaced: $("#exlcudePlaced").is(':checked'),
+            placedFrom: $("#placedFrom").val(),
+            placedTo: $("#placedTo").val(),
+            companyId: $("#companyId").val(),
+        };
+    }
+    function exportToExcel() {
+        var grid = $("#employee-seniority-grid").data("kendoGrid");
+        if (grid.dataSource.total() > 0) {
+            $('#exporttoxlsx-form #_dateField').val($("#dateField").val());
+            $('#exporttoxlsx-form #_fromDate').val($("#fromDate").val());
+            $('#exporttoxlsx-form #_toDate').val($("#toDate").val());
+            $('#exporttoxlsx-form #_exlcudePlaced').val($("#exlcudePlaced").is(':checked'));
+            $('#exporttoxlsx-form #_placedFrom').val($("#placedFrom").val());
+            $('#exporttoxlsx-form #_placedTo').val($("#placedTo").val());
+            $('#exporttoxlsx-form #_companyId').val($("#companyId").val());
+            $('#exporttoxlsx-form').submit();
+        }
+        else
+            alert('No data!');
+    }
+    function sendAlert() {
+        var companyId = $('#companyId').val();
+        if (!companyId)
+            alert('@(T("Common.CompanyId.IsRequired").Text)');
+        else {
+            if (!filteredByCompany)
+                reloadData();
+            previewAndSend();
+        }
+    }
+    function previewAndSend() {
+        if (!$('#preview-alert-popup').length)
+            $(document.body).append('<div id="preview-alert-popup"></div>');
+        $("#preview-alert-popup").kendoWindow({
+            title: '@(T("Admin.EmployeeSeniority").Text)',
+            width: 800,
+            height: 540,
+            resizable: false,
+            content: '@Url.Action("_PreviewEmployeeSeniorityAlert", "Report")' + "?" + $.param(getOptions()),
+            close: function () {
+                setTimeout(function () {
+                    $('#preview-alert-popup').kendoWindow('destroy');
+                }, 200);
+            },
+            refresh: function (e) {
+                var win = this;
+                $('#btn-send').click(function () {
+                    var form = $('#send-alert-form');
+                    if (form.valid()) {
+                        if (!$('#Body').val()) {
+                            alert('@(T("Admin.Message.Body.Required").Text)');
+                            return;
+                        }
+                        $.ajax({
+                            type: "POST",
+                            url: '@Url.Action("_SendEmployeeSeniorityAlert", "Report")',
+                            data: $('#send-alert-form').serialize(),
+                            dataType: 'Json',
+                            success: function (result) {
+                                if (result.Result) {
+                                    win.close();
+                                    alert('@(T("Admin.Message.Sent").Text)');
+                                }
+                                else
+                                    alert(result.ErrorMessage);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+        var dialog = $("#preview-alert-popup").data("kendoWindow");
+        dialog.center().open();
+    }
+</script>

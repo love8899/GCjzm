@@ -1,0 +1,154 @@
+﻿@using Wfm.Core.Domain.TimeSheet
+@model CandidateMissingHourModel
+@{
+    var excludedStatusIds = new int[] { (int)CandidateMissingHourStatus.Processed, };
+    var availableStatus = CandidateMissingHourStatus.Voided.ToSelectList(false, excludedStatusIds).ToList();
+}
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "changestatus-form" }))
+{
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.PayrollNote)
+    <div class="section-header" style="padding:10px;">
+        <div class="title">
+        </div>
+        <div class="options">
+            <input type="button" id="btn-attach" class="k-button" value="@T("Admin.JobOrder.Pipeline.WeeklyWorkTime.Attach")" />
+            <input type="button" id="btn-save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" id="btn-cancel" class="k-button" value="@T("Admin.Common.Cancel")" />
+        </div>
+    </div>
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle" style="width:25%">
+                @Html.LabelFor(model => model.EmployeeId, "Employee ID")
+            </td>
+            <td class="adminData" style="width:75%">
+                @Html.DisplayFor(mode => Model.EmployeeId)
+                @Html.HiddenFor(mode => Model.CandidateId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Common.EmployeeName")
+            </td>
+            <td class="adminData">
+                @(Model.EmployeeFirstName + " " + Model.EmployeeLastName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobOrderId, "Job Order")
+            </td>
+            <td class="adminData">
+                @(Model.JobOrderId.ToString() + " - " + Model.JobTitle)
+                @Html.HiddenFor(model => model.JobOrderId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Common.Date")
+            </td>
+            <td class="adminData">
+                @Model.WorkDate.ToString("yyyy-MM-dd")
+                @Html.HiddenFor(model => model.WorkDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                Orig Hours
+            </td>
+            <td class="adminData">
+                @Model.OrigHours
+                @Html.HiddenFor(model => model.OrigHours)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                New Hours
+            </td>
+            <td class="adminData">
+                @Model.NewHours
+                @Html.HiddenFor(model => model.NewHours)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CandidateMissingHourStatusId)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownListFor(model => model.CandidateMissingHourStatusId)
+                    .OptionLabel("--Select--")
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .BindTo(availableStatus).HtmlAttributes(new { style = "width:90%" })
+                )
+                @Html.WfmValidationMessageFor(model => model.CandidateMissingHourStatusId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle" style="vertical-align: top">
+                @Html.LabelFor(model => model.Note)
+            </td>
+            <td class="adminData required">
+                @Html.TextAreaFor(model => model.Note, new { style = "height:100px;width:90%;" })
+                @Html.WfmValidationMessageFor(model => model.Note)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle" style="vertical-align: top">
+                Supporting Documents
+            </td>
+            <td class="adminData" id="attachment-list">
+                @Html.Partial("_MissingHourDocuments", Model.MissingHourDocuments)
+            </td>
+        </tr>
+    </table>
+}
+<div id="attach-window"></div>
+
+<script>
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+
+        $("#btn-attach").bind("click", function () {
+            var dialog = $("#attach-window").data("kendoWindow");
+            if (!dialog) {
+                $("#attach-window").kendoWindow({
+                    title: "Attachment",
+                    modal: true,
+                    resizable: false,
+                    width: 800,
+                    close: function () {
+                    },
+                    refresh: function (e) {
+                        var win = this;
+                        dialog.open();
+                    }
+                });
+                dialog = $("#attach-window").data("kendoWindow");
+            }
+            dialog.refresh({
+                url: '@Url.Action("_UploadMissingHourAttachment", "Company")',
+                data: { missingHourId: '@Model.Id' }
+            });
+            dialog.center();
+        });
+    });
+
+    function refreshList() {
+        $.ajax({
+            url: '@Url.Action("_MissingHourDocuments", "Company")',
+            type: 'post',
+            data: { missingHourId: @Model.Id},
+            dataType: 'html',
+            success: function (result) {
+                if (result) {
+                    $('#attachment-list').html(result);
+                }
+            }
+        });
+    }
+</script>

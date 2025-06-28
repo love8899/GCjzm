@@ -1,0 +1,283 @@
+﻿@using Wfm.Services.Payroll;
+@{
+    var payrollCalendarService = EngineContext.Current.Resolve<IPayrollCalendarService>();
+    var payFrequencies = payrollCalendarService.GetAllPayFrequencyTypesAsQueryable().Select(x => new SelectListItem() { Text = x.Description, Value = x.Id.ToString() });
+}
+<div class="section-header">
+    <div class="title">
+        @T("Payroll.PayGroups")
+    </div>
+    <div class="options">
+        @T("Common.Year"):
+        @(Html.Kendo().NumericTextBox()
+              .Name("payrollYear")
+              .Decimals(0)
+              .Format("#")
+              .Min(2014)
+              .Max(DateTime.Now.AddYears(1).Year)
+              .Value(DateTime.Now.Year)
+              .HtmlAttributes(new { style = "width: 150px" })
+              .Events(e => e.Change("resetMainList"))
+        )
+        <input type="button" name="Add" id="add-paygroup" class="k-button" value="@T("Common.Add")" style="padding-left:5px;" onclick="addPayGroup()" />
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<PayGroupModel>()
+                      .Name("paygroup-list-grid")
+                      .Events(events => events.DataBound("dataBound"))
+                      .Columns(columns =>
+                      {
+                          columns.Bound(x => x.Id).Hidden(true);
+                          columns.Bound(x => x.VendorName).Hidden(true).ClientGroupHeaderTemplate("#= value #");
+                          columns.Bound(x => x.Code);
+                          columns.Bound(x => x.Name);
+                          columns.ForeignKey(x => x.PayFrequencyTypeId, payFrequencies, "Value", "Text");
+                          columns.Bound(x => x.IsDefault);
+                          columns.Bound(x => x.HasCommittedPayroll).Hidden(true).Visible(false);
+                          
+                          columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                                .ClientTemplate(
+                                "<button class='k-button' style='min-width:20px;' title='" + T("Common.Edit").Text + "' onClick=\"editPayGroup(" + "#= Id #" + ")\"><span class='fa fa-pencil'></span></button>"  +
+                                "#if (HasCommittedPayroll) {# #}else{# <button class='k-button' style='min-width:20px;' title='" + T("Common.Delete").Text + "' onClick=\"deletePayGroup(" + "#= Id #" + ")\"><span class='fa fa-trash'></span></button> #}#"  +
+                                "#if (HasCommittedPayroll) {# #}else{# <button class='k-button' style='min-width:20px;' title='" + T("Admin.Calendar.Calendar").Text + "' onClick=\"populateCalendar(" + "#= Id #" + ")\"><span class='fa fa-calendar-plus-o'></span></button> #}#"
+                                )
+                                .Title("").Width(180);
+                      })
+                     .Resizable(resize => resize.Columns(true))
+                     .ClientDetailTemplateId("calendar-template")
+                     .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                     .ColumnMenu(d => d.Sortable(false))
+                     .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .PageSize(20)
+                        .ServerOperation(true)
+                        .Read(read => read.Action("GetAllPayGroups", "PayGroup").Data("getPayrollYear"))
+                        .Events(events => events.Error("error_handler"))
+                        .Destroy(update => update.Action("Destroy", "PayGroup"))
+
+                        .Model(model =>
+                        {
+                            model.Id(x => x.Id);
+                            model.Field(x => x.Id).Editable(false);
+                        })
+                        .Group(groups => groups.Add(x => x.VendorName))
+                    )
+                   
+                .Filterable(filterable => filterable
+                            .Extra(false)
+                            .Operators(operators => operators.ForString(str => str.Clear().Contains("Contains").IsEqualTo("Is equal to").IsNotEqualTo("Is not equal to") ) )
+                            )
+            )
+        </td>
+    </tr>
+</table>
+<script>
+    function getPayrollYear() {
+        return {
+            PayrollYear: $("#payrollYear").data("kendoNumericTextBox").value()
+        };
+    }
+
+    function dataBound() {
+        this.expandRow(this.tbody.find("tr.k-master-row").first());
+    }
+
+    function resetMainList()
+    {
+        $('#paygroup-list-grid').data('kendoGrid').dataSource.read();
+    }
+
+    function addPayGroup(e) {
+        showEditDialog(0);
+    }
+
+    function editPayGroup(id) {
+        showEditDialog(id);
+    }
+
+    function showEditDialog(_payGroupId) {
+        $(document.body).append('<div id="payGroup-edit-dialog"></div>');
+
+        $("#payGroup-edit-dialog").kendoWindow({
+            title: "Pay Group Details",
+            modal: true,
+            resizable: false,
+            width: 550,
+            height: 290,
+            close: function () {
+                $('#payGroup-edit-dialog').kendoWindow('destroy');
+            },
+            refresh: function (e) {
+                dialog.open();
+
+                $('#cancel-edit-paygroup').click(function () {
+                    $("#payGroup-edit-dialog").data("kendoWindow").close();
+                });
+                $('#save-paygroup').click(function () {
+                    var action = _payGroupId == 0 ? '@Url.Action("Create")' : '@Url.Action("Update")';
+                    var form = $('#edit-paygroup-form');
+                    if (form.valid()) {
+                        $.ajax({
+                            url: action,
+                            type: 'POST',
+                            data: $('#edit-paygroup-form').serialize(),
+                            dataType: 'Json',
+                            success: function (result) {
+                                if (result.Result) {
+                                    $("#payGroup-edit-dialog").data("kendoWindow").close();
+                                    resetMainList();
+                                }
+                                else {
+                                    alert(result.ErrorMessage);
+                                }
+                            }
+                        });
+                    }
+                })
+            }
+        });
+        dialog = $("#payGroup-edit-dialog").data("kendoWindow");
+
+        dialog.refresh({
+            url: '@Url.Action("EditPayGroup")',
+            data: {
+                paygroupId: _payGroupId,
+                payrollYear: $("#payrollYear").data("kendoNumericTextBox").value()
+            }
+        });
+        dialog.center();
+    }
+
+    function deletePayGroup(id) {
+        return gridDelete(function () {
+            $.ajax({
+                url: '@Url.Action("DeletePayGroup")',
+                type: 'POST',
+                data: { payGroupId: id },
+                dataType: 'Json',
+                success: function (result) {
+                    if (result.Result) {
+                        resetMainList();
+                    }
+                    else
+                    {
+                        alert(result.ErrorMessage);
+                    }
+                }
+            });
+        })
+    }
+
+    function editCalendar(e) {
+        if (e.model.PayPeriodCommitDate != null) {
+            e.preventDefault();
+            this.closeCell();
+        }
+    }
+
+    function populateCalendar(id) {
+        $(document.body).append('<div id="populate-calendar-dialog"></div>');
+
+        $("#populate-calendar-dialog").kendoWindow({
+            title: "Create Payroll Calendar",
+            modal: true,
+            resizable: false,
+            width: 680,
+            height: 250,
+            close: function () {
+                $('#populate-calendar-dialog').kendoWindow('destroy');
+            },
+            refresh: function (e) {
+                dialog.open();
+
+                $('#cancel-calendar').click(function () {
+                    $("#populate-calendar-dialog").data("kendoWindow").close();
+                });
+                $('#save-calendar').click(function () {
+                    var form = $('#payroll-calendar-form');
+                    if (form.valid()) {
+                        $.ajax({
+                            url: '@Url.Action("PopulatePayrollCalendar")',
+                            type: 'POST',
+                            data: $('#payroll-calendar-form').serialize(),
+                            dataType: 'Json',
+                            success: function (result) {
+                                if (result.Result) {
+                                    $("#populate-calendar-dialog").data("kendoWindow").close();
+                                    resetMainList();
+                                }
+                                else {
+                                    alert(result.ErrorMessage);
+                                }
+                            }
+                        });
+                    }
+                })
+            }
+        });
+        dialog = $("#populate-calendar-dialog").data("kendoWindow");
+
+        dialog.refresh({
+            type: 'GET',
+            url: '@Url.Action("PopulatePayrollCalendar")',
+            data: {
+                payGroupId: id,
+                year: $("#payrollYear").data("kendoNumericTextBox").value()
+            }
+        });
+        dialog.center();
+    }
+</script>
+
+<script id="calendar-template" type="text/kendo-tmpl">
+    @(Html.Kendo().TabStrip()
+            .Name("tabStrip_#=Name#")
+            .SelectedIndex(0)
+            .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+            .Items(items =>
+            {
+                items.Add().Text(T("Payroll.PayrollCalendar").Text).Content(@<text>
+                    @(Html.Kendo().Grid<PayrollCalendarModel>()
+                        .Name("calendarGrid_#=Id#")
+                        .Columns(columns =>
+                        {
+                            columns.Bound(o => o.Id).Hidden(true);
+                            columns.Bound(o => o.PayPeriodNumber); //.Width(50);
+                            columns.Bound(o => o.PayPeriodStartDate).Format("{0:yyyy-MM-dd}").EditorTemplateName("Date");
+                            columns.Bound(o => o.PayPeriodEndDate).Format("{0:yyyy-MM-dd}").EditorTemplateName("Date");
+                            columns.Bound(o => o.PayPeriodPayDate).Format("{0:yyyy-MM-dd}").EditorTemplateName("Date");
+                            columns.Bound(o => o.PayPeriodCommitDate).Format("{0:yyyy-MM-dd hh:mm:ss}");
+                        })
+                        .DataSource(dataSource => dataSource
+                           .Ajax()
+                           .Batch(true)
+                           .PageSize(52)
+                           .Update(update => update.Action("UpdatePayrollCalendar", "PayGroup"))
+                           .Read(read => read.Action("GetPayrollCalendar", "PayGroup", new { PayGroupId = "#=Id#" }).Data("getPayrollYear"))
+                                    .Model(model =>
+                                    {
+                                        model.Id(x => x.Id);
+                                        model.Field(x => x.PayGroupId).Editable(false);
+                                        model.Field(x => x.PayPeriodNumber).Editable(false);
+                                        model.Field(x => x.PayPeriodStartDate);
+                                        model.Field(x => x.PayPeriodEndDate);
+                                        model.Field(x => x.PayPeriodPayDate);
+                                        model.Field(x => x.PayPeriodCommitDate).Editable(false);
+                                        model.Field(x => x.Year).Editable(false);
+                                    })
+                        )
+                        .Pageable(pager => pager.Refresh(true))
+                        .Sortable()
+                        .ToolBar(toolBar => { toolBar.Save(); })
+                        .Editable(editable => editable.Mode(GridEditMode.InCell))
+                        .Events(e => e.Edit("editCalendar"))
+                        .ToClientTemplate())
+                </text>
+                );
+            })
+           .ToClientTemplate())
+</script>

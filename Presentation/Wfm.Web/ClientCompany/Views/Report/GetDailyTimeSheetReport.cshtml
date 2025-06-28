@@ -1,0 +1,58 @@
+﻿@using Wfm.Core.Domain.TimeSheet
+@{
+    Layout = "_ReportLayout";
+    ViewBag.ReportTitle = "Daily time sheet report";
+
+    ViewBag.Title = "Daily time sheet report";
+    Html.SetActiveMenuItemSystemName("DailyTimesheetReport");
+
+    var startDate = DateTime.Today.Date.AddDays(-7);
+    var endDate = DateTime.Today;
+    var availableWorkTimeStatus = new List<SelectListItem>()
+    {
+        new SelectListItem() { Text = CandidateWorkTimeStatus.PendingApproval.ToString(), Value = ((int)CandidateWorkTimeStatus.PendingApproval).ToString()},
+        new SelectListItem() { Text = CandidateWorkTimeStatus.Approved.ToString(), Value = ((int)CandidateWorkTimeStatus.Approved).ToString()},
+    };
+}
+
+<div class="col-md-6">
+    @Html.InputLine("fromDate", "From", tmplt: "Date", viewData: new { Value = startDate, OnChange = "startDateChange" })
+    @Html.InputLine("toDate", "To", tmplt: "Date", viewData: new { Value = endDate })
+</div>
+<div class="col-md-6">
+    @Html.InputLine("status", @T("Common.Status").Text, tmplt: "MultiSelect", viewData: 
+        new { Items = availableWorkTimeStatus, Selected = new List<string>() { ((int)CandidateWorkTimeStatus.Approved).ToString() } })
+</div>
+
+<script type="text/javascript">
+    var reportParams = {};
+    var reportUrl = '_DailyTimeSheetReport';
+    function valParams() {
+        var result = false;
+        var fromDate = $("#fromDate").val();
+        var toDate = $("#toDate").val();
+        var statusIds = $("#status").val();
+        if (!fromDate || !toDate || !statusIds)
+            popupNotification('Please choose start date, end date, and status', 'error');
+        else {
+            result = true;
+            reportParams = {
+                startDate: fromDate,
+                endDate: toDate,
+                status: statusIds.join()
+            };
+        }
+        return result;
+    }
+    function startDateChange() {
+        var startDate = this.value();
+        var endPicker = $("#toDate").data("kendoDatePicker");
+        if (startDate) {
+            startDate = new Date(startDate);
+            endPicker.min(startDate);
+            var suggestedDt = new Date(startDate);
+            suggestedDt.setDate(suggestedDt.getDate() + 6);
+            endPicker.value(suggestedDt);
+        }
+    }
+</script>

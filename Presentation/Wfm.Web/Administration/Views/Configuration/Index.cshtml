@@ -1,0 +1,299 @@
+﻿@using Wfm.Core.Domain.Accounts;
+@using Wfm.Services.Security;
+
+@{
+    ViewBag.Title = T("Admin.Configuration").Text;
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    
+    var A = permissionService.Authorize(StandardPermissionProvider.ManageAcl);
+    var B = permissionService.Authorize(StandardPermissionProvider.ManageSettings);
+    var C = permissionService.Authorize(StandardPermissionProvider.ManageScheduledTasks);
+    var D = permissionService.Authorize(StandardPermissionProvider.ManageAnnouncements);
+    var E = permissionService.Authorize(StandardPermissionProvider.ManageCompanyBillings);
+    var F = permissionService.Authorize(StandardPermissionProvider.ManageCountries);
+    var G = permissionService.Authorize(StandardPermissionProvider.ManageStateProvinces);
+    var H = permissionService.Authorize(StandardPermissionProvider.ManageCities);
+    var I = permissionService.Authorize(StandardPermissionProvider.ManageLanguages) ;
+    var J = permissionService.Authorize(StandardPermissionProvider.ManageLocalStringResource);
+    var K = permissionService.Authorize(StandardPermissionProvider.ManageMessageCategory);
+    var L = permissionService.Authorize(StandardPermissionProvider.ManageMessageTemplates);
+    var M = permissionService.Authorize(StandardPermissionProvider.ManageMessageQueue);
+    var N = permissionService.Authorize(StandardPermissionProvider.ManageJobCategories);
+    var O = permissionService.Authorize(StandardPermissionProvider.ManageSkills);
+    var P = permissionService.Authorize(StandardPermissionProvider.ManageIncidentCategory);
+    var Q = permissionService.Authorize(StandardPermissionProvider.ManageTimeoffType);
+    var R = permissionService.Authorize(StandardPermissionProvider.ManageDocumentTypes);
+    var S = permissionService.Authorize(StandardPermissionProvider.ManageTests);
+    var U = permissionService.Authorize(StandardPermissionProvider.ManageConfiguration);
+    var V = permissionService.Authorize(StandardPermissionProvider.ManageCompanyClockDevices);
+    var W = permissionService.Authorize(StandardPermissionProvider.ManageShifts);
+    var X = permissionService.Authorize(StandardPermissionProvider.ManagePositions);
+    var Y = permissionService.Authorize(StandardPermissionProvider.ManageConfiguration);
+    var Z = !workContext.CurrentAccount.IsClientAdministrator();
+    var Z1 = permissionService.Authorize(StandardPermissionProvider.ManageJobBoards);
+}
+
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration").Text
+    </div>
+</div>
+
+<table class="adminContent" style="table-layout: fixed;">
+    @if (Z&&(A||B||C||D||E||F||G||H||I||J))
+    {
+        <tr>
+            <td colspan="5">
+                <div class="statisticsTitle">@T("Admin.System").Text</div>
+            </td>
+        </tr>
+        <tr>
+            @if ( A || B)
+            { 
+                <td>
+                    <ul>
+                        @if (A)
+                        {
+                            <li>@Html.ActionLink(T("Admin.Configuration.ACL").Text, "Permissions", "Security", null, new { @class = "k-link" })</li>
+                            <li>@Html.ActionLink(T("Admin.Features").Text, "Index", "Feature", null, new { @class = "k-link" })</li>
+                        }
+                        @if (B)
+                        { 
+                            <li>@Html.ActionLink(T("Admin.Configuration.Settings").Text, "Index", "Setting", null, new { @class = "k-link" })</li>
+                        }
+                    </ul>
+                </td>
+            }
+            @if ( C|| D || E)
+            {            
+                <td>
+                    <ul>
+                        @if(C)
+                        {
+                            <li>@Html.ActionLink(T("Admin.Configuration.ScheduleTask").Text, "Index", "TaskManager", null, new { @class = "k-link" })</li>
+                        }
+                        @if (D)
+                        {
+                            <li>@Html.ActionLink(T("Admin.Configuration.Announcements").Text, "Index", "Announcement", null, new { @class = "k-link" })</li>
+                        }
+                        @if (E)
+                        {
+                            <li>@Html.ActionLink(T("Admin.Configuration.WSIB").Text, "Index", "WSIB", null, new { @class = "k-link" })</li>
+                        }
+                    </ul>
+                </td>
+            }
+            @if (F || G || H)
+            {
+                <td>
+                    <ul>
+                        @if (F)
+                        { 
+                            <li>@Html.ActionLink(T("Admin.Configuration.Countries").Text, "Index", "Country", null, new { @class = "k-link" })</li>
+                        }
+                        @if(G)
+                        { 
+                            <li>@Html.ActionLink(T("Common.StateProvinces").Text, "Index", "StateProvince", null, new { @class = "k-link" })</li>
+                        }
+                        @if (H)
+                        { 
+                            <li>@Html.ActionLink(T("Admin.Configuration.Cities").Text, "Index", "City", null, new { @class = "k-link" })</li>
+                        }
+                    </ul>
+                </td>
+            }
+            @if (I|| J)
+            {
+                <td>
+                    <ul>
+                        @if (I)
+                        { 
+                            <li>@Html.ActionLink(T("Admin.Configuration.Languages").Text, "Index", "Language", null, new { @class = "k-link" })</li>
+                        }
+                        @if (J)
+                        { 
+                            <li>@Html.ActionLink(T("Admin.Configuration.Languages.Resources").Text, "Index", "LocaleStringResource", null, new { @class = "k-link" })</li>
+                        }
+                    </ul>
+                </td>
+            }
+            @if (A && Z)
+            { 
+            <td>
+                <ul>
+                    <li>@Html.ActionLink(T("Admin.Configuration.PasswordPolicy").Text, "Index", "PasswordPolicy", null, new { @class = "k-link" })</li>
+                    <li>@Html.ActionLink(T("Admin.Configuration.AccountPasswordPolicy").Text, "AccountPasswordPolicy", "PasswordPolicy", null, new { @class = "k-link" })</li>
+                </ul>
+            </td>
+            }
+        </tr>
+    }
+    @if (Z&&(K||L||M))
+    {
+        <tr>
+            <td colspan="5"><div class="statisticsTitle">@T("Common.Message").Text</div></td>
+        </tr>
+        <tr>
+            @if (K)
+            {
+                <td>
+                    <ul>
+                        <li>
+                            @Html.ActionLink(T("Admin.MessageCategories").Text, "Index", "MessageCategory", null, new { @class = "k-link" })
+                        </li>
+                    </ul>
+                </td>
+            }
+            @if (L)
+            {
+                <td>
+                    <ul>
+                        <li>@Html.ActionLink(T("Admin.Configuration.MessageTemplates").Text, "Index", "MessageTemplate", null, new { @class = "k-link" })</li>                    
+                    </ul>
+                </td>
+            }
+            @if (M)
+            {
+                <td>
+                    <ul>
+                        <li>@Html.ActionLink(T("Admin.System.QueuedEmails").Text, "Index", "QueuedEmail", null, new { @class = "k-link" })</li>
+                   </ul>
+                </td>
+            }
+        </tr>
+    }
+    @if((Z&&N)||Z1)
+    {
+        <tr>
+            <td colspan="5">
+                <div class="statisticsTitle">@T("Admin.Configuration.JobOrder").Text</div>
+            </td>
+        </tr>
+        <tr>
+            @if (N)
+            {
+                <td>
+                    <ul>
+                        <li>@Html.ActionLink(T("Admin.Configuration.JobOrderCategories").Text, "Index", "JobCategory", null, new { @class = "k-link" })</li>
+                    </ul>
+                </td>
+            }
+            @if(Z1)
+            { 
+            <td>
+                <ul>
+                    <li>@Html.ActionLink(T("Admin.Configuration.JobBoards").Text, "Index", "JobBoard", null, new { @class = "k-link" })</li>
+                </ul>
+            </td>
+            }
+        </tr>
+    }
+    @if(O||P||Q||R||S)
+    { 
+        <tr>
+            <td colspan="5">
+                <div class="statisticsTitle">@T("Common.Candidate").Text / @T("Common.Employee").Text</div>
+            </td>
+        </tr>
+        <tr>
+            @if (O)
+            {
+                <td>
+                    <ul>
+                        <li>@Html.ActionLink(T("Admin.Configuration.Skills").Text, "Index", "Skill", null, new { @class = "k-link" })</li>  
+                        <li>@Html.ActionLink(T("Admin.Configuration.DNRReasons").Text, "Index", "DNRReason", null, new { @class = "k-link" })</li>              
+                    </ul>
+                </td>
+            }
+            @if ( P|| Q)
+            { 
+                <td>
+                    <ul>
+                        @if (P)
+                        { 
+                            <li>@Html.ActionLink(T("Admin.Configuration.IncidentCategory").Text, "Index", "IncidentCategory", null, new { @class = "k-link" })</li>
+                        }
+                        @if (Q)
+                        { 
+                            <li>@Html.ActionLink(T("Admin.Configuration.EmployeeTimeoffType").Text, "TimeoffTypeIndex", "TimeOff", null, new { @class = "k-link" })</li>
+                        }
+                    </ul>
+                </td>
+            }
+            @if (Z)
+            {
+                if (R)
+                {
+                    <td>
+                        <ul>
+                            <li>@Html.ActionLink(T("Admin.Configuration.DocumentType").Text, "Index", "DocumentType", null, new { @class = "k-link" })</li>                   
+                        </ul>
+                    </td>
+                }
+                if (S)
+                {
+                    <td>
+                        <ul>                    
+                            <li>@Html.ActionLink(T("Admin.Configuration.TestCategories").Text, "TestCategoryIndex", "Test", null, new { @class = "k-link" })</li>
+                        </ul>
+                        <ul>
+                            <li>@Html.ActionLink(T("Admin.Configuration.TestMaterials").Text, "TestMaterialsIndex", "Test", null, new { @class = "k-link" })</li>
+                        </ul>
+                    </td>
+                }
+            }
+        </tr>
+    }
+    @if (Z || U||V||W||X||Y)
+    { 
+        <tr>
+            <td colspan="5">
+                <div class="statisticsTitle">@T("Common.Company").Text</div>
+            </td>
+        </tr>
+        <tr>
+            @if (U)
+            { 
+                <td>
+                    <ul>
+                        <li>@Html.ActionLink(T("Admin.Configuration.CompanyStatus").Text, "Index", "CompanyStatus", null, new { @class = "k-link" })</li>
+                    </ul>
+                </td>
+            }
+            @if (V)
+            {
+                <td>
+                    <ul>
+                        <li>@Html.ActionLink(T("Admin.TimeClocks.CompanyClockDevices").Text, "Index", "ClockDevice", null, new { @class = "k-link" })</li>               
+                    </ul>
+                </td>
+            }
+            @if (W)
+            {
+                <td>
+                    <ul>
+                        <li>@Html.ActionLink(T("Admin.Configuration.Shifts").Text, "Index", "Shift", null, new { @class = "k-link" })</li>
+                    </ul>
+                </td>
+            }
+            @if (X)
+            {
+                <td>
+                    <ul>
+                        <li>@Html.ActionLink(T("Admin.Configuration.Positions").Text, "Index", "Position", null, new { @class = "k-link" })</li>            
+                    </ul>
+                </td>
+            }
+            @if (Y)
+            {
+                <td>
+                    <ul>
+                        <li>@Html.ActionLink(T("Admin.Configuration.ActivityTypes").Text, "Index", "ActivityType", null, new { @class = "k-link" })</li>               
+                    </ul>
+                </td>
+            }
+        </tr>
+    }
+</table>

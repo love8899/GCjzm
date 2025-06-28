@@ -1,0 +1,154 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Scheduling
+@using Wfm.Shared.Models.Scheduling
+
+@model EmployeeScheduleModel
+
+@{ 
+    var context = EngineContext.Current.Resolve<IWorkContext>();
+    var scheduleDemandingService = EngineContext.Current.Resolve<ISchedulingDemandService>();
+    var schedulePeriod = scheduleDemandingService.GetSchedulePeriodById(Model.SchedulePeriodId);
+
+    var shiftInPeriodList = schedulePeriod.ShiftSchedules.Select(
+        s => new SelectListItem
+        {
+            Text = string.Format("{0} ({2:g} to {3:g}) - {1} Hours ", s.CompanyShift.Shift.ShiftName, s.TotalHours, s.StartTimeOfDay, s.EndTimeOfDay),
+            Value = s.CompanyShiftId.ToString()
+        });
+}
+<script type="text/javascript">
+    function shiftRoleChanges() {
+        var grid = $("#scheduler-grid").data("kendoScheduler");
+        grid.dataSource.page(1);
+        grid.dataSource.read();
+    }
+    function filterEmployeeSchedule() {
+        return { schedulePeriodId: @Model.SchedulePeriodId, employeeId: '@Model.CandidateGuid', companyShiftId: $("#CompanyShiftId").val(), jobRoleId: $('#JobRoleId').val() };
+    }
+</script>
+<style>
+    .k-scheduler-footer{
+        display: none;
+    }
+</style>
+<div class="section-header">
+    <div class="title">
+        <div class="title">
+            @(T("Common.ScheduleEmployee").Text + " - " + Model.FirstName + ' ' + Model.LastName) 
+        </div>
+    </div>
+    <div class="options">
+        <input type="button" name="save" id="schedule-employee-save" class="k-button" value="@T("Admin.Common.Save")" />
+        <input type="button" name="close" id="close-schedule-employee" class="k-button" value="@T("Common.Close")" />
+    </div>
+</div>
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "schedule-employee-form" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    @Html.HiddenFor(m => m.EmployeeId)
+    @Html.HiddenFor(m => m.SchedulePeriodId)
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(m => m.CompanyShiftId)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().DropDownListFor(m => m.CompanyShiftId)
+                .Name("CompanyShiftId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(shiftInPeriodList)
+                .Events(evt => evt.Change("shiftRoleChanges"))
+                .HtmlAttributes(new { style = "width: 500px" })
+            )
+            <script> function filterJobRoles() { return { companyShiftId: $("#CompanyShiftId").val(), schedulePeriodId: @Model.SchedulePeriodId }; } </script>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(m => m.JobRoleId)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().DropDownListFor(m => m.JobRoleId)
+            .Name("JobRoleId")
+            .OptionLabel("--Select--")
+            .DataTextField("Text")
+            .DataValueField("Value")
+            .DataSource(source =>
+            {
+                source.Read(read =>
+                {
+                    read.Action("GetCascadeJobRoles", "Scheduling").Data("filterJobRoles");
+                })
+                .ServerFiltering(true);
+            })
+            .Enable(false)
+            .AutoBind(false)
+            .CascadeFrom("CompanyShiftId")
+            .Events(evt => evt.Change("shiftRoleChanges"))
+            .HtmlAttributes(new { style = "width: 500px" })
+            )
+        </td>    
+    </tr>
+    <tr>
+        <td colspan="2">
+        @(Html.Kendo().Scheduler<EmployeeSchedulePreviewModel>()
+            .Name("scheduler-grid")
+            .Date(Model.StartDate)
+            .Editable(false)
+            .StartTime(Model.StartDate.Date)
+            .MajorTick(120)
+            .MinorTickCount(2)
+            .Height(550)
+            .Views(views =>
+            {
+                views.MonthView(weekView => weekView.Selected(true));
+            })
+            .Resources(resource =>
+            {
+                resource.Add(m => m.CompanyJobRoleId)
+                .BindTo(ViewBag.CompanyJobRoleList)
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .DataColorField("Color");
+            })
+            .DataSource(d => d
+                .Model(m =>
+                {
+                    m.Id(f => f.Id);
+                })
+                .ServerOperation(true)
+                .Read(
+                    read =>
+                    {
+                        read.Action("_ReadEmployeeSchedulePreview", "Scheduling").Data("filterEmployeeSchedule");
+                    })
+            )
+        )
+        </td>
+    </tr>
+</table>
+}
+<script type="text/javascript">
+    function serialize(data) {
+        for (var property in data) {
+            if ($.isArray(data[property])) {
+                serializeArray(property, data[property], data);
+            }
+        }
+    }
+
+    function serializeArray(prefix, array, result) {
+        for (var i = 0; i < array.length; i++) {
+            if ($.isPlainObject(array[i])) {
+                for (var property in array[i]) {
+                    result[prefix + "[" + i + "]." + property] = array[i][property];
+                }
+            }
+            else {
+                result[prefix + "[" + i + "]"] = array[i];
+            }
+        }
+    }
+</script>

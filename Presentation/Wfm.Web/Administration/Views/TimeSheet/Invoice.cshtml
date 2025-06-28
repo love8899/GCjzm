@@ -1,0 +1,34 @@
+﻿<div class="section-header">
+    <div class="title">
+        @T("Admin.Common.Invoice")
+    </div>
+    <div class="options">
+    </div>
+</div>
+
+@Html.Kendo().TabStrip().Name("invoice-tabstrip").Items(x =>
+{
+    x.Add().Text(T("Admin.Common.Invoice").Text)
+        .Content(InvoiceTab().ToHtmlString())
+        .HtmlAttributes(new { id = "tab-invoice" }).Selected(true);
+
+    x.Add().Text(T("Admin.Menu.ChangesAfterInvoice").Text)
+        .LoadContentFrom(Url.Action("_TabInvoiceUpdates", "TimeSheet"))
+        .HtmlAttributes(new { id = "tab-updates" });
+})
+
+@helper InvoiceTab()
+{
+    @Html.Action("_TabInvoice", new { interval = ViewBag.Interval, termStartDate = ViewBag.TermStartDate != null ? ViewBag.TermStartDate.ToString("yyyy-MM-dd") : null })
+}
+
+<script type="text/javascript">
+    $(function () {
+        var tabId = '@(ViewBag.TabId)';
+        if (tabId)
+            tabIndex = $("#" + tabId).index();
+        else
+            tabIndex = 0;
+        $("#invoice-tabstrip").data("kendoTabStrip").select(tabIndex);
+    })
+</script>

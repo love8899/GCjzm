@@ -1,0 +1,104 @@
+﻿@model PayGroupModel
+@using Wfm.Core;
+@using Wfm.Services.Payroll;
+@using Wfm.Services.Franchises;
+@{
+    var payrollCalendarService = EngineContext.Current.Resolve<IPayrollCalendarService>();
+    var payFrequencies = payrollCalendarService.GetAllPayFrequencyTypesAsQueryable().Select(x => new SelectListItem() { Text = x.Description, Value = x.Id.ToString() });
+
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var vendors = franchiseService.GetAllFranchisesAsSelectList(workContext.CurrentAccount);
+}
+@using (Html.BeginForm("", "", FormMethod.Post, new { id = "edit-paygroup-form" }))
+{
+    <div class="section-header">
+        <div class="options">
+            <input type="button" id="save-paygroup" value="@T("Admin.Common.Save")" name="save" class="k-button" />
+            <input type="button" name="close" id="cancel-edit-paygroup" class="k-button" value="@T("Common.Cancel")" />
+        </div>
+    </div>
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.Year)
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+    @Html.HiddenFor(model => model.UpdatedOnUtc)
+    @Html.HiddenFor(model => model.HasCommittedPayroll)
+    @Html.ValidationSummary(true)
+    <table class="adminContent">
+        @if (Model.Id == 0)
+        {
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.FranchiseId)
+                </td>
+                <td class="adminData required">
+                    @(Html.Kendo().DropDownList()
+                        .Name("FranchiseId")
+                        .OptionLabel("--Select--")
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                        .BindTo(vendors)
+                    )
+                    @Html.WfmValidationMessageFor(model => model.FranchiseId)
+                </td>
+            </tr>
+        }
+        else
+        {
+            @Html.HiddenFor(model => model.FranchiseId)
+            @Html.HiddenFor(model => model.PayFrequencyTypeId)
+        }
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Code)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.Code)
+                @Html.ValidationMessageFor(model => model.Code)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Name)
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.Name)
+                @Html.ValidationMessageFor(model => model.Name)
+            </td>
+        </tr>
+        @if (Model.Id == 0)
+        {
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.PayFrequencyTypeId)
+                </td>
+                <td class="adminData required">
+                    @(Html.Kendo().DropDownList()
+                        .Name("PayFrequencyTypeId")
+                        .OptionLabel("--Select--")
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                        .BindTo(payFrequencies)
+                    )
+                    @Html.WfmValidationMessageFor(model => model.PayFrequencyTypeId)
+                </td>
+            </tr>
+        }
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.IsDefault)
+            </td>
+            <td>
+                @Html.CheckBoxFor(model => model.IsDefault)
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+    @* for jQUery validation *@
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+</script>

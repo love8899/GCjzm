@@ -1,0 +1,94 @@
+﻿@model IEnumerable<CandidateModel>
+@{
+    //page title
+    ViewBag.Title = T("Admin.QuickSearch.CandidateResult").Text;
+}
+<div class="section-header">
+    <div class="title">
+        @T("Common.Candidates") search result for "@ViewBag.SearchKey"
+    </div>
+</div>
+<script type="text/javascript">
+    function GetEditTemplate(data) {      
+        var html;
+        if (data.FirstName != null) {
+            var url="@Url.Content("~/Admin/Candidate/Details?guid=")";
+            html = kendo.format("<span class='banned-"+data.IsBanned+"'><a href='"+url+data.CandidateGuid+ "' target='_blank'>"+data.FirstName+"</a></span>");          
+        }
+        else {
+            html = kendo.format("");
+        }
+        return html;
+    }
+</script>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateModel>()
+                .Name("candidate-grid")
+                .BindTo(Model)
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x).Width(30).Sortable(false).Filterable(false)
+                        .ClientTemplate("#if (IsHot == true) {# <img alt='' src='" + Url.Content("~/Administration/Content/images/hot-true.png") + "' /> #} else if (IsBanned == true) {# <img alt='' src='" + Url.Content("~/Administration/Content/images/ico-stop1.png") + "' /> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Title("").Hidden();
+
+                    columns.Bound(x => x.Id).Width(80);
+                    columns.Bound(x => x.EmployeeId).Title("Employee ID").Width(120);
+
+                    columns.Bound(x => x.FirstName)
+                        .Template(@<text></text>)
+                    .ClientTemplate("#= GetEditTemplate(data)#");
+
+                    columns.Bound(x => x.LastName)
+                        .Template(x => Html.ActionLink(x.LastName, "Details", "Candidate", new { guid=x.CandidateGuid }, new { target = "_blank" }))
+                        .ClientTemplate("<span class='banned-#= IsBanned #'><a href='" + @Url.Content("~/Admin/Candidate/Details?guid=") + "#=CandidateGuid#' target = '_blank'>" + "#= LastName #</a></span>");
+
+                    columns.Bound(x => x.Email);
+
+                    columns.Bound(x => x.HomePhone).ClientTemplate("#= prettyPhone(HomePhone) #").Width(110);
+                    columns.Bound(x => x.MobilePhone).ClientTemplate("#= prettyPhone(MobilePhone) #").Width(110);
+                    columns.Bound(x => x.EmergencyPhone).ClientTemplate("#= prettyPhone(EmergencyPhone) #").Width(110).Hidden(true);
+
+                    columns.Bound(x => x.SocialInsuranceNumber).ClientTemplate("#= prettySocialInsuranceNumber(SocialInsuranceNumber) #").Width(100).Hidden(true);
+
+                    columns.Bound(x => x.Note);
+
+                    columns.Bound(x => x.IsActive).Width(80)
+                        .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Content/images/") + "active-#= IsActive #.png)'></div>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" });
+                    columns.Bound(x => x.IsBanned).Width(80).Hidden()
+                        .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Content/images/") + "active-#= IsBanned #.png)'></div>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" });
+                    columns.Bound(x => x.UpdatedOn).Format("{0:yyyy-MM-dd HH:mm}").Width(125);
+
+                })
+                                .EnableCustomBinding(false)
+                                .Reorderable(reorder => reorder.Columns(true))
+                                .Resizable(resize => resize.Columns(true))
+                                .Filterable()
+                                .Sortable()
+                                .ColumnMenu()
+                                .Selectable()
+                                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                                .DataSource(ds => ds
+                                    .Ajax()
+                                    .ServerOperation(false)
+                                    .PageSize(20)
+                                )
+                                .Filterable(filterable => filterable
+                                    .Extra(false)
+                                    .Operators(operators => operators
+                                        .ForString(str => str.Clear()
+                                            .Contains("Contains")
+                                            .IsEqualTo("Is equal to")
+                                            .IsNotEqualTo("Is not equal to")
+                                        )
+                                    )
+                                )
+            )
+        </td>
+    </tr>
+</table>

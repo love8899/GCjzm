@@ -1,0 +1,507 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{6BDA8332-939F-45B7-A25E-7A797260AE59}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Wfm.Core</RootNamespace>
+    <AssemblyName>Wfm.Core</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Autofac">
+      <HintPath>..\..\packages\Autofac.3.5.2\lib\net40\Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="Autofac.Integration.Mvc">
+      <HintPath>..\..\packages\Autofac.Mvc5.3.3.3\lib\net45\Autofac.Integration.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="itextsharp">
+      <HintPath>..\..\packages\iTextSharp.5.5.7\lib\itextsharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+    </Reference>
+    <Reference Include="RsiDotNetDLL">
+      <HintPath>..\..\packages\HandPunch\RsiDotNetDLL.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Caching" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.Helpers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Mvc, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.Mvc.5.2.3\lib\net45\System.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="zxing">
+      <HintPath>..\..\packages\ZXing.Net.0.14.0.1\lib\net40\zxing.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\VersionInfo.cs">
+      <Link>VersionInfo.cs</Link>
+    </Compile>
+    <Compile Include="ComponentModel\WriteLockDisposable.cs" />
+    <Compile Include="DateTimeExtensions.cs" />
+    <Compile Include="Domain\Accounts\AccountPasswordHistory.cs" />
+    <Compile Include="Domain\Accounts\AccountPasswordPolicy.cs" />
+    <Compile Include="Domain\Announcements\Announcement.cs" />
+    <Compile Include="Domain\Announcements\AnnouncementIsRead.cs" />
+    <Compile Include="Domain\Announcements\AnnouncementTarget.cs" />
+    <Compile Include="Domain\Candidates\CandidateAppiedJobs.cs" />
+    <Compile Include="Domain\Candidates\CandidateAvailability.cs" />
+    <Compile Include="Domain\Candidates\CandidateJobOrderExtensions.cs" />
+    <Compile Include="Domain\Candidates\EmployeeSeniority.cs" />
+    <Compile Include="Domain\Candidates\CandidateDirectHireStatusHistory.cs" />
+    <Compile Include="Domain\Candidates\CandidatePasswordHistory.cs" />
+    <Compile Include="Domain\ClockTime\ClockCandidate.cs" />
+    <Compile Include="Domain\ClockTime\HandReader.cs" />
+    <Compile Include="Domain\ClockTime\HandTemplate.cs" />
+    <Compile Include="Domain\Companies\MaxAnnualHours.cs" />
+    <Compile Include="Domain\Companies\Quotation.cs" />
+    <Compile Include="Domain\Features\FeatureSettings.cs" />
+    <Compile Include="Domain\Messages\ResumeHistory.cs" />
+    <Compile Include="Domain\Messages\Resume.cs" />
+    <Compile Include="Domain\TaxForm\RL1\RL1_2015.cs" />
+    <Compile Include="Domain\TaxForm\RL1\RL1_2016.cs" />
+    <Compile Include="Domain\TaxForm\RL1\RL1_2017.cs" />
+    <Compile Include="Domain\TaxForm\RL1\RL1_2018.cs" />
+    <Compile Include="Domain\TaxForm\RL1\RL1_2021.cs" />
+    <Compile Include="Domain\TaxForm\RL1\RL1_2020.cs" />
+    <Compile Include="Domain\TaxForm\RL1\RL1_2019.cs" />
+    <Compile Include="Domain\TaxForm\RL1\RL1_Base.cs" />
+    <Compile Include="Domain\TaxForm\T4\T4_2015.cs" />
+    <Compile Include="Domain\TaxForm\T4\T4_2016.cs" />
+    <Compile Include="Domain\TaxForm\T4\T4_2017.cs" />
+    <Compile Include="Domain\TaxForm\T4\T4_2018.cs" />
+    <Compile Include="Domain\TaxForm\T4\T4_2021.cs" />
+    <Compile Include="Domain\TaxForm\T4\T4_2020.cs" />
+    <Compile Include="Domain\TaxForm\T4\T4_2019.cs" />
+    <Compile Include="Domain\TaxForm\T4\T4_Base.cs" />
+    <Compile Include="Domain\TimeSheet\EmployeeTotalHours.cs" />
+    <Compile Include="Domain\Candidates\Candidate_Payment_History.cs" />
+    <Compile Include="Domain\Candidates\Candidate_Payment_History_Detail.cs" />
+    <Compile Include="Domain\Candidates\PaymentHistoryWithPayStub.cs" />
+    <Compile Include="Domain\ClockTime\CandidateClockTimeException.cs" />
+    <Compile Include="Domain\Common\DNRReason.cs" />
+    <Compile Include="Domain\Common\JobBoard.cs" />
+    <Compile Include="Domain\Common\SecurityQuestion.cs" />
+    <Compile Include="Domain\Accounts\RecruiterCompany.cs" />
+    <Compile Include="Domain\Accounts\AccountDelegate.cs" />
+    <Compile Include="Domain\Accounts\AccountDelegateHistory.cs" />
+    <Compile Include="Domain\Accounts\AccountLoginResults.cs" />
+    <Compile Include="Domain\Accounts\AccountNameFormat.cs" />
+    <Compile Include="Domain\Accounts\AccountSettings.cs" />
+    <Compile Include="Domain\Accounts\PasswordFormat.cs" />
+    <Compile Include="Domain\Accounts\SystemAccountNames.cs" />
+    <Compile Include="Domain\Accounts\SystemAccountAttributeNames.cs" />
+    <Compile Include="Domain\Blogs\BlogComment.cs" />
+    <Compile Include="Domain\Blogs\BlogExtensions.cs" />
+    <Compile Include="Domain\Blogs\BlogPost.cs" />
+    <Compile Include="Domain\Blogs\BlogPostTag.cs" />
+    <Compile Include="Domain\Blogs\BlogSettings.cs" />
+    <Compile Include="Domain\Candidates\AttendanceList.cs" />
+    <Compile Include="Domain\Candidates\CandidateBlacklist.cs" />
+    <Compile Include="Domain\Candidates\CandidateJobHistory.cs" />
+    <Compile Include="Domain\Candidates\CandidateJobOrderPlacement.cs" />
+    <Compile Include="Domain\Candidates\CandidateOnbaordingStatus.cs" />
+    <Compile Include="Domain\Candidates\CandidateJobOrderStatusEnum.cs" />
+    <Compile Include="Domain\Candidates\CandidateBankAccount.cs" />
+    <Compile Include="Domain\Candidates\CandidateLoginResults.cs" />
+    <Compile Include="Domain\Candidates\CandidateNameFormat.cs" />
+    <Compile Include="Domain\Candidates\CandidateOnboardingStatusEnum.cs" />
+    <Compile Include="Domain\Candidates\CandidatePicture.cs" />
+    <Compile Include="Domain\Candidates\CandidatePictureType.cs" />
+    <Compile Include="Domain\Candidates\CandidateSettings.cs" />
+    <Compile Include="Domain\Candidates\Candidate.cs" />
+    <Compile Include="Domain\Candidates\CandidateAddress.cs" />
+    <Compile Include="Domain\Candidates\CandidateMessageNotification.cs" />
+    <Compile Include="Domain\Candidates\CandidateJobOrder.cs" />
+    <Compile Include="Domain\Candidates\CandidateJobOrderStatus.cs" />
+    <Compile Include="Domain\Candidates\CandidateJobOrderStatusHistory.cs" />
+    <Compile Include="Domain\Candidates\CandidateKeySkills.cs" />
+    <Compile Include="Domain\Candidates\CandidateWithAddress.cs" />
+    <Compile Include="Domain\Candidates\CandidateWorkHistory.cs" />
+    <Compile Include="Domain\Candidates\CandidateMassEmailSettings.cs" />
+    <Compile Include="Domain\Candidates\EmployeeTypeEnum.cs" />
+    <Compile Include="Domain\Companies\ActivityType.cs" />
+    <Compile Include="Domain\Companies\CompanyActivity.cs" />
+    <Compile Include="Domain\Companies\CompanyAttachment.cs" />
+    <Compile Include="Domain\Companies\CompanyEmailTemplate.cs" />
+    <Compile Include="Domain\Companies\CompanyStatus.cs" />
+    <Compile Include="Domain\Companies\CompanyVendor.cs" />
+    <Compile Include="Domain\Companies\CompanySetting.cs" />
+    <Compile Include="Domain\Employees\EmployeeTD1.cs" />
+    <Compile Include="Domain\Employees\EmployeePayrollTemplate.cs" />
+    <Compile Include="Domain\Features\UserFeature.cs" />
+    <Compile Include="Domain\Features\Feature.cs" />
+    <Compile Include="Domain\Franchises\FranchiseSetting.cs" />
+    <Compile Include="Domain\Franchises\VendorCertificate.cs" />
+    <Compile Include="Domain\Franchises\VendorMassEmailSettings.cs" />
+    <Compile Include="Domain\JobOrders\DailyCleanUpCandidateJobOrderResult.cs" />
+    <Compile Include="Domain\JobOrders\DirectHireCandidatePoolList.cs" />
+    <Compile Include="Domain\JobOrders\DirectHireJobOrderList.cs" />
+    <Compile Include="Domain\JobOrders\FeeType.cs" />
+    <Compile Include="Domain\JobOrders\FeeTypeEnum.cs" />
+    <Compile Include="Domain\Media\DocumentType.cs" />
+    <Compile Include="Domain\Candidates\PaymentHistory.cs" />
+    <Compile Include="Domain\Common\Position.cs" />
+    <Compile Include="Domain\Common\StatutoryHoliday.cs" />
+    <Compile Include="Domain\Companies\CompanyCandidatePoolVM.cs" />
+    <Compile Include="Domain\Companies\CompanyContact.cs" />
+    <Compile Include="Domain\Companies\CompanyJobRole.cs" />
+    <Compile Include="Domain\Companies\CompanyJobRoleSkill.cs" />
+    <Compile Include="Domain\Companies\CompanyShift.cs" />
+    <Compile Include="Domain\Companies\CompanyShiftJobRole.cs" />
+    <Compile Include="Domain\Employees\Employee.cs" />
+    <Compile Include="Domain\Employees\EmployeeAvailability.cs" />
+    <Compile Include="Domain\Employees\EmployeeJobRole.cs" />
+    <Compile Include="Domain\Employees\EmployeePayrollSetting.cs" />
+    <Compile Include="Domain\Employees\EmployeeTimeoffBalance.cs" />
+    <Compile Include="Domain\Employees\EmployeeTimeoffBooking.cs" />
+    <Compile Include="Domain\Employees\EmployeeTimeoffType.cs" />
+    <Compile Include="Domain\Employees\EmployeeType.cs" />
+    <Compile Include="Domain\Employees\ShiftRotationDetail.cs" />
+    <Compile Include="Domain\Employees\ShiftRotationHeader.cs" />
+    <Compile Include="Domain\Incident\IncidentCategory.cs" />
+    <Compile Include="Domain\Incident\IncidentReport.cs" />
+    <Compile Include="Domain\Incident\IncidentReportFile.cs" />
+    <Compile Include="Domain\Incident\IncidentReportTemplate.cs" />
+    <Compile Include="Domain\JobOrders\BasicJobOrderInfo.cs" />
+    <Compile Include="Domain\JobOrders\OTRulesForJobOrder.cs" />
+    <Compile Include="Domain\Messages\ClientNotificationDefaultMap.cs" />
+    <Compile Include="Domain\Messages\ConfirmationEmailLink.cs" />
+    <Compile Include="Domain\Messages\SMSSettings.cs" />
+    <Compile Include="Domain\Messages\MessageTemplateAccountRole.cs" />
+    <Compile Include="Domain\Messages\MessageCategory.cs" />
+    <Compile Include="Domain\Messages\Message.cs" />
+    <Compile Include="Domain\Messages\ClientNotification.cs" />
+    <Compile Include="Domain\Payroll\Check_Status.cs" />
+    <Compile Include="Domain\Invoices\InvoiceInterval.cs" />
+    <Compile Include="Domain\Payroll\EmailSetting.cs" />
+    <Compile Include="Domain\Payroll\PayrollSetting.cs" />
+    <Compile Include="Domain\Payroll\TaxForm.cs" />
+    <Compile Include="Domain\Payroll\TaxFormBox.cs" />
+    <Compile Include="Domain\Policies\PasswordPolicy.cs" />
+    <Compile Include="Domain\Scheduling\EmployeeScheduleDailyBreak.cs" />
+    <Compile Include="Domain\Scheduling\EmployeeScheduleValidationResult.cs" />
+    <Compile Include="Domain\Scheduling\SchedulePeriodStatus.cs" />
+    <Compile Include="Domain\Scheduling\EmployeeSchedule.cs" />
+    <Compile Include="Domain\Scheduling\EmployeeScheduleDaily.cs" />
+    <Compile Include="Domain\Scheduling\ScheduleJobOrder.cs" />
+    <Compile Include="Domain\Scheduling\SchedulePeriod.cs" />
+    <Compile Include="Domain\Scheduling\ScheduleStatusHistory.cs" />
+    <Compile Include="Domain\Scheduling\ShiftSchedule.cs" />
+    <Compile Include="Domain\Scheduling\ShiftScheduleDaily.cs" />
+    <Compile Include="Domain\Scheduling\ShiftScheduleDailyDemandAdjustment.cs" />
+    <Compile Include="Domain\Tests\CandidateTestLink.cs" />
+    <Compile Include="Domain\Tests\TestMaterial.cs" />
+    <Compile Include="Domain\TimeSheet\CandidateMissingHour.cs" />
+    <Compile Include="Domain\TimeSheet\CandidateMissingHourStatus.cs" />
+    <Compile Include="Domain\TimeSheet\CandidateMissingHourSettings.cs" />
+    <Compile Include="Domain\TimeSheet\InOutTimes.cs" />
+    <Compile Include="Domain\TimeSheet\MissingHourDocument.cs" />
+    <Compile Include="Domain\TimeSheet\DailyAttendanceList.cs" />
+    <Compile Include="Domain\TimeSheet\EmployeeWorkTimeApproval.cs" />
+    <Compile Include="Domain\Common\Alerts.cs" />
+    <Compile Include="Domain\Candidates\EmployeeTimeChartHistory.cs" />
+    <Compile Include="Domain\Companies\CompanyLocationOvertimeRule.cs" />
+    <Compile Include="Domain\Companies\CompanyOvertimeRule.cs" />
+    <Compile Include="Domain\Franchises\FranchiseOvertimeRule.cs" />
+    <Compile Include="Domain\JobOrders\AttendancePreview.cs" />
+    <Compile Include="Domain\JobOrders\JobOrderOvertimeRule.cs" />
+    <Compile Include="Domain\JobOrders\JobOrderWithCompanyAddress.cs" />
+    <Compile Include="Domain\JobPosting\JobPosting.cs" />
+    <Compile Include="Domain\TimeSheet\CandidateWorkOverTime.cs" />
+    <Compile Include="Domain\Candidates\SystemCandidateAttributeNames.cs" />
+    <Compile Include="Domain\ClockTime\CandidateClockTimeStatus.cs" />
+    <Compile Include="Domain\ClockTime\ClockTimeSource.cs" />
+    <Compile Include="Domain\ClockTime\TimeClockSettings.cs" />
+    <Compile Include="Domain\Common\AddressTypeEnum.cs" />
+    <Compile Include="Domain\Common\AdminAreaSettings.cs" />
+    <Compile Include="Domain\Common\Currency.cs" />
+    <Compile Include="Domain\Common\FulltextSearchMode.cs" />
+    <Compile Include="Domain\Common\BankAccountType.cs" />
+    <Compile Include="Domain\Common\Bank.cs" />
+    <Compile Include="Domain\Common\GenderEnum.cs" />
+    <Compile Include="Domain\Common\GenericAttribute.cs" />
+    <Compile Include="Domain\Common\PdfSettings.cs" />
+    <Compile Include="Domain\Common\SalutationEnum.cs" />
+    <Compile Include="Domain\Common\SearchTerm.cs" />
+    <Compile Include="Domain\Common\SearchTermReportLine.cs" />
+    <Compile Include="Domain\Common\ShiftEnum.cs" />
+    <Compile Include="Domain\Common\TransportationEnum.cs" />
+    <Compile Include="Domain\Common\VetranTypeEnum.cs" />
+    <Compile Include="Domain\Companies\CompanyCandidate.cs" />
+    <Compile Include="Domain\Companies\CompanyDepartment.cs" />
+    <Compile Include="Domain\Forums\EditorType.cs" />
+    <Compile Include="Domain\Forums\Forum.cs" />
+    <Compile Include="Domain\Forums\ForumGroup.cs" />
+    <Compile Include="Domain\Forums\ForumPost.cs" />
+    <Compile Include="Domain\Forums\ForumSearchType.cs" />
+    <Compile Include="Domain\Forums\ForumSettings.cs" />
+    <Compile Include="Domain\Forums\ForumSubscription.cs" />
+    <Compile Include="Domain\Forums\ForumTopic.cs" />
+    <Compile Include="Domain\Forums\ForumTopicType.cs" />
+    <Compile Include="Domain\Forums\PrivateMessage.cs" />
+    <Compile Include="Domain\FranchiseInformationSettings.cs" />
+    <Compile Include="Domain\Franchises\FranchiseBankInfo.cs" />
+    <Compile Include="Domain\Franchises\FranchiseExtensions.cs" />
+    <Compile Include="Domain\JobOrders\JobOrderOpening.cs" />
+    <Compile Include="Domain\JobOrders\JobOrderStatusEnum.cs" />
+    <Compile Include="Domain\Logging\CandidateActivityLog.cs" />
+    <Compile Include="Domain\Logging\Log.cs" />
+    <Compile Include="Domain\Logging\LogLevel.cs" />
+    <Compile Include="Domain\Media\Download.cs" />
+    <Compile Include="Domain\Media\MediaSettings.cs" />
+    <Compile Include="Domain\Media\Picture.cs" />
+    <Compile Include="Domain\Media\PictureType.cs" />
+    <Compile Include="Domain\Messages\Campaign.cs" />
+    <Compile Include="Domain\Messages\Events.cs" />
+    <Compile Include="Domain\Messages\MessageTemplatesSettings.cs" />
+    <Compile Include="Domain\Messages\NewsLetterSubscription.cs" />
+    <Compile Include="Domain\Messages\MessageHistory.cs" />
+    <Compile Include="Domain\Common\Shift.cs" />
+    <Compile Include="Domain\Common\Skill.cs" />
+    <Compile Include="Domain\Cms\WidgetSettings.cs" />
+    <Compile Include="Domain\Common\AddressType.cs" />
+    <Compile Include="Domain\Media\AttachmentType.cs" />
+    <Compile Include="Domain\Common\City.cs" />
+    <Compile Include="Domain\Common\CommonSettings.cs" />
+    <Compile Include="Domain\Common\Country.cs" />
+    <Compile Include="Domain\Common\EthnicType.cs" />
+    <Compile Include="Domain\Common\Gender.cs" />
+    <Compile Include="Domain\Common\Intersection.cs" />
+    <Compile Include="Domain\Common\StateProvince.cs" />
+    <Compile Include="Domain\Common\Salutation.cs" />
+    <Compile Include="Domain\Common\Source.cs" />
+    <Compile Include="Domain\Common\Transportation.cs" />
+    <Compile Include="Domain\Common\VetranType.cs" />
+    <Compile Include="Domain\Companies\Company.cs" />
+    <Compile Include="Domain\Companies\CompanyBillingRate.cs" />
+    <Compile Include="Domain\Companies\CompanyLocation.cs" />
+    <Compile Include="Domain\Configuration\Setting.cs" />
+    <Compile Include="Domain\Franchises\Franchise.cs" />
+    <Compile Include="Domain\Franchises\FranchiseAddress.cs" />
+    <Compile Include="Domain\JobOrders\JobOrder.cs" />
+    <Compile Include="Domain\JobOrders\JobOrderCategory.cs" />
+    <Compile Include="Domain\JobOrders\JobOrderStatus.cs" />
+    <Compile Include="Domain\JobOrders\JobOrderTestCategory.cs" />
+    <Compile Include="Domain\JobOrders\JobOrderType.cs" />
+    <Compile Include="Domain\Localization\ILocalizedEntity.cs" />
+    <Compile Include="Domain\Localization\ILocalizedEnum.cs" />
+    <Compile Include="Domain\Localization\Language.cs" />
+    <Compile Include="Domain\Localization\LocaleStringResource.cs" />
+    <Compile Include="Domain\Localization\LocalizationSettings.cs" />
+    <Compile Include="Domain\Localization\LocalizedProperty.cs" />
+    <Compile Include="Domain\Logging\AccessLog.cs" />
+    <Compile Include="Domain\Logging\ActivityLog.cs" />
+    <Compile Include="Domain\Logging\ActivityLogType.cs" />
+    <Compile Include="Domain\Candidates\CandidateAttachments.cs" />
+    <Compile Include="Domain\Messages\EmailAccount.cs" />
+    <Compile Include="Domain\Messages\EmailAccountSettings.cs" />
+    <Compile Include="Domain\Messages\MessageTemplate.cs" />
+    <Compile Include="Domain\Messages\QueuedEmail.cs" />
+    <Compile Include="Domain\Payroll\OvertimeRuleSetting.cs" />
+    <Compile Include="Domain\Payroll\OvertimeType.cs" />
+    <Compile Include="Domain\Payroll\PayFrequencyType.cs" />
+    <Compile Include="Domain\Payroll\PayGroup.cs" />
+    <Compile Include="Domain\Payroll\Payroll_Batch.cs" />
+    <Compile Include="Domain\Payroll\Payroll_Calendar.cs" />
+    <Compile Include="Domain\Payroll\Payroll_Item.cs" />
+    <Compile Include="Domain\Payroll\Payroll_Item_SubType.cs" />
+    <Compile Include="Domain\Payroll\Payroll_Item_Type.cs" />
+    <Compile Include="Domain\Policies\BreakPolicy.cs" />
+    <Compile Include="Domain\Policies\RoundingPolicy.cs" />
+    <Compile Include="Domain\Policies\SchedulePolicy.cs" />
+    <Compile Include="Domain\Policies\MealPolicy.cs" />
+    <Compile Include="Domain\Reports\AttendanceList.cs" />
+    <Compile Include="Domain\Reports\Report.cs" />
+    <Compile Include="Domain\Reports\ReportSettings.cs" />
+    <Compile Include="Domain\Accounts\AccountRole.cs" />
+    <Compile Include="Domain\Accounts\Account.cs" />
+    <Compile Include="Domain\Accounts\AccountExtentions.cs" />
+    <Compile Include="Domain\Security\DefaultPermissionRecord.cs" />
+    <Compile Include="Domain\Security\IAclSupported.cs" />
+    <Compile Include="Domain\Security\PermissionRecord.cs" />
+    <Compile Include="Domain\Accounts\AccountRoleSystemNames.cs" />
+    <Compile Include="Domain\Security\SecuritySettings.cs" />
+    <Compile Include="Domain\Seo\ISlugSupported.cs" />
+    <Compile Include="Domain\Seo\PageTitleSeoAdjustment.cs" />
+    <Compile Include="Domain\Seo\SeoSettings.cs" />
+    <Compile Include="Domain\Seo\UrlRecord.cs" />
+    <Compile Include="Domain\Seo\WwwRequirement.cs" />
+    <Compile Include="Domain\Tasks\ScheduleTask.cs" />
+    <Compile Include="Domain\Tests\TestCategory.cs" />
+    <Compile Include="Domain\Tests\TestChoice.cs" />
+    <Compile Include="Domain\Tests\TestQuestion.cs" />
+    <Compile Include="Domain\Candidates\CandidateTestResult.cs" />
+    <Compile Include="Domain\ClockTime\CompanyClockDevice.cs" />
+    <Compile Include="Domain\ClockTime\CandidateClockTime.cs" />
+    <Compile Include="Domain\ClockTime\CandidateSmartCard.cs" />
+    <Compile Include="Domain\TimeSheet\CandidateWorkTimeLog.cs" />
+    <Compile Include="Domain\TimeSheet\InvoiceUpdateDetail.cs" />
+    <Compile Include="Domain\TimeSheet\OneWeekFollowUpReportData.cs" />
+    <Compile Include="Domain\TimeSheet\TimeSheetDetails.cs" />
+    <Compile Include="Domain\TimeSheet\TimeSheetSummary.cs" />
+    <Compile Include="Domain\TimeSheet\CandidateWorkTime.cs" />
+    <Compile Include="Domain\TimeSheet\CandidateWorkTimeStatus.cs" />
+    <Compile Include="Domain\TimeSheet\CandidateWorkTimeSettings.cs" />
+    <Compile Include="Domain\TimeSheet\ClientTimeSheetDocument.cs" />
+    <Compile Include="Domain\TimeSheet\WorkTimeSource.cs" />
+    <Compile Include="Domain\WSIB\CandidateWSIBCommonRate.cs" />
+    <Compile Include="Domain\WSIB\WSIB.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="Data\BaseDataProviderManager.cs" />
+    <Compile Include="Data\IDataProvider.cs" />
+    <Compile Include="Data\DataSettings.cs" />
+    <Compile Include="Data\DataSettingsHelper.cs" />
+    <Compile Include="Data\DataSettingsManager.cs" />
+    <Compile Include="Events\EntityDeleted.cs" />
+    <Compile Include="Events\EntityInserted.cs" />
+    <Compile Include="Events\EntityUpdated.cs" />
+    <Compile Include="Fakes\Extensions.cs" />
+    <Compile Include="Fakes\FakeHttpContext.cs" />
+    <Compile Include="Fakes\FakeHttpRequest.cs" />
+    <Compile Include="Fakes\FakeHttpResponse.cs" />
+    <Compile Include="Fakes\FakeHttpSessionState.cs" />
+    <Compile Include="Fakes\FakeIdentity.cs" />
+    <Compile Include="Fakes\FakePrincipal.cs" />
+    <Compile Include="CollectionTExtensions.cs" />
+    <Compile Include="BaseEntity.cs" />
+    <Compile Include="Caching\Extensions.cs" />
+    <Compile Include="Caching\ICacheManager.cs" />
+    <Compile Include="Caching\WfmNullCache.cs" />
+    <Compile Include="Caching\MemoryCacheManager.cs" />
+    <Compile Include="Caching\PerRequestCacheManager.cs" />
+    <Compile Include="CommonHelper.cs" />
+    <Compile Include="ComponentModel\GenericListTypeConverter.cs" />
+    <Compile Include="Configuration\ISettings.cs" />
+    <Compile Include="Configuration\WfmConfig.cs" />
+    <Compile Include="GenericComparer.cs" />
+    <Compile Include="Data\IRepository.cs" />
+    <Compile Include="Infrastructure\IStartupTask.cs" />
+    <Compile Include="IPersistentCollection.cs" />
+    <Compile Include="IFranchiseContext.cs" />
+    <Compile Include="IWebHelper.cs" />
+    <Compile Include="Infrastructure\EngineContext.cs" />
+    <Compile Include="Infrastructure\AppDomainTypeFinder.cs" />
+    <Compile Include="Infrastructure\DependencyManagement\IDependencyRegistrar.cs" />
+    <Compile Include="Infrastructure\DependencyManagement\ContainerManager.cs" />
+    <Compile Include="Infrastructure\IEngine.cs" />
+    <Compile Include="Infrastructure\ITypeFinder.cs" />
+    <Compile Include="Infrastructure\WfmEngine.cs" />
+    <Compile Include="Html\BBCodeHelper.cs" />
+    <Compile Include="Html\CodeFormatter\CLikeFormat.cs" />
+    <Compile Include="Html\CodeFormatter\CodeFormat.cs" />
+    <Compile Include="Html\CodeFormatter\CodeFormatHelper.cs" />
+    <Compile Include="Html\CodeFormatter\CSharpFormat.cs" />
+    <Compile Include="Html\CodeFormatter\HighlightOptions.cs" />
+    <Compile Include="Html\CodeFormatter\HtmlFormat.cs" />
+    <Compile Include="Html\CodeFormatter\JavaScriptFormat.cs" />
+    <Compile Include="Html\CodeFormatter\MshFormat.cs" />
+    <Compile Include="Html\CodeFormatter\SourceFormat.cs" />
+    <Compile Include="Html\CodeFormatter\TsqlFormat.cs" />
+    <Compile Include="Html\CodeFormatter\VisualBasicFormat.cs" />
+    <Compile Include="Html\HtmlHelper.cs" />
+    <Compile Include="Html\ResolveLinksHelper.cs" />
+    <Compile Include="JsonHelper.cs" />
+    <Compile Include="PersistentCollection.cs" />
+    <Compile Include="Plugins\BasePlugin.cs" />
+    <Compile Include="Plugins\LoadPluginsMode.cs" />
+    <Compile Include="Plugins\PluginExtensions.cs" />
+    <Compile Include="Plugins\PluginFileParser.cs" />
+    <Compile Include="Plugins\PluginManager.cs" />
+    <Compile Include="Plugins\PluginDescriptor.cs" />
+    <Compile Include="Infrastructure\Singleton.cs" />
+    <Compile Include="Plugins\IPlugin.cs" />
+    <Compile Include="Plugins\IPluginFinder.cs" />
+    <Compile Include="Plugins\PluginFinder.cs" />
+    <Compile Include="Infrastructure\WebAppTypeFinder.cs" />
+    <Compile Include="IWorkContext.cs" />
+    <Compile Include="IO\FileSystemSettings.cs" />
+    <Compile Include="IO\FileSystemStorageProvider.cs" />
+    <Compile Include="IO\IStorageFile.cs" />
+    <Compile Include="IO\IStorageFolder.cs" />
+    <Compile Include="IO\IStorageProvider.cs" />
+    <Compile Include="StringExtensions.cs" />
+    <Compile Include="TimeSpanExtensions.cs" />
+    <Compile Include="WfmVersion.cs" />
+    <Compile Include="WebHelper.cs" />
+    <Compile Include="IPagedList.cs" />
+    <Compile Include="WfmException.cs" />
+    <Compile Include="PagedList.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="XmlHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="CleanFolders" AfterTargets="Clean">
+    <RemoveDir Directories="$(ProjectDir)bin" />
+    <RemoveDir Directories="$(ProjectDir)obj" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,12 @@
+﻿@model object
+
+@(Html.Kendo().DropDownListFor(m => m)
+    .Value(Model?.ToString())
+    .OptionLabel((string)ViewData["OptionLabel"] ?? "All")
+    .DataTextField((string)ViewData["TextField"] ?? "Text")
+    .DataValueField((string)ViewData["ValueField"] ?? "Value")
+    .Enable((bool?)ViewData["Enable"] ?? true)
+    .BindTo((IEnumerable<SelectListItem>)ViewData["Items"] ?? Enumerable.Empty<SelectListItem>())
+    .Events(e => e.Change((string)ViewData["OnChange"] ?? "doNothing"))
+    .HtmlAttributes(ViewData["HtmlAttr"])
+)

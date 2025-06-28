@@ -1,0 +1,2 @@
+﻿DataProvider: sqlserver
+DataConnectionString: Data Source=wfmqa.cloudapp.net;Initial Catalog=Workforce3;Integrated Security=False; Persist Security Info=False;User ID=wfmadmin;Password=5050Dufferin;MultipleActiveResultSets=True

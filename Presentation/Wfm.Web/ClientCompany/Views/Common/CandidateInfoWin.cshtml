@@ -1,0 +1,144 @@
+﻿@model CandidateBasicInfoModel
+@using Wfm.Client.Models.Candidate
+@using Wfm.Services.Media
+@using Wfm.Services.Test
+@{
+    ViewBag.Layout = "_ClientPopupLayout.cshtml";
+    ViewBag.EmptyHeader = true;
+    ViewBag.PanelTitle = null;
+    ViewBag.Panel2Title = T("Admin.Candidate.CandidateKeySkills").Text;
+    ViewBag.Panel3Title = T("Admin.Candidate.TestResults").Text;
+    ViewBag.Panel4Title = T("Admin.Candidate.CandidateAttachment").Text;
+
+    var documentTypeService = EngineContext.Current.Resolve<IDocumentTypeService>();
+    var documentTypes = documentTypeService.GetAllDocumentTypes();
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    var testService = Wfm.Core.Infrastructure.EngineContext.Current.Resolve<ITestService>();
+    var testCategories = testService.GetAllCategories();
+}
+
+<div class="row">
+    <div class="col-sm-8">
+        @Html.DisplayLineFor(m => m.EmployeeId, T("Common.EmployeeId").Text)
+        @Html.DisplayLineFor(m => m.FirstName, T("Common.FirstName").Text)
+        @Html.DisplayLineFor(m => m.LastName, T("Common.LastName").Text)
+        @Html.DisplayLineFor(m => m.Gender, T("Common.Gender").Text)
+        @Html.DisplayLineFor(m => m.Education, T("Admin.Candidate.Candidate.Fields.Education").Text)
+        @if (commonSettings.DisplayVendor)
+        {
+            @Html.DisplayLineFor(m => m.FranchiseName, T("Common.Vendor").Text)
+        }
+    </div>
+    <div class="col-sm-4">
+        <div class="row">
+            <div class="col-sm-12">
+                <img alt="@Model.Id" src="@Model.PictureThumbnailUrl" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Panel2 {
+    @(Html.Kendo().Grid<CandidateKeySkillModel>().Name("candidate-key-skills-grid")
+        .Events(e => e.DataBound("onSkillDataBound"))
+        .Columns(columns =>
+        {
+            columns.Bound(x => x.KeySkill).Title("Skill").HtmlAttributes(new { @class = "col-sm-3" });
+            columns.Bound(x => x.YearsOfExperience).Title("Years")
+                .HeaderHtmlAttributes(new { title = "Years of Experience" })
+                .HtmlAttributes(new { @class = "col-sm-3" });
+            columns.Bound(x => x.LastUsedDate).HtmlAttributes(new { @class = "col-sm-3" });
+            columns.Bound(x => x.Note).HtmlAttributes(new { @class = "col-sm-3" });
+        })
+        .Sortable()
+        .Pageable(x => x.PageSizes(new[] { 5, 10 }).Refresh(true))
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(5)
+            .ServerOperation(false)
+            .Read(read => read.Action("GetCandidatekeySkills", "Common", new { guid = Model.CandidateGuid }))
+        )
+    )
+}
+
+@section Panel3 {
+    @(Html.Kendo().Grid<CandidateTestResultModel>().Name("test-result-grid")
+        .Events(e => e.DataBound("onTestDataBound"))
+        .Columns(columns =>
+        {
+            columns.ForeignKey(x => x.TestCategoryId, testCategories, "Id", "TestCategoryName").Title("Test")
+                .HeaderHtmlAttributes(new { Title = "Test category" });
+
+            columns.Bound(x => x.TotalScore).Title("Total")
+                .HeaderHtmlAttributes(new { Title = "Total score" });
+            columns.Bound(x => x.PassScore).Title("Pass")
+                .HeaderHtmlAttributes(new { Title = "Passing score" });
+            columns.Bound(x => x.TestScore).Title("Score")
+                .HeaderHtmlAttributes(new { Title = "Test score" });
+
+            columns.Bound(x => x.IsPassed).Title("Passed")
+                .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                .ClientTemplate("#if (IsPassed == true) {# <i class='fa fa-check true-icon'/> #}else{# <i class='fa fa-times false-icon'/> #}#");
+
+            columns.Bound(x => x.Id).Sortable(false).Title(T("Common.Action").Text)
+                .HtmlAttributes(new { style = "text-align:center", title = T("Common.Download").Text })
+                .ClientTemplate("<a class='k-button k-grid-download' href=\"" + @Url.Content("~/Client/Common/DownloadCandidateTestResult/") + "#=Id#" + "\"><span class='fa fa-download'></span></a>");
+        })
+        .Sortable()
+        .Pageable(x => x.PageSizes(new[] { 5, 10 }).Refresh(true))
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .ServerOperation(false)
+            .PageSize(5)
+            .Read(read => read.Action("GetCandidateTestResults", "Common", new { guid = Model.CandidateGuid, companyId = workContext.CurrentAccount.CompanyId }))
+            .Sort(sort =>
+            {
+                sort.Add(x => x.TestCategoryId);
+                sort.Add(x => x.UpdatedOnUtc).Descending();
+            })
+        )
+    )
+}
+
+@section Panel4 {
+    @(Html.Kendo().Grid<CandidateAttachmentModel>().Name("candidate-attachments-grid")
+        .Events(e => e.DataBound("onAttachmentDataBound"))
+        .Columns(columns =>
+        {
+            columns.Bound(x => x.OriginalFileName).Title(T("Admin.Common.File").Text)
+                .HeaderHtmlAttributes(new { title = T("Admin.Candidate.CandidateAttachment.Fields.OriginalFileName").Text });
+            columns.ForeignKey(x => x.DocumentTypeId, documentTypes, "Id", "TypeName").Title(T("Common.Type").Text)
+                .HeaderHtmlAttributes(new { title = T("Admin.Configuration.DocumentType").Text });
+            columns.Bound(x => x.ContentType).Title("Format")
+                .HeaderHtmlAttributes(new { title = T("Admin.Candidate.CandidateAttachment.Fields.ContentType").Text });
+            columns.Bound(x => x.Id).Title(T("Common.Action").Text)
+                .HtmlAttributes(new { style = "text-align: center" })
+                .ClientTemplate("<a class='k-button k-grid-download' href=\"" + @Url.Content("~/Client/Common/DownloadAttachment?attachmentId=") + "#= Id #\"><span class='fa fa-download' title='Download'></span></a>");
+        })
+        .Sortable()
+        .Pageable(x => x.PageSizes(new[] { 5, 10 }).Refresh(true))
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(5)
+            .ServerOperation(false)
+            .Read(read => read.Action("GetCandidateAttachments", "Common", new { guid = Model.CandidateGuid }))
+        )
+    )
+}
+
+@section scripts {<script type="text/javascript">
+    function onSkillDataBound(e) {
+        setGridColumnClass(e.sender, ["Note"], 'hidden-xxs hidden-xs');
+        setGridColumnClass(e.sender, ["LastUsedDate"], 'hidden-xxs');
+    }
+    function onTestDataBound(e) {
+        setGridColumnClass(e.sender, ["TestScore"], 'hidden-xxs hidden-xs');
+        setGridColumnClass(e.sender, ["PassScore", "TotalScore"], 'visible-md visible-lg');
+        setGridColumnClass(e.sender, ["IsPassed"], 'hidden-xxs');
+    }
+    function onAttachmentDataBound(e) {
+        setGridColumnClass(e.sender, ["ContentType"], 'hidden-xxs hidden-xs');
+        setGridColumnClass(e.sender, ["DocumentTypeId", "TotalScore"], 'hidden-xs');
+    }
+</script>}

@@ -1,0 +1,475 @@
+﻿@using Wfm.Services.Common;
+@using Wfm.Services.DirectoryLocation;
+@using Wfm.Services.Franchises;
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts;
+@using Wfm.Core.Domain.ClockTime;
+
+@model IEnumerable<CandidateWithAddressModel>
+
+@{
+    ViewBag.Title = T("Admin.Candidates.MassMessage").Text;
+
+    //set the Global viewbag Variable
+    ViewBag.SearchArea = "Candidate";
+
+    var genderService = EngineContext.Current.Resolve<IGenderService>();
+    var transportationService = EngineContext.Current.Resolve<ITransportationService>();
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var cityService = EngineContext.Current.Resolve<ICityService>();
+    var stateProvinceService = EngineContext.Current.Resolve<IStateProvinceService>();
+
+    var genders = genderService.GetAllGenders();
+    var transportation = transportationService.GetAllTransportations();
+    var shifts = shiftService.GetAllShifts();
+    var cities = cityService.GetAllCities();
+    var stateProvinces = stateProvinceService.GetAllStateProvinces();
+}
+
+<br />
+@(Html.Kendo().PanelBar().Name("search-bar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text("Text message")
+            .Expanded(false)
+            .Content(@<div class="panel">
+                @Html.Partial("_TextMessage")
+            </div>);
+        panelbar.Add().Text("Email message")
+            .Expanded(false)
+            .Content(@<div class="panel">
+                @Html.Partial("_EmailMessage")
+            </div>);
+        panelbar.Add().Text("Choose candidates")
+            .Expanded(false)
+            .Content(@<div class="panel">
+                @Html.Partial("_AdvancedSearch")
+            </div>);
+    })
+)
+<br />
+
+<div class="section-header">
+    <div class="title">
+        Target @T("Common.Candidates")
+    </div>
+    <div class="options">
+        <button id="PreviewEmail" class="k-button">Preview Email</button>
+        <button id="MassMessage2Selected" class="k-button">Send To Selected</button>
+        <button id="MassMessage2All" class="k-button">Send To All</button>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateWithAddressModel>()
+                .Name("candidate-grid")
+                .Events(events => events.DataBound("onDataBound"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x).Filterable(false).Sortable(false)
+                        .ClientTemplate("<input type='checkbox' name='checkedRecords' value='#= Id #' class='checkboxGroups'/>")
+                        .Title("<input id='mastercheckbox' type='checkbox'/>")
+                        .Width(25);
+
+                    columns.Bound(x => x.Id)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                       // .ClientTemplate("#= kendo.toString(Id, '00000000') #")
+                        .Width(150);
+
+                    columns.Bound(x => x.FirstName)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Template(x => Html.ActionLink(x.FirstName, "Details", new { x.Id }, new { }))
+                        .ClientTemplate("<span class=\"banned-#= IsBanned #\">" + @Html.ActionLink("#=FirstName #", "Details", new { guid = "#=Guid#" }).ToHtmlString() + "</span>");
+
+                    columns.Bound(x => x.MiddleName)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+
+                    columns.Bound(x => x.LastName)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Template(x => Html.ActionLink(x.LastName, "Details", new { x.Id }, new { }))
+                        .ClientTemplate("<span class=\"banned-#= IsBanned #\">" + @Html.ActionLink("#=LastName #", "Details", new { guid = "#=Guid#" }).ToHtmlString() + "</span>");
+
+                    columns.ForeignKey(x => x.GenderId, genders, "Id", "GenderName");
+                    columns.Bound(x => x.Age).Hidden(true);
+
+                    columns.Bound(x => x.Email)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(false);
+
+                    columns.Bound(x => x.SearchKeys).Sortable(false)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+
+                    columns.Bound(x => x.Note).Encoded(false)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+
+                    columns.Bound(x => x.HomePhone)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate("#= prettyPhone(HomePhone) #")
+                        .Width(110);
+                    columns.Bound(x => x.MobilePhone)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate("#= prettyPhone(MobilePhone) #")
+                        .Width(110);
+                    columns.Bound(x => x.EmergencyPhone)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate("#= prettyPhone(EmergencyPhone) #")
+                        .Width(110)
+                        .Hidden(true);
+                    //columns.Bound(x => x.SocialInsuranceNumber)
+                    //    .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                    //    .ClientTemplate("#= prettySocialInsuranceNumber(SocialInsuranceNumber) #")
+                    //    .Width(100)
+                    //    .Hidden(true);
+
+                    columns.ForeignKey(x => x.CityId, cities, "Id", "CityName").Sortable(false).Width(120);
+                    columns.ForeignKey(x => x.StateProvinceId, stateProvinces, "Id", "StateProvinceName").Sortable(false).Filterable(false).Hidden(true);
+
+                    columns.Bound(x => x.MajorIntersection1)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+                    columns.Bound(x => x.MajorIntersection2)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+
+                    columns.Bound(x => x.PreferredWorkLocation)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+
+                    columns.ForeignKey(x => x.ShiftId, shifts, "Id", "ShiftName").Sortable(false).Hidden(true);
+
+                    columns.ForeignKey(x => x.TransportationId, transportation, "Id", "TransportationName").Sortable(false).Hidden(true);
+                    columns.Bound(x => x.LicencePlate)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains"))).Hidden(true);
+
+                    columns.Bound(x => x.UpdatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        .ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120);
+                    columns.Bound(x => x.CreatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        .ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120)
+                        .Hidden(true);
+
+                    columns.Bound(x => x.IsActive)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80);
+                    columns.Bound(x => x.OnBoarded)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.OnBoarded.ToString().ToLowerInvariant() + ".png")" />)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80);
+                    columns.Bound(x => x.IsBanned)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsBanned.ToString().ToLowerInvariant() + ".png")" />)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(70).Hidden(true);
+                    columns.Bound(x => x.UseForDirectPlacement)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.UseForDirectPlacement.ToString().ToLowerInvariant() + ".png")" />)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(70);
+
+                })
+            .EnableCustomBinding(true)
+            .Reorderable(reorder => reorder.Columns(true))
+            .Resizable(resize => resize.Columns(true))
+            .ColumnMenu(d => d.Sortable(true))
+            .Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+            .Sortable()
+            .Selectable()
+            .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+            .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("_GetTargetCandidates", "Candidate").Data("onRead"))
+            )
+            .Filterable(filterable => filterable
+                .Extra(false)
+                .Operators(operators => operators
+                    .ForString(str => str.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        .IsNotEqualTo("Is not equal to")
+                    )
+                )
+            )
+)
+        </td>
+    </tr>
+</table>
+
+
+<script type="text/javascript">
+
+    var selectedIds = [];
+
+    $(document).ready(function () {
+
+        $("#MassMessage2Selected").bind("click", MassMessage2Selected);
+        $("#MassMessage2All").bind("click", MassMessage2All);
+
+        $('#mastercheckbox').click(function () {
+            $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+        });
+
+
+
+        $("#PreviewEmail").click(function (e) {
+            e.preventDefault();
+
+            var jobOrderid = $("#JobOrderId").val();
+            var startDate = $("#startDate").val();
+            var endDate = $("#endDate").val();
+            var templateId = $("#EmailTemplate").val();
+
+            var errMsg = validateEmailParameters(templateId, jobOrderid, startDate, true);
+            if (errMsg.length == 0) {
+                $(document.body).append('<div id="send-email-window"></div>');
+                $("#send-email-window").kendoWindow({
+                    title: "Preview Email",
+                    modal: true,
+                    resizable: false,
+                    width: 800,
+                    height: 800,
+                    content: '@Url.Action("_PreviewEmail", "Candidate")' + "?jobOrderId=" + jobOrderid + "&startDate=" + startDate + "&endDate=" + endDate + "&templateId=" + templateId,
+                    close: function () {
+                        setTimeout(function () {
+                            $('#send-email-window').kendoWindow('destroy');
+                        }, 200);
+                    },
+                    refresh: function (e) {
+                        //var win = this;
+                        //$("#cancel-email").click(function () {
+                        //    win.close();
+                        //});
+                    }
+                }).data('kendoWindow').center();
+            }
+            else {
+                alert(errMsg);
+            }
+        });
+
+        //wire up checkboxes.
+        $('#candidate-grid').on('change', 'input[type=checkbox][id!=mastercheckbox]', function (e) {
+            var $check = $(this);
+            if ($check.is(":checked") == true) {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked == -1) {
+                    //add id to selectedIds.
+                    selectedIds.push($check.val());
+                }
+            }
+            else {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked > -1) {
+                    //remove id from selectedIds.
+                    selectedIds = $.grep(selectedIds, function (item, index) {
+                        return item != $check.val();
+                    });
+                }
+            }
+            updateMasterCheckbox();
+        });
+
+    });
+
+    function onDataBound(e) {
+        $('#candidate-grid input[type=checkbox][id!=mastercheckbox]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds);
+            //set checked based on if current checkbox's value is in selectedIds.
+            $(this).attr('checked', checked > -1);
+        });
+
+        updateMasterCheckbox();
+    }
+
+    function updateMasterCheckbox() {
+        var numChkBoxes = $('#candidate-grid input[type=checkbox][id!=mastercheckbox]').length;
+        var numChkBoxesChecked = $('#candidate-grid input[type=checkbox][checked][id!=mastercheckbox]').length;
+        $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+
+    function validateEmailParameters(templateId, jobOrderid, startDate, isPreview) {
+        var isPipeline = $("#Pipeline").attr("checked");
+        var isCompanyPool = $("#Pool").attr("checked");
+        var result = "";
+        var head = templateId.split('-');
+
+        if (isPreview === true&&templateId == "0")
+            result = "- Currently preview email function only works for templated emails.\n";
+
+        if (isPipeline && jobOrderid == "")
+            result = result + "- Job order cannot be empty (you are selecting candidates from Job order pipeline)!\n";
+
+        if (isPipeline && startDate == "")
+            result = result + "- Start date cannot be empty (you are selecting candidates from Job order pipeline)!";
+
+        if (result.length > 0 && isPreview)
+            result = "You cannot preview email because:\n" + result;
+
+        return result;
+    };
+
+    function MassMessage2Selected(e) {
+        e.preventDefault();
+
+        if (!IsEmailMessageReady() && !IsTextMessageReady())
+            alert("Both text and email message are empty.");
+        else {
+            if (selectedIds.length > 0) {
+                var goAhead = confirm("Are you sure to send the message to " + selectedIds.length + " candidate(s)?")
+
+                if (goAhead) {
+                    var templateId = $("#EmailTemplate").val();
+                    var ids = selectedIds.join();
+
+                    if (templateId == "0") {
+                        var textMessage = IsTextMessageReady() ? GetTextMessage() : { Body: null};
+                        var emailMessage = IsEmailMessageReady() ? GetEmailMessage() : { SystemAccount: false, Subject: null, Body: null };
+                        $.ajax({ 
+                            url: "@(Url.Action("_MassMessage2Selected", "Candidate"))",
+                            data: { textMessage: textMessage.Body, systemAccount: emailMessage.SystemAccount, subject: emailMessage.Subject, emailMessage: emailMessage.Body, selectedIds: ids },
+                            cache: false,
+                            async: false,
+                            type: 'POST',
+                            success: function (result) {
+                                if (result.ErrorMessage) {
+                                    alert(result.ErrorMessage);
+                                }
+                                else {
+                                    alert('The message will be sent to ' + result.Done + ' candidate(s).');
+                                }
+                            },
+                            error: function (data) {
+                                alert(data.responseText);
+                            }
+                        });
+                    }
+                    else {
+                        var jobOrderid = $("#JobOrderId").val();
+                        var startDate = $("#startDate").val();
+                        var endDate = $("#endDate").val();
+                        var ownAccount = $("#OwnAccount").attr("checked") == "checked";
+
+                        var errMsg = validateEmailParameters(templateId, jobOrderid, startDate, false);
+                        if (errMsg.length == 0) {
+                            $.ajax({
+                                url: "@(Url.Action("_SendTemplateEmail", "Candidate"))",
+                                data: { fromUserAccount: ownAccount, jobOrderId: jobOrderid, startDate: startDate, endDate: endDate, templateId: templateId, selectedIds: ids },
+                                cache: false,
+                                async: false,
+                                type: 'POST',
+                                success: function (result) {
+                                    if (result.error) {
+                                        alert(result.message);
+                                    }
+                                    else {
+                                        alert(result.message);
+                                    }
+                                }
+                            });
+                        }
+                        else {
+                            alert(errMsg);
+                        }
+                        
+                    }
+                    return false;
+                }
+            } else {
+                alert('Please select candidates from the grid.');
+            }
+        }
+    }
+
+    function MassMessage2All(e) {
+        e.preventDefault();
+        selectedIds = [];
+        if (!IsEmailMessageReady() && !IsTextMessageReady())
+            alert("Both text and email message are empty.");
+        else {
+            var grid = $("#candidate-grid").data("kendoGrid");
+            var total = grid.dataSource.total();
+            var goAhead = confirm("Are you sure to send the message to " + total + " candidate(s)?")
+            if (goAhead) {
+                var templateId = $("#EmailTemplate").val();
+                var textMessage = IsTextMessageReady() ? GetTextMessage() : { Body: null };
+                var emailMessage = IsEmailMessageReady() ? GetEmailMessage() : { SystemAccount: false, Subject: null, Body: null };
+                var IsGlobal = $("#Global").attr("checked") == "checked";
+                var IsPool = $("#Pool").attr("checked") == "checked";
+                var IsPipeline = $("#Pipeline").attr("checked") == "checked";
+
+                var data2post = JSON.stringify({
+                    textMessage: textMessage.Body, systemAccount: emailMessage.SystemAccount, subject: emailMessage.Subject, emailMessage: emailMessage.Body,
+                    candidateProfile: IsGlobal ? GetCandidateProfile() : null,
+                    poolProfile: IsPool ? GetPoolProfile() : null,
+                    pipelineProfile: IsPipeline ? GetPipelineProfile() : null,
+                    templateId:templateId
+                });
+                
+                if (templateId == "0") {
+                    $.ajax({
+                        url: "@(Url.Action("_MassMessage2All", "Candidate"))",
+                        data: data2post,
+                        contentType: 'application/json',
+                        cache: false,
+                        async: false,
+                        type: 'POST',
+                        success: function (result) {
+                            if (result.ErrorMessage) {
+                                alert(result.ErrorMessage);
+                            }
+                            else {
+                                alert('The message will be sent to ' + result.Done + ' candidate(s).');
+                            }
+                        },
+                        error: function (data) {
+                            alert(data.responseText);
+                        }
+                    });
+                }
+                else {
+                    var jobOrderid = $("#JobOrderId").val();
+                    var startDate = $("#startDate").val();
+                    var endDate = $("#endDate").val();
+                    
+                    var errMsg = validateEmailParameters(templateId, jobOrderid, startDate, false);
+                    if (errMsg.length == 0) {
+                        $.ajax({
+                            url: "@(Url.Action("_SendTemplateEmailToAll", "Candidate"))",
+                            data: data2post,
+                            contentType: 'application/json',
+                            cache: false,
+                            async: false,
+                            type: 'POST',
+                            success: function (result) {
+                                if (result.error) {
+                                    alert(result.message);
+                                }
+                                else {
+                                    alert(result.message);
+                                }
+                            }
+                    });
+                }
+            else {
+                            alert(errMsg);
+            }
+                }
+            return false;
+            }
+        }
+    }
+
+</script>

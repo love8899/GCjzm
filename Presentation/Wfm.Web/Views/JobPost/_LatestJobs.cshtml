@@ -1,0 +1,20 @@
+﻿@model IEnumerable<JobOrderModel>
+@using Wfm.Web.Models.JobOrder
+
+
+@if (Model.Any())
+{
+    <div class="product-grid bestsellers">
+        <div class="title">
+            <strong>Latest Jobs</strong><a href="/jobs" title="More jobs">&nbsp;(...more)</a>
+        </div>
+        <div class="item-grid">
+            @foreach (var item in Model)
+            {
+                <div class="item-box">
+                    @Html.Partial("_JobBox", item)
+                </div>
+            }
+        </div>
+    </div>
+}

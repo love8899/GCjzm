@@ -1,0 +1,172 @@
+﻿@using Wfm.Core.Domain.ClockTime
+@using Wfm.Services.Companies
+@using Wfm.Services.Franchises;
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts;
+
+
+@{
+    ViewBag.Title = T("Client.RawPunches").Text;
+
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+    IList<Wfm.Core.Domain.Franchises.Franchise> vendors = null;
+    if (commonSettings.DisplayVendor)
+    {
+        var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+        vendors = franchiseService.GetAllFranchises();
+    }
+
+    var today = DateTime.Today;
+    DateTime startDate = ViewBag.RefDate != null ? ViewBag.RefDate : today.AddDays(-7);
+    DateTime endDate = ViewBag.RefDate != null ? ViewBag.RefDate : today;
+
+    var companyDivisionService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+    var companyLocations = companyDivisionService.GetAllCompanyLocations();
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Client.RawPunches")
+    </div>
+    <div class="options">
+        @Html.Label("startDate", T("Admin.Common.From").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("startDate").Max(today).Value(startDate).Events(e => e.Change("startDateChange"))
+        @Html.Label("endDate", T("Admin.Common.To").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("endDate").Max(today).Value(endDate).Events(e => e.Change("endDateChange"))
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<Wfm.Client.Models.ClockTime.CandidateClockTimeModel>()
+                .Name("clocktime-grid")
+                .Columns(columns =>
+                {
+                    if (commonSettings.DisplayVendor)
+                    {
+                        columns.ForeignKey(x => x.FranchiseId, vendors, "Id", "FranchiseName").Title(T("Common.Vendor").Text);
+                    }
+
+                    columns.Bound(x => x.EmployeeId);
+                    //columns.Bound(x => x.EmployeeId).ClientTemplate("<a onclick=showPopUp('#=CandidateGuid#')>#= kendo.toString(EmployeeId) #</a>");
+
+                    columns.Bound(x => x.CandidateLastName).Title(T("Common.LastName").Text).ClientTemplate("#=lastNameTemplate(data)#");
+                    columns.Bound(x => x.CandidateFirstName).Title(T("Common.FirstName").Text).ClientTemplate("#=firstNameTemplate(data)#");
+
+                    columns.Bound(x => x.SmartCardUid).Title(T("Common.SmartCard").Text);
+
+                    columns.Bound(x => x.ClockDeviceUid).Title(T("Admin.ClockDevice").Text);
+
+                    columns.ForeignKey(x => x.CompanyLocationId, companyLocations, "Id", "LocationName").Title("Location");
+
+                    columns.Bound(x => x.ClockInOut).Format("{0:yyyy-MM-dd HH:mm}");
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .Groupable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("Punches", "TimeSheet").Data("onRead"))
+                    .Sort(sorts => sorts.Add(x => x.ClockInOut).Descending())
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+
+<script>
+
+    function startDateChange() {
+        refreshGird();
+    }
+
+    function endDateChange() {
+        refreshGird();
+    }
+
+    function statusChange() {
+        refreshGird();
+    }
+
+    function refreshGird() {
+        var grid = $("#clocktime-grid").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    function onRead(e) {
+        var startDate = $("#startDate").val();
+        var endDate = $("#endDate").val();
+        var status = $("#Status").val();
+        var statusList = status == null ? "" : status.join();
+        return {
+            startDate: startDate,
+            endDate: endDate,
+            status: statusList,
+            candidateId: '@(ViewBag.CandidateId)',
+            refDate: '@(ViewBag.RefDate != null ? ViewBag.RefDate.ToShortDateString() : null)'
+        };
+    }
+
+    function lastNameTemplate(data)
+    {
+        var template = kendo.template($('#lastName').html());
+        return template(data);
+    }
+
+    function firstNameTemplate(data) {
+        var template = kendo.template($('#firstName').html());
+        return template(data);
+    }
+
+    function statusTemplate(data) {
+        var template = kendo.template($('#status').html());
+        return template(data);
+    }
+
+    function showPopUp(candidateGuid) {
+        candidateProfile(candidateGuid, '@Url.Action("_CandidateBasicInfo", "Common")');
+    }
+
+</script>
+
+
+<script id="lastName" type="text/x-kendo-template">
+
+    #if (!EmployeeId || !CandidateLastName) {#
+        <span style='color:red'><strong>Unknown</strong></span>
+    #} else {#
+        #= CandidateLastName #
+    #}#
+
+</script>
+
+
+<script id="firstName" type="text/x-kendo-template">
+
+    #if (!EmployeeId || !CandidateFirstName) {#
+        <span style='color:red'><strong>Unknown</strong></span>
+    #} else {#
+        #= CandidateFirstName #
+    #}#
+
+</script>

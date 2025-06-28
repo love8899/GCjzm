@@ -1,0 +1,73 @@
+﻿@model CalculateCandidateWorkTimeModel
+@{
+    //page title
+    ViewBag.Title = T("Admin.TimeSheet.CalculateCandidateWorkTime.Calculate").Text;
+    var inquiryDate = ViewBag.InquiryDate;
+}
+@using (Html.BeginForm("_CalculateCandidateWorkTime", "JobOrder", FormMethod.Post, new { id = "calculatecandidateworktime-form" }))
+{
+    @Html.ValidationSummary(true)
+
+    <script type="text/javascript">
+        // Limit end date
+        function startDateChange() {
+            var startDate = this.value(),
+                endPicker = $("#ToDate").data("kendoDatePicker"), endDate = endPicker.value();
+
+            if (startDate) {
+                startDate = new Date(startDate);
+                endPicker.min(startDate);
+
+                var suggestedDt = new Date(startDate);
+                suggestedDt.setDate(suggestedDt.getDate() + 6);
+                endPicker.value(suggestedDt);
+            }
+        }
+    </script>
+    
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.FromDate)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                    .Name("FromDate")
+                    .Format("yyyy-MM-dd")
+                    .Events(e => e.Change("startDateChange"))
+                    .Value(inquiryDate)
+                    .Min(ViewBag.JobOrderStartDate)
+                    .Max(ViewBag.JobOrderEndDate)
+                )
+
+                @Html.WfmValidationMessageFor(model => model.FromDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.ToDate)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                     .Name("ToDate")
+                    .Format("yyyy-MM-dd")
+                    .Value(System.DateTime.Now)
+                    .Max(ViewBag.JobOrderEndDate)
+
+                )
+                @Html.WfmValidationMessageFor(model => model.ToDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.HiddenFor(x => x.JobOrderId)
+                @Html.HiddenFor(x=>x.JobOrderGuid)
+            </td>
+            <td class="adminData">
+                <input type="submit" value="Start Calculation" name="submit" class="k-button" />
+            </td>
+        </tr>
+    </table>
+}
+
+

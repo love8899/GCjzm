@@ -1,0 +1,99 @@
+﻿@using Wfm.Services.Companies
+@model CompanyBasicInformation
+
+@{
+    var companyStatusService = EngineContext.Current.Resolve<ICompanyStatusService>();
+    var statusDropDownlist = companyStatusService.GetAllCompanyStatusForDropDownList();
+
+    var invoiceIntervalService = EngineContext.Current.Resolve<Wfm.Services.Invoices.IInvoiceIntervalService>();
+    var invoiceIntervals = invoiceIntervalService.GetAllInvoiceIntervals().Select(x => new SelectListItem()
+        {
+            Text = x.Code,
+            Value = x.Id.ToString()
+        });
+}
+@Html.HiddenFor(model => model.CompanyGuid)
+@Html.HiddenFor(model=>model.CompanyId)
+@Html.HiddenFor(model=>model.IsActive)
+<table class="adminContent">
+    @*<tr>
+        <td colspan="2">
+            <div class="statisticsTitle">
+                @T("Common.CompanyInformation")
+            </div>
+        </td>
+    </tr>*@
+    <tr>
+        <td class="adminTitle">
+            @Html.Label("CompanyName", T("Common.CompanyName").Text)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.CompanyName)
+            @Html.WfmValidationMessageFor(model => model.CompanyName)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.Label("WebSite",T("Common.WebSite").Text)
+        </td>
+        <td class="adminData">
+            @Html.Kendo().TextBox().Name("WebSite").HtmlAttributes(new { type="url"})
+            @Html.WfmValidationMessageFor(model => model.WebSite)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.Label("KeyTechnology", T("Admin.Companies.Company.Fields.KeyTechnology").Text)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.KeyTechnology)
+        </td>
+    </tr>
+
+    <tr>
+        <td class="adminTitle">
+            @Html.Label("CompanyStatusId", T("Admin.Configuration.CompanyStatus").Text)
+        </td>
+        <td class="adminData required">
+            @Html.Kendo().DropDownListFor(model=>model.CompanyStatusId).Name("CompanyStatusId").BindTo(statusDropDownlist).OptionLabel("None").DataTextField("Text").DataValueField("Value").Events(e=>e.Change("onChangeStatus"))
+            @Html.WfmValidationMessageFor(model => model.CompanyStatusId)
+        </td>
+    </tr>
+
+    <tr>
+        <td class="adminTitle">
+            @T("Admin.Common.Invoice.Interval")
+        </td>
+        <td class="adminData required">
+            @Html.Kendo().DropDownListFor(model => model.InvoiceIntervalId).BindTo(invoiceIntervals).DataTextField("Text").DataValueField("Value")
+            @Html.WfmValidationMessageFor(model => model.CompanyStatusId)
+        </td>
+    </tr>
+
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Note)
+        </td>
+        <td class="adminData">
+            @Html.Kendo().TextBoxFor(model=>model.Note)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.Label("IsHot", T("Common.IsHot").Text)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.IsHot)
+        </td>
+    </tr>
+
+</table>
+<script>
+    function onChangeStatus()
+    {
+        if ($("#CompanyStatusId").data("kendoDropDownList").text() == "Active")
+            $("#IsActive").val(true);
+        else
+            $("#IsActive").val(false);
+    }
+</script>

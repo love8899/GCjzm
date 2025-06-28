@@ -1,0 +1,573 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Common;
+@using Wfm.Services.JobOrders;
+@using Wfm.Services.Franchises;
+
+@model JobOrderModel
+
+@{
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var jobOrderTypeService = EngineContext.Current.Resolve<IJobOrderTypeService>();
+    var jobOrderCategoryService = EngineContext.Current.Resolve<IJobOrderCategoryService>();
+    var jobOrderStatusService = EngineContext.Current.Resolve<IJobOrderStatusService>();
+
+    var joborderCategories = jobOrderCategoryService.GetAllJobOrderCategories();
+    var joborderCategoriesDropDownList = new List<SelectListItem>();
+    foreach (var f in joborderCategories)
+    {
+        var item = new SelectListItem()
+        {
+            Text = f.CategoryName,
+            Value = f.Id.ToString()
+        };
+        joborderCategoriesDropDownList.Add(item);
+    }
+
+    var joborderTypes = jobOrderTypeService.GetAllJobOrderTypes().Where(jt=>!jt.IsDirectHire);
+    var joborderTypesDropDownList = new List<SelectListItem>();
+    foreach (var f in joborderTypes)
+    {
+        var item = new SelectListItem()
+        {
+            Text = f.JobOrderTypeName,
+            Value = f.Id.ToString()
+        };
+        joborderTypesDropDownList.Add(item);
+    }
+
+    var joborderStatus = jobOrderStatusService.GetAllJobOrderStatus();
+    var joborderStatusDropDownList = new List<SelectListItem>();
+    foreach (var f in joborderStatus)
+    {
+        var item = new SelectListItem()
+        {
+            Text = f.JobOrderStatusName,
+            Value = f.Id.ToString()
+        };
+        joborderStatusDropDownList.Add(item);
+    }
+}
+
+
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.JobOrderGuid)
+@Html.HiddenFor(model => model.JobPostingId)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+@Html.HiddenFor(model => model.EnteredBy)
+@Html.HiddenFor(model => model.IsDeleted)
+@Html.HiddenFor(model => model.CompanyId)
+@Html.HiddenFor(model => model.FranchiseId)
+@Html.HiddenFor(model => model.MonsterPostingId)
+
+<table class="adminContent">
+
+    @if (Model.Id == 0 && !workContext.CurrentAccount.IsLimitedToFranchises)
+    {
+        <tr>
+            <td colspan="4">
+                <div class="statisticsTitle">
+                    @T("Admin.Accounts.Account.FranchiseInformation")
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.FranchiseGuid, "Vendor")
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownListFor(model=>model.FranchiseGuid)
+                    .DataTextField("Item3")
+                    .DataValueField("Item2")
+                    .DataSource(d => d.Read(r => r.Action("GetCascadeAllVendors", "Common")))
+                    .ValueTemplate("<span id='FranchiseData' datauid=#:data.Item1#>#:data.Item3#</span>")
+                )
+                @Html.WfmValidationMessageFor(model => model.FranchiseGuid)
+            </td>
+        </tr>
+    }
+    else
+    {
+       <tr>
+           <td hidden>
+               <span id='FranchiseData' datauid='@Model.FranchiseId'></span>
+               @(Html.Kendo().DropDownList()
+                    .Name("FranchiseGuid")
+                    .Items(i => i.Add().Text(Model.FranchiseName).Value(Model.FranchiseGuid.ToString()).Selected(true))
+               )
+           </td>
+       </tr>
+    }
+    <tr>
+        <td colspan="4">
+            <div class="statisticsTitle">
+                @T("Common.CompanyInformation")
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyGuid,T("Common.Company").Text)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList().Name("CompanyGuid")
+                .OptionLabel("--Select--").DataTextField("Item3").DataValueField("Item2")
+                .DataSource(source => source.Read(read => { read.Action("GetCascadeCompaniesWithGuid", "Common"); }))
+                .ValueTemplate("<span id='CompanyData' datauid=#:data.Item1#>#:data.Item3#</span>")
+            )
+            @Html.WfmValidationMessageFor(model => model.CompanyGuid)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyLocationId) 
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList().Name("CompanyLocationId")
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .DataSource(source => source.Read(read => { read.Action("GetCascadeLocations", "Common").Data("filterLocations"); }).ServerFiltering(true))
+                .Enable(false).AutoBind(false).CascadeFrom("CompanyGuid")
+                .Events(e => e.Change("reloadPositions"))
+            )
+            <script> function filterLocations() { return { companyid: $("#CompanyData").attr("datauid") }; } </script>
+            @Html.WfmValidationMessageFor(model => model.CompanyLocationId)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyDepartmentId)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().DropDownList().Name("CompanyDepartmentId")
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .DataSource(source => source.Read(read => { read.Action("GetCascadeDepartments", "Common").Data("filterDepartments"); }).ServerFiltering(true))
+                .Enable(false).AutoBind(false).CascadeFrom("CompanyLocationId")
+            )
+            <script> function filterDepartments() { return { locationid: $("#CompanyLocationId").val() }; } </script>
+            @Html.WfmValidationMessageFor(model => model.CompanyDepartmentId)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyContactId)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().DropDownList().Name("CompanyContactId")
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .DataSource(source => source.Read(read => { read.Action("GetCascadeContacts", "JobOrder").Data("filterLocations"); }).ServerFiltering(true))
+                .Enable(false).AutoBind(false).CascadeFrom("CompanyGuid")
+            )
+            @Html.WfmValidationMessageFor(model => model.CompanyContactId)
+        </td>
+    </tr>
+    <tr>
+        <td colspan="4">
+            <div class="statisticsTitle">
+                @T("Admin.JobOrder.JobOrder.JobOrderInformation")
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Id)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.Id)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.LabourType,T("Admin.JobOrder.LabourType").Text)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().DropDownList().Name("LabourType")
+                .OptionLabel("None")
+                .Items(item => {
+                    item.Add().Value("DL").Text("Direct Labour");
+                    item.Add().Value("IL").Text("Indirect Labour");        
+                })
+            )
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsHot)
+        </td>
+        <td class="adminData">
+            @Html.CheckBoxFor(model => model.IsHot)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsPublished)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.IsPublished)
+        </td>
+    </tr>
+    <tr>
+        @*<td class="adminTitle">
+            @Html.LabelFor(model => model.IsInternalPosting)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.IsInternalPosting)
+        </td>*@
+        @Html.HiddenFor(model => model.IsInternalPosting)
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.AllowSuperVisorModifyWorkTime)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.AllowSuperVisorModifyWorkTime)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.AllowTimeEntry)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.AllowTimeEntry)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.JobTitle)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.JobTitle)
+            @Html.WfmValidationMessageFor(model => model.JobTitle)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyJobNumber)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.CompanyJobNumber)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.JobOrderCategoryId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList().Name("JobOrderCategoryId")
+                .OptionLabel("--Select--")
+                .BindTo(joborderCategoriesDropDownList)
+            )
+            @Html.WfmValidationMessageFor(model => model.JobOrderCategoryId)
+        </td>
+
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.JobOrderTypeId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList().Name("JobOrderTypeId")
+                .OptionLabel("--Select--")
+                .BindTo(joborderTypesDropDownList)
+            )
+            @Html.WfmValidationMessageFor(model => model.JobOrderTypeId)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.ShiftId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList().Name("ShiftId")
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .DataSource(source => source.Read(read => read.Action("GetCascadeShift", "JobOrder").Data("filterShifts")).ServerFiltering(true))
+                .Enable(false).AutoBind(false).CascadeFrom("CompanyGuid")
+                .Text(Model.ShiftName).Events(e => e.Change("reloadPositions"))
+            )
+            <script> function filterShifts() { return { companyid: $("#CompanyData").attr("datauid") }; } </script>
+            @Html.WfmValidationMessageFor(model => model.ShiftId)
+        </td>
+
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.PositionId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList().Name("PositionId")
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .DataSource(ds =>
+                {
+                    ds.Read(r => r.Action("GetCascadePositionsWithRates", "JobOrder").Data("filterBillingRateCodes")).ServerFiltering(true);
+                })                
+                .Enable(false).AutoBind(false).CascadeFrom("CompanyGuid")
+                .Events(e => e.DataBound("setRateCode").Change("setRateCode"))
+            )       
+            @Html.WfmValidationMessageFor(model => model.PositionId)
+            <script> function filterBillingRateCodes() {
+                return {
+                    companyId: $("#CompanyData").attr("datauid"),
+                    locationId: $("#CompanyLocationId").val(),
+                    vendorId: $("#FranchiseData").attr("datauid"),
+                    refDate: getRefDate(),
+                    shiftCode: $("#ShiftId").data("kendoDropDownList").text()
+                };
+            }</script>
+        </td>
+    </tr>
+    <tr>
+        @*<td class="adminTitle">
+            @Html.LabelFor(model => model.ShiftSchedule)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.ShiftSchedule)
+        </td>*@
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.StartDate) 
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                .Name("StartDate").Format("dddd, MMMM d, yyyy")
+                .Events(e => e.Change("reloadPositions"))
+            )
+            @Html.WfmValidationMessageFor(model => model.StartDate)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.StartTime)
+        </td>
+        <td class="adminData required">
+            @(Html.EditorFor(model=>model.StartTime))
+            @Html.WfmValidationMessageFor(model => model.StartTime)
+        </td>
+
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EndTime)
+        </td>
+        <td class="adminData required">
+            @(Html.EditorFor(model => model.EndTime))
+            @Html.WfmValidationMessageFor(model => model.EndTime)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.RecruiterId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList().Name("RecruiterId")
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .DataSource(source => source.Read(read => read.Action("GetCascadeRecruiters", "JobOrder").Data("filterRecruiters")))
+            )
+            @Html.WfmValidationMessageFor(model => model.RecruiterId)
+        </td>
+
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.OwnerId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList().Name("OwnerId")
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .DataSource(source => source.Read(read => read.Action("GetCascadeRecruiters", "JobOrder").Data("filterOwners")))
+            )
+            @Html.WfmValidationMessageFor(model => model.OwnerId)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.JobOrderStatusId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList().Name("JobOrderStatusId")
+                .OptionLabel("--Select--")
+                .BindTo(joborderStatusDropDownList)
+            )
+            @Html.WfmValidationMessageFor(model => model.JobOrderStatusId)
+        </td>
+        </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.JobDescription)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.JobDescription, "RichEditor2Lite")
+            @Html.WfmValidationMessageFor(model => model.JobDescription)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Note)
+        </td>
+        <td class="adminData">
+            @Html.TextAreaFor(model => model.Note, new { style = "height:80px;width:100%;" })
+        </td>
+    </tr>
+    <tr>
+        <td colspan="4">
+            <div class="statisticsTitle">
+                @T("Admin.JobOrder.JobOrder.JobOrderPaymentInformation")
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @T("Admin.JobOrder.JobOrder.Fields.BillingRateCode")
+        </td>
+        <td class="adminData required">
+            @Html.TextBoxFor(model => model.BillingRateCode, new { @class = "k-textbox", @readonly = true })
+            <span id="ratecode-changed" style="color:red;padding-left:10px"></span>
+            @Html.WfmValidationMessageFor(model => model.BillingRateCode)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.SchedulePolicyId)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().DropDownList().Name("SchedulePolicyId")
+                .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetCascadeCompanyPolicy", "JobOrder").Data("filterCompanyPolicy");
+                    })
+                    .ServerFiltering(true);
+                })
+                .Enable(false)
+                .AutoBind(false)
+                .CascadeFrom("CompanyGuid")
+            )
+            <script> function filterCompanyPolicy() { return { companyid: $("#CompanyData").attr("datauid") }; } </script>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Salary)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.Salary)
+        </td>
+    </tr>
+    <tr>
+        <td colspan="4">
+            <div class="statisticsTitle">
+                @T("Common.WorkingDays")
+                @Html.ValidationMessageFor(model => model.SundaySwitch)
+            </div>
+        </td>
+    </tr>    
+    <tr>
+        <td class="adminTitle">@Html.LabelFor(model => model.MondaySwitch)</td>
+        <td class="adminData">@Html.CheckBoxFor(model => model.MondaySwitch)</td>
+        <td class="adminTitle">@Html.LabelFor(model => model.TuesdaySwitch)</td>
+        <td class="adminData">@Html.CheckBoxFor(model => model.TuesdaySwitch)</td>
+    </tr>
+    <tr>
+        <td class="adminTitle">@Html.LabelFor(model => model.WednesdaySwitch)</td>
+        <td class="adminData">@Html.CheckBoxFor(model => model.WednesdaySwitch)</td>
+        <td class="adminTitle">@Html.LabelFor(model => model.ThursdaySwitch)</td>
+        <td class="adminData">@Html.CheckBoxFor(model => model.ThursdaySwitch)</td>
+    </tr>
+    <tr>
+        <td class="adminTitle">@Html.LabelFor(model => model.FridaySwitch)</td>
+        <td class="adminData">@Html.CheckBoxFor(model => model.FridaySwitch)</td>
+        <td class="adminTitle">@Html.LabelFor(model => model.SaturdaySwitch)</td>
+        <td class="adminData">@Html.CheckBoxFor(model => model.SaturdaySwitch)</td>
+    </tr>
+    <tr>
+        <td class="adminTitle">@Html.LabelFor(model => model.SundaySwitch)</td>
+        <td class="adminData">@Html.CheckBoxFor(model => model.SundaySwitch)</td>
+        <td class="adminTitle">@Html.LabelFor(model => model.IncludeHolidays, "Inlcude Holidays")</td>
+        <td class="adminData">@Html.CheckBoxFor(model => model.IncludeHolidays)</td>
+    </tr>
+    <tr>
+        <td colspan="4">
+            <div class="statisticsTitle">
+                @T("Common.OtherInformation")
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.RequireSafetyShoe)
+        </td>
+        <td class="adminData">
+            @Html.CheckBoxFor(model => model.RequireSafetyShoe)
+        </td>
+
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.RequireSafeEquipment)
+        </td>
+        <td class="adminData">
+            @Html.CheckBoxFor(model => model.RequireSafeEquipment)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.HiringDurationExpiredDate)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                .Name("HiringDurationExpiredDate")
+                .Format("dddd, MMMM d, yyyy")
+            )
+        </td>
+
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EstimatedFinishingDate)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                .Name("EstimatedFinishingDate")
+                .Format("dddd, MMMM d, yyyy")
+            )
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EstimatedMargin)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.EstimatedMargin)
+        </td>
+
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.HoursPerWeek)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().NumericTextBox<double>().Name("HoursPerWeek")
+                .Format("#.00").Step(0.1)
+            )
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            Required tests
+        </td>
+        <td class="adminData">
+            @Html.Action("JobOrderTest", new {guid=Model.JobOrderGuid, editMode = true })
+        </td>
+    </tr>
+</table>
+
+
+<script type="text/javascript">
+
+    function filterRecruiters() { return { companyGuid: $("#CompanyGuid").val(), vendorGuid: $("#FranchiseGuid").val() }; }
+
+    function filterOwners() { return { companyGuid: $("#CompanyGuid").val(), vendorGuid: $("#FranchiseGuid").val(), includeAdmin: true }; }
+
+    function getRefDate() {
+        var now = new Date();
+        now.setHours(0, 0, 0, 0);
+        var today = now.getTime();
+        var startDate = today;
+        var startDateInput = $("#StartDate").data("kendoDatePicker").value();
+        if (startDateInput)
+            startDate = startDateInput.getTime();
+        var endDate = Date.parse(@((Model.Id > 0 && Model.EndDate.HasValue ? Model.EndDate.Value : DateTime.MaxValue).ToString("yyyy-MM-dd"))) / 100;
+        return (new Date([startDate, today, endDate].sort()[1])).toLocaleDateString();
+    }
+
+    function reloadPositions() { $('#PositionId').data("kendoDropDownList").dataSource.read(); }
+
+    function setRateCode() {
+        var rateCode = null;
+        var ddl = $('#PositionId').data("kendoDropDownList");
+        var positionId = ddl.value();
+        if (positionId) {
+            var position_shift = ddl.text().split(' - ')[0];
+            var vendorId = $("#FranchiseData").attr("datauid");
+            rateCode = position_shift + ' / ' + vendorId;
+        }
+        var currRateCode = $('#BillingRateCode').val();
+        if (currRateCode !== rateCode) {
+            $('#BillingRateCode').val(rateCode);
+            $('#ratecode-changed').text("Rate Code changed !!!");
+        }
+        else
+            $('#ratecode-changed').text("");
+    }
+</script>

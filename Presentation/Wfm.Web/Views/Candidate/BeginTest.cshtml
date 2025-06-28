@@ -1,0 +1,55 @@
+﻿@model TestModel
+@using Wfm.Web.Models.Test
+
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+}
+
+
+<div class="page candidate-test-page">
+    <div class="page-title">
+        <h1>@ViewBag.TestCategory</h1>
+    </div>
+    <div class="page-body">
+        @using (Html.BeginForm("BeginTest", "Candidate", FormMethod.Post))
+        {
+
+            @Html.HiddenFor(m => m.CategoryId)
+            @Html.HiddenFor(m => m.CandidateGuid)
+            @Html.AntiForgeryToken()
+            <div class="fieldset">
+                <div class="form-fields">
+                    @for (int i = 0; i < Model.TestQuestions.Count; i++)
+                    {
+                        @Html.ValidationMessageFor(m => m.TestQuestions[i])
+                        @Html.HiddenFor(m => m.TestQuestions[i].Id)
+                        @Html.HiddenFor(m => m.TestQuestions[i].TestChoiceModelList)
+                        @Html.HiddenFor(m => m.TestQuestions[i].Answers)
+                        @Html.HiddenFor(m => m.TestQuestions[i].Score)
+                        <div class="title">
+                            <b>Q.@Model.TestQuestions[i].TestQuestionNum : @Model.TestQuestions[i].Question</b>
+                            @if (!string.IsNullOrWhiteSpace(Model.TestQuestions[i].ImageFileLocation))
+                            {
+                                <img alt='' src="@Model.TestQuestions[i].ImageFileUrl" class="responsive" />
+                            }
+                        </div>
+                        foreach (var feature in Model.TestQuestions[i].TestChoiceModelList)
+                        {
+                            <div class="inputs">
+                                @Html.RadioButtonFor(x => x.TestQuestions[i].CandidateChoice, feature.TestChoiceValue) @feature.TestChoiceText
+                                @if (!string.IsNullOrWhiteSpace(feature.ImageFileLocation))
+                                {
+                                    <img alt='@feature.Id' src="@feature.ImageFileUrl" />
+                                }
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+            <div class="buttons">
+                <input type="submit" name="submit-continue" class="-k-button button-1" value="@T("Admin.Common.Submit")" />
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,107 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Features;
+@using Wfm.Services.Security
+@using Wfm.Shared.Models.Employees;
+
+@model EmployeeModel
+    @{ 
+        var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+        var userFeatureService = EngineContext.Current.Resolve<IUserFeatureService>();
+        var workContext = EngineContext.Current.Resolve<IWorkContext>();
+        var userId = workContext.CurrentAccount.IsClientAccount ? workContext.CurrentAccount.CompanyId : workContext.CurrentAccount.FranchiseId;
+        var featureNames = userFeatureService.GetAllUserFeatureNamesByUserId(userId);
+    }
+<div class="section-header">
+    <div class="title">
+        @T("Common.Employee") - @Model.EmployeeId / @Model.FirstName @Model.LastName
+        @Html.ActionLink("(" + T("Admin.FulltimeEmployee.BackToList") + ")", "Index")
+    </div>
+    <div class="options">
+        <a class="k-button" id ="edit-employee-basic">@T("Admin.Common.Edit")</a>       
+        <a class="k-button" id="save-employee-basic">@T("Admin.Common.Save")</a>
+        <a class="k-button" id="cancel-edit-employee-basic">@T("Admin.Common.Cancel")</a>
+    </div>
+</div>
+@Html.Kendo().TabStrip().Name("candidate-details-tabstrip").Items(x =>
+{
+    x.Add().Text(T("Common.BasicInformation").Text).Content(EmployeeBasicInfoTab().ToHtmlString()).Selected(true)
+        .HtmlAttributes(new { id = "tab-basic" });
+
+    if (Model.IsActive && !Model.IsBanned && (Model.IsEmployee || Model.OnboardingStatus == "Started" || Model.OnboardingStatus == "Finished"))
+    {
+        x.Add().Text("Schedule").LoadContentFrom(Url.Action("_TabSchedule", "Employee", new { candidateId = Model.Id, refDate = ViewBag.RefDate }))
+            .HtmlAttributes(new { id = "tab-schedule" });
+    }
+    x.Add().Text(T("Admin.Candidate.Incidents").Text).LoadContentFrom(Url.Action("_TabEmployeeIncidents", "Employee", new { employeeId = Model.CandidateGuid }));
+    if (permissionService.Authorize("ManageClientEmployee"))
+    {
+        x.Add().Text(T("Admin.Employee.Timeoff").Text).LoadContentFrom(Url.Action("_TabEmployeeTimeoff", "Employee", new { employeeId = Model.CandidateGuid }))    // Tab is loaded on demand
+            .HtmlAttributes(new { id = "tab-employee-timeoff" });
+        x.Add().Text(T("Admin.Accounts.Account.WorktimePreference").Text).LoadContentFrom(Url.Action("_TabWorktimePreference", "Employee", new { employeeId = Model.CandidateGuid }))    // Tab is loaded on demand
+            .HtmlAttributes(new { id = "tab-work-time-preference" });
+        x.Add().Text(T("Admin.Employee.JobRoles").Text).LoadContentFrom(Url.Action("_TabEmployeeJobRole", "Employee", new { employeeId = Model.CandidateGuid }))    // Tab is loaded on demand
+            .HtmlAttributes(new { id = "tab-job-role" });
+    }
+    if ((permissionService.Authorize("ManageClientScheduling") || permissionService.Authorize("ManageSchedulingPlacement")) && featureNames.Contains("Scheduling"))
+    {
+        x.Add().Text(string.Format("{0} {1}", T("Common.Employee"), T("Common.Schedule"))).LoadContentFrom(Url.Action("_TabEmployeeSchedule", "Employee", new { employeeId = Model.CandidateGuid }))    // Tab is loaded on demand
+            .HtmlAttributes(new { id = "tab-employee-schedule" });
+    }
+})
+@helper EmployeeBasicInfoTab()
+{
+    <div id="employee-basic-panel">
+        @Html.Partial("_BasicInfo", Model)
+    </div>
+}
+<script>
+    $(function () {
+        $('#edit-employee-basic').click(function () {
+            editEmployeeBasic(@Model.Id);
+        })
+        $('#save-employee-basic').click(function () {
+            saveEmployeeBasic();
+        })
+        $('#cancel-edit-employee-basic').click(function () {
+            location.reload();
+        })
+        $('#save-employee-basic').hide();
+        $('#cancel-edit-employee-basic').hide();
+    })
+    function editEmployeeBasic(id) {
+        $.ajax({
+            url: '@Url.Action("_BasicInfoEdit", new { guid = Model.CandidateGuid})',
+            dataType: 'html',
+            type: 'GET',
+            cache: false,
+            async: false,
+            success: function (result) {
+                $('#employee-basic-panel').html(result);
+                $('#save-employee-basic').show();
+                $('#cancel-edit-employee-basic').show();
+                $('#edit-employee-basic').hide();
+                //
+                var tabstrip = $("#candidate-details-tabstrip").data("kendoTabStrip");
+                var myTab = tabstrip.tabGroup.children("li").eq(0);
+                tabstrip.select(myTab);
+            },
+        })
+        return false;
+    }
+    function saveEmployeeBasic() {
+        $.ajax({
+            url: '@Url.Action("UpdateEmployee")',
+            type: 'POST',
+            data: $('#employee-basic-form').serialize(),
+            dataType: 'html',
+            success: function (result) {
+                if (result == 'done') {
+                    location.reload();
+                }
+                else {
+                    $('#employee-basic-panel').html(result);
+                }
+            }
+        });
+    }
+</script>

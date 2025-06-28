@@ -1,0 +1,217 @@
+﻿@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts;
+@using Wfm.Services.Accounts;
+@using Wfm.Services.Common;
+@using Wfm.Services.Companies;
+@using Wfm.Services.Franchises;
+
+@{
+    ViewBag.Title = T("Admin.Candidate.Blacklist").Text;
+    
+    var genderService = EngineContext.Current.Resolve<IGenderService>();
+    var companyService = EngineContext.Current.Resolve<ICompanyService>();
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var accountService = EngineContext.Current.Resolve<IAccountService>();
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+
+    var genders = genderService.GetAllGenders();
+    var companies = companyService.GetAllCompaniesAsQueryable(workContext.CurrentAccount);
+    var franchises = franchiseService.GetAllFranchises();
+    var accounts = accountService.GetAllAccountsAsQueryable(null, true);
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+    //set the Global viewbag Variable
+    ViewBag.SearchArea = "Candidate";
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Blacklist.Title")
+    </div>
+    <div class="options">
+        <button id="AddToDnrlist" class="k-button">@T("Common.Add")</button>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateBlacklistModel>()
+                .Name("candidate-blacklist-grid")
+                .Events(events => events.DataBound("onDataBound"))
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.CandidateId).Title(@T("Common.Id").Text).Width(75);
+
+                    columns.Bound(x => x.EmployeeId)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Width(120);
+
+                    if (!workContext.CurrentAccount.IsVendor()&&commonSettings.DisplayVendor)
+                    {
+                        columns.ForeignKey(x => x.FranchiseId, franchises, "Id", "FranchiseName").Title(T("Common.Vendor").Text).Width(180);
+                    }
+
+                    columns.Bound(x => x.EmployeeId).Width(150).Hidden()
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+
+                    columns.Bound(x => x.FirstName).Width(120)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Template(x => Html.ActionLink(x.FirstName, "Details", new { x.CandidateGuid }, new { }))
+                        .ClientTemplate(@Html.ActionLink("#=FirstName #", "Details", new { guid = "#=CandidateGuid#" }).ToHtmlString());
+
+                    columns.Bound(x => x.LastName).Width(120)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Template(x => Html.ActionLink(x.LastName, "Details", new { x.CandidateGuid }, new { }))
+                        .ClientTemplate(@Html.ActionLink("#=LastName #", "Details", new { guid = "#=CandidateGuid#" }).ToHtmlString());
+
+                    columns.ForeignKey(x => x.GenderId, genders, "Id", "GenderName").Width(80).Hidden();
+
+                    columns.Bound(x => x.BirthDate).Width(100);
+                    
+                    columns.Bound(x => x.SocialInsuranceNumber).Title(T("Common.SIN").Text)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate("#= prettySocialInsuranceNumber(SocialInsuranceNumber) #")
+                        .Width(100)
+                        .Hidden(false);
+
+                    columns.ForeignKey(x => x.ClientId, companies, "Id", "CompanyName").Title(T("Common.Company").Text).Width(180);
+
+                    columns.Bound(x => x.EffectiveDate).Width(100);
+
+                    columns.Bound(x => x.BannedReason).Title(T("Common.Reason").Text)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+
+                    //columns.Bound(x => x.Note).Encoded(false)
+                    //    .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+
+                    columns.ForeignKey(x => x.EnteredBy, accounts, "Id", "Username").Title(T("Common.EnteredBy").Text).Width(120).Hidden(false);
+
+                    columns.Bound(x => x.Id)
+                          .ClientTemplate("<a class=\"k-button remove-from-blacklist\"  title='" + T("Common.Remove") + "' data-rowid=\"#=Id#\"><span class='fa fa-trash'></span></a>")
+                          .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                          .Width(70)
+                          .Title("").Sortable(false).Filterable(false);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(true))
+                .Sortable()
+                //.Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(true)
+                        .PageSize(20)
+                        .Read(read => read.Action("Dnrlist", "Candidate"))
+                        .Sort(sorts => sorts.Add(x => x.EffectiveDate).Descending())
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+<div id="add2DnrList-dialog"></div>
+
+<script type="text/javascript">
+    function onDataBound(e) {
+        $(".remove-from-blacklist").bind("click", function (e) {
+            var goAhead = confirm('Are you sure to remove the candidate from the "Do Not Return" list?')
+            if (goAhead) {
+                $.ajax({
+                    url: "@(Url.Action("_RemoveCandidateFromBlacklist", "Candidate"))",
+                    data: { id: $(this).attr('data-rowid') },
+                    cache: false,
+                    async: false,
+                    type: 'POST',
+                    success: function (result) {
+                        if (!result.Result) {
+                            alert(result.ErrorMessage);
+                        }
+                        else {
+                            ShowNotification('The canddiate is removed from the "Do Not Return" list.');
+                            refreshGrid('#candidate-blacklist-grid');
+                        }
+                    },
+                    error: function (data) {
+                        alert(data.responseText);
+                    }
+                });
+                return false;
+            }
+        });
+    }
+
+    function ShowNotification(msg) {
+        $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+        $(".messageBox").text(msg);
+    }
+
+    $('#AddToDnrlist').click(function () {
+        var dialog = $("#add2DnrList-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#add2DnrList-dialog").kendoWindow({
+                title: "Search and Add",
+                modal: true,
+                resizable: false,
+                width: 960,
+                height: 380,
+                close: function () {
+                    refreshGrid('#candidate-blacklist-grid');
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    var win = this;
+                    $('#add-selected-to-balcklist').click(function () {
+                        var calendar = $("#candidatejoborder-calendar").data("kendoDatePicker");
+                        var startDate = calendar.value();
+                        var grid = $("#candidate-popup-grid").data("kendoGrid");
+                        var candidateIds = [];
+                        grid.select().each(function () {
+                            var dataItem = grid.dataItem($(this));
+                            candidateIds.push(dataItem.Id);
+                        });
+                        $.ajax({
+                            url: '@Url.Action("AddEmmployeesIntoJobOrder", "JobOrder")',
+                            type: 'POST',
+                            data: {
+                                guid: '@ViewBag.JobOrderGuid', candidateIds: candidateIds, startDate: kendo.toString(startDate, 'yyyy-MM-dd'),
+                                terminateCurrentPlacement: $('#terminate-current-assignment').is(':checked'), addToCompanyPool: $('#add-to-company-pool').is(':checked')
+                            },
+                            dataType: 'html',
+                            success: function (res) {
+                                var response = JSON.parse(res);
+                                if (response.Success == true) {
+                                    refreshContent();
+                                    win.destroy();
+                                }
+                                else {
+                                    alert(response.ErrorMessage);
+                                }
+                            }
+                            //error: function (xhr, ajaxOptions, errorThrown) {
+                            //    alert(xhr.responseText);
+                            //}
+                        })
+                    });
+                }
+            });
+            dialog = $("#add2DnrList-dialog").data("kendoWindow");
+        }
+        dialog.refresh({
+            url: '@Url.Action("_AddSelectedCandidatesToBlacklist", "Candidate")',
+            data: { searchKey: null, viewName: "_AddSelectedToBlacklist" }
+            });
+        dialog.center();
+    })
+</script>

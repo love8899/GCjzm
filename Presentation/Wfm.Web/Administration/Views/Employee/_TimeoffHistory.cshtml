@@ -1,0 +1,59 @@
+﻿@using Wfm.Shared.Models.Employees
+<table>
+<tr>
+    <td>
+        @(Html.Kendo().Grid<EmployeeTimeoffBookingHistoryModel>()
+                .Name("timeoff-booking-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(80).Hidden();
+
+                    columns.Bound(x => x.EmployeeId).Hidden();
+                    columns.Bound(x => x.EmployeeName).Width(120).Hidden();
+                    columns.Bound(x => x.EmployeeTimeoffTypeName).Width(80);
+                    columns.Bound(x => x.TimeOffStartDateTime).ClientTemplate("#=kendo.toString(TimeOffStartDateTime,'yyyy-MM-dd')#").Width(120);
+                    columns.Bound(x => x.TimeOffEndDateTime).ClientTemplate("#=kendo.toString(TimeOffEndDateTime,'yyyy-MM-dd')#").Width(120);
+                    columns.Bound(x => x.BookedTimeoffInHours).Width(80);
+                    columns.Bound(x => x.BookedByAccountName).Width(80);
+                    columns.Bound(x => x.Note).Width(160);
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(x => Html.ActionLink("", "Edit", new { x.Id }))
+                        .ClientTemplate(
+                        "#if (CanEdit == true) { #<a class='k-button' title='" + T("Common.Edit").Text + "' onclick=\"return editTimeoffBooking(#= Id #) \"><span class='fa fa-pencil'></span></a> #}#"
+                        )
+                        .Width(120)
+                        .Title("");
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(true)
+                        .PageSize(20)
+                        .Read(read => read.Action("_GetEmployeeTimeoffBookHistory", "Employee").Data("filterEntitlement"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+        )
+    </td>
+</tr>
+</table>

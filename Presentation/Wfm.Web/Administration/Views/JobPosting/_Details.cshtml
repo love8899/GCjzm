@@ -1,0 +1,211 @@
+﻿@using Wfm.Services.JobOrders;
+@using Wfm.Services.Common;
+@using Wfm.Services.Policies;
+@using Wfm.Shared.Models.JobPosting;
+@using Wfm.Services.Companies;
+
+
+@model JobPostingModel
+
+
+<table class="adminContent">
+    <tr>
+        <td colspan="2">
+            @*<div class="statisticsTitle">
+                @T("Admin.JobPosting.Overview")
+            </div>*@
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle" width="30%">
+            @Html.LabelFor(model => model.Id)
+        </td>
+        <td class="adminData" width="70%">
+            @Html.DisplayFor(model => model.Id)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyId)
+        </td>
+        <td class="adminData">
+            @{
+                var companyService = EngineContext.Current.Resolve<ICompanyService>();
+                var company = companyService.GetCompanyById(Model.CompanyId);
+            }
+            @Html.ActionLink(@company.CompanyName, "Details", "Company", new { guid = Model.CompanyGuid }, new { target = "_blank" })
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyLocationId)
+        </td>
+        <td class="adminData">
+            @{
+                var locationService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+                var location = locationService.GetCompanyLocationById(Model.CompanyLocationId);
+                var locationName = location == null ? "" : location.LocationName;
+            }
+            @locationName
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyDepartmentId)
+        </td>
+        <td class="adminData">
+            @{
+                var deptName = String.Empty;
+                if (Model.CompanyDepartmentId > 0)
+                {
+                    var departmentService = EngineContext.Current.Resolve<ICompanyDepartmentService>();
+                    deptName = departmentService.GetCompanyDepartmentById(Model.CompanyDepartmentId.Value).DepartmentName;
+                    
+                }
+            }
+            @deptName
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.JobTitle)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.JobTitle)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.PositionId)
+        </td>
+        <td class="adminData">
+            @{
+                var positionService = EngineContext.Current.Resolve<IPositionService>();
+                var position = positionService.GetPositionById(Model.PositionId);
+            }
+            @position.Name
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.ShiftId)
+        </td>
+        <td class="adminData">
+            @{
+                var shiftService = EngineContext.Current.Resolve<IShiftService>();
+                var shift = shiftService.GetShiftById(Model.ShiftId);
+            }
+            @shift.ShiftName
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.LabourType, T("Admin.JobOrder.LabourType").Text)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.LabourTypeName)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.SchedulePolicyId)
+        </td>
+        <td class="adminData">
+            @{
+                if(Model.SchedulePolicyId!=0)
+                { 
+                    var policyService = EngineContext.Current.Resolve<ISchedulePolicyService>();
+                    var policy = policyService.GetSchedulePolicyById(Model.SchedulePolicyId);
+                    @policy.Name
+                }
+             }        
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.StartTime)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.StartTime)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EndTime)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.EndTime)
+        </td>
+    </tr>
+
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.StartDate)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.StartDate)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EndDate)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.EndDate)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.NumberOfOpenings)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.NumberOfOpenings)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CreatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.CreatedOn)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.UpdatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.UpdatedOn)
+        </td>
+        </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.SubmittedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.SubmittedOn)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsPublished)
+        </td>
+        <td class="adminData">
+            @{
+                var isPublished = "~/Content/images/active-" + Model.IsPublished.ToString().ToLower() + ".png";
+            }
+            <img alt='Hot' src="@Url.Content(isPublished)" />
+        </td>
+    </tr>
+    @if (Model.IsPublished)
+    {
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.PublishedOn)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.PublishedOn)
+            </td>
+        </tr>
+    }
+</table>

@@ -1,0 +1,13 @@
+﻿@{
+    Layout = "_ReportViewerLayout";
+    ViewBag.ReportFile = "EmployeesScheduleReport";
+
+    ViewBag.ReportParameters = new
+    {
+        FromDate = ViewBag.StartDate,
+        ToDate = ViewBag.EndDate,
+        EmployeeIds = ViewBag.EmployeeIds,
+        PageBreak = ViewBag.BreakPage,
+        CompanyName = ViewBag.CompanyName
+    };
+}

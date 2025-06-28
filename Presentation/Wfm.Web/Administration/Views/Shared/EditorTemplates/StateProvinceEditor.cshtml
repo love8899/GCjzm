@@ -1,0 +1,14 @@
+﻿@model int
+
+@(Html.Kendo().DropDownListFor(m => m)
+        .OptionLabel("Select State/Province...")
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .DataSource(dataSource =>
+        {
+            dataSource.Read(read => read.Action("GetCascadeStateProvinces", "Common").Data("filterStateProvince"))
+                    .ServerFiltering(true);
+        })
+        .CascadeFrom("CountryId")
+)
+@*@Html.ValidationMessageFor(m => m)*@

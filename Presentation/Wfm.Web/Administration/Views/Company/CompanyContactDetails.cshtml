@@ -1,0 +1,142 @@
+﻿@using Wfm.Services.Common
+@using Wfm.Services.Franchises
+@using Wfm.Shared.Models.Accounts
+
+@model AccountModel
+@{
+    ViewBag.Title = T("Admin.Accounts.Account.ContactInformation").Text;
+}
+@{  
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var franchise = franchiseService.GetFranchiseById(Model.FranchiseId);
+}
+<div class="section-header">
+    <div class="title">
+        @T("Common.AccountDetails")
+    </div>
+    <div class="options">
+        <button class="k-button" onclick="ResetPassword('@Model.AccountGuid')">Reset Password</button>
+        @Html.ActionLink(T("Admin.Accounts.Account.EditProfile").Text, "EditContact", new { guid = Model.AccountGuid }, new { @class = "k-button" })
+    </div>
+</div>
+<div class="account-details">
+    <div class="details-column-3">
+        <h2>@T("Admin.Candidate.AccountInformation").Text</h2>
+        <div class="details-row">
+            <div class="details-label">@Html.LabelFor(model => model.CompanyId)</div>
+            <div class="details-value">@Html.DisplayFor(model => model.CompanyName)</div>
+        </div>
+        <div class="details-row">
+            <div class="details-label">@Html.LabelFor(model => model.CompanyLocationId)</div>
+            <div class="details-value">@Html.DisplayFor(model => model.CompanyLocationName)</div>
+        </div>
+        <div class="details-row">
+            <div class="details-label">@Html.LabelFor(model => model.CompanyDepartmentId)</div>
+            <div class="details-value">@Html.DisplayFor(model => model.CompanyDepartmentName)</div>
+        </div>
+        <div class="details-row">
+            <div class="details-label">@Html.LabelFor(model => model.AccountRoleSystemName)</div>
+            <div class="details-value">@Html.DisplayFor(model => model.AccountRoleSystemName)</div>
+        </div>
+        <div class="details-row">
+            <div class="details-label">@Html.LabelFor(model => model.ShiftName)</div>
+            <div class="details-value">@Html.DisplayFor(model => model.ShiftName)</div>
+        </div>
+    </div>
+    <div class="details-column-3">
+        <h2>@T("Common.BasicInformation").Text</h2>
+        <div class="details-row">
+            <div class="details-label">@Html.LabelFor(model => model.FirstName)</div>
+            <div class="details-value">@Html.DisplayFor(model => model.FirstName)</div>
+        </div>
+        <div class="details-row">
+            <div class="details-label">@Html.LabelFor(model => model.LastName)</div>
+            <div class="details-value">@Html.DisplayFor(model => model.LastName)</div>
+        </div>
+    </div>
+</div>
+<div class="account-details">
+    <div class="details-column-3">
+        <h2>@T("Admin.Accounts.Account.ContactInformation").Text</h2>
+
+        <div class="details-row">
+            <div class="details-label">@Html.LabelFor(model => model.Email)</div>
+            <div class="details-value">@Html.DisplayFor(model => model.Email)</div>
+        </div>
+        <div class="details-row">
+            <div class="details-label">@Html.LabelFor(model => model.WorkPhone)</div>
+            <div class="details-value">@Model.WorkPhone.ToPrettyTelephone()</div>
+        </div>
+        <div class="details-row">
+            <div class="details-label">@Html.LabelFor(model => model.MobilePhone)</div>
+            <div class="details-value">@Model.MobilePhone.ToPrettyTelephone()</div>
+        </div>
+        <div class="details-row">
+            <div class="details-label">@Html.LabelFor(model => model.HomePhone)</div>
+            <div class="details-value">@Model.HomePhone.ToPrettyTelephone()</div>
+        </div>
+    </div>
+    <div class="details-column-3">
+        <h2>@T("Common.OtherInformation").Text</h2>
+        <div class="details-row">
+            <div class="details-label">@Html.LabelFor(model => model.IsActive)</div>
+            <div class="details-value">@Html.DisplayFor(model => model.IsActive)</div>
+        </div>
+        <div class="details-row">
+            <div class="details-label">@Html.LabelFor(model => model.UpdatedOn)</div>
+            <div class="details-value">@Html.DisplayFor(model => model.UpdatedOn)</div>
+        </div>
+        <div class="details-row">
+            <div class="details-label">@Html.LabelFor(model => model.CreatedOn)</div>
+            <div class="details-value">@Html.DisplayFor(model => model.CreatedOn)</div>
+        </div>
+    </div>
+</div>
+<div id="reset-password"></div>
+<script type="text/javascript">
+    function ResetPassword(guid)
+    {
+        $("#reset-password").kendoWindow({
+            title: "Reset Password",
+            modal: true,
+            resizable: false,
+            width: 500,
+            height: 180,
+            content: '@Url.Action("ResetPassword", "Company")' + '?guid=' + guid,
+            close: function () {
+            },
+            refresh: function (e) {
+
+                var win = this;
+                $("#cancel-reset-password").click(function () {
+                    win.close();
+                });
+                $('#submit-reset-password').click(function () {
+                    var form = $("#resetPasswordForm");
+                    if (form.valid()) {
+                        $.ajax({
+                            type: "POST",
+                            url: '@Url.Action("_ResetPassword", "Company")',
+                            data: form.serialize(),
+                            dataType: "Json",
+                            success: function (response) {
+                                if (!response.Error) {
+                                    $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+                                    $(".messageBox").text("Password has been reset sucessfully!");
+                                    win.close();
+                                    setTimeout(5000);
+                                }
+                                else {
+                                    alert(response.Message);
+                                }
+
+                            }
+                        });
+                    }
+                });
+
+            }
+        }).data('kendoWindow').open().center();
+        return false;
+    }
+</script>

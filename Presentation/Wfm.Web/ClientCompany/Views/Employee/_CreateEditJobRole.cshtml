@@ -1,0 +1,80 @@
+﻿@using Wfm.Core
+@using Wfm.Shared.Models.Employees
+@using Wfm.Services.Companies
+@model EmployeeJobRoleModel
+@{
+    var companyService = EngineContext.Current.Resolve<ICompanyService>();
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var allCompanyJobRoles = companyService.GetAllJobRoles(workContext.CurrentAccount.CompanyId).Select(x => new SelectListItem
+    {
+        Text = x.Name,
+        Value = x.Id.ToString(),
+    }).ToArray();
+}
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "job-role-report-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @(Model.Id > 0 ? T("Web.JobRole.Edit").Text : T("Web.JobRole.Add").Text)
+        </div>
+        <div class="options">
+            <input type="button" name="save" id="save-job-role-report" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" name="close" id="close-job-role-report" class="k-button" value="@T("Common.Close")" />
+        </div>
+    </div>
+
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.EmployeeIntId)
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+    @Html.HiddenFor(model => model.UpdatedOnUtc)
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CompanyJobRoleId)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                .Name("CompanyJobRoleId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .BindTo(allCompanyJobRoles)
+                )
+                @Html.WfmValidationMessageFor(model => model.CompanyJobRoleId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.IsPrimary)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().CheckBoxFor(model => model.IsPrimary))
+                @Html.WfmValidationMessageFor(model => model.IsPrimary)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EffectiveDate)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DatePickerFor(model => model.EffectiveDate)
+                .Format("yyyy-MM-dd")
+                .Start(CalendarView.Month))
+                @Html.WfmValidationMessageFor(model => model.EffectiveDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.ExpiryDate)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DatePickerFor(model => model.ExpiryDate)
+                .Format("yyyy-MM-dd")
+                .Start(CalendarView.Month))
+                @Html.WfmValidationMessageFor(model => model.ExpiryDate)
+            </td>
+        </tr>    
+    </table>
+}

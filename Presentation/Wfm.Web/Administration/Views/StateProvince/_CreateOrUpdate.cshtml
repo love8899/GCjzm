@@ -1,0 +1,80 @@
+﻿@using Wfm.Core
+@using Wfm.Services.DirectoryLocation
+@using Wfm.Services.Accounts
+
+@model StateProvinceModel
+
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+
+
+@{
+    var countryService = EngineContext.Current.Resolve<ICountryService>();
+    var allCountries = countryService.GetAllCountries();
+    var countryList = new SelectList(allCountries.Where(c => c.IsActive).OrderBy(c => c.DisplayOrder), "Id", "CountryName");
+
+    var _workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var accountService = EngineContext.Current.Resolve<IAccountService>();
+    var allAccounts = accountService.GetAllAccountsAsQueryable(_workContext.CurrentAccount);
+}
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CountryName)  
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList()
+                        .Name("CountryId")
+                        .BindTo(countryList)
+                        .OptionLabel("--Select--")
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                  )
+            @Html.WfmValidationMessageFor(model => model.CountryId)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.StateProvinceName)
+        </td>
+        <td class="adminData required">
+            @Html.EditorFor(model => model.StateProvinceName)
+            @Html.WfmValidationMessageFor(model => model.StateProvinceName)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Abbreviation)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.Abbreviation)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsActive) 
+        </td>
+        <td class="adminData">
+            @Html.CheckBoxFor(model => model.IsActive)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CreatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor( model => model.CreatedOn)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.UpdatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor( model => model.UpdatedOn)
+        </td>
+    </tr>
+</table>

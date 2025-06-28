@@ -1,0 +1,11 @@
+﻿@model int
+
+
+@(Html.Kendo().DropDownListFor(m => m)
+    .DataSource(source =>
+    {
+        source.Read(read => read.Action("_SupervisorsByDepartment", "Company").Type(HttpVerbs.Post).Data("getDepartmentId")).ServerFiltering(false);
+    })
+    .DataValueField("Id")
+    .DataTextField("FullName")
+)

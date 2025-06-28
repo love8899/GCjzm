@@ -1,0 +1,147 @@
+﻿@model SearchPlacementModel
+@using Wfm.Core
+@using Wfm.Shared.Models.Search;
+@{
+    ViewBag.PageTitle = T("Report.BudgetForcastingReport").Text;
+
+    ViewBag.Title = T("Report.BudgetForcastingReport").Text;
+    Html.SetActiveMenuItemSystemName("DailyAttendanceList");
+
+    var gridName = "dailyattendance-grid";
+    var serverOperation = false;
+
+    var todayDate = DateTime.Today.Date;
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+}
+
+@section Options {
+    <a id="exportexcel-all" class="btn btn-success hidden-xxs" onclick="exportAll(event)">
+        <i class="fa fa-file-excel-o"></i>@T("Admin.Common.ExportToExcel.All")
+    </a>
+}
+
+@section Search {
+    @Html.Partial("_SearchBudget", Model, new ViewDataDictionary
+    {
+        { "GridName", gridName },
+        { "DateField", "StartDate" }
+    })
+}
+
+@(Html.Kendo().Grid<BudgetForcastingModel>().Name(gridName)
+    .Events(e => e.DataBound("onDataBound"))
+    .Columns(columns =>
+    {
+        columns.Bound(x => x.JobTitle);
+        columns.Bound(x => x.Position);
+        columns.Bound(x => x.Shift);
+        columns.Bound(x => x.Location);
+        columns.Bound(x => x.Department);
+        columns.Bound(x => x.StartDate).Format("{0:MM/dd/yyyy}");
+        columns.Bound(x => x.EndDate).Format("{0:MM/dd/yyyy}");
+        columns.Bound(x => x.NumberOfEmployees).Title("Number")
+            .HeaderHtmlAttributes(new { title = "Number of employees" })
+            .HtmlAttributes(new { style = "text-align:right" });
+        columns.Bound(x => x.TotalCost).Format("{0:0.00}")
+            .HtmlAttributes(new { style = "text-align:right" });
+    })
+    .Sortable()
+    .Editable(e => e.Enabled(true).Mode(GridEditMode.InCell))
+    .ToolBar(t => { t.Save().SaveText("Calculate").CancelText("Cancel"); })
+    .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50 }).Refresh(true))
+    .DataSource(dataSource => dataSource.Ajax().Batch(true).ServerOperation(serverOperation)
+        .Read(read => read.Action("GetAllBudgetForcasting", "Report").Data("onRead"))
+        .Update(up => up.Action("CalculateBudget", "Report"))
+        .PageSize(10)
+        .Model(m =>
+        {
+            m.Id(x => x.JobOrderId);
+            m.Field(x => x.JobOrderId).Editable(false);
+            m.Field(x => x.JobTitle).Editable(false);
+            m.Field(x => x.Position).Editable(false);
+            m.Field(x => x.Shift).Editable(false);
+            m.Field(x => x.Location).Editable(false);
+            m.Field(x => x.Department).Editable(false);
+            m.Field(x => x.StartDate).Editable(true).DefaultValue(DateTime.Today);
+            m.Field(x => x.EndDate).Editable(true).DefaultValue(DateTime.Today);
+            m.Field(x => x.NumberOfEmployees).Editable(true).DefaultValue(0);
+            m.Field(x => x.TotalCost).Editable(false);
+        })
+    )
+)
+
+@section scripts {<script type="text/javascript">
+
+    $(function () { initSearchAndGrid(null, '@gridName'); });
+
+    function onRead(e) { return getGridOptions(); }
+
+    function onDataBound(e) { setGridResponsive(e.sender); }
+
+    function exportAll(e) {
+        var grid = $('#@gridName').data('kendoGrid');
+        var rows = [{
+            cells: [
+                { value: "JobTitle", bold: true },
+                { value: "Position", bold: true },
+                { value: "Shift", bold: true },
+                { value: "Location", bold: true },
+                { value: "Department", bold: true },
+                { value: "Start Date", bold: true },
+                { value: "End Date", bold: true },
+                { value: "Number Of Employees", bold: true },
+                { value: "Total Cost", bold: true }
+            ]
+        }];
+
+        var trs = grid.dataSource;
+        var filteredDataSource = new kendo.data.DataSource({
+            data: trs.data(),
+            filter: trs.filter()
+        });
+        filteredDataSource.read();
+        var data = filteredDataSource.view();
+        for (var i = 0; i < data.length; i++) {
+            var dataItem = data[i];
+            rows.push({
+                cells: [
+                    { value: dataItem.JobTitle },
+                    { value: dataItem.Position },
+                    { value: dataItem.Shift },
+                    { value: dataItem.Location },
+                    { value: dataItem.Department },
+                    { value: kendo.toString(dataItem.StartDate, "d") },
+                    { value: kendo.toString(dataItem.StartDate, "d") },
+                    { value: dataItem.NumberOfEmployees },
+                    { value: dataItem.TotalCost }
+                ]
+            })
+        }
+        excelExport(rows);
+        e.preventDefault();
+    }
+
+    function excelExport(rows) {
+        var workbook = new kendo.ooxml.Workbook({
+            sheets: [
+                {
+                    columns: [
+                        { autoWidth: true },
+                        { autoWidth: true },
+                        { autoWidth: true },
+                        { autoWidth: true },
+                        { autoWidth: true },
+                        { autoWidth: true },
+                        { autoWidth: true },
+                        { autoWidth: true },
+                        { autoWidth: true }
+                    ],
+                    title: "BudgetForcasting",
+                    rows: rows
+                }
+            ]
+        });
+        kendo.saveAs({ dataURI: workbook.toDataURL(), fileName: "BudgetForcasting.xlsx" });
+    }
+
+</script>}

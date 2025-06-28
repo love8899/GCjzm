@@ -1,0 +1,228 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Candidates;
+@using Wfm.Services.Common;
+@using Wfm.Services.DirectoryLocation;
+
+
+@{
+    var genderService = EngineContext.Current.Resolve<IGenderService>();
+    var transportationService = EngineContext.Current.Resolve<ITransportationService>();
+    var xsectionService = EngineContext.Current.Resolve<IIntersectionService>();
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var cityService = EngineContext.Current.Resolve<ICityService>();
+    var skillService = EngineContext.Current.Resolve<ISkillService>();
+    //var candidateSkillService = EngineContext.Current.Resolve<ICandidateKeySkillService>();
+
+    var genders = genderService.GetAllGenders();
+    var transportation = transportationService.GetAllTransportations();
+    var xsections = xsectionService.GetAllIntersections();
+    var shifts = shiftService.GetAllShifts();
+    var cities = cityService.GetAllCities();
+    var skills = skillService.GetAllSkills();
+    //var candidateSkills = candidateSkillService.GetAllCandidateKeySkillsAsQueryable().GroupBy(x => x.KeySkill).Select(g => g.FirstOrDefault()).ToList();
+
+    var citiesDropDownList = new List<SelectListItem>();
+    foreach (var c in cities)
+    {
+        var item = new SelectListItem()
+        {
+            Text = c.CityName,
+            Value = c.Id.ToString()
+        };
+        citiesDropDownList.Add(item);
+    }
+
+    var shiftsDropDownList = new List<SelectListItem>();
+    foreach (var c in shifts)
+    {
+        var item = new SelectListItem()
+        {
+            Text = c.ShiftName,
+            Value = c.Id.ToString()
+        };
+        shiftsDropDownList.Add(item);
+    }
+
+    var gendersDropDownList = new List<SelectListItem>();
+    foreach (var c in genders)
+    {
+        var item = new SelectListItem()
+        {
+            Text = c.GenderName,
+            Value = c.Id.ToString()
+        };
+        gendersDropDownList.Add(item);
+    }
+
+    var transportationsDropDownList = new List<SelectListItem>();
+    foreach (var c in transportation)
+    {
+        var item = new SelectListItem()
+        {
+            Text = c.TransportationName,
+            Value = c.Id.ToString()
+        };
+        transportationsDropDownList.Add(item);
+    }
+
+    var xsectionsDropDownList = new List<SelectListItem>();
+    foreach (var c in xsections)
+    {
+        var item = new SelectListItem()
+        {
+            Text = c.IntersectionName,
+            Value = c.Id.ToString()
+        };
+        xsectionsDropDownList.Add(item);
+    }
+
+    var skillsDropDownList = new List<SelectListItem>();
+    foreach (var c in skills)
+    {
+        var item = new SelectListItem()
+        {
+            Text = c.SkillName,
+            Value = c.Id.ToString()
+        };
+        skillsDropDownList.Add(item);
+    }
+
+    //var candidateSkillsDropDownList = new List<SelectListItem>();
+    //foreach (var c in candidateSkills)
+    //{
+    //    var item = new SelectListItem()
+    //    {
+    //        Text = c.KeySkill,
+    //        Value = c.Id.ToString()
+    //    };
+    //    candidateSkillsDropDownList.Add(item);
+    //}
+
+    var eduList = EducationLevel.HighSchool.ToSelectList(false).ToList();
+}
+
+
+<br />
+<label class="first-label">City: </label>
+@(Html.Kendo().MultiSelect().Name("City")
+    .BindTo(citiesDropDownList).DataTextField("Text").DataValueField("Value")
+    .Value(citiesDropDownList.Where(x => x.Text == "Toronto"))
+    .HtmlAttributes(new { style = "width:720px" }).MaxSelectedItems(10))
+
+<br /><br />
+<label class="first-label">Intersection: </label>
+@(Html.Kendo().TextBox().Name("Intersection")
+    //.BindTo(xsectionsDropDownList).DataTextField("Text").DataValueField("Value")
+    //.Value(xsectionsDropDownList.Where(x => x.Value == "1"))
+    .HtmlAttributes(new { style = "width:720px" }))
+
+<br /><br />
+<label class="first-label">Transportation: </label>
+@(Html.Kendo().MultiSelect().Name("Transportation")
+    .BindTo(transportationsDropDownList).DataTextField("Text").DataValueField("Value")
+    //.Value(transportationsDropDownList.Where(x => x.Value == "1"))
+    .HtmlAttributes(new { style = "width:360px" }).MaxSelectedItems(5))
+
+<label>Shift: </label>
+@(Html.Kendo().MultiSelect().Name("Shift")
+    .BindTo(shiftsDropDownList).DataTextField("Text").DataValueField("Value")
+    .Value(shiftsDropDownList.Where(x => x.Text == "Any"))
+    .HtmlAttributes(new { style = "width:360px" }).MaxSelectedItems(5))
+
+<br /><br />
+<label class="first-label">Skill: </label>
+@(Html.Kendo().MultiSelect().Name("Skill")
+    .BindTo(skillsDropDownList).DataTextField("Text").DataValueField("Value")
+    .Value(skillsDropDownList.Where(x => x.Text == "General Labour"))
+    //.BindTo(candidateSkillsDropDownList).DataTextField("Text").DataValueField("Value")
+    //.Value(candidateSkillsDropDownList.Where(x => x.Text == "General Labour"))
+    .HtmlAttributes(new { style = "width:720px" }).MaxSelectedItems(10))
+
+<br /><br />
+<label class="first-label">Education (Min.) </label>
+@*@(Html.Kendo().MultiSelect().Name("Education")
+    .BindTo(eduList).DataTextField("Text").DataValueField("Value")
+    //.Value(eduList.Where(x => x.Value == "1"))
+    .HtmlAttributes(new { style = "width:420px" }).MaxSelectedItems(5))*@
+@Html.Kendo().DropDownList().Name("Education").OptionLabel("--Select--").BindTo(eduList).Enable(false)
+
+<label>Gender: </label>
+@Html.Kendo().DropDownList().Name("Gender").OptionLabel("--Select--").BindTo(gendersDropDownList)
+
+<label class="first-label">Status: </label>
+<ul class="fieldlist" style="padding-left: 10px">
+    <li>
+        @(Html.Kendo().RadioButton().Name("IsActive").Checked(true).HtmlAttributes(new { @name = "minStaus" }).Label("Active"))
+    </li>
+    <li>
+        @(Html.Kendo().RadioButton().Name("Onboarded").HtmlAttributes(new { @name = "minStaus" }).Label("Onboarded"))
+    </li>
+    <li>
+        @(Html.Kendo().RadioButton().Name("IsEmployee").HtmlAttributes(new { @name = "minStaus" }).Label("Employee"))
+    </li>
+</ul>
+
+<br /><br />
+<label class="first-label">Placement Status: </label>
+@Html.Kendo().CheckBox().Name("ByPlacement").Checked(false)
+<span id="placement-status" style="display:none">
+    <ul class="fieldlist" style="padding-left: 10px">
+        <li>
+            @(Html.Kendo().RadioButton().Name("NotPlaced").Checked(true).HtmlAttributes(new { @name = "isPlaced" }).Label("Not Placed"))
+        </li>
+        <li>
+            @(Html.Kendo().RadioButton().Name("Placed").HtmlAttributes(new { @name = "isPlaced" }).Label("Placed"))
+        </li>
+    </ul>
+
+    <label class="first-label">@T("Admin.Common.From")</label>
+    @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("fromDate").Value(DateTime.Today)
+
+    <label>@T("Admin.Common.To")</label>
+    @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("toDate").Value(DateTime.Today)
+</span>
+
+
+<script type="text/javascript">
+
+    $("input[name='ByPlacement']:checkbox").change(function (e) {
+        if ($("#ByPlacement").attr("checked"))
+            $("#placement-status").show();
+        else
+            $("#placement-status").hide();
+    });
+
+    function GetCandidateProfile() {
+        var cityList = $("#City").val();
+        var xsection = $("#Intersection").val();
+        var xportationList = $("#Transportation").val();
+        var shiftList = $("#Shift").val();
+        var skillList = $("#Skill").val();
+        var minEduLevel = $("#Education").val();
+        var genderId = $("#Gender").val();
+        var isActive = $("#IsActive").attr("checked") == "checked";
+        var onboarded = $("#Onboarded").attr("checked") == "checked";
+        var isEmployee = $("#IsEmployee").attr("checked") == "checked";
+        var byPlacement = $("#ByPlacement").attr("checked") == "checked";
+        var placed = $("#Placed").attr("checked") == "checked";
+        var startDate = $("#fromDate").data("kendoDatePicker").value();
+        var endDate = $("#toDate").data("kendoDatePicker").value();
+        return {
+            CityIds: cityList == null ? [] : cityList.map(Number),
+            Intersection: xsection,
+            XportationIds: xportationList == null ? [] : xportationList.map(Number),
+            ShiftIds: shiftList == null ? [] : shiftList.map(Number),
+            SkillIds: skillList == null ? [] : skillList.map(Number),
+            MinEduLevel: minEduLevel == "" ? null : parseInt(minEduLevel),
+            GenderId: genderId == "" ? null : parseInt(genderId),
+            IsActive: isActive,
+            OnBoarded: onboarded,
+            IsEmployee: isEmployee,
+            ByPlacement: byPlacement,
+            IsPlaced: placed,
+            StartDate: startDate == null ? null : startDate.toISOString().split('T')[0],
+            EndDate: endDate == null ? null : endDate.toISOString().split('T')[0],
+        };
+    }
+
+</script>

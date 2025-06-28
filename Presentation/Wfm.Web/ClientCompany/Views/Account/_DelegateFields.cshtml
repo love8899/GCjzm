@@ -1,0 +1,21 @@
+﻿@model Wfm.Client.Models.Accounts.AccountDelegateModel
+
+<script type="text/javascript">
+    function onChange() {
+        var end = $("#end-date").data("kendoDatePicker");
+        var start = $("#start-date").data("kendoDatePicker").value();
+        end.min(start);
+        if (end.value() < start) {
+            end.value(start);
+        }
+    }
+</script>
+
+@Html.InputLineFor(m => m.DelegateAccountId, T("Admin.Accounts.Account.Delegate.Account").Text,
+    tmplt: "DropDownList", viewData: new { Items = Model.AvaliableAccounts, OptionLabel = T("Admin.Common.None").Text })
+
+@Html.InputFor(m => m.StartDate, "Date", new { Format = "yyyy-MM-dd", OnChange = "onChange", HtmlAttr = new { Id = "start-date" } })
+
+@Html.InputFor(m => m.EndDate, "Date", new { Format = "yyyy-MM-dd", OnChange = "onChange", HtmlAttr = new { Id = "end-date" } })
+
+@Html.InputFor(m => m.Remark, "Text", viewData: new { PlaceHolder = "Please input remarks if any" })

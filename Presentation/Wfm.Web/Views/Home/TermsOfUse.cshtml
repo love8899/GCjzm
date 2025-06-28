@@ -1,0 +1,112 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    ViewBag.Title = "Terms of Use | Leading Staffing and Job Agency - " + siteTitle + " Employment";
+    ViewBag.Description = siteTitle + " Employment has a wide range of services including Contract Hire, Permanent Hire, Executive Search, Payroll Services and much more.";
+    ViewBag.Keywords = siteTitle + " Employment,GC,Jobs,Job Agency,Employment Agency,Staffing,Temporary Staffing,Permanent Staffing,Mass Recruitment Services,Temporary Foreign Worker Program";
+}
+
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Terms of use</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            This page details the Terms of Use under which you may use this web site (the “Site”)
+            and our services are offered. By using this web site, you are indicating your acceptance
+            to be bound by the terms of these Terms of Use. @siteTitle Employment Services
+            Inc. (the “@siteTitle” or the “Company”) reserves the right update the Terms
+            of Use of this Site without notice. Please review the Terms of Use posted on this
+            Site periodically for any updates. Your continued use of this Site constitutes acceptance
+            of these changes. The terms "You" and "User" as used herein refer to all individuals
+            and/or entities accessing this web site for any reason.
+        </p>
+        <b>Site use</b>
+        <p>
+            The Site may be used only for lawful purposes by individuals seeking employment
+            and career information and employers seeking employees or recruiters seeking employees
+            on behalf of a specific employer. The Site may not be used by employers or recruiters
+            as a means to source employees or potential employees for employment opportunities
+            not advertised specifically on this Site, each advert must represent one and only
+            one vacancy, the use of blanket adverts (catch all) with multiple geographies is
+            not permitted. This Site reserves the right to remove any vacancies that breach
+            these terms of use. This Site specifically prohibits any use of the Site, and all
+            users agree not to use the Site, for: Posting any incomplete, false or inaccurate
+            biographical information or information which is not your own accurate resume or
+            CV (living individual seeking employment on a full-time or part-time basis on his
+            or her own behalf).
+            <br />
+            <br />
+            Users may not use the Site in order to transmit, distribute, store or destroy material
+            (a) in violation of any applicable law or regulation, (b) in a manner that will
+            infringe the copyright, trademark, trade secret or other intellectual property rights
+            of others or violate the privacy, publicity or other personal rights of others,
+            or (c) that is defamatory, obscene, threatening, abusive or hateful. Users are prohibited
+            from: (a) accessing data not intended for such user or logging into a server or
+            account which the user is not authorised to access, (b) deleting or revising any
+            material posted by any other person or entity, (c) using any device, software or
+            routine to interfere or attempt to interfere with the proper working of this Site
+            or any activity being conducted on this site (d) if you have a password allowing
+            access to a non-public area of this Site, disclosing to or sharing your password
+            with any third parties or using your password for any unauthorised purpose.
+            <br />
+            <br />
+            Users may not use the Site in order to transmit, distribute, store or destroy material
+            (a) in violation of any applicable law or regulation, (b) in a manner that will
+            infringe the copyright, trademark, trade secret or other intellectual property rights
+            of others or violate the privacy, publicity or other personal rights of others,
+            or (c) that is defamatory, obscene, threatening, abusive or hateful. Users are prohibited
+            from: (a) accessing data not intended for such user or logging into a server or
+            account which the user is not authorised to access, (b) deleting or revising any
+            material posted by any other person or entity, (c) using any device, software or
+            routine to interfere or attempt to interfere with the proper working of this Site
+            or any activity being conducted on this site (d) if you have a password allowing
+            access to a non-public area of this Site, disclosing to or sharing your password
+            with any third parties or using your password for any unauthorised purpose.
+        </p>
+        <b>Disclaimer and limitation of liability</b>
+        <p>
+            The material on this Site is not intended to provide legal advice to any individual
+            and should not be relied upon in that regard. Reasonable efforts have been made
+            to ensure the accuracy, veracity, timeliness and quality of the content provided
+            on this Site. @siteTitle makes no warranty or representation as to the accuracy
+            or completeness of the information contained on this Site and accepts no responsibility
+            arising from the reliance upon the information contained therein.
+            <br />
+            <br />
+            This Site does not warrant that the Site will operate error-free or that the Site
+            and its server are free of computer viruses or other harmful mechanisms. If your
+            use of the Site or the material results in the need for servicing or replacing equipment
+            or data, this Site is not responsible for those costs. The Site and material are
+            provided on an “as is” basis without any warranties of any kind.
+            <br />
+            <br />
+            In no event shall @siteTitle, its suppliers, or any third parties mentioned
+            on this Site be liable for any damages whatsoever (including, without limitation,
+            incidental and consequential damages, lost profits, or damages resulting from lost
+            data or business interruption) resulting from the use or inability to use this Site
+            and the material, whether based on warranty, contract, tort, or any other legal
+            theory, and whether or not this Site is advised of the possibility of such damages.
+            <br />
+            <br />
+            The Company reserves the right to edit, delete, modify, vet or change any material
+            posted on this Site at its sole discretion.
+        </p>
+        <b>Copyright</b>
+        <p>
+            The Site, its organization and design, and all information, images, artwork, text,
+            video, audio, pictures and other materials on the Site (collectively the “Content”)
+            are protected by copyright and other proprietary rights, all of which are owned
+            by @siteTitle. You may download information from
+            the Site for your personal, non-commercial viewing, but you may not, directly or
+            indirectly, otherwise copy, reproduce, republish, post, transmit, display, frame
+            in another web page, perform, distribute, modify or create derivative works from
+            the Content without the written permission of the Company.
+        </p>
+    </div>
+</div>

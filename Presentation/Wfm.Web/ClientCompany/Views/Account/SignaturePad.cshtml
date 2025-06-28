@@ -1,0 +1,71 @@
+﻿@model Wfm.Client.Models.Accounts.SignaturePadModel
+
+@{
+    ViewBag.PageTitle = "Signature Pad";
+    ViewBag.UsingForm = true;
+
+    ViewBag.Title = T("Client.Account.Signature.Title").Text;
+
+}
+
+@section Options {
+    <button type="button" id="clear" name="clear" class="btn bg-blue">
+        <i class="fa fa-stop"></i>@T("Client.Account.Signature.Clear")
+    </button>
+    <button type="button" id="accept" name="accept" class="btn bg-blue">
+        <i class="fa fa-clone"></i>@T("Client.Account.Signature.Accept")
+    </button>
+    <button type="submit" id="save" name="save" class="btn bg-blue" disabled>
+        <i class="fa fa-floppy-o"></i>@T("Admin.Common.Save")
+    </button>
+    <a class="btn bg-yellow" href="@Url.Action("Details")">
+        <i class="fa fa-ban"></i>@T("Admin.Common.Cancel")
+    </a>
+}
+
+@Html.ValidationSummary(true)
+@Html.AntiForgeryToken()
+
+@Html.HiddenFor(m => m.Base64png)
+
+<div class="row" style="margin-top: 26px; margin-bottom: 26px;">
+    <div class="col-md-1"></div>
+    <div class="col-md-4" style="text-align: right">
+        <div style="width: 450px; text-align: left; margin-left: auto; margin-right: 0; "><span>@T("Client.Account.Signature.DrawSignature")</span></div>
+        <canvas width="450" height="380" id="signature"
+                style="border:1px solid black"></canvas>
+    </div>
+    <div class="col-md-3">
+        <div><span>@T("Client.Account.Signature.AcceptedSignature")</span></div>
+        <img width="330" height="280" id="savetarget"
+             style="border:1px solid black">
+    </div>
+    <div class="col-md-3">
+        <div><span>@T("Client.Account.Signature.SavedSignature")</span></div>
+        <img width="330" height="280" id="savedtarget"
+             style="border:1px solid black"
+             src="@Model.Base64png">
+    </div>
+    <div class="col-md-1"></div>
+</div>
+
+@*<script src="https://cdn.jsdelivr.net/npm/signature_pad@2.3.2/dist/signature_pad.min.js"></script>*@
+<script src="~/Scripts/SignaturePad/signature_pad.min.js"></script>
+
+<script>
+    $(function () {
+        var canvas = document.querySelector('#signature');
+        var pad = new SignaturePad(canvas);
+        $('#clear').click(function () {
+            pad.clear();
+            $('#savetarget').attr('src', 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==');
+            $('#Base64png').val('');
+        });
+        $('#accept').click(function () {
+            var data = pad.toDataURL();
+            $('#savetarget').attr('src', data);
+            $('#Base64png').val(data);
+            $('#save').prop('disabled', false);
+        });
+    });
+</script>

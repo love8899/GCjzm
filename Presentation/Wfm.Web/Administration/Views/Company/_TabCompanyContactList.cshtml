@@ -1,0 +1,128 @@
+﻿@using Wfm.Services.Security
+@using Wfm.Shared.Models.Accounts
+
+@model IEnumerable<AccountModel>
+@{
+    Layout = "";
+    ViewBag.Title = T("Admin.CompanyContacts").Text;
+    
+    var companyGuid = ViewBag.CompanyGuid;
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+}
+<div class="section-header">
+    <div class="title">
+        @T("Admin.CompanyContacts")
+    </div>
+    <div class="options">
+        @if (permissionService.Authorize("ManageContacts"))
+        {
+            <button id="create-contact" class="k-button">@T("Common.Add").Text</button>
+        }
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<AccountModel>()
+                  .Name("companycontact-grid")
+                  .Columns(columns =>
+                {
+                    columns.Bound(x => x.FirstName);
+                    columns.Bound(x => x.LastName);
+
+                    columns.Bound(x => x.AccountRoleSystemName).HeaderTemplate(T("Admin.Accounts.Account.Fields.AccountRoleSystemName").Text);
+                    columns.Bound(x => x.CompanyLocationName).HeaderTemplate(T("Common.Location").Text);
+                    columns.Bound(x => x.CompanyDepartmentName).HeaderTemplate(T("Common.Department").Text);
+                    columns.Bound(x => x.ShiftName).HeaderTemplate(T("Common.Shift").Text);
+
+                    columns.Bound(x => x.Email);
+                    columns.Bound(x => x.WorkPhone).ClientTemplate("#= prettyPhone(WorkPhone) #").Width(110);
+                    columns.Bound(x => x.MobilePhone).ClientTemplate("#= prettyPhone(MobilePhone) #").Width(110).Hidden(true);
+                    columns.Bound(x => x.HomePhone).ClientTemplate("#= prettyPhone(HomePhone) #").Width(110).Hidden(true);
+
+                    columns.Bound(x => x.IsActive)
+                            .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                            .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Content/images/") + "active-#= IsActive #.png)'></div>")
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                            .Width(80);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    if (permissionService.Authorize("ManageContacts"))
+                    {
+                        columns.Bound(x => x.Id)
+                            .Template(x => Html.ActionLink(T("Admin.Common.Details").Text, "CompanyContactDetails", new { guid=x.AccountGuid }))
+                            .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/Company/CompanyContactDetails?guid=") + "#= AccountGuid #\">" + "<span class='k-icon k-i-search'></span>" + "</a>")
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                            .Width(80)
+                            .Title(T("Admin.Common.Details").Text).Sortable(false);
+
+
+                        columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                           .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "EditContact", new { guid=x.AccountGuid }))
+                           .ClientTemplate("<a id='contact-edit' class='-k-button' href=\"" + @Url.Content("~/Admin/Company/EditContact?guid=") + "#= AccountGuid #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                           .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                           .Width(80)
+                           .Title(T("Admin.Common.Edit").Text);
+                    }
+                })
+            .EnableCustomBinding(false)
+            .Reorderable(reorder => reorder.Columns(true))
+            .Resizable(resize => resize.Columns(true))
+            .ColumnMenu(d => d.Sortable(false))
+            .Filterable()
+            .Sortable()
+            .Selectable()
+            .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+            .DataSource(ds => ds
+                .Ajax()
+                .ServerOperation(false)
+                .PageSize(20)
+                .Read(read => read.Action("_TabCompanyContactList", "Company", new { companyGuid = companyGuid }))
+                )
+            )
+        </td>
+    </tr>
+</table>
+<div id="companycontact-window"></div>
+
+<script type="text/javascript">
+    $("#create-contact").bind("click", function (e) {
+        e.preventDefault();
+        $("#companycontact-window").kendoWindow({
+            title: "Create A New Contact",
+            width: 500,
+            height: 550,
+            resizable: false,
+            content: '@Url.Action("_CreateCompanyContact", "Company")'+"?companyGuid="+'@ViewBag.CompanyGuid',
+            refresh: function (e) {
+                var win = this;
+                $('#btn-save').click(function (e) {
+                    e.preventDefault();
+                    var form = $('#createcompanycontact-form');
+                    var link = '@Url.Action("CreateContact", "Company")';
+                    $.ajax({
+                        type: "POST",
+                        url: link,
+                        data: form.serialize(),
+                        dataType: 'Json',
+                        success: function (result) {
+                            if (!result.Error) {
+                                $("#companycontact-grid").data("kendoGrid").dataSource.read();
+                                win.close();
+                                $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+                                $(".messageBox").text(result.Message);
+                            }
+                            else {
+                                alert(result.Message);
+                            }
+                        }
+                    });
+                });
+            }            
+        });
+        var dialog = $("#companycontact-window").data("kendoWindow");
+        dialog.center().open();
+    });
+</script>

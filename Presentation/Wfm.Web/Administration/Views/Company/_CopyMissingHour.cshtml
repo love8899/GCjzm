@@ -1,0 +1,145 @@
+﻿@model CandidateMissingHourModel
+
+@{ Layout = null; }
+
+
+<script>
+
+    function onWorkDateChange() {
+        updateOrigHours();
+        updateBillableHours();
+    }
+
+    function onNewHoursChange() {
+        updateBillableHours();
+    }
+
+    function updateOrigHours() {
+        var candidateId = $('#CandidateId').val();
+        var jobOrderId = $('#JobOrderId').val();
+        var workDate = $('#WorkDate').val();
+        if (candidateId && jobOrderId && workDate) {
+            $.ajax({
+                url: '@Url.Action("GetOrigHours")',
+                data: { candidateId: candidateId, jobOrderId: jobOrderId, workDate: workDate },
+                type: 'GET',
+                async: false,
+                success: function (result) {
+                    $('#OrigHours').html(result.OrigHours);
+                }
+            });
+        }
+    }
+
+    function updateBillableHours() {
+        var origHours = parseFloat($('#OrigHours').text());
+        var newHours = $('#NewHours').val();
+        $('#BillableHours').html(Math.round((newHours - origHours) * 100) / 100);
+    }
+
+</script>
+
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "copyhour-form" }))
+{
+    @Html.ValidationSummary(true)
+
+    <div class="section-header">
+        <div class="title">
+        </div>
+        <div class="options">
+            <input type="button" id="btn-save" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+        </div>
+    </div>
+
+    <table class="adminContent" style="padding:10px;">
+        <tr>
+            <td class="adminTitle" style="width:25%">
+                @Html.LabelFor(model => model.EmployeeId, "Employee ID")
+            </td>
+            <td class="adminData" style="width:75%">
+                @Html.DisplayFor(mode => Model.EmployeeId)
+                @Html.HiddenFor(mode => Model.CandidateId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Common.EmployeeName")
+            </td>
+            <td class="adminData">
+                @(Model.EmployeeFirstName + " " + Model.EmployeeLastName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.JobOrderId, "Job Order")
+            </td>
+            <td class="adminData">
+                @(Model.JobOrderId.ToString() + " - " + Model.JobTitle)
+                @Html.HiddenFor(model => model.JobOrderId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                <label>@T("Common.Date")</label>
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePickerFor(model => model.WorkDate)
+                    .Start(CalendarView.Month)
+                    .Max(DateTime.Today)
+                    .Format("yyyy-MM-dd")
+                    .Events(e => e.Change("onWorkDateChange"))
+                )
+                @Html.WfmValidationMessageFor(model => model.WorkDate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.Label(T("Admin.TimeSheet.CandidateWorkTimeLogModel.Fields.OriginalHours").Text)
+            </td>
+            <td class="adminData" id="OrigHours">
+                @Html.DisplayFor(model => model.OrigHours)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.Label(T("Admin.TimeSheet.CandidateWorkTimeLogModel.Fields.NewHours").Text)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().NumericTextBoxFor(model => model.NewHours).Format("#.##")
+                    .Decimals(2)
+                    .Step(0.01m)
+                    .Events(e => e.Change("onNewHoursChange"))
+                )
+                @Html.WfmValidationMessageFor(model => model.NewHours)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.Label(T("Client.TimeSheet.CandidateWorkTime.BillableHours").Text)
+            </td>
+            <td class="adminData" id="BillableHours">
+                @Html.DisplayFor(model => model.BillableHours)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle" style="vertical-align: top">
+                @Html.LabelFor(model => model.Note)
+            </td>
+            <td class="adminData required">
+                @Html.TextAreaFor(model => model.Note, new { style = "height:115px;width:90%;", placeholder = "Please describe the reason for adding missing hour." })
+                @Html.WfmValidationMessageFor(model => model.Note)
+            </td>
+        </tr>
+    </table>
+}
+
+
+@* for jQUery validation *@
+<script>
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+</script>

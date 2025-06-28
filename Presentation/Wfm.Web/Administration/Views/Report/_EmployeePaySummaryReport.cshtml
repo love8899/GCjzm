@@ -1,0 +1,27 @@
+﻿@using System.Drawing
+@using System.Web.UI.WebControls
+@using MvcReportViewer
+@{
+    var settings = new ControlSettings
+    {
+        SizeToReportContent = true,
+        ShowParameterPrompts = false,
+        ShowFindControls = true,
+        BackColor = Color.AliceBlue,
+        KeepSessionAlive = true,
+        //Width = new Unit("100%"),
+        //Height = new Unit("800px"),
+        AsyncRendering = false
+    };
+}
+
+@Html.MvcReportViewer(
+    "/WFMReports/EmployeePaySummaryReport",
+    new { startDate = ViewBag.StartDate, endDate = ViewBag.EndDate, CompanyIds = ViewBag.CompanyIds, payGroupIds = ViewBag.PayGroups,
+          FranchiseName = ViewBag.VendorName,
+          ShowPayGroup = ViewBag.ShowPayGroup,
+          PayGroup = ViewBag.PayGroup,
+          franchiseId = ViewBag.VendorId
+    },
+    new { style = "border: none ; height: 100%; width: 100%;min-height: 600px" }
+).ControlSettings(settings)

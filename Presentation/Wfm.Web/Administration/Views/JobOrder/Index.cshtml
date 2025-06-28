@@ -1,0 +1,182 @@
+﻿@using Wfm.Core;
+@using Wfm.Core.Domain.JobOrders
+@using Wfm.Services.JobOrders
+@using Wfm.Services.Companies
+@using Wfm.Services.Common
+@using Wfm.Services.DirectoryLocation
+@using Wfm.Services.Franchises
+@using Wfm.Core.Domain.Accounts
+@using Wfm.Services.Security
+
+@model IEnumerable<JobOrderWithCompanyAddressModel>
+@{
+    ViewBag.Title = T("Common.JobOrders").Text;
+
+    var startDate = DateTime.Today.AddMonths(-1);
+    var endDate = DateTime.Today.AddDays(14).StartOfWeek(DayOfWeek.Sunday).AddDays(-1);
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+
+    var jobOrderStatusService = EngineContext.Current.Resolve<IJobOrderStatusService>();
+    var jobOrderCategoryService = EngineContext.Current.Resolve<IJobOrderCategoryService>();
+    var jobOrderTypeService = EngineContext.Current.Resolve<IJobOrderTypeService>();
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var companyService = EngineContext.Current.Resolve<ICompanyService>();
+    var companyDivisionService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+
+
+    var joborderStatus = jobOrderStatusService.GetAllJobOrderStatus();
+    var jobordercategories = jobOrderCategoryService.GetAllJobOrderCategories();
+    var jobordertypes = jobOrderTypeService.GetAllJobOrderTypes().Where(jt => !jt.IsDirectHire);
+    var vendors = franchiseService.GetAllFranchises();
+    var companies = companyService.GetAllCompanies(workContext.CurrentAccount);
+    var shifts = shiftService.GetAllShifts(companyId: null);
+
+    var isVendor = workContext.CurrentAccount.IsVendor();
+
+    ViewBag.SearchArea = "JobOrder";
+}
+
+<script type="text/javascript">
+    function onRead() {
+        return {
+            startDate: $("#startDate").val(),
+            endDate: $("#endDate").val()
+        }
+    }
+</script>
+
+<div class="section-header">
+    <div class="title">
+        @T("Common.JobOrders")
+    </div>
+    <div class="options">
+        @Html.Label("startDate", T("Admin.Common.From").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("startDate").Value(startDate)
+        @Html.Label("endDate", T("Admin.Common.To").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("endDate").Value(endDate)
+        @Html.Kendo().Button().Name("loadJobOrders").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text)
+        @if ((workContext.CurrentFranchise.EnableStandAloneJobOrders || workContext.CurrentFranchise.IsDefaultManagedServiceProvider) && permissionService.Authorize(StandardPermissionProvider.ManageJobOrders))
+        {
+            @Html.ActionLink(T("Common.Add").Text, "CreateJobOrder", null, new { @class = "k-button" })
+        }
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<BasicJobOrderInfo>()
+                .Name("joborder-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(60).Title("Id");
+
+                    columns.Bound(x => x).Width(40).Sortable(false).Filterable(false)
+                        .ClientTemplate("#if (IsHot == true) {# <img alt='' src='" + Url.Content("~/Administration/Content/images/hot-true.png") + "' /> #} #")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Title("").Hidden();
+                    if (!isVendor&& commonSettings.DisplayVendor)
+                    {
+                        columns.ForeignKey(x => x.FranchiseId, vendors, "Id", "FranchiseName").Title(T("Common.Vendor").Text).Width(140);
+                    }
+                    columns.Bound(x => x.JobTitle)
+                        .Template(x => Html.ActionLink(x.JobTitle, "Details", "JobOrder", new { guid = x.JobOrderGuid }, null))
+                        .ClientTemplate(@Html.ActionLink("#=JobTitle#", "Details", new { guid = "#=JobOrderGuid#" }).ToHtmlString());
+
+                    columns.ForeignKey(x => x.CompanyId, companies, "Value", "Text")
+                        .HeaderTemplate(T("Common.Company").Text)
+                        .Template(x => Html.ActionLink(x.CompanyName, "Details", "Company", new { guid = x.CompanyGuid }, new { }))
+                        .ClientTemplate(@Html.ActionLink("#=CompanyName#", "Details", "Company", new { guid = "#=CompanyGuid#" }, new { target = "_blank" }).ToHtmlString());
+
+                    columns.Bound(x => x.AddressLine1).Title(T("Common.AddressLine1").Text);
+                    columns.Bound(x => x.CityName).Title(T("Common.City").Text).Hidden();
+
+                    columns.Bound(x => x.DepartmentName).Hidden().Title(T("Common.Department").Text);
+                    columns.Bound(x => x.Supervisor).Width(60).Hidden();
+
+                    //columns.Bound(x => x.Supervisor).Hidden();
+
+                    columns.ForeignKey(x => x.JobOrderTypeId, jobordertypes, "Id", "JobOrderTypeName").Hidden().Title(T("Admin.JobOrder.JobOrder.Fields.JobOrderTypeId").Text);
+                    columns.ForeignKey(x => x.JobOrderCategoryId, jobordercategories, "Id", "CategoryName").Hidden().Title(T("Admin.JobOrder.JobOrder.Fields.JobOrderCategoryId").Text);
+                    columns.ForeignKey(x => x.ShiftId, shifts, "Id", "ShiftName").Title(T("Common.Shift").Text).Width(100);
+
+                    //columns.Bound(x => x.OpeningNumber).Width(50);
+
+                    columns.Bound(x => x.StartDate).Format("{0:yyyy-MM-dd}").Width(80);
+                    columns.Bound(x => x.StartTime).Format("{0:HH:mm}").Width(70);
+                    columns.Bound(x => x.EndDate).Format("{0:yyyy-MM-dd}").Width(80);
+                    columns.Bound(x => x.EndTime).Format("{0:HH:mm}").Width(70);
+
+                    columns.Bound(x => x.SchedulePolicyName).Hidden().Title(T("Common.SchedulePolicy").Text);
+                    columns.Bound(x => x.BillingRateCode).Hidden();
+
+                    columns.ForeignKey(x => x.JobOrderStatusId, joborderStatus, "Id", "JobOrderStatusName").Title(T("Common.Status").Text)
+                        .Width(80);
+
+
+                    columns.Bound(x => x.IsInternalPosting).Width(80).Hidden();
+                    columns.Bound(x => x.RecruiterName).Width(80).Hidden().Title(T("Common.Recruiter").Text);
+                    //columns.Bound(x => x.OwnerId).Hidden();
+
+                    if (permissionService.Authorize(StandardPermissionProvider.UpdateJobOrder))
+                    {
+                        columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                            .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { guid = x.JobOrderGuid }))
+                            .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/JobOrder/Edit?guid=") + "#= JobOrderGuid #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                            .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                            .Width(50)
+                            .Title(T("Admin.Common.Edit").Text);
+                    }
+
+                    if ((workContext.CurrentFranchise.EnableStandAloneJobOrders || workContext.CurrentFranchise.IsDefaultManagedServiceProvider) && permissionService.Authorize(StandardPermissionProvider.ManageJobOrders))
+                    {
+                        columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                            //.Template(x => Html.ActionLink(T("Admin.Common.Copy").Text, "CopyJobOrder", new {guid=x.JobOrderGuid }))
+                            .ClientTemplate("#if(JobPostingId!=null){# #}else{#<a class='-k-button' href=\"" + @Url.Content("~/Admin/JobOrder/CopyJobOrder?guid=") + "#= JobOrderGuid #\"><span class='k-icon k-i-restore'></span></a>#}#")
+                            .HeaderHtmlAttributes(new { style = "text-align:left" }).HtmlAttributes(new { style = "text-align:center" })
+                            .Width(50)
+                            .Title(T("Admin.Common.Copy").Text);
+                    }
+
+                    columns.Bound(x => x.UpdatedOn).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOn).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("Index", "JobOrder").Data("onRead"))
+                    .Sort(sorts => sorts.Add(x => x.UpdatedOnUtc).Descending())
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+<script type="text/javascript">
+    $("#loadJobOrders").click(function () {
+        var grid = $("#joborder-grid").data("kendoGrid");
+        grid.dataSource.page(1);
+        grid.dataSource.read();
+    });
+</script>

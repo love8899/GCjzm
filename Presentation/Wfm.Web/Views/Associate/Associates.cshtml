@@ -1,0 +1,45 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Associates";
+    //var description = "Becoming a " + siteTitle + " Associate is a good career move. We use our extensive connections with Fortune 500 and other industry leading companies to provide you with rewarding opportunities.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle;
+}
+
+@section left {
+    @Html.Partial("Layout/_AssociateSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Associates</h1>
+    </div>
+    <div class="page-body">
+        <h4>Being a @siteTitle Associate has its privileges</h4>
+        <div class="content-image">
+            <img src="@Url.Content("~/Content/images/cms/inside/inside_img_03.jpg")" alt="Becoming a @siteTitle Associate" />
+        </div>
+        <p>
+            Becoming a @siteTitle Associate is a good career move. We use our extensive
+            connections with Fortune 500 and other industry leading companies to provide you
+            with rewarding opportunities, competitive income and comprehensive benefits.
+        </p>
+        <p>
+            From helping you find temporary or longer term positions, to providing you relevant
+            training and development opportunities, we work hand-in-hand with you every step
+            of your career path. You’re more than an employee. You’re a @siteTitle Associate.
+            And we're fully committed to your continued career success.
+        </p>
+    </div>
+</div>

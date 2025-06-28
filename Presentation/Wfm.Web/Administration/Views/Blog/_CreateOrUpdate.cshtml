@@ -1,0 +1,148 @@
+﻿@using Wfm.Services.Localization
+
+@model BlogPostModel
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.ContentManagement.Blog.AddNew").Text;
+}
+
+@Html.Kendo().TabStrip().Name("blog-post-edit").Items(x =>
+{
+    x.Add().Text(T("Admin.ContentManagement.Blog.BlogPosts.Information").Text).Content(TabInfo().ToHtmlString()).Selected(true);
+    x.Add().Text(T("Admin.ContentManagement.Blog.BlogPosts.Seo").Text).Content(TabSeo().ToHtmlString());
+})
+
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+
+
+@helper TabInfo()
+{
+    var languageService = EngineContext.Current.Resolve<ILanguageService>();
+    var allLanguages = languageService.GetAllLanguages();
+    var languageList = new SelectList(allLanguages.Where(c => c.IsActive).OrderBy(c => c.DisplayOrder), "Id", "Name");
+        
+    <table class="adminContent">
+        @*<tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.LanguageId):
+            </td>
+            <td class="adminData">
+                @Html.DropDownListFor(model => model.LanguageId, new SelectList(ViewBag.AllLanguages, "Id", "Name"))
+            </td>
+        </tr>*@
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.LanguageId):
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                        .Name("LanguageId")
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                        .AutoBind(true)
+                        .BindTo(languageList)
+                      )
+                @Html.WfmValidationMessageFor(model => model.LanguageId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Title):
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.Title)
+                @Html.WfmValidationMessageFor(model => model.Title)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Body):
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(x => x.Body, "RichEditor2")
+                @Html.WfmValidationMessageFor(model => model.Body)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.AllowComments):
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.AllowComments)
+                @Html.WfmValidationMessageFor(model => model.AllowComments)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Tags):
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.Tags)
+                @Html.WfmValidationMessageFor(model => model.Tags)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.StartDateUtc):
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.StartDateUtc)
+                @Html.WfmValidationMessageFor(model => model.StartDateUtc)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EndDateUtc):
+            </td>
+            <td class="adminData required">
+                @Html.EditorFor(model => model.EndDateUtc)
+                @Html.WfmValidationMessageFor(model => model.EndDateUtc)
+            </td>
+        </tr>
+    </table>
+}
+@helper TabSeo()
+{
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.MetaKeywords):
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(x => x.MetaKeywords)
+                @Html.WfmValidationMessageFor(model => model.MetaKeywords)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.MetaDescription):
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(x => x.MetaDescription)
+                @Html.WfmValidationMessageFor(model => model.MetaDescription)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.MetaTitle):
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(x => x.MetaTitle)
+                @Html.WfmValidationMessageFor(model => model.MetaTitle)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.SeName):
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.SeName)
+                @Html.WfmValidationMessageFor(model => model.SeName)
+            </td>
+        </tr>
+    </table>
+}

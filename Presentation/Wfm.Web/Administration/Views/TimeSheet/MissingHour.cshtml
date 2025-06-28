@@ -1,0 +1,44 @@
+﻿@{
+    ViewBag.Title = @T("Admin.MissingHour").Text;
+}
+<div class="section-header">
+    <div class="title">
+        @T("Admin.MissingHour")
+    </div>
+    <div class="options">
+    </div>
+</div>
+@Html.Kendo().TabStrip().Name("missinghour-tabstrip").Items(x =>
+{
+    x.Add().Text(T("Admin.MissingHour").Text)
+        .Content(MissingHourTab().ToHtmlString())
+        .HtmlAttributes(new { id = "tab-missinghour" }).Selected(true);
+
+    x.Add().Text("History")
+        .LoadContentFrom(Url.Action("_TabMissingHourHistory", "TimeSheet"))
+        .HtmlAttributes(new { id = "tab-history" });
+})
+@helper MissingHourTab()
+{
+    @Html.Action("_TabMissingHour")
+}
+<script type="text/javascript">
+    $(function () {
+        var tabId = '@(ViewBag.TabId)';
+        if (tabId)
+            tabIndex = $("#" + tabId).index();
+        else
+            tabIndex = 0;
+        $("#missinghour-tabstrip").data("kendoTabStrip").select(tabIndex);
+    })
+
+    function showMsg(msg) {
+        $(".notification-wrapper").append('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+        $(".messageBoxSuccess").text(msg);
+    }
+
+    function showWarning(warning) {
+        $(".notification-wrapper").append('<div class="messageBox messageBoxWarning"></div><div class="clear"></div>');
+        $(".messageBoxWarning").text(warning);
+    }
+</script>

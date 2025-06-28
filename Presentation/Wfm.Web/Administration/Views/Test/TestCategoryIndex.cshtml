@@ -1,0 +1,89 @@
+﻿@model IEnumerable<TestCategoryModel>
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.TestCategories").Text;
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration.TestCategories")  @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+    <div class="options">
+        <a href="@Url.Action("TestCategoryCreate")" class="k-button">@T("Common.Add")</a>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<TestCategoryModel>()
+              .Name("testcategory-grid")
+              .BindTo(Model)
+              .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(60);
+
+                    columns.Bound(x => x.TestCategoryName);
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(x => Html.ActionLink(T("Admin.Configuration.TestCategory.ViewQuestions").Text + " ( )</a>", "TestQuestionIndex", new { testCategoryId = x.Id }))
+                        .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/Test/TestQuestionIndex?testCategoryId=") + "#=Id#\">" + T("Admin.Configuration.TestCategory.ViewQuestions").Text + " ( )</a>")
+                        .Width(120)
+                        .Title(T("Admin.Configuration.TestCategory.ViewQuestions").Text);
+                    
+                    columns.Bound(x => x.PassScore).Width(100);
+                    columns.Bound(x => x.Description);
+                    columns.Bound(x => x.Note).Hidden();
+                    columns.Bound(x => x.TestUrl).Hidden();
+
+                    columns.Bound(x => x.IsActive)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsActive #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80);
+                    columns.Bound(x => x.IsRequiredWhenRegistration)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsRequiredWhenRegistration.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsRequiredWhenRegistration #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(160);
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "TestCategoryEdit", new { x.Id }))
+                        .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/Test/TestCategoryEdit/") + "#=Id#\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                        .Width(80)
+                        .Title(T("Admin.Common.Edit").Text);
+
+                })
+            .EnableCustomBinding(false)
+            .Reorderable(reorder => reorder.Columns(true))
+            .Resizable(resize => resize.Columns(true))
+            .Filterable()
+            .Sortable()
+            .ColumnMenu()
+            .Selectable()
+            .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+            .DataSource(ds => ds
+                .Ajax()
+                .ServerOperation(true)
+                .Read(s=>s.Action("Index","Test"))
+                .PageSize(20)
+            )
+            .Filterable(filterable => filterable
+                .Extra(false)
+                .Operators(operators => operators
+                    .ForString(str => str.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        .IsNotEqualTo("Is not equal to")
+                    )
+                )
+            )
+)
+        </td>
+    </tr>
+</table>

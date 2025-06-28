@@ -1,0 +1,128 @@
+﻿@using Wfm.Admin.Models.Payroll
+@model PayrollEmailSettingModel
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "email-setting-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @(String.IsNullOrWhiteSpace(Model.Code) ? T("Common.Add").Text : T("Common.Edit").Text) @T("Admin.Common.EmailSetting")
+        </div>
+        <div class="options">
+            <input type="button" name="save" id="save-email-setting" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" name="close" id="close-email-setting" class="k-button" value="@T("Common.Close")" />
+        </div>
+    </div>
+
+    @Html.HiddenFor(model=>model.FranchiseGuid)
+    @Html.HiddenFor(model => model.FranchiseId)
+    @Html.HiddenFor(model=>model.Simple)
+
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Code)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo()
+                    .DropDownListFor(model => model.Code)
+                    .Items(x => {
+                        x.Add().Text("PayStub").Value("PayStub");
+                        x.Add().Text("T4").Value("T4");
+                        x.Add().Text("RL1").Value("RL1");
+                        x.Add().Text("Accounting").Value("Accounting");
+                    })
+                )
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EmailAddress)
+            </td>
+            <td class="adminData">
+                @(Html.EditorFor(model=>model.EmailAddress)
+                )
+                @Html.WfmValidationMessageFor(model => model.EmailAddress)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EmailSubject)
+            </td>
+            <td class="adminData">
+                @(Html.EditorFor(model=>model.EmailSubject)
+                )
+                @Html.WfmValidationMessageFor(model => model.EmailSubject)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EmailBody)
+            </td>
+            <td class="adminData">
+                @if(Model is PayrollEmailSettingDetailModel)
+                {
+                    @Html.TextAreaFor(model => model.EmailBody, new { id = "EmailBody", style = "height:200px;width:100%;" })
+                }
+                else
+                {
+                    @Html.TextAreaFor(model => model.EmailBody, new { id = "EmailBody", style = "height:400px;width:100%;" })
+                }
+                @Html.WfmValidationMessageFor(model => model.EmailBody)
+            </td>
+        </tr>
+        @if(Model is PayrollEmailSettingDetailModel)
+        { 
+            
+        <tr>
+            <td class="adminTitle">
+                @Html.Label("UserName")
+            </td>
+            <td class="adminData">
+                @(Html.EditorFor(model=>(model as PayrollEmailSettingDetailModel).UserName)
+                )
+                @Html.WfmValidationMessageFor(model=>(model as PayrollEmailSettingDetailModel).UserName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => (model as PayrollEmailSettingDetailModel).EmailSmtpClient)
+            </td>
+            <td class="adminData">
+                @(Html.EditorFor(model => (model as PayrollEmailSettingDetailModel).EmailSmtpClient)
+                )
+                @Html.WfmValidationMessageFor(model => (model as PayrollEmailSettingDetailModel).EmailSmtpClient)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => (model as PayrollEmailSettingDetailModel).EmailPortNumber)
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => (model as PayrollEmailSettingDetailModel).EmailPortNumber)
+                @Html.WfmValidationMessageFor(model => (model as PayrollEmailSettingDetailModel).EmailPortNumber)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => (model as PayrollEmailSettingDetailModel).EmailPassword)
+            </td>
+            <td class="adminData">
+                @Html.Kendo().TextBoxFor(model => (model as PayrollEmailSettingDetailModel).EmailPassword).HtmlAttributes(new { type = "password" })
+                @Html.WfmValidationMessageFor(model => (model as PayrollEmailSettingDetailModel).EmailPassword)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => (model as PayrollEmailSettingDetailModel).EnableSsl)
+            </td>
+            <td class="adminData">
+                @Html.CheckBoxFor(model => (model as PayrollEmailSettingDetailModel).EnableSsl)
+                @Html.WfmValidationMessageFor(model => (model as PayrollEmailSettingDetailModel).EnableSsl)
+            </td>
+        </tr>
+        }
+    </table>
+}
+
+
+

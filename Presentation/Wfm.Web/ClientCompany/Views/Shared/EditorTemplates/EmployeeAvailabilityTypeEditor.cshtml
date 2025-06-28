@@ -1,0 +1,10 @@
+﻿@using Wfm.Core.Domain.Employees
+@model EmployeeAvailabilityType
+
+@(Html.Kendo().DropDownListFor(m => m)
+        .DataValueField("Value")
+        .DataTextField("Text")
+        .OptionLabel("None")
+        .BindTo(Model.ToSelectList(true))
+)
+

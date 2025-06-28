@@ -1,0 +1,567 @@
+﻿@model CreateEditCandidateModel
+@using reCAPTCHA.MVC
+@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@using Wfm.Services.Common
+@using Wfm.Web.Models.Candidate
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.cshtml";
+    ViewBag.PageClass = "html-registration-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    ViewBag.Title = "Registration - Job Seekers | " + siteTitle + " Employment";
+    ViewBag.Keywords = siteTitle + " Employment,Employment,Staffing,Jobs,Temporary,Permanent,Information Technology,Call Centre,General Labour,Warehouse,Accounting,Customer Service,Marketing,Skilled Trades,Manufacturing";
+
+    var shortDateFormat = "MM/dd/yyyy";
+
+    var skillService = EngineContext.Current.Resolve<ISkillService>();
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var genderService = EngineContext.Current.Resolve<IGenderService>();
+    var salutationService = EngineContext.Current.Resolve<ISalutationService>();
+    var transportationService = EngineContext.Current.Resolve<ITransportationService>();
+    var securityQuestionService = EngineContext.Current.Resolve<ISecurityQuestionService>();
+
+    var skillsDropDownList = skillService.GetAllSkills().Select(x => new SelectListItem()
+    {
+        Text = x.SkillName,
+        Value = x.SkillName
+    });
+
+    var shiftsDropDownList = shiftService.GetAllShifts().Where(x => x.EnableInRegistration == true).Select(x => new SelectListItem()
+    {
+        Text = x.ShiftName,
+        Value = x.Id.ToString()
+    });
+
+    var gendersDropDownList = genderService.GetAllGenders().Select(x => new SelectListItem()
+    {
+        Text = x.GenderName,
+        Value = x.Id.ToString()
+    });
+
+    var salutationsDropDownList = salutationService.GetAllSalutations().Select(x => new SelectListItem()
+    {
+        Text = x.SalutationName,
+        Value = x.Id.ToString()
+    });
+
+    var transportationsDropDownList = transportationService.GetAllTransportations().Select(x => new SelectListItem()
+    {
+        Text = x.TransportationName,
+        Value = x.Id.ToString()
+    });
+
+    var securityquestionsDropDownList = securityQuestionService.GetAllSecurityQuestions().Select(x => new SelectListItem()
+    {
+        Text = x.Question,
+        Value = x.Id.ToString()
+    });
+
+    var isWizard = ((string)ViewContext.RouteData.Values["action"]).Equals("RegistrationWizard", StringComparison.InvariantCultureIgnoreCase);
+
+    var displayEmptyPic = Session["CapturedImage"] == null;
+
+    int startIndex = ViewBag.StartIndex != null ? ViewBag.StartIndex : 0;
+}
+
+@*<link href="/Content/capture.css" rel="stylesheet" type="text/css" />*@
+<script src="@Url.Content("~/Scripts/jquery.steps.min.js")" type="text/javascript"></script>
+<link href="@Url.Content("~/Content/jquery.steps.css" )" rel="stylesheet" />
+
+<style>
+    .cambuttons {
+        background: #2184be;
+        color: #fff;
+        display: block;
+        padding: 0.5em 1em;
+        text-decoration: none;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+    }
+    tbody .k-datepicker,
+    tbody .k-datetimepicker,
+    tbody .k-timepicker {
+        max-width: 300px !important;
+    }
+    /*td.vmiddle {
+        vertical-align: middle;
+    }*/
+    .k-webkit .k-combobox .k-dropdown-wrap:before,
+    .k-webkit .k-picker-wrap:before,
+    .k-webkit .k-numeric-wrap:before {
+        content: "" !important;
+        display: inline;
+    }
+</style>
+
+<noscript>
+    <style type="text/css">
+        .registration {
+            display: none;
+        }
+    </style>
+    <div class="noscriptmsg" style="color:red">
+        Your browser does not allow javascript! Please enable javascript before registration!
+    </div>
+</noscript>
+
+<div class="page registration-wizard-page">
+    <div class="page-title">
+        <h1>Registration</h1>
+    </div>
+    <div class="page-body">
+        @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "candidate-form", autocomplete = "off" }))
+        {
+            var validationSummary = Html.ValidationSummary(true);
+            if (!MvcHtmlString.IsNullOrEmpty(validationSummary))
+            {
+                <div class="message-error">@validationSummary</div>
+            }
+            @Html.AntiForgeryToken()
+            <h4>@T("Admin.Candidate.AccountInformation")</h4>
+            <section>
+                @Html.HiddenFor(model => model.CandidateModel.SourceId)
+                @*<div class="form-fields">
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.SourceId)
+                        @Html.EditorFor(model => model.CandidateModel.SourceId)
+                        @Html.WfmValidationMessageFor(model => model.CandidateModel.SourceId)
+                    </div>
+                </div>*@
+                <div class="form-fields">
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.Email)
+                        @Html.EditorFor(model => model.CandidateModel.Email)
+                        @Html.WfmValidationMessageFor(model => model.CandidateModel.Email)
+                    </div>
+                    <div class="inputs">
+                        @Html.Label("UserSameEmail", "Use email as username")
+                        @Html.CheckBox("UserSameEmail", true)
+                    </div>
+                    <div class="inputs" id="username">
+                        @Html.LabelFor(model => model.CandidateModel.Username, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.Username)
+                        @Html.ValidationMessageFor(model => model.CandidateModel.Username)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.Password, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.Password)
+                        @Html.ValidationMessageFor(model => model.CandidateModel.Password)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.RePassword, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.RePassword)
+                        @Html.ValidationMessageFor(model => model.CandidateModel.RePassword)
+                    </div>
+                    @*<div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.SecurityQuestion1Id, new { }, ":")
+                        @(Html.Kendo().DropDownList().Name("CandidateModel.SecurityQuestion1Id")
+                                    .OptionLabel("--Select--").BindTo(securityquestionsDropDownList))
+                        @Html.ValidationMessageFor(model => model.CandidateModel.SecurityQuestion1Id)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.SecurityQuestion1Answer, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.SecurityQuestion1Answer)
+                        @Html.ValidationMessageFor(model => model.CandidateModel.SecurityQuestion1Answer)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.SecurityQuestion2Id, new { }, ":")
+                        @(Html.Kendo().DropDownList().Name("CandidateModel.SecurityQuestion2Id")
+                                    .OptionLabel("--Select--").BindTo(securityquestionsDropDownList))
+                        @Html.ValidationMessageFor(model => model.CandidateModel.SecurityQuestion2Id)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.SecurityQuestion2Answer, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.SecurityQuestion2Answer)
+                        @Html.ValidationMessageFor(model => model.CandidateModel.SecurityQuestion2Answer)
+                    </div>*@
+                </div>
+            </section>
+            <h4> @T("Common.BasicInformation")</h4>
+            <section>
+                <div class="form-fields">
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.SalutationId, new { }, ":")
+                        @(Html.Kendo().DropDownList()
+                                                    .Name("CandidateModel.SalutationId")
+                                                    .OptionLabel("--Select--")
+                                                    .BindTo(salutationsDropDownList)
+                        )
+                        @Html.ValidationMessageFor(model => model.CandidateModel.SalutationId)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.FirstName, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.FirstName)
+                        @Html.ValidationMessageFor(model => model.CandidateModel.FirstName)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.LastName, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.LastName)
+                        @Html.ValidationMessageFor(model => model.CandidateModel.LastName)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.BirthDate, new { }, ":")
+                        @(Html.Kendo().DatePickerFor(model => model.CandidateModel.BirthDate)
+                                                    .HtmlAttributes(new { type = "text", placeholder = shortDateFormat })
+                                                    .Format(shortDateFormat).Start(CalendarView.Century)
+                                                    //.Min(DateTime.Now.AddYears(-80))
+                                                    .Max(DateTime.Now.AddYears(-10))
+                        )
+                        @Html.ValidationMessageFor(model => model.CandidateModel.BirthDate)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.HomePhone, new { }, ":")
+                        @(Html.Kendo().MaskedTextBoxFor(model => model.CandidateModel.HomePhone)
+                            .Mask("(999) 000-0000").HtmlAttributes(new { type = "tel" }))
+                        @Html.ValidationMessageFor(model => model.CandidateModel.HomePhone)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.MobilePhone, new { }, ":")
+                        @(Html.Kendo().MaskedTextBoxFor(model => model.CandidateModel.MobilePhone)
+                            .Mask("(999) 000-0000").HtmlAttributes(new { type = "tel" }))
+                        @Html.ValidationMessageFor(model => model.CandidateModel.MobilePhone)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.EmergencyPhone, new { }, ":")
+                        @(Html.Kendo().MaskedTextBoxFor(model => model.CandidateModel.EmergencyPhone)
+                            .Mask("(999) 000-0000").HtmlAttributes(new { type = "tel" }))
+                        @Html.ValidationMessageFor(model => model.CandidateModel.EmergencyPhone)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.PreferredWorkLocation, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.PreferredWorkLocation)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.ShiftId, new { }, ":")
+                        @(Html.Kendo().DropDownList().Name("CandidateModel.ShiftId").OptionLabel("--Select--").BindTo(shiftsDropDownList))
+                        @Html.ValidationMessageFor(model => model.CandidateModel.ShiftId)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.TransportationId, new { }, ":")
+                        @(Html.Kendo().DropDownList().Name("CandidateModel.TransportationId")
+                                                    .OptionLabel("--Select--").BindTo(transportationsDropDownList))
+                        @Html.ValidationMessageFor(model => model.CandidateModel.TransportationId)
+                    </div>
+                    <div class="inputs" id="licence-plate">
+                        @Html.LabelFor(model => model.CandidateModel.LicencePlate)
+                        @Html.EditorFor(model => model.CandidateModel.LicencePlate)
+                        @Html.WfmValidationMessageFor(model => model.CandidateModel.LicencePlate)
+                    </div>
+                </div>
+            </section>
+            <h4>@T("Web.Common.Address")</h4>
+            <section>
+                <div class="form-fields">
+                    @*<div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.MajorIntersection1, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.MajorIntersection1)
+                        @Html.ValidationMessageFor(model => model.CandidateModel.MajorIntersection1)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.MajorIntersection2, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.MajorIntersection2)
+                        @Html.ValidationMessageFor(model => model.CandidateModel.MajorIntersection2)
+                    </div>*@
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.AddressLine1, new { }, ":")
+                        @Html.EditorFor(model => model.AddressLine1)
+                        @Html.ValidationMessageFor(model => model.AddressLine1)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CountryId)
+                        @(Html.Kendo().DropDownList().Name("CountryId")
+                            .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                            .DataSource(src => src.Read(read => read.Action("GetCascadeCountries", "Common")))
+                        )
+                        @Html.ValidationMessageFor(model => model.CountryId)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.StateProvinceId)
+                        @(Html.Kendo().DropDownList().Name("StateProvinceId")
+                            .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                            .DataSource(src => src.Read(read => read.Action("GetCascadeStateProvinces", "Common").Data("filterStateProvinces")).ServerFiltering(true))
+                            .Enable(false).AutoBind(false).CascadeFrom("CountryId")
+                        )
+                        @Html.ValidationMessageFor(model => model.StateProvinceId)
+                        <script>function filterStateProvinces() { return { countryId: $("#CountryId").val() }; }</script>
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CityId)
+                        @(Html.Kendo().DropDownList().Name("CityId")
+                            .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                            .DataSource(src => src.Read(read => read.Action("GetCascadeCities", "Common").Data("filterCities")).ServerFiltering(true))
+                            .Enable(false).AutoBind(false).CascadeFrom("StateProvinceId")
+                        )
+                        @Html.ValidationMessageFor(model => model.CityId)
+                        <script>function filterCities() { return { stateProvinceId: $("#StateProvinceId").val() }; }</script>
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.PostalCode, new { }, ":")
+                        @(Html.Kendo().MaskedTextBoxFor(model => model.PostalCode).Mask("L0L 0L9"))
+                        @Html.ValidationMessageFor(model => model.PostalCode)
+                    </div>
+                </div>
+            </section>
+            <h4>
+                @T("Common.Photo")
+            </h4>
+            <section>
+                <div style="margin: 0 auto;">
+                    <img id="Userpic" src="" />
+                    <br />
+                    <input type="button" id="btnSave" class="cambuttons" value="Take Photo" onclick="ShowPopUp();" />
+                    <br />
+                    <div>@T("Registration.PhotoInstruction")</div>
+                </div>
+            </section>
+            <h4>
+                @T("Admin.Configuration.Skills")
+            </h4>
+            <section>
+                <div class="form-fields">
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.CandidateModel.Education, new { }, ":")
+                        @Html.EditorFor(model => model.CandidateModel.Education)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.KeySkill1, new { }, ":")
+                        @(Html.Kendo().DropDownList().Name("KeySkill1")
+                            .OptionLabel("Enter your key skill").DataTextField("Text").DataValueField("Value")
+                            .BindTo(skillsDropDownList)
+                        )
+                        @Html.ValidationMessageFor(model => model.KeySkill1)
+                    </div>
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.YearsOfExperience1, new { }, ":")
+                        @Html.EditorFor(model => model.YearsOfExperience1)
+                        @Html.ValidationMessageFor(model => model.YearsOfExperience1)
+                    </div>
+                    @Html.HiddenFor(model => model.LastUsedDate1)
+                    @*<div class="inputs">
+                        @Html.LabelFor(model => model.LastUsedDate1, new { }, ":")
+                        @(Html.Kendo().DatePickerFor(model => model.LastUsedDate1)
+                                                    .HtmlAttributes(new { type = "text", placeholder = shortDateFormat })
+                                                    .Format(shortDateFormat).ParseFormats(new string[] { shortDateFormat })
+                                                    .Min(DateTime.Today.AddYears(-20)).Max(DateTime.Today.AddDays(-1))
+                        )
+                        @Html.ValidationMessageFor(model => model.LastUsedDate1)
+                    </div>*@
+                    <div class="inputs">
+                        @Html.Label("Resume")
+                        @(Html.Kendo().Upload().Name("attachments").Multiple(false).Async(async => async.AutoUpload(false)))
+                    </div>
+                </div>
+                <div class="form-fields">
+                    <div class="inputs">
+                        @Html.Label(" ")
+                        @Html.EditorFor(model => model.CandidateModel.Entitled)
+                        <p class="entitled">
+                            Yes. I agree to the <a href="../application-agreement" target="_blank"><span style='color:blue'><b>Application Agreement</b></span></a> and <a href="../terms-of-use" target="_blank"><span style='color:blue'><b>Term of Use</b></span></a>.
+                        </p>
+                        @Html.WfmValidationMessageFor(model => model.CandidateModel.Entitled)
+                    </div>
+                </div>
+            </section>
+        }
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    function toggleUsername() {
+        var userNameInput = $("#CandidateModel_Username");
+        if ($("#UserSameEmail").attr('checked') == "checked") {
+            userNameInput.val($("#CandidateModel_Email").val()).prop('readonly', true);
+            if (userNameInput.val())
+                userNameInput.valid();  // reset previous validation error
+        }
+        else {
+            userNameInput.prop('readonly', false);
+        }
+    }
+
+    function onAdditionalData() {
+        return {
+            text: $("#CandidateModel.KeySkill1").val()
+        };
+    }
+
+    function onTransportationChange() {
+        var tran = $("#CandidateModel_TransportationId").val();
+        if (tran == 1) {
+            $("#licence-plate").show();
+        }
+        else {
+            $("#licence-plate").hide();
+        }
+    }
+
+    $(document).ready(function () {
+
+        toggleUsername();
+        $("#UserSameEmail").change(function () { toggleUsername(); });
+        $("#CandidateModel_Email").bind("keyup", function () { toggleUsername(); });
+
+        onTransportationChange();
+        $("#CandidateModel_TransportationId").change(function () { onTransportationChange(); });
+
+        if ('@displayEmptyPic' == 'True')
+        {
+            $("#Userpic").attr("src","@Url.Content("~/Content/Images/default-avatar.jpg")");
+        }
+        else{
+            bindProfilePic();
+        }
+
+        $("#attachments").kendoUpload();
+
+        $('#registration').click(function () {
+            if ($('#candidate-form').valid()) {
+                if ($('#CandidateModel_Entitled').is(':checked')) {
+                    return true;
+                }
+                else {
+                    //just show validation errors, dont post
+                    displayPopupNotification('@Html.Raw(HttpUtility.JavaScriptStringEncode(T("Web.Candidate.Candidate.Fields.Entitled.Required").Text))', 'error', true);
+                }
+            }
+            else
+                displayPopupNotification('Some fields missing or invalid. Please check and correct.', 'error', true);
+            return false;
+        });
+
+        $(".k-datepicker input").each(function () {
+            var picker = $('#' + $(this).attr('id')).data('kendoDatePicker');
+            var format = picker.options.format;
+            var min = kendo.toString(picker.options.min, format);
+            var max = kendo.toString(picker.options.max, format);
+            $(this).rules('add', { dateValue: [format, min, max] });
+            $(this).change(function () {
+                //  ignores invalid strings which occur after the year
+                var validDate = kendo.parseDate($(this).val(), format);
+                if (validDate instanceof Date)
+                    $(this).val(kendo.toString(validDate, format));
+            });
+        });
+    });
+
+    var startIndex = @startIndex;
+    var newPage = @Html.Raw(Json.Encode(ViewBag.NewPage));
+    var form = $("#candidate-form").show();
+    form.steps({
+        headerTag: "h4",
+        bodyTag: "section",
+        enableAllSteps: !newPage,
+        autoFocus: true,
+        showFinishButtonAlways: !newPage,
+        transitionEffect: "slideLeft",
+        stepsOrientation: "vertical",
+        startIndex: startIndex,
+        onStepChanging: function (event, currentIndex, newIndex) {
+
+            // Allways allow previous action even if the current form is not valid!
+            var isValid = true;
+
+            if (currentIndex > newIndex) {
+                isValid= true;
+            }
+            // Needed in some cases if the user went back (clean up)
+            if (currentIndex < newIndex) {
+                // To remove error styles
+                form.find(".body:eq(" + newIndex + ") label.error").remove();
+                form.find(".body:eq(" + newIndex + ") .error").removeClass("error");
+
+
+                var visibleForm = form.find(".current[aria-hidden='false'] input");
+                if (visibleForm.length > 0) {
+                    visibleForm.validate().settings.ignore = ":disabled";
+                       addCustomRules();
+                    isValid = visibleForm.valid();
+                }
+            }
+
+            if( currentIndex==3)
+            {
+                if($("#Userpic").attr("src").indexOf("avatar")>0)
+                {
+                    alert("Please take picture.");
+                    isValid=false;
+                }
+            }
+            return isValid;
+        },
+
+        onStepChanged: function (event, currentIndex, priorIndex) {
+            // scroll to page top, especially fro mobile
+            window.scrollTo(0, 0);
+        },
+
+        onFinishing: function (event, currentIndex) {
+            form.validate().settings.ignore = ":disabled";
+            return form.valid();
+        },
+
+        onFinished: function (event, currentIndex) {
+            $("#currentIndex").val(currentIndex);
+            form.submit();
+        }
+    });
+
+    // add class to recover style
+    if (!newPage) {
+        //$('.steps ul li').not(':eq(0)').each(function () {
+        $('.steps ul li').each(function () {
+            if ($(this).index() != startIndex)
+                $(this).addClass('done');
+        });
+    }
+
+    function addCustomRules() {
+        $("#CandidateModel_LicencePlate").rules("add", {
+            requiredLicensePlate: true
+        });
+        $("#CandidateModel_Entitled").rules("add",{
+            required:true
+        });
+    }
+
+    $.validator.addMethod('requiredLicensePlate', function (value, element, param) {
+        var isValid=true;
+        var tran = $("#CandidateModel_TransportationId").val();
+        if (tran == 1) {
+            if($("#CandidateModel_LicencePlate").val().length==0)
+                isValid= false;
+        }
+        return isValid; // return bool here if valid or not.
+    }, 'Please enter license plate.');
+
+    $.validator.addMethod('dateValue', function (value, element, param) {
+        if (value) {
+            var d = kendo.parseDate(value, param[0]);
+            return d instanceof Date && d >= new Date(param[1]) && d <= new Date(param[2]);
+        }
+        return true;
+    }, '@(T("Common.Date.Range").Text)');
+
+    function ShowPopUp() {
+        var url="@Url.Content("~/CandidateRegistration/CapturePicture?fromWizard=" + isWizard.ToString())";
+        window.open(url, "wndPopUp", 'width=900,height=600,left=100,top=100,resizable=no');
+        window.DisplayPic = function () {
+            bindProfilePic();
+        }
+    }
+    function bindProfilePic() {
+        $.ajax({
+            type: 'POST',
+            url: ("@Url.Content("~/CandidateRegistration/Rebind")/"),
+            dataType: 'json',
+            success: function (data) {
+                if(data!='')
+                    $("#Userpic").attr("src", data);
+            }
+        });
+    }
+
+</script>

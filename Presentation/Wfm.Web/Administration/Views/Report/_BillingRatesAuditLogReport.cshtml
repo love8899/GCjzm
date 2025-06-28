@@ -1,0 +1,32 @@
+﻿@using System.Drawing
+@using System.Web.UI.WebControls
+@using MvcReportViewer
+
+
+@{
+    var settings = new ControlSettings
+    {
+        SizeToReportContent = true,
+        ShowParameterPrompts = false,
+        ShowFindControls = true,
+        BackColor = Color.AliceBlue,
+        KeepSessionAlive = true,
+        //Width = new Unit("100%"),
+        //Height = new Unit("800px"),
+        AsyncRendering = false
+    };
+
+    var featureService = EngineContext.Current.Resolve<Wfm.Services.Features.IFeatureService>();
+    var invoicingEnabled = featureService.IsFeatureEnabled("Admin", "Invoicing");
+}
+
+
+@Html.MvcReportViewer(
+    "/WFMReports/BillingRatesAuditLogReport",
+    new { FromDate = ViewBag.StartDate, ToDate = ViewBag.EndDate, InvoicingEnabled = invoicingEnabled },
+    new { style = "border: none ; height: 100%; width: 100%;min-height: 600px" }
+).ControlSettings(settings)
+
+
+
+

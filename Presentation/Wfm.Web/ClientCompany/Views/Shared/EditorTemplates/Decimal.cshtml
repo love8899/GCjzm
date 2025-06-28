@@ -1,0 +1,10 @@
+@model System.Decimal
+
+@(Html.Kendo().NumericTextBoxFor<decimal>(m => m).Value(Model)
+    .Format((string)ViewData["Format"] ?? "#.##")
+    .Decimals((int?)ViewData["Decimals"] ?? 2)
+    .Step((decimal?)ViewData["Step"] ?? 0.01m)
+    .Events(e => e.Change((string)ViewData["OnChange"] ?? "doNothing").Spin((string)ViewData["OnSpin"] ?? "doNothing"))
+    .Enable((bool?)ViewData["Enable"] ?? true)
+    .HtmlAttributes(ViewData["HtmlAttr"])
+)

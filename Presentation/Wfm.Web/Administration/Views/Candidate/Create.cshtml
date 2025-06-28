@@ -1,0 +1,278 @@
+﻿@using Wfm.Services.Common;
+@using Wfm.Services.DirectoryLocation;
+
+@model CreateEditCandidateModel
+@{
+    //page title
+    ViewBag.Title = T("Admin.Candidate.Candidate.AddNew").Text;
+
+    var _skillService = EngineContext.Current.Resolve<ISkillService>();
+    var skills = _skillService.GetAllSkills();
+    var skillsDropDownList = new List<SelectListItem>();
+    foreach (var c in skills)
+    {
+        var item = new SelectListItem()
+        {
+            Text = c.SkillName,
+            Value = c.SkillName
+        };
+        skillsDropDownList.Add(item);
+    }
+
+    int startIndex = ViewBag.StartIndex != null ? ViewBag.StartIndex : 0;
+    int onboardingStarted = Model.IsEmployee || Model.OnboardingStatus == Wfm.Core.Domain.Candidates.CandidateOnboardingStatusEnum.Started.ToString() ? 1 : 0;
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Candidate.Candidate.AddNew") @Html.ActionLink("(" + T("Admin.Candidate.Candidate.BackToList") + ")", "Index")
+    </div>
+    <div class="options"></div>
+</div>
+<br /><br />
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "candidate-form" }))
+{
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.CandidateGuid)
+    @Html.HiddenFor(model => model.EmployeeId)
+    @Html.HiddenFor(model => model.IsActive)
+    @Html.HiddenFor(model => model.IsBanned)
+    @Html.HiddenFor(model => model.Entitled)
+    @Html.HiddenFor(model => model.PasswordPolicyModel.Code)
+    @Html.HiddenFor(model => model.PasswordPolicyModel.PasswordHistory)
+    @Html.HiddenFor(model => model.PasswordPolicyModel.PasswordLifeTime)
+    @Html.HiddenFor(model => model.PasswordPolicyModel.MinLength)
+    @Html.HiddenFor(model => model.PasswordPolicyModel.MaxLength)
+    @Html.HiddenFor(model => model.PasswordPolicyModel.RequireLowerCase)
+    @Html.HiddenFor(model => model.PasswordPolicyModel.RequireNumber)
+    @Html.HiddenFor(model => model.PasswordPolicyModel.RequireSymbol)
+    @Html.HiddenFor(model => model.PasswordPolicyModel.RequireUpperCase)
+    @Html.HiddenFor(model => model.FranchiseId)
+    @Html.HiddenFor(model => model.EnteredBy)
+    @Html.HiddenFor(model => model.SearchKeys)
+    Html.EnableClientValidation(true);
+
+    @Html.Hidden("currentIndex", 0)
+    @Html.Hidden("onboardingStarted", onboardingStarted)
+
+    @Html.EditorFor(x => x, "CandidateAccountInfo")
+
+    @Html.EditorFor(x => x, "CreateOrUpdateCandidate2")
+
+    @Html.EditorFor(x => x.CandidateAddressModel, "CandidateAddress")
+
+
+    <h4>@T("Admin.Candidate.KeySkills")</h4>
+    <section>
+        <table class="adminContent">
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.KeySkill1)
+                </td>
+                <td class="adminData required">
+                    <div style="width:300px">@(Html.Kendo().AutoComplete()
+                           .Name("KeySkill1")
+                           .Placeholder("Enter Your Skills")
+                           .BindTo(skillsDropDownList.Select(s => s.Value))
+                    )</div>
+                    @Html.WfmValidationMessageFor(model => model.KeySkill1)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.YearsOfExperience1)
+                </td>
+                <td class="adminData required">
+                    @Html.EditorFor(model => model.YearsOfExperience1)
+                    @Html.WfmValidationMessageFor(model => model.YearsOfExperience1)
+                </td>
+            </tr>
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.LastUsedDate1)
+                </td>
+                <td class="adminData required">
+                    <div style="width:300px">@(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                    .Name("LastUsedDate1")
+                    .Format("dddd, MMMM d, yyyy")
+                    //.Start(CalendarView.Century)
+                    .Min(DateTime.Now.AddYears(-50))
+                    .Max(DateTime.Now)
+                    )</div>
+                    @Html.WfmValidationMessageFor(model => model.LastUsedDate1)
+                </td>
+            </tr>
+        </table>
+        <div>
+            <br /><br />
+            <h4 id="savingIndicator" style="display:none"></h4>
+        </div>
+    </section>
+    
+    <h4>@T("Admin.Candidate.Pictures")</h4>
+    <section data-mode="async" data-url="@Url.Action("_TabCandidatePictureList", "Candidate", new { candidateGuid = Model.CandidateGuid, displayHeader = false })"></section>
+
+    <h4>@T("Admin.TimeClocks.CandidateSmartCards")</h4>
+    <section data-mode="async" data-url="@Url.Action("_TabCandidateSmartCards", "Candidate", new { candidateGuid = Model.CandidateGuid, displayHeader = false })"></section>
+
+    <h4>@T("Admin.Candidate.Attachments")</h4>
+    <section data-mode="async" data-url="@Url.Action("_TabCandidateAttachmentList", "Candidate", new { candidateGuid = Model.CandidateGuid, displayHeader = false })"></section>
+
+    <h4>Start onboarding</h4>
+    <section data-mode="async" data-url="@Url.Action("StartOnboarding", "Candidate", new { guid = Model.CandidateGuid, viewName = "_StartCandidateOnboradingInWizard" })"></section>
+}
+
+
+<script>
+
+    var newPage = @Html.Raw(Json.Encode(ViewBag.NewPage));
+    var accountDone = @Html.Raw(Json.Encode(Model.Id > 0));
+    var startIndex = @startIndex;
+
+    var form = $("#candidate-form").show();
+    form.steps({
+        headerTag: "h4",
+        bodyTag: "section",
+        enableAllSteps: !newPage,
+        autoFocus: true,
+        showFinishButtonAlways: !newPage,
+        transitionEffect: "slideLeft",
+        stepsOrientation: "vertical",
+        startIndex: startIndex,
+
+        onContentLoaded: function (event, currentIndex) {
+            if (currentIndex == 9)
+                bindOnboardingKeys();
+        },
+
+        onStepChanging: function (event, currentIndex, newIndex) {
+            // Allways allow previous action even if the current form is not valid!
+            if (currentIndex > newIndex) {
+                return true;
+            }
+            // Needed in some cases if the user went back (clean up)
+            if (currentIndex < newIndex) {
+                // To remove error styles
+                form.find(".body:eq(" + newIndex + ") label.error").remove();
+                form.find(".body:eq(" + newIndex + ") .error").removeClass("error");
+
+                var isValid = true;
+                var visibleForm = form.find(".current[aria-hidden='false'] input");
+                if (visibleForm.length > 0) {
+                    visibleForm.validate().settings.ignore = ":disabled";
+                    addCustomRules();
+                    isValid = visibleForm.valid();
+                }
+
+                // save candidate first
+                if (isValid && newIndex == 6 && !accountDone) {
+                    showSavingIndicator();
+                    form.steps('finish');
+                    return false;
+                }
+
+                return isValid;
+            }
+        },
+
+        onStepChanged: function (event, currentIndex, priorIndex) {
+        },
+
+        onFinishing: function (event, currentIndex) {
+            form.validate().settings.ignore = ":disabled";
+            removeOptionalRules();
+            //console.log(form.validate());
+            return form.valid();
+        },
+
+        onFinished: function (event, currentIndex) {
+            $("#currentIndex").val(currentIndex);
+            form.submit();
+        }
+    });
+
+    // add class to recover style
+    if (!newPage) {
+        //$('.steps ul li').not(':eq(0)').each(function () {
+        $('.steps ul li').each(function () {
+            if ($(this).index() != startIndex)
+                $(this).addClass('done');
+        });
+    }
+
+</script>
+
+
+<script>
+
+    $("#Email").bind("keyup", function () {
+        if ($("#UserSameEmail").attr('checked') == "checked") {
+            $("#Username").val($("#Email").val());
+        }
+    });
+
+    if ($("#UserSameEmail").length)
+        $("#UserSameEmail").bind("click", function () {
+            if ($("#UserSameEmail").attr('checked') == "checked") {
+                $("#Username").val($("#Email").val());
+            }
+        });
+
+    $.validator.addMethod('minStrict', function (value, el, param) {
+        return value > param;
+    });
+
+    function addCustomRules() {
+        $("#YearsOfExperience1").rules("add", {
+            minStrict: 0,
+            messages: {
+                required: "Required input",
+                minStrict: jQuery.validator.format("The number must be greater than {0}.")
+            }
+        });
+    }
+
+    function removeOptionalRules() {
+        if ($("#SocialInsuranceNumber").length)
+            $("#SocialInsuranceNumber").rules("remove");
+    }
+
+    function bindOnboardingKeys() {
+        var form = $('#start-onboarding-form');
+
+        $('#btn-cancel').click(function () {
+            form[0].reset();
+        });
+
+        $('#btn-save').click(function () {
+            if (form.valid()) {
+                var link = '@Url.Action("StartOnboarding", "Candidate")';
+                $.ajax({
+                    type: "POST",
+                    url: link,
+                    data: form.serialize(),
+                    success: function (response) {
+                        if (response.Result) {
+                            //$(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+                            //$(".messageBox").text("Onboarding is started.");
+                            $('#onboardingStarted').val('1');
+                            disableStartOnboarding();
+                        }
+                        else {
+                            alert(response.ErrorMessage);
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    function showSavingIndicator() {
+        //setTimeout(alert('Saving candidate informatio into database...'), 10000);
+        $("#savingIndicator").html("Saving candidate informatio into database...");
+        $("#savingIndicator").show();
+    }
+
+</script>

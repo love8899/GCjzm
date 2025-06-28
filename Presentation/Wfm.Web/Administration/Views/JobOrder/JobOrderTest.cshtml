@@ -1,0 +1,6 @@
+﻿@using Wfm.Web.Framework.HtmlHelpers 
+@using Wfm.Core.Domain.Tests
+@using Wfm.Core.Domain.JobOrders
+
+@Html.GetJobOrderTestCheckBoxList((List<TestCategory>)ViewBag.AvailableTests, (List<JobOrderTestCategory>)ViewBag.JobOrderTestCategory, (bool)ViewBag.EditMode)
+

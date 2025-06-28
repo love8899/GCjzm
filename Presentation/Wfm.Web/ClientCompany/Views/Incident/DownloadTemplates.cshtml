@@ -1,0 +1,64 @@
+﻿@using Wfm.Client.Models.Incident
+@{
+    ViewBag.PageTitle = T("Admin.Candidate.Incident.DownloadTemplates").Text;
+
+    ViewBag.Title = T("Admin.Candidate.Incident.DownloadTemplates").Text;
+    Html.SetActiveMenuItemSystemName("IncidentTemplates");
+
+    var gridName = "company-incident-grid";
+    var serverOperation = true;
+
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    var incidentService = EngineContext.Current.Resolve<Wfm.Services.Incident.IIncidentService>();
+    var incidentCategories = incidentService.GetAllIncidentCategories(workContext.CurrentAccount, true).Select(x => new SelectListItem()
+    {
+        Text = x.Description,
+        Value = x.Id.ToString()
+    });
+}
+
+@section Options {
+    <button type="button" class="btn bg-blue" data-toggle="collapse" data-target="#addIncident" aria-expanded="false">
+        <i class="fa fa-plus-square"></i>@T("Common.Add")
+    </button>
+}
+
+@(Html.Kendo().Grid<IncidentReportTemplateModel>().Name(gridName)
+    .Events(e => e.DataBound("onDataBound"))
+    .Columns(columns =>
+    {
+        if (commonSettings.DisplayVendor)
+        {
+            columns.Bound(x => x.Vendor)
+                .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0" });
+        }
+
+        columns.ForeignKey(x => x.IncidentCategoryId, incidentCategories, "Value", "Text")
+            .HtmlAttributes(new { @class = "col-xxs-0 cell-lg-4", style = "white-space:normal;" });
+
+        columns.Bound(x => x.FileName);
+        columns.Bound(x => x.Note)
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0 cell-lg-4", style = "white-space:normal;" });
+
+        columns.Bound(x => x.Id).Filterable(false).Sortable(false).Title(T("Common.Action").Text)
+            .HtmlAttributes(new { style = "text-align:center", @class = "cell-lg-2" })
+            .Template(x => Html.ActionLink(T("Common.Download").Text, "DownloadIncidentReportTemplate", new { x.Id }))
+            .ClientTemplate("<a class='k-button' title='" + T("Common.Download").Text + "' onclick=\"return downloadTemplate(#=Id #)\"><span class='fa fa-download'></span></a>");
+    })
+    .Sortable()
+    .Pageable(x => x.PageSizes(new[] { 10, 20, 30 }).Refresh(true))
+    .DataSource(dataSource => dataSource
+        .Ajax().ServerOperation(serverOperation).PageSize(10)
+        .Read(read => read.Action("_DownloadTemplatesList", "Incident"))
+    )
+)
+
+@section scripts {<script type="text/javascript">
+    $(function () { initSearchAndGrid(null, '@gridName'); });
+    function onDataBound(e) { setGridResponsive(e.sender); }
+    function downloadTemplate(id) {
+        window.location.href = '@Url.Action("DownloadIncidentReportTemplate", new { templateId = "XXXX" })'.replace('XXXX', id.toString());
+        return false;
+    }
+</script>}

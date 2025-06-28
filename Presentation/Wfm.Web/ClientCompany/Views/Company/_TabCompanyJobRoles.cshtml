@@ -1,0 +1,181 @@
+﻿@using Wfm.Core
+@using Wfm.Shared.Models.Companies
+@using Wfm.Services.Companies
+@using Wfm.Services.Common
+
+@model IEnumerable<CompanyJobRoleModel>
+
+@{
+    Layout = "";
+    var companyId = EngineContext.Current.Resolve<IWorkContext>().CurrentAccount.CompanyId;
+    var positions = EngineContext.Current.Resolve<IPositionService>().GetAllPositionByCompanyId(companyId);
+}
+<div class="section-header">
+    <div class="title">
+        @T("Web.JobRole.Title")
+    </div>
+    <div class="options">
+        <button id="add-job-role" class="k-button">@T("Admin.Common.Add")</button>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CompanyJobRoleModel>()
+            .Name("company-job-role-grid")
+            .Columns(columns =>
+            {
+                columns.Bound(x => x.Id).Hidden();
+                columns.ForeignKey(x => x.PositionId, positions, "Id", "Name").Width(120);
+                columns.Bound(x => x.Name).Width(120);
+                columns.Bound(x => x.Description).Width(200);
+                columns.Bound(x => x.LocationName).Width(200);
+                columns.Bound(x => x.RequiredSkillNames).Width(250);
+                columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                    .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                    .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { x.Id }))
+                    .ClientTemplate("<a class='k-button' title='" + T("Common.Edit").Text + "' onclick='return editJobRole(#= Id #)'><span class='fa fa-pencil'></span></a>")
+                    .Width(60)
+                    .Title(T("Common.Edit").Text);
+                columns.Command(commands =>
+                {
+                    commands.Destroy().Text("");
+                })
+                .HtmlAttributes(new { style = "vertical-align:middle" })
+                .Width(60)
+                .Title(T("Common.Delete").Text);
+            })
+            .EnableCustomBinding(false)
+            .Reorderable(reorder => reorder.Columns(true))
+            .Filterable()
+            .Sortable()
+            .ColumnMenu()
+            .Selectable()
+            .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+            .DataSource(ds => ds
+                .Ajax()
+                .ServerOperation(false)
+                .PageSize(20)
+                .Model(model =>
+                {
+                    model.Id(p => p.Id);
+                })
+                .Read(read => read.Action("_TabCompanyJobRoles", "Company"))
+                .Destroy(update => update.Action("_RemoveJobRole", "Company"))
+            )
+            .Filterable(filterable => filterable
+                .Extra(false)
+                .Operators(operators => operators
+                    .ForString(str => str.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        .IsNotEqualTo("Is not equal to")
+                    )
+                )
+            )
+            .Events(events => events.DataBound("reTitleDelete"))
+        )
+        </td>
+    </tr>
+</table>
+<div id="create-edit-job-role-dialog"></div>
+<script type="text/javascript">
+    $(function () {
+        $("#add-job-role").click(
+            function () {
+                addJobRole();
+            });
+    });
+    function bindDialogEventJobRole(){
+        $('#close-job-role-report').click(function () {
+            $("#create-edit-job-role-dialog").data("kendoWindow").close();
+        });
+        $('#save-job-role-report').click(function () {
+            var form = $('#job-role-report-form');
+            if (form.valid()) {
+                $.ajax({
+                    url: '@Url.Action("_EditJobRole")',
+                    type: 'POST',
+                    data: $('#job-role-report-form').serialize(),
+                    dataType: 'html',
+                    success: function (result) {
+                        if (result == 'done') {
+                            $("#create-edit-job-role-dialog").data("kendoWindow").close();
+                            $('#company-job-role-grid').data('kendoGrid').dataSource.read();
+                            $('#company-job-role-grid').data('kendoGrid').refresh();
+                        }
+                        else{
+                            $('#job-role-report-form').parent().html(result);
+                            //bindDialogEventJobRole();
+                        }
+                    }
+                });
+            }
+        })
+    }
+    function editJobRole(id) {
+        var dialog = $("#create-edit-job-role-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#create-edit-job-role-dialog").kendoWindow({
+                title: "Edit Job Role",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 350,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    bindDialogEventJobRole();
+                }
+            });
+            dialog = $("#create-edit-job-role-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.title("Edit Job Role");
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_EditJobRole")',
+            data: { jobRoleId: id }
+        });
+        dialog.center();
+        return false;
+    }
+
+    function addJobRole() {
+        var dialog = $("#create-edit-job-role-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#create-edit-job-role-dialog").kendoWindow({
+                title: "New Job Role",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 350,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    bindDialogEventJobRole();
+                }
+            });
+            dialog = $("#create-edit-job-role-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.title("New Job Role");
+            dialog.open();
+
+        }
+        dialog.refresh({
+            url: '@Url.Action("_NewJobRole")'
+        });
+        dialog.center();
+        return false;
+    }
+
+</script>
+

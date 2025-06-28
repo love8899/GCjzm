@@ -1,0 +1,76 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Interview Preparation";
+    //var description = "An interview is as much about first impressions as it is about your skills and experiences.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Interview Preparation</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            Thorough preparation is an essential part of being successful at an interview. In
+            fact, many candidates fail to get the job they are seeking not due to a lack of
+            ability, but because they did not perform well during the interview. We recommend
+            that you take a few moments to read the following suggestions to better prepare
+            for your interview.
+        </p>
+        <p>
+            <b>Do your research:</b> It is important to do some research about the company you
+            are going to interview with. In almost every interview situation, you may be asked
+            to confirm what you know about the company to which you are applying. The detail
+            and complexity of your answer depends on the role you are applying for and the level
+            of seniority, but it is critical that you demonstrate that you have done your homework
+            and understand the company, the market and the competitor landscape. Their website
+            is always a good research tool and if you have time, call the company and ask them
+            to send you any relevant corporate communications.
+        </p>
+        <p>
+            Knowing about what is in store for you and expressing knowledge about the company
+            can be invaluable. Your @siteTitle Hiring Representative can help you by
+            providing details about the client company's work environment, requirements and
+            work attire.
+        </p>
+        <p>
+            <b>Prepare your answers:</b> While you can never know exactly what you will be asked,
+            there are many questions which consistently come up during interviews. By using
+            the internet and doing your research you can have a bank of answers ready for most
+            questions. There will always be questions that surprise you, but if you’ve thought
+            through your work history, prepared examples and know your résumé inside and out,
+            you should be able to answer everything competently.
+        </p>
+        <p>
+            <b>Plan to be on time:</b> Punctuality is absolutely crucial when trying to make
+            a good first impression. It should go without saying that showing up late to an
+            interview can ruin your chances of getting the job. Nevertheless, many people turn
+            up late for an interview, because they got lost. Know the address, print out a map
+            and if possible do a trial run so you know exactly how long it will take to get
+            there. Always take the main reception telephone number with you, in case of an emergency,
+            and give yourself plenty of time. @siteTitle recommends that you arrive for
+            your interview at least ten minutes early.
+        </p>
+        <p>
+            Finally, an interview is as much about first impressions as it is about your skills
+            and experiences. Show confidence by greeting your interviewer with a firm handshake
+            while looking them in the eye.
+        </p>
+    </div>
+</div>

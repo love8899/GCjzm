@@ -1,0 +1,177 @@
+﻿/* Default for all vendors */
+
+.smartcard .side-container {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 30px;
+}
+
+#front-container {
+    width: calc(648px * 0.5);
+    height: calc(1016px * 0.5);
+}
+
+#back-container {
+    width: calc(1016px * 0.5);
+    height: calc(648px * 0.5);
+}
+
+.smartcard .side {
+    border: 3px solid darkblue;
+    border-radius: 15px;
+    transform: scale(0.5);
+    transform-origin: 0 0;
+}
+
+.smartcard .row {
+    display: block;
+}
+
+#front {
+    width: calc(648px - 6px);
+    height: calc(1016px - 6px);
+}
+
+#back {
+    width: calc(1016px - 6px);
+    height: calc(648px - 6px);
+}
+
+#logo {
+    width: 588px;
+    height: 150px;
+    margin-left: 30px;
+    margin-top: 90px;
+}
+
+#photo {
+    width: 588px;
+    height: 540px;
+    margin-left: 30px;
+    margin-top: 30px;
+}
+
+img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+#fullname {
+    margin-left: 30px;
+    margin-top: 20px;
+    text-align: left;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 42px;
+    color: black;
+}
+
+#employeeid {
+    margin-left: 30px;
+    margin-top: 20px;
+    text-align: left;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 42px;
+    color: black;
+}
+
+#barcode {
+    float: left;
+    width: 303px;
+    height: 303px;
+    margin: 60px;
+}
+
+#note {
+    margin-left: 30px;
+    margin-top: 30px;
+    margin-right: 30px;
+    margin-bottom: 30px;
+    text-align: left;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 30px;
+    line-height: 52px;
+    color: black;
+}
+
+@media print {
+
+    @page { margin: 0; }
+    
+    body { margin: 0; }
+
+    .smartcard .side-container {
+        display: block;
+        margin: 0;
+    }
+
+    #front-container {
+        width: calc(648px * 0.3168);
+        height: calc(1016px * 0.3168);
+    }
+
+    #back-container {
+        width: calc(648px * 0.3168);
+        height: calc(1016px * 0.3168);
+        page-break-before: always;
+    }
+
+    .smartcard .side {
+        /* IMPORTANT */
+        border: 1px solid white;
+    }
+
+    #front {
+        width: calc(648px * 0.3168 - 2px);
+        height: calc(1016px * 0.3168 - 2px);
+        transform: scale(1);
+    }
+
+    #back {
+        width: calc(1016px * 0.3168 - 2px);
+        height: calc(648px * 0.3168 - 2px);
+        transform: translateX(205.2864px) scale(1) rotate(90deg);
+        font-size: 30px;
+    }
+
+    #logo {
+        width: calc(588px * 0.3168);
+        height: calc(150px * 0.3168);
+        margin-left: calc(30px * 0.3168);
+        margin-top: calc(90px * 0.3168);
+    }
+
+    #photo {
+        width: calc(588px * 0.3168);
+        height: calc(540px * 0.3168);
+        margin-left: calc(30px * 0.3168);
+        margin-top: calc(30px * 0.3168);
+    }
+
+    #fullname {
+        margin-left: calc(30px * 0.3168);
+        margin-top: calc(20px * 0.3168);
+        font-size: calc(42px * 0.3168);
+    }
+
+    #employeeid {
+        margin-left: calc(30px * 0.3168);
+        margin-top: calc(20px * 0.3168);
+        font-size: calc(42px * 0.3168);
+    }
+
+    #barcode {
+        margin: calc(60px * 0.3168);
+        width: calc(303px * 0.3168);
+        height: calc(303px * 0.3168);
+    }
+
+    #note {
+        margin-left: calc(30px * 0.3168);
+        margin-top: calc(30px * 0.3168);
+        margin-right: calc(30px * 0.3168);
+        margin-bottom: calc(30px * 0.3168);
+        font-size: calc(30px * 0.3168);
+        line-height: calc(52px * 0.3168);
+    }
+
+}

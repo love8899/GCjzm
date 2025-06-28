@@ -1,0 +1,38 @@
+------------------------
+-- [Candidate]
+------------------------
+UPDATE [dbo].[Candidate] 
+    SET EmployeeId = 'GCEMP' + CONVERT(VARCHAR(2),[CreatedOnUtc],11)+'-' + REPLICATE('0', 9 - DATALENGTH(CAST(Id AS VARCHAR(10)) )) + CAST(Id AS VARCHAR(10))
+
+sqlcmd -S .\SQLEXPRESS -d Workforce2 -E -s, -W -Q "SELECT EmployeeId, FirstName, LastName, Email, HomePhone, MobilePhone FROM Candidate" >  D:\sqlbackups\Candidates.csv
+bcp "SELECT EmployeeId, FirstName, LastName, Email, HomePhone, MobilePhone FROM [Workforce2].[dbo].[Candidate]" queryout D:\sqlbackups\Candidates.csv -c -t, -T -S .\SQLEXPRESS
+
+
+sqlcmd -S .\SQLEXPRESS -d Workforce2 -E -s, -W -Q "SELECT REPLICATE('0', 9 - DATALENGTH(CAST(Id AS VARCHAR(10)) )) + CAST(Id AS VARCHAR(10)), FirstName, LastName, Email, HomePhone, MobilePhone FROM Candidate" >  D:\sqlbackups\Candidates.csv
+sqlcmd -S .\SQLEXPRESS -d Workforce2 -E -s "	", -W -Q "SELECT REPLICATE('0', 9 - DATALENGTH(CAST(Id AS VARCHAR(10)) )) + CAST(Id AS VARCHAR(10)), FirstName, LastName, Email, HomePhone, MobilePhone FROM Candidate" >  D:\sqlbackups\Candidates.csv
+bcp "SELECT REPLICATE('0', 9 - DATALENGTH(CAST(Id AS VARCHAR(10)) )) + CAST(Id AS VARCHAR(10)), FirstName, LastName, Email, HomePhone, MobilePhone FROM [Workforce2].[dbo].[Candidate]" queryout  D:\sqlbackups\Candidates.csv -c -t, -T -S .\SQLEXPRESS
+
+sqlcmd -S .\SQLEXPRESS -d Workforce2 -E -s, -W -Q "SELECT REPLICATE('0', 9 - DATALENGTH(CAST(Id AS VARCHAR(10)) )) + CAST(Id AS VARCHAR(10)) AS Employee#, FirstName + ' ' + LastName as Name, Email, FirstName, LastName, HomePhone, MobilePhone FROM Candidate" >  D:\sqlbackups\Candidates.csv
+
+
+
+
+
+----------------------------------------------
+
+
+PM>
+
+Install-Package jQuery -Version 1.11.1 -Project Wfm.Web
+Install-Package jQuery -Version 1.11.1 -Project Wfm.Admin
+Install-Package jQuery -Version 1.11.1 -Project Wfm.Client
+
+
+---------------------------------------------------------------------
+
+
+Get-Project Wfm.Web,Wfm.Admin,Wfm.Client | Install-Package jQuery -Version 1.11.1
+
+
+
+

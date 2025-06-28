@@ -1,0 +1,40 @@
+﻿@{
+    Layout = null;
+}
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateBankAccountModel>()
+                .Name("bankaccount-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.InstitutionNumber).EditorTemplateName("MaskedTextEditor").EditorViewData(new { MaskFormat = "####", PromptChar = " " });
+                    columns.Bound(x => x.TransitNumber).EditorTemplateName("MaskedTextEditor").EditorViewData(new { MaskFormat = "#####", PromptChar = " " });
+                    columns.Bound(x => x.AccountNumber).EditorTemplateName("MaskedTextEditor").EditorViewData(new { MaskFormat = "#################", PromptChar = " " });
+                    columns.Bound(x => x.Note);
+
+                    columns.Bound(x => x.IsActive)
+                        .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" });
+
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#if (CreatedOnUtc) {# #= kendo.toString(CreatedOn, 'yyyy-MM-dd h:mm:ss tt') # #} else {# #}#");
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#if (UpdatedOnUtc) {# #= kendo.toString(UpdatedOn, 'yyyy-MM-dd h:mm:ss tt') # #} else {# #}#");
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Pageable(x => x.PageSizes(new[] { 10 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(10)
+                    .Read(read => read.Action("_CandidateBankAccounts", "Candidate", new { guid = ViewBag.CandidateGuid }))
+                )
+            )
+        </td>
+    </tr>
+</table>

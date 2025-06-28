@@ -1,0 +1,23 @@
+﻿@{
+    Layout = null;
+
+    var formName = ViewBag.FormName ?? "cancel-jobs-form";
+}
+
+<p>
+    Please specify the reason why you want to cancel this job posting?
+</p>
+@using (Html.BeginForm("_Cancel", "JobPosting", FormMethod.Post, new { id = formName }))
+{
+    @Html.Hidden("guid", (Guid)ViewBag.JobPostingGuid)
+    <div class="fieldset">
+        <div class="form-fields">
+            @Html.InputLine("note", T("Common.Note").Text, rowCls: "inputs", 
+                tmplt: "Text", viewData: new { data_val_required = true, PlaceHolder = "Reason for cancelling" })
+        </div>
+    </div>
+    <div class="buttons">
+        <input type="button" class="k-button btn-save" value="@T("Common.Yes")" />
+        <input type="button" class="k-button btn-cancel" value="@T("Common.No")" />
+    </div>
+}

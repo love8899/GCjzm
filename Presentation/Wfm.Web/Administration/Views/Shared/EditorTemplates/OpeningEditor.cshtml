@@ -1,0 +1,86 @@
+﻿@using System.Linq
+@using Wfm.Admin.Models.Employee
+@using Wfm.Services.Companies
+@using Wfm.Services.Common;
+@model OpeningModel
+@{
+    //required in order to render validation attributes
+    ViewContext.FormContext = new FormContext();
+}
+@functions{
+    public Dictionary<string, object> generateDatePickerAttributes(
+           string elementId,
+           string fieldName,
+           string dataBindAttribute,
+           bool required,
+           Dictionary<string, object> additionalAttributes = null)
+    {
+
+        Dictionary<string, object> datePickerAttributes = additionalAttributes != null ? new Dictionary<string, object>(additionalAttributes) : new Dictionary<string, object>();
+
+        datePickerAttributes["id"] = elementId;
+        datePickerAttributes["name"] = fieldName;
+        datePickerAttributes["data-bind"] = dataBindAttribute;
+        if (required)
+            datePickerAttributes["required"] = "required";
+        datePickerAttributes["style"] = "z-index: inherit;";
+
+        return datePickerAttributes;
+    }
+}
+<script type="text/javascript">
+    function onStartChange() {
+        var error = validateDates();
+        if (error)
+            alert(error);
+        else
+            getAvailableOpening();
+    }
+    function getAvailableOpening() {
+        var jobOrderId = $('[name="JobOrderId"]').val();
+        var refDate = $('[name="start"]').val();
+        $.ajax({
+            url: '@Url.Action("GetJobOrderProperties", "JobOrder")' + '?jobOrderId=' + jobOrderId + '&refDate=' + refDate,
+            type: 'Post',
+            dataType: 'Json',
+            success: function (data) {
+                $("\\\\#AvailableOpening").val(data.opening);
+            }
+        })
+    }
+
+</script>
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            @(Html.LabelFor(model => model.Start))
+        </td>
+        <td data-container-for="start" class="adminData required" width="75%">
+            @(Html.Kendo().DatePickerFor(model => model.Start).Events(e => e.Change("onStartChange"))
+                     .HtmlAttributes(generateDatePickerAttributes("startDate", "start", "value:start,visible:isAllDay", true)))
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @(Html.LabelFor(model => model.End))
+        </td>
+        <td data-container-for="end" class="adminData required">
+            @(Html.Kendo().DatePickerFor(model => model.End)
+                    .HtmlAttributes(generateDatePickerAttributes(
+                    "endDate",
+                    "end",
+                    "value:end,visible:isAllDay",
+                    true,
+                    new Dictionary<string, object>() { { "data-dateCompare-msg", T("Common.EndDate.LaterThanStartDate").Text } })))
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle" width="25%">
+            @T("Common.Openings")
+        </td>
+        <td data-container-for="OpeningNumber" class="adminData">
+            @Html.Kendo().NumericTextBoxFor(model => model.OpeningNumber).Format("{0:n0}").Decimals(0).Min(0)
+        </td>
+    </tr>
+</table>
+

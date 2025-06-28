@@ -1,0 +1,23 @@
+﻿@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    ViewBag.Title = T("Web.Candidate.Candidate.ApplyJob").Text;
+}
+
+<div class="page candidate-page">
+    <div class="page-title">
+        <h2>@T("Web.Candidate.Candidate.ApplyJob")</h2>
+    </div>
+    <div class="page-body">
+        <div class="result">
+            <strong>
+                @ViewBag.Message
+            </strong>
+        </div>
+        <p>
+            <br />
+            Click @Html.ActionLink("Job Search", "Index", "JobPost") to apply other opportunities.
+        </p>
+    </div>
+</div>

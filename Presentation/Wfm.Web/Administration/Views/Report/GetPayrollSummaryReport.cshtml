@@ -1,0 +1,154 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Franchises;
+@{
+    var startDate = DateTime.Today.Date.AddDays(-7);
+    var endDate = DateTime.Today;
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+}
+
+<style>
+    .k-multiselect.k-header {
+        /*border-color: #94c0d2;*/
+        text-align: left;
+        float: none;
+        vertical-align: middle;
+        display: inline-block;
+        margin-left: 10px;
+        margin-right: 20px;
+    }
+</style>
+@(Html.Kendo().PanelBar().Name("search-bar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text(String.Format(T("Common.ReportParameters").Text, T("Report.PayrollSummary").Text))
+            .Expanded(true)
+            .Content(@<div class="panel">
+                <table>
+                    <tr>
+                        <td><label>@T("Common.Vendor"):</label></td>
+                        <td>
+                            @(Html.Kendo().ComboBox().Name("Vendor").HtmlAttributes(new { style = "width: 500px" })
+                                                .Placeholder("Select a vendor...")
+                                                .DataSource(ds => ds.Read("GetAllVendors", "Common"))
+                                                .DataTextField("Text")
+                                                .DataValueField("Value")
+                                                .Events(e => e.Change("resetPayGroups")))
+                        </td>
+                        <td>
+                            <label>@T("Common.Year"):</label>
+                        </td>
+                        <td>
+                            @(Html.Kendo().DatePicker().Name("refYear").HtmlAttributes(new { type = "text", style = "width:150px" })
+                                .Depth(CalendarView.Decade).Start(CalendarView.Decade).Format("yyyy")
+                                .Value(DateTime.Today).Max(DateTime.Today.AddYears(1))
+                                .Events(e => e.Change("resetPayGroups"))
+                            )
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>@T("Common.PayGroup"):</label>
+                        </td>
+                        <td>
+                            @(Html.Kendo().MultiSelect().Name("PayGroups").HtmlAttributes(new { style = "width:400px" })
+                                .Placeholder("Select pay groups...")
+                                .DataSource(ds => ds.Read(r => r.Action("GetAllPayGroups", "Common").Data("filterPayGroup")).ServerFiltering(true))
+                                .DataTextField("Text")
+                                .DataValueField("Value"))
+                        </td>
+                        <td>
+                            <label>@T("Common.Payperiod"): </label>
+                        </td>
+                        <td>
+                            @(Html.Kendo().DropDownList().Name("Payperiod").OptionLabel("Please select a pay period...")
+                                .HtmlAttributes(new { style = "width:400px" })
+                                .DataSource(ds => ds.Read(r => r.Action("GetAllPayPeriod", "Common").Data("filterPayPeriod")).ServerFiltering(true))
+                                .AutoBind(false)
+                                .DataTextField("Text")
+                                .DataValueField("Value")
+                                .CascadeFrom("PayGroups")
+                                .Events(e => e.Change("onChange"))
+                            )
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label>@T("Common.Company"):</label>
+                        </td>
+                        <td>
+                            @(Html.Kendo().MultiSelect().Name("Companies").HtmlAttributes(new { style = "width:400px" })
+                                .Placeholder("Select companies...")
+                                .DataSource(ds => ds.Read("GetCascadeCompanies", "Common"))
+                                .DataTextField("Text")
+                                .DataValueField("Value"))
+                        </td>
+                        <td>
+                            <label>@T("Common.Batch"):</label>
+                        </td>
+                        <td>
+                            @(Html.Kendo().MultiSelect().Name("Batch").Placeholder("Please select a batch...")
+                                .DataSource(ds => ds.Read(r => r.Action("GetAllPayrollBatches", "Common").Data("filterBatch")).ServerFiltering(true))
+                                .DataTextField("Text")
+                                .DataValueField("Value")
+                            )
+                        </td>
+                    </tr>
+                </table>
+                <div style="text-align: center">
+                    <br />@(Html.Kendo().Button().Name("loadReport").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text))<br /><br />
+                </div>
+            </div>);
+    })
+)
+
+<div id="report" />
+<script type="text/javascript">
+    function resetPayGroups() {
+        $('#PayGroups').data('kendoMultiSelect').dataSource.read();
+    }
+    function filterPayGroup() {
+        var year = $("#refYear").val();
+        var vendorId= $("#Vendor").val();
+        return { year: year, vendorId: vendorId };
+    }
+    function onChange() {
+        $('#Batch').data('kendoMultiSelect').dataSource.read();
+    }
+    function filterBatch() {
+        var payrollCalendarId = $("#Payperiod").val();
+        var companies = $("#Companies").data("kendoMultiSelect").value().join();
+        if (payrollCalendarId)
+            return { payrollCalendarId: payrollCalendarId, companies: companies };
+        else
+            return { payrollCalendarId: 0, companies: companies };
+    }
+    function filterPayPeriod() {
+        var year = $("#refYear").val();
+        var paygroups = $("#PayGroups").data("kendoMultiSelect").value().join();
+        return { paygroupIds: paygroups, year: year };
+    }
+
+    $("#loadReport").bind("click", function () {
+        loadReport();
+    });
+
+    function loadReport() {
+        var paygroups = $("#PayGroups").data("kendoMultiSelect").value().join();
+        var payCalendarId = $("#Payperiod").val();
+        var batchIds = $("#Batch").data("kendoMultiSelect").value().join();
+        var vendorId = $("#Vendor").val();
+
+        if (!payCalendarId) {
+            alert("Please select a pay period!");
+        }
+        else {
+            $("#report").load("_PayrollSummaryReport", {
+                batchIds: batchIds,
+                payCalendarId: payCalendarId,
+                paygroups: paygroups,
+                vendorId: vendorId
+            });
+        }
+    }
+</script>

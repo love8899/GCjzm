@@ -1,0 +1,72 @@
+﻿@using Wfm.Services.Features;
+@using Wfm.Admin.Models.Features;
+@{
+    Layout = "";
+}
+
+<script src="@Url.Content("~/Scripts/admin.common.js?version=1.8")" type="text/javascript"></script>
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Features")
+    </div>
+    <div class="options">
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<UserFeatureModel>()
+                .Name("feature-grid")
+                .Columns(columns =>
+                {
+                    //columns.ForeignKey(x => x.FeatureId, features, "Id", "Name").Title("Feature").Width(200);
+                    columns.Bound(x => x.FeatureCode).Title("Code").Width(100);
+                    columns.Bound(x => x.FeatureName).Title("Feature").Width(200);
+                    columns.Bound(x => x.FeatureDescription).Title("Description").Width(300);
+
+                    columns.Bound(x => x.IsActive).Title("Active")
+                        .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(90);
+
+                    //columns.Command(command => { command.Destroy().Text(" "); }).Width(90);
+                })
+                //.ToolBar(toolBar => { toolBar.Save(); toolBar.Create(); })
+                .ToolBar(toolBar => { toolBar.Save(); })
+                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                .EnableCustomBinding(false)
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Batch(true)
+                    .Read(read => read.Action("_FeatureList", "Company", new { companyGuid = ViewBag.CompanyGuid }))
+                    .Events(events => events.Error("error_handler"))
+                    .Model(model =>
+                    {
+                        model.Id(x => x.Id);
+                        model.Field(x => x.UserId).Editable(false).DefaultValue(ViewBag.CompanyId);
+                        model.Field(x => x.FeatureId).Editable(false).DefaultValue(1);
+                        model.Field(x => x.FeatureCode).Editable(false);
+                        model.Field(x => x.FeatureName).Editable(false);
+                        model.Field(x => x.FeatureDescription).Editable(false);
+                        model.Field(x => x.IsActive).Editable(true).DefaultValue(true);
+                    })
+                    //.Create(update => update.Action("_AddFeature", "Company"))
+                    .Update(update => update.Action("_EditFeature", "Company"))
+                    //.Destroy(update => update.Action("_Removefeature", "Company"))
+                            .Events(events => events.Sync(@"function(e){setTimeout(function(){refreshGrid('#feature-grid')})}"))
+                )
+                //.Events(ev => ev.Remove(@"function(e){setTimeout(function(){$('#feature-grid').data('kendoGrid').dataSource.sync()})}")
+                //                //.Save(@"function(e){setTimeout(function(){$('#feature-grid').data('kendoGrid').dataSource.sync()})}")
+                //        )
+            )
+        </td>
+    </tr>
+</table>

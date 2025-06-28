@@ -1,0 +1,13 @@
+﻿@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "rejection-note-form" }))
+{
+    <div class="adminContent" style="text-align:center">
+        <h5>Please give reason for rejection</h5>
+        <br />
+        @Html.TextArea("RejectionNote", new { @class = "k-input", rows = "6", maxlength = "1024", style = "width:90%; height:70%; resize:none" })
+        <br /><br />
+        <div>
+            <input type="button" id="btn-reject" class="k-button" value=@T("Common.Reject") />
+            <input type="button" id="btn-cancel" class="k-button" value="@T("Admin.Common.Cancel")" />
+        </div>
+    </div>
+}

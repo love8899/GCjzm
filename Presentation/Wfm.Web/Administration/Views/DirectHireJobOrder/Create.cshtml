@@ -1,0 +1,34 @@
+﻿@model DirectHireJobOrderModel
+
+@using (Html.BeginForm(new { @name = "jobordercreate" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Common.DirectPlacement") @Html.ActionLink("(" + T("Admin.JobPosting.BackToList") + ")", "Index")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />
+            @Html.ActionLink(T("Admin.Common.Cancel").Text, "Index", "DirectHireJobOrder", null, new { @class = "k-button" })
+        </div>
+    </div>
+
+
+    @Html.Partial("_CreateOrUpdate", Model)
+
+
+    <div class="section-header">
+        <div class="title">
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+        </div>
+    </div>
+}
+
+
+<script type="text/javascript">
+    $('form input[type=submit]').click(function () {
+        tinyMCE.triggerSave();
+    });
+</script>

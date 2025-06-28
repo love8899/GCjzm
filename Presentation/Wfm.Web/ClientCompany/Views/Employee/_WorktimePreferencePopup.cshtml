@@ -1,0 +1,133 @@
+﻿@using Wfm.Core
+@using Wfm.Client.Models.Employees
+
+@model EmployeeAvailabilityModel
+
+
+@{
+    //required in order to render validation attributes
+    ViewContext.FormContext = new FormContext();
+}
+
+@functions{
+    public Dictionary<string, object> generateDatePickerAttributes(
+           string elementId,
+           string fieldName,
+           string dataBindAttribute,
+           bool required,
+           Dictionary<string, object> additionalAttributes = null)
+    {
+
+        Dictionary<string, object> datePickerAttributes = additionalAttributes != null ? new Dictionary<string, object>(additionalAttributes) : new Dictionary<string, object>();
+
+        datePickerAttributes["id"] = elementId;
+        datePickerAttributes["name"] = fieldName;
+        datePickerAttributes["data-bind"] = dataBindAttribute;
+        if (required)
+            datePickerAttributes["required"] = "required";
+        datePickerAttributes["style"] = "z-index: inherit;";
+
+        return datePickerAttributes;
+    }
+}
+<form id="worktime-prefernce-form">
+    <div class="section-header">
+        <div class="title">
+            @(Model.Id > 0 ? T("Common.Edit").Text : T("Common.Add").Text) - @T("Admin.Accounts.Account.WorktimePreference").Text
+        </div>
+        <div class="options">
+            <input type="button" name="save" id="save-worktime-preference" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="button" name="close" id="close-worktime-preference" class="k-button" value="@T("Common.Close")" />
+        </div>
+    </div>
+
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.EmployeeIntId)
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+    @Html.HiddenFor(model => model.UpdatedOnUtc) 
+    
+    <div class="k-edit-label" style="width:25%;">
+        @(Html.LabelFor(model => model.EmployeeAvailabilityType))
+    </div>
+    <div class="k-edit-field" style="width:70%;">
+        @(Html.Kendo().ComboBoxFor(model => model.EmployeeAvailabilityType)
+        .HtmlAttributes(new { data_bind = "value:EmployeeAvailabilityType", style = "width: 250px" })
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .BindTo(Model.EmployeeAvailabilityTypeList)
+        )
+    </div>
+    <div class="k-edit-label" style="width:25%;">
+        @(Html.LabelFor(model => model.DayOfWeek))
+    </div>
+    <div class="k-edit-field" style="width:70%;">
+        @(Html.Kendo().ComboBoxFor(model => model.DayOfWeek)
+        .HtmlAttributes(new { data_bind = "value:DayOfWeek", style = "width: 250px" })
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .BindTo(Model.DayOfWeekList)
+        )
+    </div>
+    <div class="k-edit-label" style="width:25%;">
+        @Html.LabelFor(model => model.IsAllDay)
+    </div>
+    <div data-container-for="IsAllDay" class="k-edit-field" style="width:70%;">
+        @*<input type="checkbox" name="isAllDay" data-type="boolean" data-bind="checked:isAllDay">*@
+        @Html.CheckBoxFor(model => model.IsAllDay, new { data_type = "boolean", data_bind = "checked:isAllDay" })
+        @Html.WfmValidationMessageFor(model => model.IsAllDay)
+    </div>
+
+    <div class="k-edit-label notForAllDay" style="width:25%;">
+        @(Html.LabelFor(model => model.StartTimeOfDay))
+    </div>
+    <div data-container-for="StartTimeOfDay" class="k-edit-field notForAllDay" style="width:70%;">
+        @(Html.Kendo().TimePickerFor(model => model.StartTimeOfDay)
+                .HtmlAttributes(new { style = "width: 250px", invisible = "isAllDay", type = "text" })
+        )
+        @Html.WfmValidationMessageFor(model => model.StartTimeOfDay)
+    </div>
+
+    <div class="k-edit-label notForAllDay" style="width:25%;">
+        @(Html.LabelFor(model => model.EndTimeOfDay))
+    </div>
+    <div data-container-for="EndTimeOfDay" class="k-edit-field notForAllDay" style="width:70%;">
+        @(Html.Kendo().TimePickerFor(model => model.EndTimeOfDay)
+                .HtmlAttributes(new { style = "width: 250px", invisible = "isAllDay", type = "text" })
+        )
+        @Html.WfmValidationMessageFor(model => model.EndTimeOfDay)
+    </div>
+    <div class="k-edit-label" style="width:25%;">
+        @Html.LabelFor(model => model.StartDate)
+    </div>
+    <div data-container-for="StartDate" class="k-edit-field" style="width:70%;">
+        @(Html.Kendo().DatePickerFor(model => model.StartDate)
+                .Format("yyyy-MM-dd")
+                .Start(CalendarView.Month))
+        @Html.WfmValidationMessageFor(model => model.StartDate)
+    </div>
+    <div class="k-edit-label" style="width:25%;">
+        @Html.LabelFor(model => model.EndDate)
+    </div>
+    <div data-container-for="EndDate" class="k-edit-field" style="width:70%;">
+        @(Html.Kendo().DatePickerFor(model => model.EndDate)
+                .Format("yyyy-MM-dd")
+                .Start(CalendarView.Month))
+        @Html.WfmValidationMessageFor(model => model.EndDate)
+    </div>
+</form>
+<script>
+    function showHideStartEnd() {
+        if ($('#IsAllDay').attr('checked')) {
+            $(".notForAllDay").hide();
+        } else {
+            $(".notForAllDay").show();
+        }
+    }
+    $(function(){
+        $('#IsAllDay').change(function () {
+            showHideStartEnd();
+        })
+        showHideStartEnd();
+    })
+</script>

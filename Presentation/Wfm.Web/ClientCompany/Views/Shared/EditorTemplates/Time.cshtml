@@ -1,0 +1,8 @@
+@model DateTime?
+
+@(Html.Kendo().TimePickerFor(m => m)
+    .Format("HH:mm")
+    .Enable((bool?)ViewData["Enable"] ?? true)
+    .Events(e => e.Change((string)ViewData["onChange"] ?? "doNothing"))
+    .HtmlAttributes(Wfm.Core.CommonHelper.Merge(new { type = "text" }, ViewData["HtmlAttr"]))
+)

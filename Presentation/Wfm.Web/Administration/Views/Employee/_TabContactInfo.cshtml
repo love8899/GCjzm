@@ -1,0 +1,45 @@
+﻿@{
+    Layout = null;
+}
+<div class="section-header">
+    <div class="options">
+        <input type="button" id="UpdateContactInfo" class="k-button" value="Save" onclick="updateContactInfo()" />
+        <input type="button" id="RefreshContactInfo" class="k-button" value="Cancel"  onclick="refreshContactInfo()"/>
+    </div>
+</div>
+<div id="contact-info-div">
+    @Html.Action("_ContactInfo", new { guid = ViewBag.CandidateGuid })
+</div>
+<br />
+<br />
+<div class="section-header">
+    <div class="title">@T("Admin.Candidate.CandidateAddress")</div>
+</div>
+<div id="address-list">
+    @Html.Action("_AddressList", new { candidateGuid = ViewBag.CandidateGuid })
+</div>
+
+<script>
+    function refreshContactInfo() {
+       $("#contact-info-div").load('@Url.Action("_ContactInfo", "Employee", new { guid = ViewBag.CandidateGuid })');
+    }
+
+    function updateContactInfo() {
+        var form = $('#contact-info-form');
+        if (form.valid()) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("_UpdateContactInfo", "Employee")',
+                data: form.serialize(),
+                success: function (response) {
+                    if (response.Result) {
+                        alert("Contact info is updated");
+                    }
+                    else {
+                        alert(response.ErrorMessage);
+                    }
+                }
+            });
+        }
+    }
+</script>

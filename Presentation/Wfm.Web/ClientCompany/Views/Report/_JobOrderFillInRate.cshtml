@@ -1,0 +1,12 @@
+﻿@{
+    Layout = "_ReportViewerLayout";
+    ViewBag.ReportFile = "JobOrderFillInRateReport";
+
+    ViewBag.ReportParameters = new
+    {
+        FromDate = ViewBag.StartDate,
+        ToDate = ViewBag.EndDate,
+        CompanyId = ViewBag.CompanyId,
+        franchiseId = 0
+    };
+}

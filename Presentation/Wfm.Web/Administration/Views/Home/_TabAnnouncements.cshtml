@@ -1,0 +1,43 @@
+﻿<h2>@T("Admin.Configuration.Announcements").Text</h2>
+
+<div id="viewAnnouncements" style="overflow:auto; height:700px;"></div>
+<script>
+    $(document).ready(function () {
+        LoadAnnouncements();
+    }); 
+
+    $('body').on('click', '.clsMarkAsRead', function () {
+        var announcementguid = $(this).attr('announcementGuid');
+        markAnnouncementAsRead(announcementguid);
+    });
+    function markAnnouncementAsRead(announcementguid)
+        {
+        $.ajax({
+                cache: false,
+                url: '@(Url.Action("MarkAnnouncementAsRead", "Home"))',
+                data: { announcementGuid: announcementguid },
+                datatype: 'json',
+                type: 'post',
+                success: function (result) {
+                    if (result.success) {
+                        LoadAnnouncements();
+                    }
+                    else {
+                        alert("Failed to update!");
+                    }
+                }
+            });
+    }
+    function LoadAnnouncements() {
+        $.ajax({
+            cache: false,
+            url: '@(Url.Action("GetAnnouncementView", "Home"))',
+            data: null,
+            datatype: 'json',
+            type: 'post',
+            success: function (result) {
+                $("#viewAnnouncements").html(result);
+            }
+        });
+    }
+</script>

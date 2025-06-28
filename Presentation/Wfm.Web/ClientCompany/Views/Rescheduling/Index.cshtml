@@ -1,0 +1,36 @@
+﻿@model Wfm.Shared.Models.Search.SearchTimeSheetModel
+@{
+    ViewBag.PageTitle = T("Client.Rescheduling").Text;
+
+    ViewBag.Title = @T("Client.Rescheduling").Text;
+    Html.SetActiveMenuItemSystemName("Rescheduling");
+
+    var today = DateTime.Today;
+    var todayUtcStr = today.ToUniversalTime().ToString("s");
+}
+
+@section Options {
+    <div class="date-ref">
+        @Html.Label("startDate", T("Common.Date").Text)
+        @Html.Editor("startDate", "Date", new { Value = today, Min = today, OnChange = "onStartDateChange" })
+    </div>
+}
+
+<div id="contentDiv">
+    @Html.Partial("_MoveForToday", Model)
+</div>
+
+@section scripts {<script type="text/javascript">
+    $(function () { collapseSearchBox(); })
+    function onRead(e) { return getGridOptions(); }
+    function onDataBound(e) {
+        setGridResponsive(e.sender);
+    }
+    function onStartDateChange(e) {
+        var startDate = $('#startDate').data('kendoDatePicker').value();
+        $('#contentDiv').load(startDate > new Date('@todayUtcStr') ? '@Url.Action("_MoveForFuture")' : '@Url.Action("_MoveForToday")',
+            { refDate: $('#startDate').val() },
+            function (response, status, xhr) { initSearchAndGrid(); }
+        );
+    }
+</script>}

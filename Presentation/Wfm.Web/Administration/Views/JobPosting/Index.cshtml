@@ -1,0 +1,208 @@
+﻿@using Wfm.Core.Domain.JobOrders
+@using Wfm.Services.Common;
+@using Wfm.Services.Companies
+@using Wfm.Services.JobOrders
+@using Wfm.Services.Security
+@using Wfm.Shared.Models.JobPosting
+@using Wfm.Core;
+
+
+@{
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    var companySevice = EngineContext.Current.Resolve<ICompanyService>();
+    var allCompanies = companySevice.GetAllCompanies(workContext.CurrentAccount);
+    
+    var jobOrderTypeService = EngineContext.Current.Resolve<IJobOrderTypeService>();
+    var allJobOrderTypers = jobOrderTypeService.GetAllJobOrderTypes();
+
+    var positionService = EngineContext.Current.Resolve<IPositionService>();
+    var allPositions = positionService.GetAllPositions();
+
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var allShifts = shiftService.GetAllShifts(companyId: null);
+
+    var jobOrderStatusService = EngineContext.Current.Resolve<IJobOrderStatusService>();
+    var allJobOrderStatus = jobOrderStatusService.GetAllJobOrderStatus();
+
+    var today = DateTime.Today;
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.JobPostings")
+    </div>
+    <div class="options">
+        @Html.ActionLink(T("Common.Add").Text, "Create", null, new { @class = "k-button" })
+       
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<JobPostingModel>()
+              .Name("job-post-list")
+              .Events(events => events.DataBound("onDataBound"))
+              .Columns(column =>
+              {
+                  column.Bound(x => x.Id).Width(50);
+                  column.ForeignKey(x => x.CompanyId, allCompanies, "Value", "Text");
+
+                  column.Bound(x => x.LocationName).Title("Location");
+                  column.Bound(x => x.DepartmentName).Title("Department").Hidden();
+
+                  column.Bound(x => x.JobTitle);
+                  column.ForeignKey(x => x.JobTypeId, allJobOrderTypers, "Id", "JobOrderTypeName").Width(100).Hidden();
+                  column.ForeignKey(x => x.PositionId, allPositions, "Id", "Name").Title("Position").Width(100).Hidden();
+                  column.ForeignKey(x => x.ShiftId, allShifts, "Id", "ShiftName").Width(100).Hidden();
+                  column.Bound(x => x.StartTime).ClientTemplate("#=kendo.toString(StartTime,'HH:mm')#").Width(75);
+                  column.Bound(x => x.EndTime).ClientTemplate("#=kendo.toString(EndTime,'HH:mm')#").Width(75);
+                  column.Bound(x => x.StartDate).ClientTemplate("#=kendo.toString(StartDate,'yyyy-MM-dd')#").Width(80);
+                  column.Bound(x => x.EndDate).ClientTemplate("#if(EndDate==null){# #}else{# #=kendo.toString(EndDate,'yyyy-MM-dd')# #}#").Width(80);
+                  column.ForeignKey(x => x.JobPostingStatusId, allJobOrderStatus, "Id", "JobOrderStatusName").Width(60);
+                  column.Bound(x => x.NumberOfOpenings).Width(70).HtmlAttributes(new { style = "text-align:right" });
+
+                  column.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd hh:mm')#").Width(110).Hidden();
+                  column.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd hh:mm')#").Width(110).Hidden();
+                  column.Bound(x => x.SubmittedOnUtc).ClientTemplate("#if (SubmittedOnUtc == null) {# #}else{# #=kendo.toString(SubmittedOn, 'yyyy-MM-dd HH:mm')# #}#").Width(110);
+                  column.Bound(x => x.PublishedOnUtc).ClientTemplate("#if (PublishedOnUtc == null) {# #}else{# #=kendo.toString(PublishedOn, 'yyyy-MM-dd HH:mm')# #}#").Width(110).Hidden();
+                  column.Bound(x => x.IsPublished)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsPublished.ToString().ToLowerInvariant() + ".png")" />)                    
+                         .ClientTemplate("#if (IsPublished == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(70);
+                 
+                  column.Bound(x => x.Id).Filterable(false).Sortable(false)
+                .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center;" })
+                .ClientTemplate(
+                "#if (IsPublished) {# #}else{# <a class='k-button' title='" + T("Common.Edit").Text + "' href=\"" + @Url.Content("~/Admin/JobPosting/Edit?guid=") + "#= JobPostingGuid #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a> #}#" +
+            "<a class='k-button' title='" + T("Admin.Common.Copy").Text + "' href=\"" + @Url.Content("~/Admin/JobPosting/CopyJobPosting?guid=") + "#= JobPostingGuid #\"><span class='k-icon k-i-restore'></span></a>" +
+                "<a class='k-button' title='" + T("Admin.JobPosting.Publish").Text + "' href=\"" + @Url.Content("~/Admin/JobPosting/Publish?guid=") + "#= JobPostingGuid #\"><span class='fa fa-share-alt'></span></a>" +
+                "#if (EndDate) {# #}else{# <a class=\"k-button close-job-post\" title='" + T("Common.Close").Text + "' data-rowid=\"#=JobPostingGuid#\"><span class='k-icon k-i-close'></span></a>#}#"
+
+                )
+                .Title("").Width(230);
+              })
+        .EnableCustomBinding(true)
+        .Reorderable(reorder => reorder.Columns(true))
+        .Resizable(resize => resize.Columns(true))
+        .ColumnMenu()
+        .Sortable()
+        .Selectable()
+        .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+        .DataSource(dataSource => dataSource
+                .Ajax()
+                .ServerOperation(false)
+                .PageSize(20)
+                .Read(read => read.Action("List", "JobPosting"))
+                .Sort(s => s.Add("UpdatedOnUtc").Descending())
+        )
+        .Filterable(filterable => filterable
+            .Extra(false)
+            .Operators(operators => operators
+                .ForString(str => str.Clear()
+                    .Contains("Contains")
+                    .IsEqualTo("Is equal to")
+                    .IsNotEqualTo("Is not equal to")
+                )
+            )
+        )
+            )
+        </td>
+    </tr>
+</table>
+<div style="font-size:small;font-weight:bold">
+    @T("Client.JobPosting.Note")
+</div>
+<div id="confirmation-dialog" style="display:none"></div>
+
+<script type="text/javascript">
+
+    function refreshJobPostGrid() {
+        var grid = $("#job-post-list").data("kendoGrid");
+        grid.dataSource.page(1);
+        grid.dataSource.read();
+    }
+
+    function showOrHideButton(e) {
+        var grid = $("#job-post-list").data("kendoGrid");
+        var data = grid.dataSource.data();
+        currentRow = 0;
+        for (var i = 0; i < data.length; i++) {
+            var currentData = data[i];
+            var theRow = grid.tbody.find(">tr").eq(currentRow);
+            if (currentData.IsPublished) {
+                theRow.find(".k-grid-Publish").remove();
+            }
+            currentRow++;
+        }
+        grid.tbody.find('>tr').each(function () {
+            var dataItem = grid.dataItem(this);
+            if (dataItem.CancelRequestSent) {
+                $(this).css('background', '#ffcc66');
+            }
+        });
+    }
+
+    function onDataBound(e) {
+        showOrHideButton(e);
+        $(".close-job-post").bind("click", function (e) {            
+            var jobPositngId = $(this).attr('data-rowid');
+            $(document.body).append('<div id="close-jobposting"></div>');
+            $("#close-jobposting").kendoWindow({
+                title: "Close Job Posting",
+                modal: true,
+                resizable: false,
+                width: 480,
+                height: 220,
+                content: '@Url.Action("_CloseJObPosting", "JobPosting")' + '?guid=' + jobPositngId,
+                close: function () {
+                    setTimeout(function () {
+                        $('#close-jobposting').kendoWindow('destroy');
+                    }, 200);
+                },
+                refresh: function (e) {
+                    var win = this;
+                    $('#btn-cancel').click(function () {
+                        win.close();
+                    })
+                    $('#btn-save').click(function () {
+                        var form = $('#close-jobposting-form');
+                        if (form.valid()) {
+                            var link = '@Url.Action("_CloseJObPosting", "JobPosting")' + '?guid=' + jobPositngId;
+                            $.ajax({
+                                type: "POST",
+                                url: link,
+                                data: form.serialize(),
+                                success: function (response) {
+                                    if (response.Result) {
+                                        var endDate = $("#CloseDate").data("kendoDatePicker").value();
+                                        ShowNotification("Job Posting close at " + endDate.toISOString().split('T')[0]);
+                                        win.close();
+                                        refreshJobPostGrid();
+                                    }
+                                    else {
+                                        alert(response.ErrorMessage);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            }).data('kendoWindow').center();
+        });
+    }
+
+    function publishJob(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        alert(dataItem.Id);
+    }
+
+    function ShowNotification(msg) {
+        $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+        $(".messageBox").text(msg);
+    }
+
+</script>

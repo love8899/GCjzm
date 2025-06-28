@@ -1,0 +1,43 @@
+﻿@{
+    Layout = "_ReportLayout";
+    ViewBag.ReportTitle = "Turnover Chart";
+
+    ViewBag.Title = "Turnover Chart";
+    Html.SetActiveMenuItemSystemName("TurnoverChart");
+
+    var startDate = DateTime.Today.Date.AddDays(-7);
+    var endDate = DateTime.Today;
+}
+
+@Html.InputLine("fromDate", "From", tmplt: "Date", viewData: new { Value = startDate, OnChange = "startDateChange" })
+@Html.InputLine("toDate", "To", tmplt: "Date", viewData: new { Value = endDate })
+
+<script type="text/javascript">
+    var reportParams = {};
+    var reportUrl = '_TurnoverChart';
+    function valParams() {
+        var result = false;
+        var fromDate = $("#fromDate").val();
+        var toDate = $("#toDate").val();
+        if (!fromDate)
+            popupNotification('Please select start date!', 'error');
+        else if (!toDate)
+            popupNotification('Please select end date!', 'error');
+        else {
+            result = true;
+            reportParams = {
+                startDate: fromDate,
+                endDate: toDate
+            };
+        }
+        return result;
+    }
+    function startDateChange() {
+        var startDate = this.value();
+        var endPicker = $("#toDate").data("kendoDatePicker");
+        if (startDate) {
+            startDate = new Date(startDate);
+            endPicker.min(startDate);
+        }
+    }
+</script>

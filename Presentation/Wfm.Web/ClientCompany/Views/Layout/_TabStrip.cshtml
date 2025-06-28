@@ -1,0 +1,48 @@
+﻿@*@using Wfm.Services.Events
+@using Wfm.Web.Framework.Events*@
+@using Wfm.Web.Framework.Localization
+@{
+    Layout = null;
+    var tabStripName = ViewBag.TabStripName;
+    var tabs = ViewBag.Tabs as Tuple<string, LocalizedString, HelperResult, bool>[];
+}
+
+<div id="@tabStripName" class="nav-tabs-custom">
+    <input type="hidden" id="selected-tab-name" name="selected-tab-name" value="@(Html.GetSelectedTabName())">
+    <ul class="nav nav-tabs">
+        @for (var i = 0; i < tabs.Length; i++)
+        {
+            if (i == 0 || ViewBag.Update)
+            {
+                @Html.RenderBootstrapTabHeader(tabs[i].Item1, tabs[i].Item2, tabs[i].Item4)
+            }
+        }
+    </ul>
+    <div class="tab-content">
+        @for (var i = 0; i < tabs.Length; i++)
+        {
+            if (i == 0 || ViewBag.Update)
+            {
+                @Html.RenderBootstrapTabContent(tabs[i].Item1, tabs[i].Item3, tabs[i].Item4)
+            }
+        }
+    </div>
+</div>
+
+@*@{
+    //custom tabs
+    var eventMessage = new AdminTabStripCreated(this.Html, tabStripName);
+    EngineContext.Current.Resolve<IEventPublisher>().Publish(eventMessage);
+    foreach (var eventBlock in eventMessage.BlocksToRender)
+    {
+        @eventBlock
+    }
+}*@
+
+@RenderBody()
+
+<script type="text/javascript">
+    $(function () { bindBootstrapTabSelectEvent('@tabStripName'); });
+</script>
+
+@RenderSection("scripts", false)

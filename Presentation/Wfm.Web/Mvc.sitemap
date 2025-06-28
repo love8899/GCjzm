@@ -1,0 +1,156 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<mvcSiteMap xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://mvcsitemap.codeplex.com/schemas/MvcSiteMap-File-3.0"
+            xsi:schemaLocation="http://mvcsitemap.codeplex.com/schemas/MvcSiteMap-File-3.0 MvcSiteMapSchema.xsd"
+            enableLocalization="true">
+
+  <mvcSiteMapNode title ="Home" controller="Home" action ="Index">
+    <!-- Home -->
+    <mvcSiteMapNode title="About Us" controller="Home" action="AboutUs"/>
+    <mvcSiteMapNode title="Contact Us" controller ="Home" action ="ContactUs" />
+    <mvcSiteMapNode title="Office Locations" controller ="Home" action ="Locations" />
+    <mvcSiteMapNode title="Franchise Opportunities" controller ="Home" action ="FranchiseOpportunities" />
+    <mvcSiteMapNode title ="Privacy Policy" controller="Home" action ="PrivacyPolicy" />
+    <mvcSiteMapNode title ="Terms of Use" controller="Home" action ="TermsOfUse" />
+    <mvcSiteMapNode title ="Application Agreement" controller="Home" action ="ApplicationAgreement" />
+    <mvcSiteMapNode title ="Corporate Social Responsibility" controller="Home" action ="CorporateSocialResponsibility" />
+
+    <!-- Candidate -->
+    <mvcSiteMapNode title ="My Account" controller ="Candidate" action ="Index">
+      <mvcSiteMapNode title ="Creat New Account" controller ="Candidate" action ="NewRegister" />
+      <mvcSiteMapNode title ="Registration in office" controller ="CandidateRegistration" action ="InOfficeRegistration" />
+      <mvcSiteMapNode title ="Registration Wizard" controller ="CandidateRegistration" action ="RegistrationWizard" />
+      <mvcSiteMapNode title ="Can't access your account " controller ="Candidate" action ="RetrieveByEmail" />
+      <mvcSiteMapNode title ="Retrieve Password" controller ="Candidate" action ="CandidateRecovery" />
+
+      <mvcSiteMapNode title ="Sign In" controller ="Candidate" action ="SignIn" />
+
+      <mvcSiteMapNode title ="Dashboard" controller ="Candidate" action ="Index" />
+      <mvcSiteMapNode title ="Announcements" controller ="Candidate" action ="Announcements" />
+      
+      <mvcSiteMapNode title ="Reset Password" controller ="Candidate" action ="ResetPassword" />
+      <mvcSiteMapNode title ="Change Password" controller ="Candidate" action ="ChangePassword" />
+      <mvcSiteMapNode title ="Apply Job" controller ="Candidate" action ="ApplyJob" />
+      
+      <mvcSiteMapNode title ="Profile" controller ="Candidate" action ="ViewProfile" />
+      <mvcSiteMapNode title ="Update Profile" controller ="Candidate" action ="UpdateProfile" />
+      <mvcSiteMapNode title ="Change Security Questions" controller ="Candidate" action ="ChangeSecurityQuestions" />
+      
+      <mvcSiteMapNode title ="Attachment" controller ="Candidate" action ="AddCandidateAttachment" />
+      
+      <mvcSiteMapNode title ="Test" controller ="Candidate" action ="TestIndex">
+        <mvcSiteMapNode title ="Safety Test" controller ="Candidate" action ="SafetyTest" />
+        <mvcSiteMapNode title ="WHMIS Test" controller ="Candidate" action ="WHMISTest" />
+        <mvcSiteMapNode title ="General Labour Test" controller ="Candidate" action ="GeneralLabourTest" />
+        <mvcSiteMapNode title ="Begin Test" controller ="Candidate" action ="BeginTest" preservedRouteParameters="categoryId" />
+        <mvcSiteMapNode title ="Candidate Test" controller ="Candidate" action ="CandidateTest" />
+        <mvcSiteMapNode title ="Test Video" controller ="Candidate" action ="TestVideo" />
+        CandidateTest
+      </mvcSiteMapNode>
+      
+      <mvcSiteMapNode title ="Email Notification" controller ="Candidate" action ="MessageNotifications" />
+      <mvcSiteMapNode title ="Work History" controller ="Candidate" action ="CandidateWorkHistoryIndex" key ="WorkHistory" >
+        <mvcSiteMapNode title ="Add new work history" controller ="Candidate" action ="CandidateWorkHistoryCreate" />
+        <!-- [MvcSiteMapNode(Title = "Edit ", ParentKey = "WorkHistory")] -->
+      </mvcSiteMapNode>
+      
+      <mvcSiteMapNode title ="Key Skill" controller ="Candidate" action ="CandidateKeySkillIndex" key ="KeySkill" >
+        <mvcSiteMapNode title ="Add key skill" controller ="Candidate" action ="CandidateKeySkillCreate" />
+        <mvcSiteMapNode title ="Update key skill" controller ="Candidate" action ="CandidateKeySkillEdit" />
+        <!-- [MvcSiteMapNode(Title = "Edit ", ParentKey = "KeySkill")] -->
+      </mvcSiteMapNode>
+      
+      <!--Schedule-->
+      <mvcSiteMapNode title ="Availability" controller ="Candidate" action ="Availability" />
+      <mvcSiteMapNode title ="Applied Jobs" controller ="Candidate" action ="AppliedJobs" />
+      <!--Time Sheet-->
+      <mvcSiteMapNode title ="Time Entry" controller ="Candidate" action ="TimeEntry" />
+      <mvcSiteMapNode title ="Time Sheets" controller ="Candidate" action ="WorkTimeByCandidateInWeb" />
+      <mvcSiteMapNode title ="Payment History" controller ="Candidate" action ="PaymentHistory" />
+      <mvcSiteMapNode title ="Tax Forms" controller ="Candidate" action ="TaxForms" />
+    </mvcSiteMapNode>
+    <!-- End of Candidate -->
+
+    <!-- Job Jobs -->
+    <mvcSiteMapNode title ="Jobs" controller ="JobPost" action ="Index">
+      <mvcSiteMapNode title ="Job Categories" controller ="JobPost" action ="JobCategories" preservedRouteParameters="jobordercategoryid, seoName" />
+      <mvcSiteMapNode title ="Job Details" controller ="JobPost" action ="JobDetails" preservedRouteParameters="jobOrderId, seoName" />
+    </mvcSiteMapNode>
+    <!-- End of Jobs -->
+    
+    <!-- Job Seekers -->
+    <mvcSiteMapNode title ="Job Seekers" controller ="JobSeekers" action ="JobSeekers">
+      <mvcSiteMapNode title ="Training and Development" controller ="JobSeekers" action ="JobSeekers_TrainingAndDevelopment" />
+      <mvcSiteMapNode title ="Testimonials" controller ="JobSeekers" action ="JobSeekers_Testimonials" />
+      <mvcSiteMapNode title ="Job Categories" controller ="JobSeekers" action ="JobSeekers_JobCategory">
+        <mvcSiteMapNode title ="Management and Executive" controller ="JobSeekers" action ="JobSeekers_JobCategory_ManagementAndExecutive" />
+        <mvcSiteMapNode title ="Sales and Marketing" controller ="JobSeekers" action ="JobSeekers_JobCategory_SalesAndMarketing" />
+        <mvcSiteMapNode title ="Financial and Accounting" controller ="JobSeekers" action ="JobSeekers_JobCategory_FinancialAndAccounting" />
+        <mvcSiteMapNode title ="Information Technology" controller ="JobSeekers" action ="JobSeekers_JobCategory_InformationTechnology" />
+        <mvcSiteMapNode title ="Life Sciences" controller ="JobSeekers" action ="JobSeekers_JobCategory_LifeSciences" />
+        <mvcSiteMapNode title ="Engineering" controller ="JobSeekers" action ="JobSeekers_JobCategory_Engineering" />
+        <mvcSiteMapNode title ="Industrial and Manufacturing" controller ="JobSeekers" action ="JobSeekers_JobCategory_IndustrialAndManufacturing" />
+        <mvcSiteMapNode title ="Call Centre and Customer Service" controller ="JobSeekers" action ="JobSeekers_JobCategory_CallCentreAndCustomerService" />
+        <mvcSiteMapNode title ="Supply Chain, Logistics and Warehousing" controller ="JobSeekers" action ="JobSeekers_JobCategory_SupplyChainLogisticsAndWarehousing" />
+        <mvcSiteMapNode title ="Administrative and Office" controller ="JobSeekers" action ="JobSeekers_JobCategory_AdministrativeAndOffice" />
+        <mvcSiteMapNode title ="Skilled Trades" controller ="JobSeekers" action ="JobSeekers_JobCategory_SkilledTrades" />
+        <mvcSiteMapNode title ="Others" controller ="JobSeekers" action ="JobSeekers_JobCategory_Others" />
+      </mvcSiteMapNode>
+      <mvcSiteMapNode title ="Job Search Resources" controller ="JobSeekers" action ="JobSeekers_JobSearchResource">
+        <mvcSiteMapNode title ="Preparing Your Resume" controller ="JobSeekers" action ="JobSeekers_JobSearchResource_PreparingYourResume" />
+        <mvcSiteMapNode title ="Writing Effective Job Search Letters" controller ="JobSeekers" action ="JobSeekers_JobSearchResource_WritingEffectiveJobSearchLetters" />
+        <mvcSiteMapNode title ="Networking Essentials" controller ="JobSeekers" action ="JobSeekers_JobSearchResource_NetworkingEssentials" />
+        <mvcSiteMapNode title ="Interview Preparation" controller ="JobSeekers" action ="JobSeekers_JobSearchResource_InterviewPreparation" />
+      </mvcSiteMapNode>
+    </mvcSiteMapNode>
+    <!-- End of Job Seekers -->
+
+    <!-- Employers -->
+    <mvcSiteMapNode title ="Employers" controller ="Employers" action ="Employers">
+      <mvcSiteMapNode title ="Safety and Prevention" controller ="Employers" action ="Employers_SafetyAndPrevention" />
+      <mvcSiteMapNode title ="Training" controller ="Employers" action ="Employers_Training" />
+      <mvcSiteMapNode title ="Testimonials" controller ="Employers" action ="Employers_Testimonials" />
+      <mvcSiteMapNode title ="Find Staff" controller ="Employers" action ="Employers_FindStaff" />
+
+      <mvcSiteMapNode title ="Staffing Solutions" controller ="Employers" action ="Employers_StaffingSolutions">
+        <mvcSiteMapNode title ="Permanent Staffing" controller ="Employers" action ="Employers_StaffingSolutions_PermanentStaffing" />
+        <mvcSiteMapNode title ="Temporary Staffing" controller ="Employers" action ="Employers_StaffingSolutions_TemporaryStaffing" />
+        <mvcSiteMapNode title ="Mass Recruitment Services" controller ="Employers" action ="Employers_StaffingSolutions_MassRecruitmentServices" />
+        <mvcSiteMapNode title ="Temporary Foreign Worker Program" controller ="Employers" action ="Employers_StaffingSolutions_TemporaryForeignWorkerProgram" />
+      </mvcSiteMapNode>
+
+      <mvcSiteMapNode title ="Area Specialties" controller ="Employers" action ="Employers_AreaSpecialties">
+        <mvcSiteMapNode title ="Management and Executive" controller ="Employers" action ="Employers_AreaSpecialties_ManagementAndExecutive" />
+        <mvcSiteMapNode title ="Sales and Marketing" controller ="Employers" action ="Employers_AreaSpecialties_SalesAndMarketing" />
+        <mvcSiteMapNode title ="Financial and Accounting" controller ="Employers" action ="Employers_AreaSpecialties_FinancialAndAccounting" />
+        <mvcSiteMapNode title ="Information Technology" controller ="Employers" action ="Employers_AreaSpecialties_InformationTechnology" />
+        <mvcSiteMapNode title ="Life Sciences" controller ="Employers" action ="Employers_AreaSpecialties_LifeSciences" />
+        <mvcSiteMapNode title ="Engineering" controller ="Employers" action ="Employers_AreaSpecialties_Engineering" />
+        <mvcSiteMapNode title ="Industrial and Manufacturing" controller ="Employers" action ="Employers_AreaSpecialties_IndustrialAndManufacturing" />
+        <mvcSiteMapNode title ="Call Centre and Customer Service" controller ="Employers" action ="Employers_AreaSpecialties_CallCentreAndCustomerService" />
+        <mvcSiteMapNode title ="Supply Chain, Logistics and Warehousing" controller ="Employers" action ="Employers_AreaSpecialties_SupplyChainLogisticsAndWarehousing" />
+        <mvcSiteMapNode title ="Administrative and Office" controller ="Employers" action ="Employers_AreaSpecialties_AdministrativeAndOffice" />
+        <mvcSiteMapNode title ="Skilled Trades" controller ="Employers" action ="Employers_AreaSpecialties_SkilledTrades" />
+        <mvcSiteMapNode title ="Others" controller ="Employers" action ="Employers_AreaSpecialties_Others" />
+      </mvcSiteMapNode>
+
+    </mvcSiteMapNode>
+    <!-- End of Employers -->
+
+    <!-- Associates -->
+    <mvcSiteMapNode title="Associates" controller="Associate" action="Associates">
+      <mvcSiteMapNode title="Employment Guidelines" controller="Associate" action="EmploymentGuidelines"/>
+      <mvcSiteMapNode title="Safety Information" controller="Associate" action="SafetyInformation"/>
+      <mvcSiteMapNode title="Submit Your Timesheet" controller="Associate" action="SubmitYourTimesheet"/>
+    </mvcSiteMapNode>
+    <!--End of Associates -->
+
+    <!-- Blog -->
+    <mvcSiteMapNode title="Blog" controller ="Blog" action ="List" key="Blog">
+      <mvcSiteMapNode title="Post Detail" controller="Blog" action="BlogPostDetails" preservedRouteParameters="blogPostId, seoName" />
+    </mvcSiteMapNode>
+    <!-- End of Blog -->
+
+  </mvcSiteMapNode>
+  <!-- End of Home -->
+</mvcSiteMap>

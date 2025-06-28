@@ -1,0 +1,71 @@
+﻿@using Wfm.Core.Infrastructure
+@using Wfm.Core.Domain.Common
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Industrial and Maufacturing";
+    //var description = siteTitle + " understands that in a manufacturing environment there are always deadlines and pressure to constantly reduce lead-time.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Industrial and Manufacturing</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            @siteTitle understands that in a manufacturing environment there are always
+            deadlines and pressure to constantly reduce lead-time. We’re committed to understanding
+            your needs and the nature of your industry. Whether you require general labourers
+            or skilled help, we can help you minimize costs through reducing spoilage and rework,
+            and to help meet factory/warehouse quotas through our flexible staffing solutions.
+            Contact @siteTitle to fulfill your factory or warehouse needs during peak
+            workloads or to fill a shift.
+        </p>
+        <p>
+            <b>A strong presence in the plant</b>
+        </p>
+        <p>
+            We have experience doing business with companies large and small and have proven
+            techniques for recruitment, orientation and evaluation. We have proven safety training
+            programs that help ensure that your workplace is safe and stays that way. Moreover,
+            we have the resources to get you the right employees for assignments of even the
+            largest magnitude.
+        </p>
+        <ul>
+            <li>@siteTitle is fully covered by WSIB for any job</li>
+            <li>
+                All @siteTitle employees are trained to comply with all safety rules and
+                regulations
+            </li>
+        </ul>
+        <p>
+            @siteTitle provides staffing to a multitude of industries ranging from automotive
+            and transportation to consumer goods and pharmaceuticals and the aviation industry.
+            @siteTitle is your staffing solution for all of your manufacturing and production
+            needs, including:
+        </p>
+        <ul>
+            <li>Assemblers</li>
+            <li>Machinists</li>
+            <li>Equipment operators</li>
+            <li>Production labourers</li>
+            <li>Quality controllers</li>
+            <li>Order pickers, packagers</li>
+            <li>Skilled trades</li>
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,46 @@
+﻿@model CandidateKeySkillModel
+@using Wfm.Core.Infrastructure
+@using Wfm.Services.Common
+@using Wfm.Web.Models.Candidate
+
+@{
+    var skillService = EngineContext.Current.Resolve<ISkillService>();
+    var skillsDropDownList = skillService.GetAllSkills().Select(x => new SelectListItem()
+    {
+        Text = x.SkillName,
+        Value = x.SkillName
+    });
+}
+
+@Html.AntiForgeryToken()
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.CandidateId)
+@Html.HiddenFor(model => model.CandidateKeySkillGuid)
+@Html.HiddenFor(model => model.Note)
+@Html.HiddenFor(model => model.IsDeleted)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+
+<div class="fieldset">
+    <div class="form-fields">
+        <div class="inputs">
+            @Html.LabelFor(model => model.KeySkill)
+            @(Html.Kendo().DropDownList().Name("KeySkill")
+                .OptionLabel("Enter Your Skills").DataTextField("Text").DataValueField("Value")
+                .BindTo(skillsDropDownList)
+            )
+            @Html.WfmValidationMessageFor(model => model.KeySkill)
+        </div>
+        <div class="inputs">
+            @Html.LabelFor(model => model.YearsOfExperience)
+            @Html.EditorFor(model => model.YearsOfExperience)
+            @Html.WfmValidationMessageFor(model => model.YearsOfExperience)
+        </div>
+        <div class="inputs">
+            @Html.LabelFor(model => model.LastUsedDate)
+            @(Html.Kendo().DatePicker().Name("LastUsedDate").HtmlAttributes(new { type = "text" }).Max(DateTime.Today.AddDays(-1)))
+            @Html.WfmValidationMessageFor(model => model.LastUsedDate)
+        </div>
+    </div>
+</div>

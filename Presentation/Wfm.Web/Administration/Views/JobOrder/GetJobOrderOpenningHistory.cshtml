@@ -1,0 +1,13 @@
+﻿@model IList<JobOrderOpeningModel>
+
+@{
+        int start = 0;
+        for (int i = start; i < Model.Count; i++)
+        {
+            var entry = Model[i];
+            <div>
+                @string.Format(T("Admin.JobOrder.JobOrder.Fields.OpeningChanges").ToString(), entry.StartDate.ToString("ddd, MMM dd, yyyy"), entry.OpeningAvailable,
+                               entry.ChangedBy.Length <= 50 ? entry.ChangedBy : entry.ChangedBy.Substring(0, 50))
+            </div>
+        }
+    }

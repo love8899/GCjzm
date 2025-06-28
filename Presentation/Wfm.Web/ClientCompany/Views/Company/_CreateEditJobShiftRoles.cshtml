@@ -1,0 +1,56 @@
+﻿@using Wfm.Core
+@using Wfm.Services.Companies
+@using Wfm.Shared.Models.Companies
+@{
+    var accounts = EngineContext.Current.Resolve<ICompanyContactService>()
+        .GetCompanyContactsByCompanyId(EngineContext.Current.Resolve<IWorkContext>().CurrentAccount.CompanyId);
+}
+<script type="text/javascript">
+    function addJobShiftId() {
+        return { jobShiftId : @(ViewBag.JobShiftId) };
+    }
+    function reTitleDelete(){
+        $('.k-grid-delete').html('<span class="fa fa-trash"></span>');
+    }
+</script>
+<script src="@Url.Content("~/Scripts/admin.common.js?version=1.8")" type="text/javascript"></script>
+@(Html.Kendo().Grid<CompanyShiftJobRoleGridModel>().Name("shift-job-role-grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.CompanyJobRole).ClientTemplate("#=CompanyJobRole.Name#").Width(120);
+        columns.Bound(p => p.MandantoryRequiredCount).Width(80);
+        columns.Bound(p => p.ContingencyRequiredCount).Width(80);
+        columns.Bound(p => p.Supervisor).ClientTemplate("#=Supervisor.Name#").Width(120);
+        columns.Command(command => command.Destroy()).Width(150);
+    })
+    .ToolBar(toolBar =>
+    {
+        toolBar.Create().Text("Add");
+        toolBar.Save().Text("Save");
+    })
+    .Editable(editable => editable.Mode(GridEditMode.InCell))
+    .Pageable()
+    .Sortable()
+    .Scrollable()
+    .HtmlAttributes(new { style = "height:350px;" })
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .ServerOperation(false)
+        .Events(events => events.Error("error_handler"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).Editable(false);
+            model.Field(p => p.CompanyShiftId).Editable(false).DefaultValue(ViewBag.JobShiftId);
+            model.Field(p => p.CompanyJobRole).DefaultValue(ViewBag.DefaultJobRole as CompanyJobRoleDropdownModel);
+            model.Field(p => p.Supervisor).DefaultValue(ViewBag.DefaultSupervisor as AccountDropdownModel);
+        })
+        .PageSize(20)
+        .Read(read => read.Action("EditingShiftJobRole", "Company").Data("addJobShiftId"))
+        .Create(create => create.Action("EditingShiftJobRoleInsert", "Company").Data("addJobShiftId"))
+        .Update(update => update.Action("EditingShiftJobRoleUpdate", "Company").Data("addJobShiftId"))
+        .Destroy(destroy => destroy.Action("EditingShiftJobRoleDelete", "Company"))
+    )
+    .Events(events => events.DataBound("reTitleDelete"))
+)

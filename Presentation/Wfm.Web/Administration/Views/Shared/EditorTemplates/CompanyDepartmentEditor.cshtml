@@ -1,0 +1,14 @@
+﻿@model int
+
+@(Html.Kendo().DropDownListFor(m => m)
+        .AutoBind(false)
+        .OptionLabel("Select Department...")
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .DataSource(dataSource =>
+        {
+            dataSource.Read(read => read.Action("GetCascadeDepartments", "Common").Data("filterDepartments"))
+                    .ServerFiltering(true);
+        })
+)
+@Html.ValidationMessageFor(m => m)

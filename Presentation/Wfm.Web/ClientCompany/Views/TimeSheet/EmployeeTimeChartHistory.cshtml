@@ -1,0 +1,134 @@
+﻿@model Wfm.Shared.Models.Search.SearchTimeSheetModel
+@using Wfm.Core.Domain.Candidates
+
+@{
+    ViewBag.PageTitle = T("Admin.TimeSheet.EmployeeTimeSheetHistory").Text;
+
+    ViewBag.Title = T("Admin.TimeSheet.EmployeeTimeSheetHistory").Text;
+    Html.SetActiveMenuItemSystemName("TimeSheetHistory");
+
+    var gridName = "payperiodtimechart-grid";
+    var serverOperation = false;
+
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+    var displayVendor = commonSettings.DisplayVendor;
+}
+
+@section Options {
+    <a id="exportexcel-selected" class="btn btn-success">
+        <i class="fa fa-file-excel-o"></i>@T("Admin.Common.ExportToExcel")
+    </a>
+    @*<a id="printtopdf-selected" class="btn bg-purple">
+        <i class="fa fa-file-pdf-o"></i>@T("Admin.Common.PrintToPdf")
+    </a>*@
+}
+
+@section Search {
+    @Html.Partial("_SearchTimeSheets", Model, new ViewDataDictionary
+    {
+        { "GridName", gridName },
+        { "DefaultTitle", "Time sheets for latest 4 weeks" },
+        { "Mapping", new Dictionary<string, string>()
+            {
+                { "CandidateId", "EmployeeId" },
+                { "EmployeeId", "EmployeeNumber" },
+            }
+        },
+        { "StatusSelector", false},
+        // below only for non server opertation
+        { "DateField", "SundayDate" },
+        { "NonNumFields", new List<string>() { "EmployeeNumber" } }
+    })
+}
+
+@(Html.Kendo().Grid<EmployeeTimeChartHistory>().Name(gridName)
+    .Events(events => events.DataBound("onDataBound"))
+    .Columns(columns =>
+    {
+        columns.Bound(x => x).Filterable(false).Sortable(false)
+            .Title("<input class='mastercheckbox' type='checkbox'/>")
+            .ClientTemplate("<input type='checkbox' name='checkedRecords' value='#= Id #' class='checkboxGroups'/>")
+            .HtmlAttributes(new { style = "text-align:center" });
+
+        //if (displayVendor)
+        //{
+        //    columns.ForeignKey(x => x.FranchiseId, Model.AvaliableVendors, "Value", "Text").Title(T("Common.Vendor").Text)
+        //        .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0"});
+        //}
+
+        columns.Bound(x => x.EmployeeId).Title("Id")
+            .HeaderHtmlAttributes(new { title = T("Common.BadgeId").Text })
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0" });
+        columns.Bound(x => x.EmployeeNumber).Title("No.")
+            .HeaderHtmlAttributes(new { title = T("Common.EmployeeNumber").Text })
+            .ClientTemplate("<a onclick=getCandidateInfo('#=CandidateGuid#')>#= kendo.toString(EmployeeNumber) #</a>");
+        columns.Bound(x => x.EmployeeFirstName).Title(T("Common.FirstName").Text)
+            .HtmlAttributes(new { @class = "col-xxs-0" });
+        columns.Bound(x => x.EmployeeLastName).Title(T("Common.LastName").Text)
+            .HtmlAttributes(new { @class = "col-xxs-0" });
+
+        //columns.ForeignKey(x => x.CompanyLocationId, Model.AvailableLocations, "Value", "Text").Title(T("Common.Location").Text);
+        //columns.ForeignKey(x => x.CompanyDepartmentId, Model.AvailableDepartments, "Value", "Text").Title(T("Common.Department").Text);
+        //columns.ForeignKey(x => x.CompanyContactId, Model.AvailableContacts, "Value", "Text").Title(T("Common.Contact").Text);
+
+        columns.Bound(x => x.JobTitle)
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0" });
+        //columns.Bound(x => x.PositionCode).Hidden(true);
+        //columns.Bound(x => x.ShiftCode).Hidden(true);
+
+        columns.Bound(x => x.FullWeekName).ClientGroupHeaderTemplate("Wk #=value#").Hidden();
+
+        columns.Bound(x => x.Sunday).Title(T("Common.SundayShort").Text).Format("{0:n2}")
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0", style = "text-align:right", title = "#=SundayName#" });
+        columns.Bound(x => x.Monday).Title(T("Common.MondayShort").Text).Format("{0:n2}")
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0", style = "text-align:right", title = "#=MondayName#" });
+        columns.Bound(x => x.Tuesday).Title(T("Common.TuesdayShort").Text).Format("{0:n2}")
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0", style = "text-align:right", title = "#=TuesdayName#" });
+        columns.Bound(x => x.Wednesday).Title(T("Common.WednesdayShort").Text).Format("{0:n2}")
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0", style = "text-align:right", title = "#=WednesdayName#" });
+        columns.Bound(x => x.Thursday).Title(T("Common.ThursdayShort").Text).Format("{0:n2}")
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0", style = "text-align:right", title = "#=ThursdayName#" });
+        columns.Bound(x => x.Friday).Title(T("Common.FridayShort").Text).Format("{0:n2}")
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0", style = "text-align:right", title = "#=FridayName#" });
+        columns.Bound(x => x.Saturday).Title(T("Common.SaturdayShort").Text).Format("{0:0.00}")
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0", style = "text-align:right", title = "#=SaturdayName#" });
+
+        columns.Bound(x => x.RegularHours).Title("Reg.")
+            .HeaderHtmlAttributes(new { title = "Regular hours" })
+            .HtmlAttributes(new { style = "text-align:right", @class = "boldColumn" }).Format("{0:n2}");
+        columns.Bound(x => x.OTHours).Title("OT")
+            .HeaderHtmlAttributes(new { title = "Overtime hours" })
+            .HtmlAttributes(new { style = "text-align:right", @class = "boldColumn" }).Format("{0:n2}");
+        columns.Bound(x => x.SubTotalHours).Title("Total")
+            .HeaderHtmlAttributes(new { title = T("Common.TotalHours").Text })
+            .HtmlAttributes(new { style = "text-align:right", @class = "boldColumn" }).Format("{0:n2}");
+
+        columns.Bound(x => x.ApprovedBy)
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0" });
+    })
+    .Sortable()
+    .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+    .DataSource(ds => ds.Ajax().ServerOperation(serverOperation).PageSize(10)
+        .Read(read => read.Action("EmployeeTimeChartHistory", "TimeSheet").Data("onRead"))
+        .Group(group => group.AddDescending(e => e.FullWeekName))
+    )
+)
+
+@section Misc {
+    @Html.Partial("_ExportHistory")
+}
+
+@section scripts {<script type="text/javascript">
+    var checkedIds = [];
+    function clearSelection() {
+        if (checkedIds.length)
+            checkedIds.length = 0;  // keep the reference !!!
+    }
+    $(function () { initSearchAndGrid(null, '@gridName', checkedIds); });
+    function onRead(e) { return getGridOptions(); }
+    function onDataBound(e) {
+        setGridResponsive(e.sender);
+        setGridRows(e.sender)
+    }
+    function setGridRows(grid) { setGridCheckBoxStatus(grid, checkedIds); }
+</script>}

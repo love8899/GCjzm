@@ -1,0 +1,306 @@
+﻿@model SmartCardCustomizationModel
+
+<div id="customization">
+
+    @LogoCustomization()
+
+    @PhotoCustomization()
+
+    @FullNameCustomization()
+
+    @EmployeeIdCustomization()
+
+    @BarCodeCustomization()
+
+    @NoteCustomization()
+
+</div>
+
+
+
+@helper LogoCustomization()
+{
+    <div class="logo">
+        <h4>Logo</h4>
+        <table>
+            <tr><td width="100px"></td><td width="60px"></td><td width="20px"></td><td width="100px"></td><td width="60px"></td></tr>
+            <tr>
+                <td>@Html.LabelFor(model => model.Logo.MarginLeft)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.Logo.MarginLeft).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "margin-left" })
+                </td>
+                <td></td>
+                <td>@Html.LabelFor(model => model.Logo.MarginTop)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.Logo.MarginTop).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "margin-top" })
+                </td>
+            </tr>
+            <tr>
+                <td>@Html.LabelFor(model => model.Logo.Width)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.Logo.Width).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "width" })
+                </td>
+                <td></td>
+                <td>@Html.LabelFor(model => model.Logo.Height)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.Logo.Height).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "height" })
+                </td>
+            </tr>
+        </table>
+    </div>
+}
+
+
+@helper PhotoCustomization()
+{
+    <div class="photo">
+        <h4>Photo</h4>
+        <table>
+            <tr><td width="100px"></td><td width="60px"></td><td width="20px"></td><td width="100px"></td><td width="60px"></td></tr>
+            <tr>
+                <td>@Html.LabelFor(model => model.Photo.MarginLeft)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.Photo.MarginLeft).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "margin-left" })
+                </td>
+                <td></td>
+                <td>@Html.LabelFor(model => model.Photo.MarginTop)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.Photo.MarginTop).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "margin-top" })
+                </td>
+            </tr>
+            <tr>
+                <td>@Html.LabelFor(model => model.Photo.Width)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.Photo.Width).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "width" })
+                </td>
+                <td></td>
+                <td>@Html.LabelFor(model => model.Photo.Height)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.Photo.Height).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "height" })
+                </td>
+            </tr>
+        </table>
+    </div>
+}
+
+
+@helper FullNameCustomization()
+{
+    <div class="fullname">
+        <h4>Full Name</h4>
+        <table>
+            <tr><td width="100px"></td><td width="60px"></td><td width="20px"></td><td width="100px"></td><td width="60px"></td></tr>
+            <tr>
+                <td>@Html.Label("Prefix", new { @class = "adminTitle" })</td>
+                <td>
+                    @Html.TextBoxFor(model => model.NamePrefix, new { @class = "adminData k-input", style = "width:100%" })
+                </td>
+            </tr>
+            <tr>
+                <td>@Html.LabelFor(model => model.FullName.MarginLeft)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.FullName.MarginLeft).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "margin-left" })
+                </td>
+                <td></td>
+                <td>@Html.LabelFor(model => model.FullName.MarginTop)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.FullName.MarginTop).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "margin-top" })
+                </td>
+            </tr>
+            <tr>
+                <td>@Html.LabelFor(model => model.FullName.Color)</td>
+                <td>
+                    @Html.Kendo().ColorPickerFor(model => model.FullName.Color).HtmlAttributes(new { stdname = "color" })
+                </td>
+                <td></td>
+                <td>@Html.LabelFor(model => model.FullName.FontSize)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.FullName.FontSize).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "font-size" })
+                </td>
+            </tr>
+        </table>
+        
+    </div>
+}
+
+
+@helper EmployeeIdCustomization()
+{
+    <div class="employeeid">
+        <h4>Employee Id</h4>
+        <table>
+            <tr><td width="100px"></td><td width="60px"></td><td width="20px"></td><td width="100px"></td><td width="60px"></td></tr>
+            <tr>
+                <td>@Html.Label("Prefix", new { @class = "adminTitle" })</td>
+                <td>
+                    @Html.TextBoxFor(model => model.IdPrefix, new { @class = "adminData k-input", style = "width:100%" })
+                </td>
+            </tr>
+            <tr>
+                <td>@Html.LabelFor(model => model.EmployeeId.MarginLeft)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.EmployeeId.MarginLeft).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "margin-left" })
+                </td>
+                <td></td>
+                <td>@Html.LabelFor(model => model.EmployeeId.MarginTop)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.EmployeeId.MarginTop).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "margin-top" })
+                </td>
+            </tr>
+            <tr>
+                <td>@Html.LabelFor(model => model.EmployeeId.Color)</td>
+                <td>
+                    @Html.Kendo().ColorPickerFor(model => model.EmployeeId.Color).HtmlAttributes(new { stdname = "color" })
+                </td>
+                <td></td>
+                <td>@Html.LabelFor(model => model.EmployeeId.FontSize)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.EmployeeId.FontSize).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "font-size" })
+                </td>
+            </tr>
+        </table>
+    </div>
+}
+
+
+@helper BarCodeCustomization()
+{
+    <div class="barcode">
+        <h4>Bar Code</h4>
+        <table>
+            <tr><td width="100px"></td><td width="60px"></td><td width="20px"></td><td width="100px"></td><td width="60px"></td></tr>
+            <tr>
+                <td>Size</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.BarCode.Width).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "width" })
+                </td>
+                <td></td>
+                <td>Margin</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.BarCode.MarginLeft).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "margin-left" })
+                </td>
+            </tr>
+        </table>
+    </div>
+}
+
+
+@helper NoteCustomization()
+{
+    <div class="note">
+        <h4>Note</h4>
+        <table>
+            <tr><td width="100px"></td><td width="60px"></td><td width="20px"></td><td width="100px"></td><td width="60px"></td></tr>
+            <tr>
+                <td>@Html.LabelFor(model => model.Note.MarginLeft)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.Note.MarginLeft).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "margin-left" })
+                </td>
+                <td></td>
+                <td>@Html.LabelFor(model => model.Note.MarginTop)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.Note.MarginTop).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "margin-top" })
+                </td>
+            </tr>
+            <tr>
+                <td>@Html.LabelFor(model => model.Note.MarginRight)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.Note.MarginRight).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "margin-right" })
+                </td>
+                <td></td>
+                <td>@Html.LabelFor(model => model.Note.MarginBottom)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.Note.MarginBottom).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "margin-bottom" })
+                </td>
+            </tr>
+            <tr>
+                <td>@Html.LabelFor(model => model.Note.Color)</td>
+                <td>
+                    @Html.Kendo().ColorPickerFor(model => model.Note.Color).HtmlAttributes(new { stdname = "color" })
+                </td>
+                <td></td>
+                <td>@Html.LabelFor(model => model.Note.FontSize)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.Note.FontSize).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "font-size" })
+                </td>
+            </tr>
+            <tr>
+                <td>@Html.LabelFor(model => model.Note.LineHeight)</td>
+                <td>
+                    @Html.Kendo().NumericTextBoxFor(model => model.Note.LineHeight).Format("#").HtmlAttributes(new { style = "width:100%", stdname = "line-height" })
+                </td>
+            </tr>
+            <tr>
+                @*<td>@Html.Label("Text", new { @class = "adminTitle" })</td>*@
+                <td colspan="5">
+                    @Html.TextAreaFor(model => model.NoteText, new { @class = "adminData k-input", cols = "50", rows = "12", placeholder = "Note text ..." })
+                </td>
+            </tr>
+        </table>
+    </div>
+}
+
+
+<script type="text/javascript">
+
+    function initSetting() {
+
+        $('#customization input[data-role="numerictextbox"]').each(function (e) {
+            var field = $(this).closest('div').prop('className');
+            var value = parseInt($('#' + field).css($(this).attr('stdname')), 10);
+            $('#' + $(this).attr('id')).data('kendoNumericTextBox').value(value);
+        });
+
+        $('#customization input[data-role="colorpicker"]').each(function (e) {
+            var field = $(this).closest('div').prop('className');
+            var value = $('#' + field).css($(this).attr('stdname'));
+            $('#' + $(this).attr('id')).data('kendoColorPicker').value(value);
+        });
+
+    }
+
+    $('#customization input').each(function (e) {
+        var field = $(this).closest('div').prop('className');
+        $(this).bind('change', function () {
+            var valStr = $(this).val();
+            var valInt = parseInt(valStr, 10);
+            var value = valInt ? valInt + "px" : valStr;
+            var attr = $(this).attr('stdname');
+            if (attr) {
+                $('#' + field).css(attr, value);
+                // change addtional barcode attr
+                if (field == 'barcode') {
+                    if (attr == 'width')
+                        $('#' + field).css('height', value)
+                    else if (attr == 'margin-left') {
+                        $('#' + field).css('margin-top', value)
+                        $('#' + field).css('margin-right', value)
+                        $('#' + field).css('margin-bottom', value)
+                    }
+                }
+            }
+        });
+    });
+
+    $('#NamePrefix').bind('change', function () {
+        var value = $(this).val() + " FirstName LastName";
+        $('#fullname').html(value);
+    });
+
+    $('#IdPrefix').bind('change', function () {
+        var value = $(this).val() + " 0123456789";
+        $('#employeeid').html(value);
+    });
+
+    $('#NoteText').bind('change', function () {
+        $('#note').html($(this).val());
+    });
+
+    $('#NoteText').bind('keyup', function (e) {
+        //var key = e.which || e.keyCode;
+        //if (key == 13) {
+        //    $(this).val($(this).val() + '<br/>');
+        //}
+    });
+
+</script>

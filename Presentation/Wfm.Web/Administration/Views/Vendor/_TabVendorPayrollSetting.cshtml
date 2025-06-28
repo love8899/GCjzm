@@ -1,0 +1,132 @@
+﻿@using Wfm.Core.Domain.Payroll
+@model PayrollSetting
+
+<div class="section-header">
+    @*<div class="title">
+            @T("Admin.Common.PayrollSetting")
+        </div>*@
+    <div class="options">
+        @Html.ActionLink(T("Admin.Common.Edit").Text, "EditPayrollSetting", "Vendor", new { guid = Model.FranchiseGuid }, new { @class = "k-button" })
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td colspan="12">
+            <div class="section-header">
+                <h2>
+                    @T("Admin.Vendor.PayrollSetting.DirectDepositInformation")
+                </h2>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.DDFileLayout, T("Admin.PayrollSetting.DDFileLayout").Text)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.DDFileLayout)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Client_Number, T("Admin.PayrollSetting.ClientNumber").Text)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.Client_Number)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Transmission_Header, T("Admin.PayrollSetting.TransmissionHeader").Text)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.Transmission_Header)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.InstitutionNumber, T("Admin.PayrollSetting.InstitutionNumber").Text)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.InstitutionNumber)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.TransitNumber, T("Admin.PayrollSetting.TransitNumber").Text)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.TransitNumber)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.AccountNumber, T("Admin.PayrollSetting.AccountNumber").Text)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.AccountNumber)
+        </td>
+    </tr>
+    <tr>
+        <td colspan="12">
+            <div class="section-header">
+                <h2>
+                    @T("Admin.Vendor.PayrollSetting.PayrollInformation")
+                </h2>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.BusinessNumber, T("Admin.PayrollSetting.BusinessNumber").Text)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.BusinessNumber)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EIRate, T("Admin.PayrollSetting.EIRate").Text)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.EIRate)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.NEQ, T("Admin.PayrollSetting.NEQ").Text)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.NEQ)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.QuebecIdentificationNumber, T("Admin.PayrollSetting.QuebecIdentificationNumber").Text)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.QuebecIdentificationNumber)
+        </td>
+    </tr>
+    <tr>
+        <td colspan="12">
+            <div class="section-header">
+                <h2>
+                    @T("Admin.Vendor.PayrollSetting.RL1Information")
+                </h2>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.RL1TransmitterNumber, T("Admin.PayrollSetting.RL1TransmitterNumber").Text)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.RL1TransmitterNumber)
+        </td>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.RL1SequentialNumber, T("Admin.PayrollSetting.RL1SequentialNumber").Text)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.RL1SequentialNumber)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.RL1XMLSequentialNumber, T("Admin.PayrollSetting.RL1XMLSequentialNumber").Text)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.RL1XMLSequentialNumber)
+        </td>
+    </tr>
+</table>

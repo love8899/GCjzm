@@ -1,0 +1,14 @@
+﻿@{
+    Layout = "_ReportViewerLayout";
+    ViewBag.ReportFile = "TotalHoursBySupervisorReport";
+
+    var _workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    ViewBag.ReportParameters = new
+    {
+        StartDate = ViewBag.StartDate,
+        EndDate = ViewBag.EndDate,
+        CompanyId = _workContext.CurrentAccount.CompanyId,
+        AccountId = _workContext.CurrentAccount.Id,
+        franchiseId = 0
+    };
+}

@@ -1,0 +1,131 @@
+﻿@model PasswordRecoveryModel
+@using Wfm.Shared.Models.Accounts
+@using Wfm.Core.Infrastructure
+@using Wfm.Core.Domain.Common
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.cshtml";
+    ViewBag.PageClass = "html-password-recovery-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    ViewBag.Title = "Retrieve Password - Job Seekers | " + siteTitle + " Employment";
+    ViewBag.Description = siteTitle + " Employment is one of Toronto’s Leading Employment Agencies. We offer leading jobs in Toronto, Markham, Mississauga, Brampton and throughout Ontario.";
+    ViewBag.Keywords = siteTitle + " Employment,Employment,Staffing,Jobs,Temporary,Permanent,Information Technology,Call Centre,General Labour,Warehouse,Accounting,Customer Service,Marketing,Skilled Trades,Manufacturing";
+}
+
+<div class="page password-recovery-page">
+    <div class="page-title">
+        <h1>Retrieve Password</h1>
+    </div>
+    <div class="page-body">
+        @if (!String.IsNullOrEmpty(Model.Result))
+        {
+            <div class="result">
+                @Model.Result
+            </div>
+        }
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+            <p class="tooltip">
+                Please enter the e-mail address for your account. 
+                A verification email will be sent to you. Once you have received it, 
+                you will be able to choose a new password for your account.
+            </p>
+            <div class="fieldset">
+                <div class="form-fields">
+                    <div class="inputs">
+                        @Html.LabelFor(model => model.Email, new { }, ":")
+                        @Html.TextBoxFor(model => model.Email, new { @class = "email" })
+                        @*@Html.RequiredHint()*@
+                        @Html.ValidationMessageFor(model => model.Email)
+                        @*@Html.WfmValidationMessageFor(m => m.Email)*@
+                    </div>
+                </div>
+            </div>
+            <div class="buttons">
+                <input type="submit" name="send-email" class="button-1 password-recovery-button" value="Submit" />
+            </div>
+        }
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@*<div class="main-content">
+    <div class="candidate-retrieve-password-box">
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+            <table>
+                <tr>
+                    <td></td>
+                    <td>
+                        <div class="contentBoxSubTitle">
+                            Can’t access your account? Don’t panic!
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        <div class="contentBoxMessage">
+                            Please enter the e-mail address for your account. A verification token will be sent
+                            to you. Once you have received the token, you will be able to choose a new password
+                            for your account.
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        <br />
+                        <div class="blueLineBreak">
+                        </div>
+                        <br />
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        <div class="InputLabel">
+                            Enter your email address
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        <div class="retrieve-password-input">
+                            @Html.TextBoxFor(m => m.Email, new { @class = "input-box" }) &nbsp;
+                            <input type="image" src="@Url.Content("~/Content/images/cms/btn_submit.png")" alt="Submit" />
+                            @Html.WfmValidationMessageFor(m => m.Email)
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        @ViewBag.Message
+                    </td>
+                </tr>
+            </table>
+        }
+    </div>
+</div>*@

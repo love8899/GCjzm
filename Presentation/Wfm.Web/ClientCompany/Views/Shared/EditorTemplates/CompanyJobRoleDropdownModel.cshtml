@@ -1,0 +1,7 @@
+﻿@model Wfm.Shared.Models.Companies.CompanyJobRoleDropdownModel
+
+@(Html.Kendo().DropDownListFor(m => m)
+        .DataValueField("Id")
+        .DataTextField("Name")
+        .BindTo((System.Collections.IEnumerable)(ViewBag.CompanyJobRoles))
+)

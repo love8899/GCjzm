@@ -1,0 +1,233 @@
+﻿@model CompanyConfirmationEmailModel
+<script type="text/javascript">
+    function filterLocations() { return { companyId: $("#CompanyId").val() }; }
+
+    function filterDepartments() { return { locationId: $("#LocationId").val() }; }
+
+    function filterJobOrders() {
+        return {
+            companyId: $('[name="CompanyId"]').val(),
+            locationId: $('[name="LocationId"]').val(),
+            departmentId: $('[name="DepartmentId"]').val(),
+            startDateString: $('[name="start"]').val(),
+            endDateString: $('[name="end"]').val(),
+            selectGuid: true
+        };
+    }
+    $(function () {
+        $("form").removeData("validator");
+        $("form").removeData("unobtrusiveValidation");
+        $.validator.unobtrusive.parse("form");
+    });
+
+    $('#preview-email').click(function (e) {
+        var form = $('#email-confirmation-form');
+        if (form.valid()) {
+            var jobOrderGuid = $('#JobOrderGuid').val();
+            var start = $('#Start').val();
+            var end = $('#End').val();
+
+            if (jobOrderGuid != '' && jobOrderGuid != '@Guid.Empty') {
+                var openning = $("#AvailableOpening").val();
+                if (openning > 0) {
+                    $(document.body).append('<div id="send-confirmation-email-window2"></div>');
+                    $("#send-confirmation-email-window2").kendoWindow({
+                        title: "Email",
+                        modal: true,
+                        iframe: false,
+                        resizable: true,
+                        width: 1000,
+                        height: 900,
+                        scrollable: true,
+                        content: '@Url.Action("_EmailJobOrderConfirmation", "JobOrder")' + '?candidateGuid=' + '@Model.CandidateGuid' + '&jobOrderGuid=' + jobOrderGuid + '&start=' + kendo.toString(start, 'yyyy-MM-dd') + '&end=' + kendo.toString(end, 'yyyy-MM-dd'),
+                        close: function (e) {
+                            setTimeout(function () {
+                                $('#send-confirmation-email-window2').kendoWindow('destroy');
+                            }, 200);
+                        },
+                        refresh: function (e) {
+                            $.validator.unobtrusive.parse(this.element);
+                            var win = this;
+                            $('#cancel-email').click(function () {
+                                $("#send-confirmation-email-window2").kendoWindow('destroy');
+                            });
+                            $('#send-email').click(function (e) {
+                                tinyMCE.triggerSave();
+                                e.preventDefault();
+                                $.ajax({
+                                    data: $('#email-placement-form').serialize(),
+                                    url: '@Html.Raw(Url.Action("_SendJobOrderConfirmationEmail", "JobOrder"))',
+                                    dataType: "json",
+                                    type: 'post',
+                                    success: function (result) {
+                                        if (!result.Error) {
+                                            $("#send-confirmation-email-window2").data("kendoWindow").close();
+                                            $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+                                            $(".messageBox").text(result.Message);
+                                        }
+                                        else {
+                                            alert(result.Message);
+                                        }
+                                    }
+                                });
+                                $("#send-confirmation-email-window").kendoWindow('destroy');
+                            });
+
+                        }
+                    }).data('kendoWindow').center();
+                }
+                else {
+                    alert("There are no more openings available for the job order since " + kendo.toString(start, 'yyyy-MM-dd') + "!");
+                }
+            }
+            else {
+                alert("Please select a job order!");
+            }
+        }
+    });
+
+    function startChange() {
+        var start = $('#Start').data("kendoDatePicker");
+        $('#End').data("kendoDatePicker").min(start.value());
+        getAvailableOpening();
+    }
+    function getAvailableOpening() {
+        var jobOrderGuid = $('#JobOrderGuid').val();
+        var refDate = $('#Start').val();
+        //alert(jobOrderId);
+        $.ajax({
+            url: '@Url.Action("GetAvailableOpeningByGuid", "JobOrder")' + '?jobOrderGuid=' + jobOrderGuid + '&refDate=' + refDate,
+            type: 'Post',
+            dataType: 'Json',
+            success: function (data) {
+                $("#AvailableOpening").val(data.remain);
+            }
+        })
+    }
+</script>
+@using (Html.BeginForm("", "", FormMethod.Post, new { id = "email-confirmation-form" }))
+{
+    <div class="section-header">
+        <div class="options">
+            <input type="button" name="preview" id="preview-email" class="k-button" value="@T("Common.Send")" />
+            <input type="button" name="cancel" id="cancel-email2" class="k-button" value="@T("Admin.Common.Cancel")" />
+        </div>
+    </div>
+
+
+    @Html.HiddenFor(model => model.CandidateId)
+    @Html.HiddenFor(model => model.CandidateName)
+    <table class="adminContent">
+        @if (Model.CompanyId == 0)
+        {
+            <tr>
+                <td class="adminTitle">
+                    @T("Common.Company")
+                </td>
+                <td class="adminData required">
+                    @(Html.Kendo().DropDownListFor(model => model.CompanyId)
+                        .HtmlAttributes(new { data_bind = "value:CompanyId", style = "width: 250px" })
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                        .OptionLabel("Select a company...")
+                        .DataSource(source =>
+                        source.Read(read => read.Action("GetCascadeCompanies", "Common")).ServerFiltering(true)
+                        )
+                    )
+                    @Html.WfmValidationMessageFor(model => model.CompanyId)
+                </td>
+            </tr>
+        }
+        else
+        {
+            @Html.HiddenFor(model => model.CompanyId)
+        }
+        <tr>
+            <td class="adminTitle">
+                @T("Common.Location")
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownListFor(model => model.LocationId)
+                    .HtmlAttributes(new { data_bind = "value:LocationId", style = "width: 250px" })
+                    .DataTextField("Text")
+                    .DataValueField("Value")
+                    .OptionLabel("Select a location...")
+                    .DataSource(source =>
+                        source.Read(read => read.Action("GetCascadeLocations", "Common").Data("filterLocations")).ServerFiltering(true)
+                    )
+                    .Enable(Model.CompanyId != 0)
+                    .AutoBind(false)
+                    .CascadeFrom("CompanyId")
+                )
+                @Html.WfmValidationMessageFor(model => model.LocationId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Common.Department")
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DropDownListFor(model => model.DepartmentId)
+        .HtmlAttributes(new { data_bind = "value:DepartmentId", style = "width: 250px" })
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .OptionLabel("Select a department...")
+        .DataSource(source =>
+            source.Read(read => read.Action("GetCascadeDepartments", "Common").Data("filterDepartments")).ServerFiltering(true)
+        )
+        .Enable(false)
+        .AutoBind(false)
+        .CascadeFrom("LocationId")
+                )
+                @Html.WfmValidationMessageFor(model => model.DepartmentId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Common.JobOrders")
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownListFor(model => model.JobOrderGuid)
+        .HtmlAttributes(new { style = "width: 400px" })
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .OptionLabel("Select a job order...")
+        .DataSource(source =>
+            source.Read(read => read.Action("GetCascadeJobOrders", "JobOrder").Data("filterJobOrders")).ServerFiltering(true)
+        )
+        .Enable(false)
+        .Events(e => e.Change("getAvailableOpening"))
+        .AutoBind(false)
+        .CascadeFrom("DepartmentId")
+                )
+                @Html.WfmValidationMessageFor(model => model.JobOrderGuid)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @T("Admin.JobOrder.JobOrder.Fields.OpeningAvailable")
+            </td>
+            <td class="adminData">
+                @Html.Kendo().TextBoxFor(model => model.AvailableOpening).HtmlAttributes(new { id = "AvailableOpening" }).Enable(false)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @(Html.LabelFor(model => model.Start))
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DatePickerFor(model => model.Start).Events(e => e.Change("startChange")))
+                @Html.WfmValidationMessageFor(model => model.Start)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @(Html.LabelFor(model => model.End))
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().DatePickerFor(model => model.End).Min(Model.Start))
+                @Html.WfmValidationMessageFor(model => model.End)
+            </td>
+        </tr>
+    </table>
+}

@@ -1,0 +1,178 @@
+﻿@model SearchJobPostingModel
+@using Wfm.Shared.Models.Search
+@using Wfm.Shared.Models.JobPosting
+
+@{
+    ViewBag.PageTitle = T("Common.JobPostings").Text;
+
+    ViewBag.Title = T("Common.JobPostings").Text;
+    Html.SetActiveMenuItemSystemName("TimeSheetHistory");
+
+    var gridName = "job-post-list";
+    var serverOperation = true;
+}
+
+@section Options {
+    <a type="button" class="btn bg-blue" href="@Url.Action("Create")">
+        <i class="fa fa-plus-square"></i>@T("Common.Add")
+    </a>
+}
+
+@section Search {
+    @Html.Partial("_SearchJobPosting", Model, new ViewDataDictionary
+    {
+        { "GridName", gridName },
+        { "DefaultTitle", "Effective within last & next 30 days" },
+        { "Mapping", new Dictionary<string, string>()
+            {
+                { "CandidateId", "EmployeeId" },
+                { "EmployeeId", "EmployeeNumber" },
+            }
+        },
+        // below only for non server opertation
+        { "DateField", "StartDate" },
+    })
+}
+
+@(Html.Kendo().Grid<JobPostingModel>().Name(gridName)
+    .Events(events => events.DataBound("onDataBound"))
+    .Columns(column =>
+    {
+        column.Bound(x => x.Id).Title("No.")
+            .HeaderTemplate("<i class='fa fa-sort-numeric-asc'></i>")
+            .HeaderHtmlAttributes(new { title = "No." });
+
+        //column.Bound(x => x.CompanyJobNumber).Hidden();
+        //column.Bound(x => x.LocationName).Hidden();
+        //column.Bound(x => x.DepartmentName);
+
+        column.Bound(x => x.JobTitle)
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0" });
+
+        column.ForeignKey(x => x.PositionId, Model.AvailablePositions, "Value", "Text").Title("Position")
+            .HtmlAttributes(new { @class = "col-xxs-6 col-xs-3 col-sm-3 col-md-2 cell-lg-2" });
+
+        column.ForeignKey(x => x.ShiftId, Model.AvailableShifts, "Value", "Text")
+            .HtmlAttributes(new { @class = "col-sm-1 col-md-1 cell-lg-1" });
+
+        column.Bound(x => x.StartTime).Title("Time")
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-1 col-md-1 cell-lg-1" })
+            .ClientTemplate("#=kendo.toString(StartTime,'HH:mm')#");
+
+        column.Bound(x => x.EndTime).ClientTemplate("#=kendo.toString(EndTime,'HH:mm')#").Hidden();
+
+        column.Bound(x => x.StartDate).Title("From")
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-1 col-md-1 cell-lg-1" })
+            .ClientTemplate("#=kendo.toString(StartDate,'yyyy-MM-dd')#");
+
+        column.Bound(x => x.EndDate).Title("To")
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-1 cell-lg-1" })
+            .ClientTemplate("#if(EndDate==null){# #}else{# #=kendo.toString(EndDate,'yyyy-MM-dd')# #}#");
+
+        column.ForeignKey(x => x.JobPostingStatusId, Model.AvailableStatus, "Value", "Text")
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0 cell-lg-1" });
+
+        column.Bound(x => x.NumberOfOpenings).Title("Num.")
+            .HeaderTemplate("<i class='fa fa-user'></i>").HeaderHtmlAttributes(new { title = "Opening number" })
+            .HtmlAttributes(new { style = "text-align:right", @class = "col-md-1 cell-lg-1" });
+
+        column.Bound(x => x.IsSubmitted)
+            .HeaderTemplate("<i class='fa fa-upload'></i>").HeaderHtmlAttributes(new { title = "Is submitted?" })
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0", style = "text-align:center" })
+            .ClientTemplate("#if (IsSubmitted == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#");
+        column.Bound(x => x.SubmittedByName).Sortable(false).Title("By")
+            .HeaderHtmlAttributes(new { title = "Submitted by" })
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0 col-md-0" });
+
+        column.Bound(x => x.IsPublished)
+            .HeaderTemplate("<i class='fa fa-share-alt'></i>").HeaderHtmlAttributes(new { title = "Is published?" })
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-0 col-sm-0", style = "text-align:center" })
+            .ClientTemplate("#if (IsPublished == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#");
+
+        column.Bound(x => x.JobPostingGuid).Sortable(false).Title(T("Common.Action").Text)
+            .HtmlAttributes(new { @class = "col-xxs-0 col-xs-5 col-sm-4 col-md-3 cell-lg-4", style = "text-align:center" })
+            .ClientTemplate(
+                "<a class='k-button' title='" + T("Admin.Common.Details").Text + "' href='" + @Url.Content("~/Client/JobPosting/Details?guid=") + "#=JobPostingGuid#'><span class='fa fa-th-list'></span></a>" +
+                "<a class='k-button edit-jobs' title='" + T("Common.Edit").Text + "' href='" + @Url.Content("~/Client/JobPosting/Edit?guid=") + "#=JobPostingGuid#'><span class='fa fa-pencil'></span></a>" +
+                "<a class='k-button' title='" + T("Admin.Common.Copy").Text + "' href='" + @Url.Content("~/Client/JobPosting/CopyJobPosting?guid=") + "#=JobPostingGuid#'><span class='fa fa-clone'></span></a>" +
+                "<a class='k-button submit-jobs' title='" + T("Admin.Common.Submit").Text + "' onclick=\"submitJobPosting(\'#=JobPostingGuid#\')\"><span class='fa fa-share'></span> </a>" +
+                "<a class='k-button cancel-jobs' title='" + T("Admin.Common.Cancel").Text + "' onclick=\"cancelJobPosting(\'#=JobPostingGuid#\')\"><span class='fa fa-ban'></span></a>"
+            //"<a class='k-button delete-jobs' title='" + T("Common.Delete").Text + "' onclick=\"deleteJobPosting(\'#=JobPostingGuid#\')\"><span class='k-icon k-delete'></span></a>"
+            );
+    })
+    .Sortable()
+    .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50 }).Refresh(true))
+    .DataSource(dataSource => dataSource.Ajax().ServerOperation(serverOperation).PageSize(10)
+        .Read(read => read.Action("List", "JobPosting").Data("onRead"))
+        .Group(g => { g.Add(x => x.CompanyLocationId); g.Add(x => x.CompanyDepartmentId); })
+        .Sort(s => { s.Add(x => x.Id).Descending(); })
+    )
+)
+<div style="font-size:small;font-weight:bold">
+    @T("Client.JobPosting.Note")
+</div>
+
+@section scripts {<script type="text/javascript">
+
+    $(function () { initSearchAndGrid(null, '@gridName'); });
+
+    function onRead(e) { return getGridOptions(); }
+
+    function onDataBound(e) {
+        setGridResponsive(e.sender);
+        setGridRows(e.sender);
+    }
+
+    function setGridRows(grid) {
+        grid.tbody.find('>tr').each(function () {
+            var row = $(this);
+            var dataItem = grid.dataItem(this);
+            if (row.hasClass('k-grouping-row')) {
+                var value = dataItem.LocationName;
+                var next = row.next('tr:not(.k-grouping-row)');
+                if (next.length)
+                    value = dataItem.DepartmentName;
+                var groupHeaderContents = row.find('.k-reset').contents();
+                groupHeaderContents[groupHeaderContents.length - 1].nodeValue = value;
+            } else {
+                if (dataItem.IsSubmitted) {
+                    row.find('a.submit-jobs').hide();
+                }
+                if (dataItem.CancelRequestSent) {
+                    row.find('a.cancel-jobs').hide();
+                    //row.css('background-color', '#eee');    // inline overwritten by external .css
+                    row.addClass('disabled');
+                } else if (dataItem.IsPublished) {
+                    row.find('a.edit-jobs').hide();
+                    row.find('a.delete-jobs').hide();
+                }
+            }
+        });
+    }
+
+    function cancelJobPosting(guid) {
+        var getUrl = '@Url.Action("_Cancel")' + '?guid=' + guid;
+        var postUrl = '@Url.Action("_Cancel")';
+        popupPost('cancel-jobposting-dialog', getUrl, 'Cancel Job Posting', 320, 'cancel-jobs-form', postUrl,
+            'The job posting has been cancelled and an email has been sent to inform each vendor!',
+            function (result) { reloadGridByName('@gridName'); }
+        );
+    }
+
+    function submitJobPosting(guid) {
+        var getUrl = '@Url.Action("_Submit")' + '?guid=' + guid;
+        var postUrl = '@Url.Action("_Submit")';
+        popupPost('confirmation-dialog', getUrl, 'Submit Job Posting', 320, 'submit-jobs-form', postUrl,
+            'The job posting has been submitted!', function (result) { reloadGridByName('@gridName'); }
+        );
+    }
+
+    function deleteJobPosting(guid) {
+        var getUrl = '@Url.Action("_Delete")' + '?guid=' + guid;
+        var postUrl = '@Url.Action("_Delete")';
+        popupPost('delete-dialog', getUrl, 'Delete Job Posting', 320, 'delete-jobs-form', postUrl,
+            'The job Posting has been deleted!', function (result) { reloadGridByName('@gridName'); }
+        );
+    }
+
+</script>}

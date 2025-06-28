@@ -1,0 +1,145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<layerModel xmlns:dm0="http://schemas.microsoft.com/VisualStudio/2008/DslTools/Core" xmlns:dm1="http://schemas.microsoft.com/dsltools/SimpleShapesModel" dslVersion="1.0.0.0" Id="f35e24ce-15e0-4552-9360-7f0e04f781ab" xmlns="http://schemas.microsoft.com/VisualStudio/TeamArchitect/LayerDesigner">
+  <layers>
+    <layer Id="ae42ef53-bdb1-44c5-9003-1c58c2d81813" name="Libraries">
+      <childLayers>
+        <layer Id="b8a93ca5-b27a-477b-b087-3f8e79d9a154" name="Core">
+          <references>
+            <reference Id="4fcc037e-e2ad-47b9-9197-96ab4a782b63" name="Wfm.Core.dll">
+              <ArtifactNode Label="Wfm.Core.dll" Category="CodeSchema_Assembly" Id="(Assembly=Wfm.Core)" />
+              <ExpandedNode Id="(Assembly=Wfm.Core)" Label="Wfm.Core.dll" Category="CodeSchema_Assembly">
+                <Category Ref="FileSystem.Category.FileOfType.dll" />
+                <LinkCategory Ref="Represents" />
+              </ExpandedNode>
+            </reference>
+          </references>
+        </layer>
+        <layer Id="6f013cca-2c66-4370-8688-350d2f733362" name="Data">
+          <dependencyToLayers>
+            <dependencyFromLayerToLayer Id="52745aba-7e82-4f58-ae7c-c68f7d99b28f" direction="Forward">
+              <layerMoniker Id="b8a93ca5-b27a-477b-b087-3f8e79d9a154" />
+            </dependencyFromLayerToLayer>
+          </dependencyToLayers>
+          <references>
+            <reference Id="fb5467a0-1134-4047-8cf5-180bd03e91dd" name="Wfm.Data.dll1">
+              <ArtifactNode Label="Wfm.Data.dll" Category="CodeSchema_Assembly" Id="(Assembly=Wfm.Data)" />
+              <ExpandedNode Id="(Assembly=Wfm.Data)" Label="Wfm.Data.dll" Category="CodeSchema_Assembly">
+                <Category Ref="FileSystem.Category.FileOfType.dll" />
+                <LinkCategory Ref="Represents" />
+              </ExpandedNode>
+            </reference>
+          </references>
+        </layer>
+        <layer Id="913756af-bca7-4249-aa3c-51dc81e87d7d" name="Service">
+          <dependencyToLayers>
+            <dependencyFromLayerToLayer Id="f532f63f-15a1-4535-b5c8-86ddc429de4e" direction="Forward">
+              <layerMoniker Id="b8a93ca5-b27a-477b-b087-3f8e79d9a154" />
+            </dependencyFromLayerToLayer>
+            <dependencyFromLayerToLayer Id="9f1bd82e-44a4-4bbf-aeea-25755e5d5a36" direction="Forward">
+              <layerMoniker Id="6f013cca-2c66-4370-8688-350d2f733362" />
+            </dependencyFromLayerToLayer>
+          </dependencyToLayers>
+          <references>
+            <reference Id="ad6556e8-44b6-4d1f-9c8c-93034295b7f3" name="Wfm.Services.dll">
+              <ArtifactNode Label="Wfm.Services.dll" Category="CodeSchema_Assembly" Id="(Assembly=Wfm.Services)" />
+              <ExpandedNode Id="(Assembly=Wfm.Services)" Label="Wfm.Services.dll" Category="CodeSchema_Assembly">
+                <Category Ref="FileSystem.Category.FileOfType.dll" />
+                <LinkCategory Ref="Represents" />
+              </ExpandedNode>
+            </reference>
+          </references>
+        </layer>
+      </childLayers>
+    </layer>
+    <layer Id="8d77d0cd-6b28-4ee5-88b9-b46641d20633" name="Presentation">
+      <dependencyToLayers>
+        <dependencyFromLayerToLayer Id="572f5882-b3c2-45c6-ae01-509d8004f26b" direction="Forward">
+          <layerMoniker Id="ae42ef53-bdb1-44c5-9003-1c58c2d81813" />
+        </dependencyFromLayerToLayer>
+      </dependencyToLayers>
+      <childLayers>
+        <layer Id="b9e5efe9-a37c-4942-9ec1-adddd93e5ef4" name="Public Portal">
+          <dependencyToLayers>
+            <dependencyFromLayerToLayer Id="542b6709-cf32-44ab-bcc5-6e99acaf4a17" direction="Forward">
+              <layerMoniker Id="e14dfba5-2c25-42e5-be76-70340a2620e4" />
+            </dependencyFromLayerToLayer>
+          </dependencyToLayers>
+          <references>
+            <reference Id="29eb2d0c-ed7b-421b-8ac2-211c461cddc2" name="Wfm.Web.dll">
+              <ArtifactNode Label="Wfm.Web.dll" Category="CodeSchema_Assembly" Id="(Assembly=Wfm.Web)" />
+              <ExpandedNode Id="(Assembly=Wfm.Web)" Label="Wfm.Web.dll" Category="CodeSchema_Assembly">
+                <Category Ref="FileSystem.Category.FileOfType.dll" />
+                <LinkCategory Ref="Represents" />
+              </ExpandedNode>
+            </reference>
+          </references>
+        </layer>
+        <layer Id="e14dfba5-2c25-42e5-be76-70340a2620e4" name="Framework">
+          <references>
+            <reference Id="d9c96792-8325-4d34-ad2e-203bec75962f" name="Wfm.Web.Framework.dll">
+              <ArtifactNode Label="Wfm.Web.Framework.dll" Category="CodeSchema_Assembly" Id="(Assembly=Wfm.Web.Framework)" />
+              <ExpandedNode Id="(Assembly=Wfm.Web.Framework)" Label="Wfm.Web.Framework.dll" Category="CodeSchema_Assembly">
+                <Category Ref="FileSystem.Category.FileOfType.dll" />
+                <LinkCategory Ref="Represents" />
+              </ExpandedNode>
+            </reference>
+          </references>
+        </layer>
+        <layer Id="5240931e-01ca-46a8-be86-7cbe8e834d15" name="MSP Portal">
+          <dependencyToLayers>
+            <dependencyFromLayerToLayer Id="bb58bf38-bce3-46ac-af4b-1748bcdcde7b" direction="Forward">
+              <layerMoniker Id="26810317-5871-4326-b72d-022092693d71" />
+            </dependencyFromLayerToLayer>
+            <dependencyFromLayerToLayer Id="c72bd720-937c-4bdf-8770-db5b403f6b08" direction="Forward">
+              <layerMoniker Id="e14dfba5-2c25-42e5-be76-70340a2620e4" />
+            </dependencyFromLayerToLayer>
+          </dependencyToLayers>
+          <references>
+            <reference Id="699e55ec-f099-4dbd-9457-1c130d024f7e" name="Wfm.Admin.dll">
+              <ArtifactNode Label="Wfm.Admin.dll" Category="CodeSchema_Assembly" Id="(Assembly=Wfm.Admin)" />
+              <ExpandedNode Id="(Assembly=Wfm.Admin)" Label="Wfm.Admin.dll" Category="CodeSchema_Assembly">
+                <Category Ref="FileSystem.Category.FileOfType.dll" />
+                <LinkCategory Ref="Represents" />
+              </ExpandedNode>
+            </reference>
+          </references>
+        </layer>
+        <layer Id="26810317-5871-4326-b72d-022092693d71" name="Shared Models">
+          <dependencyToLayers>
+            <dependencyFromLayerToLayer Id="e0d2a666-fb01-4ffb-b1bb-a334b5db736f" direction="Forward">
+              <layerMoniker Id="e14dfba5-2c25-42e5-be76-70340a2620e4" />
+            </dependencyFromLayerToLayer>
+          </dependencyToLayers>
+          <references>
+            <reference Id="fd3b3dfd-d1cf-47b3-961c-609a94d65737" name="Wfm.Shared.dll">
+              <ArtifactNode Label="Wfm.Shared.dll" Category="CodeSchema_Assembly" Id="(Assembly=Wfm.Shared)" />
+              <ExpandedNode Id="(Assembly=Wfm.Shared)" Label="Wfm.Shared.dll" Category="CodeSchema_Assembly">
+                <Category Ref="FileSystem.Category.FileOfType.dll" />
+                <LinkCategory Ref="Represents" />
+              </ExpandedNode>
+            </reference>
+          </references>
+        </layer>
+        <layer Id="53a31bc2-801c-4c90-87c5-78a60fbb6471" name="Client Portal">
+          <dependencyToLayers>
+            <dependencyFromLayerToLayer Id="6e44e327-64eb-495c-b1ed-7131bc6a8984" direction="Forward">
+              <layerMoniker Id="e14dfba5-2c25-42e5-be76-70340a2620e4" />
+            </dependencyFromLayerToLayer>
+            <dependencyFromLayerToLayer Id="e502af3a-9d25-4616-9a47-ec25c4fe2ab4" direction="Forward">
+              <layerMoniker Id="26810317-5871-4326-b72d-022092693d71" />
+            </dependencyFromLayerToLayer>
+          </dependencyToLayers>
+          <references>
+            <reference Id="dfabbf95-9538-4c74-9279-db56f73674b7" name="Wfm.Client.dll">
+              <ArtifactNode Label="Wfm.Client.dll" Category="CodeSchema_Assembly" Id="(Assembly=Wfm.Client)" />
+              <ExpandedNode Id="(Assembly=Wfm.Client)" Label="Wfm.Client.dll" Category="CodeSchema_Assembly">
+                <Category Ref="FileSystem.Category.FileOfType.dll" />
+                <LinkCategory Ref="Represents" />
+              </ExpandedNode>
+            </reference>
+          </references>
+        </layer>
+      </childLayers>
+    </layer>
+  </layers>
+</layerModel>

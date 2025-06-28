@@ -1,0 +1,36 @@
+﻿@model Wfm.Shared.Models.JobPosting.JobPostingEditModel
+
+@{
+    ViewBag.Title = T("Common.JobPosting.AddNewJobPosting").Text;
+}
+
+@using (Html.BeginForm(new { @name = "jobpostcreate" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Common.JobPosting.AddNewJobPosting") @Html.ActionLink("(" + T("Client.JobPost.BackToList") + ")", "Index")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />
+            @Html.ActionLink(T("Admin.Common.Cancel").Text, "Index", "JobPosting", null, new { @class = "k-button" })
+        </div>
+    </div>
+
+    @Html.Partial("_CreateOrUpdate", Model)
+
+    <div class="section-header">
+        <div class="title">
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    $('form input[type=submit]').click(function () {
+        tinyMCE.triggerSave();
+    });
+</script>
+

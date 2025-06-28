@@ -1,0 +1,139 @@
+﻿@using Wfm.Services.Common
+@using Wfm.Services.DirectoryLocation;
+@{
+    ViewBag.Title = T("Admin.Candidate.CandidateAddress.EditAddressDetails").Text;
+    Layout = "";
+
+    var addressTypeService = EngineContext.Current.Resolve<IAddressTypeService>();
+    var cityService = EngineContext.Current.Resolve<ICityService>();
+    var stateProvinceService = EngineContext.Current.Resolve<IStateProvinceService>();
+    var countryService = EngineContext.Current.Resolve<ICountryService>();
+
+    var addressTypes = addressTypeService.GetAllAddressTypes();
+    var cities = cityService.GetAllCities();
+    var stateProvinces = stateProvinceService.GetAllStateProvinces();
+    var countries = countryService.GetAllCountries();
+}
+
+<script>
+    function onChange(e) {
+        if (e.action == "itemchange") {
+            if (e.field == "CountryId") {
+                var model = e.items[0];
+                model.set("StateProvinceId", 0);
+            }
+
+            if (e.field == "StateProvinceId") {
+                var model = e.items[0];
+                model.set("CityId", 0);
+            }
+        }
+    }
+</script>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateAddressModel>()
+                .Name("candidateaddress-grid")
+                    //.BindTo(Model)
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.UnitNumber).Title("Unit #").Width(70);
+                    columns.Bound(x => x.AddressLine1);
+                    columns.Bound(x => x.AddressLine2);
+                    columns.ForeignKey(x => x.CountryId, countries, "Id", "CountryName").Width(150).EditorTemplateName("CountryEditor");
+                    columns.ForeignKey(x => x.StateProvinceId, stateProvinces, "Id", "StateProvinceName").Width(150).EditorTemplateName("StateProvinceEditor");
+                    columns.ForeignKey(x => x.CityId, cities, "Id", "CityName").Width(150).EditorTemplateName("CityEditor");
+                    columns.Bound(x => x.PostalCode).Width(100).EditorTemplateName("PostalCodeEditor").ClientTemplate("#= formatPostalcode(PostalCode) #");
+                    columns.Bound(x => x.IsActive).Width(70)
+                        .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" });
+                    columns.Bound(x => x.Id).Title("Google Map")
+                        .Template(x => Html.Action("MapLookup", "Directory", new
+                        {
+                            x.AddressLine1,
+                            x.CityName,
+                            x.StateProvinceName,
+                            x.CountryName
+                        }))
+                        .ClientTemplate(Html.Action("MapLookup", "Directory", new
+                        {
+                            addressLine1 = "#=AddressLine1#",
+                            cityName = "#=CityName#",
+                            stateProvinceName = "#=StateProvinceName#",
+                            countryName = "#=CountryName#"
+                        }).ToHtmlString())
+                        .Width(100);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#= kendo.toString(UpdatedOn, 'yyyy-MM-dd h:mm:ss tt') #");
+
+                    columns.Command(command => { command.Destroy().Text(" "); }).Width(55);
+                })
+                .ToolBar(toolBar => { toolBar.Save(); toolBar.Create(); })
+                .Editable(editable => editable.Mode(GridEditMode.InCell))
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataBinding => dataBinding
+                    .Ajax()
+                    .PageSize(10)
+                    .Batch(true)
+                    .Events(events => events.Error("error_handler").Change("onChange"))
+                    .Model(model => { 
+                        model.Id(p => p.Id);
+                        model.Field(p => p.CandidateGuid).Editable(false).DefaultValue(ViewBag.CandidateGuid);
+                        model.Field(p => p.CandidateId).Editable(false).DefaultValue(ViewBag.CandidateId);
+                        model.Field(p => p.Id).Editable(false);
+                        model.Field(p => p.CityId).Editable(true); //.DefaultValue(1);
+                        model.Field(p => p.StateProvinceId).Editable(true); //.DefaultValue(1);
+                        model.Field(p => p.CountryId).Editable(true).DefaultValue(2);
+                        model.Field(p => p.IsActive).Editable(true).DefaultValue(true);
+                        model.Field(p => p.AddressTypeId).Editable(true).DefaultValue(1);
+                        model.Field(p => p.UpdatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        model.Field(p => p.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                    })
+                    .Create(update => update.Action("_CreateNewAddress", "Candidate"))
+                    .Read(read => read.Action("_AddressList", "Candidate", new { candidateGuid = ViewBag.CandidateGuid}))
+                    .Update(update => update.Action("_EditAddress", "Candidate"))
+                    .Destroy(update => update.Action("_DeleteAddress", "Candidate"))
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+
+    $(function () {
+        $("form").kendoValidator();
+        $('.k-grid-add').html('Add');
+        $('.k-grid-save-changes').html('Save');
+        $('.k-grid-cancel-changes').html('Cancel');
+    });
+
+    function getCurrentEditedModel() {
+        var grid = $("#candidateaddress-grid").data("kendoGrid");
+        var editRow = grid.tbody.find("tr:has(.k-edit-cell)");
+        return grid.dataItem(editRow);
+    }
+
+    function filterStateProvince() {
+        var model = getCurrentEditedModel();
+        return {
+            countryId: model.CountryId
+        };
+    }
+
+    function filterCities() {
+        var model = getCurrentEditedModel();
+        return {
+            stateProvinceId: model.StateProvinceId
+        };
+    }
+</script>

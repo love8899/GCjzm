@@ -1,0 +1,77 @@
+﻿@model CompanyModel
+@using Wfm.Services.Security
+@using Wfm.Core
+
+@{
+    //ViewBag.Title = T("Admin.Companies.Company.CompanyDetails").Text;
+    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
+    //var _workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+
+@Html.Kendo().TabStrip().Name("company-details-tabstrip").Items(x =>
+{
+    x.Add().Text(T("Common.BasicInformation").Text).Content(CompanyBasicInfoTab().ToHtmlString()).Selected(true);
+    if (permissionService.Authorize("ManageClientCompanyBillingRates"))
+    {
+        x.Add().Text(T("Admin.Companies.Company.CompanyBillingRate").Text).LoadContentFrom(Url.Action("_TabCompanyBillingRates", "Company")).HtmlAttributes(new { id = "tab-billing-rate" });
+    }
+    if (permissionService.Authorize("ManageClientVendors") && commonSettings.DisplayVendor)
+    {
+        x.Add().Text(T("Admin.Vendors").Text).LoadContentFrom(Url.Action("_TabCompanyVendors", "Company")).HtmlAttributes(new { id = "tab-vendors" });
+    }
+})
+
+@helper CompanyBasicInfoTab()
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Companies.Company.CompanyDetails")
+        </div>
+        <div class="options">
+        </div>
+    </div>
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CompanyName)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CompanyName)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.WebSite)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.WebSite)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.CreatedOn)
+            </td>
+            <td class="adminData">
+                @Html.DisplayFor(model => model.CreatedOn)
+            </td>
+        </tr>
+    </table>
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Companies.Company.Locations")
+        </div>
+        <div class="options">
+        </div>
+    </div>
+    @Html.Action("_CompanyLocationList")
+    <div class="section-header">
+        <div class="title">
+            @T("Admin.Companies.Company.Departments")
+        </div>
+        <div class="options">
+        </div>
+    </div>
+    @Html.Action("_CompanyDepartmentList")
+}
+

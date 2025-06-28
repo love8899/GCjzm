@@ -1,0 +1,15 @@
+﻿@{
+    ViewBag.PageTitle = @T("Admin.Dashboard").Text;
+
+    ViewBag.Title = T("Common.Home").Text;
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12">
+                @Html.Partial("_TabAnnouncements")
+            </div>
+        </div>
+    </div>
+</div>

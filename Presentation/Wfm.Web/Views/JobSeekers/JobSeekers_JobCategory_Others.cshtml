@@ -1,0 +1,36 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Other Employment Services";
+    //var description = "Whether you are looking for permanent, contract or temporary work, we'll take the time to understand what you're looking for and find the right job for you.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower() + " jobs";
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Others</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            In addition to being a preferred staffing partner for a growing number of specialized
+            areas, @siteTitle offers great placements for general labourers and semi-skilled
+            workers. Whether you are looking for permanent, contract or temporary work, we'll
+            take the time to understand what you're looking for and find the right job for you.
+        </p>
+    </div>
+</div>

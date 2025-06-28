@@ -1,0 +1,2 @@
+DataProvider: sqlserver
+DataConnectionString: Data Source=wfm.eastus.cloudapp.azure.com;Initial Catalog=Workforce3Demo;Integrated Security=False; Persist Security Info=False;User ID=wf3web;Password=tTiko1o3CaWXAgyVNcyn;MultipleActiveResultSets=True

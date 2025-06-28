@@ -1,0 +1,93 @@
+﻿@using Wfm.Services.Franchises
+@using Wfm.Core
+@model IEnumerable<AccountsViewModel>
+@{
+    //page title
+    ViewBag.Title = T("Admin.Accounts.Accounts").Text;
+
+    var _franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var franchises = _franchiseService.GetAllFranchises();
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Accounts.Accounts")
+    </div>
+    <div class="options">
+        @Html.ActionLink(T("Common.Add").Text, "Create", null, null, new { @class = "k-button" })
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<AccountsViewModel>()
+              .Name("account-grid")
+              .Columns(columns => 
+                {
+                    columns.Bound(x => x.Id).Width(60).Hidden(true);
+
+                    columns.ForeignKey(x => x.FranchiseId, franchises, "Id", "FranchiseName")
+                        .Width(200);
+
+                    columns.Bound(x => x.LastName).Width(100);
+                    columns.Bound(x => x.FirstName).Width(100);
+
+                    columns.Bound(x => x.AccountRoleSystemName).Filterable(false).Sortable(false).Width(100);
+                    columns.Bound(x => x.Username).Width(100);
+                    
+                    columns.Bound(x => x.Email).Hidden();
+
+                    columns.Bound(x => x.WorkPhone).ClientTemplate("#= prettyPhone(WorkPhone) #").Width(150);
+                    columns.Bound(x => x.MobilePhone).ClientTemplate("#= prettyPhone(MobilePhone) #").Width(110);
+                    
+                    columns.Bound(x => x.IsActive)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsActive #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80);
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                        .Template(x => Html.ActionLink(T("Admin.Common.Details").Text, "Details", new { x.Id })) //for first page
+                        .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/AccountManager/Details/") + "#= Id #\">" + "<span class='k-icon k-i-search'></span>" + "</a>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Title(T("Admin.Common.Details").Text)
+                        .Width(80);
+                        
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                        .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { x.Id }))
+                        .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/AccountManager/Edit/") + "#= Id #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Title(T("Admin.Common.Edit").Text)
+                        .Width(80);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("Index", "AccountManager"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

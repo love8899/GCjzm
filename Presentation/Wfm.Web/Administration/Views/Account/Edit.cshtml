@@ -1,0 +1,13 @@
+﻿@using Wfm.Shared.Models.Accounts
+@model AccountModel
+
+@using (Html.BeginForm("Edit", "Account", FormMethod.Post, new { id = "account-edit-form" }))
+{
+    <div class="section-header">
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            @Html.ActionLink(T("Admin.Common.Cancel").Text, "Details", "Account", null, new { @class = "k-button" })
+        </div>
+    </div>
+    @Html.Partial("_CreateOrUpdate", Model)
+}

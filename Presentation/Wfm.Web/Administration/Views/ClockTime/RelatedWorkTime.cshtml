@@ -1,0 +1,116 @@
+﻿@model IEnumerable<CandidateWorkTimeModel>
+@using Wfm.Core.Domain.TimeSheet;
+@{
+
+    var excludedStatusIds = new int[] { (int)CandidateWorkTimeStatus.Matched };
+    var availableWorkTimeStatus = CandidateWorkTimeStatus.PendingApproval.ToSelectList(false, excludedStatusIds).ToList();
+}
+
+<script type="text/javascript">
+    function gridParameter() {
+        return {
+            candidateGuid: '@ViewBag.CandidateGuid',
+            jobOrderId: '@ViewBag.JobOrderId',
+            refDate: '@ViewBag.RefDate'
+        };
+    }
+    function refreshWorkTimeGird() { $("#candidateworktime-grid").data("kendoGrid") .dataSource.read(); }
+</script>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateWorkTimeModel>()
+                .Name("candidateworktime-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(60).Hidden(true)
+                        .HtmlAttributes(new { id = "worktime-id" });
+
+                    columns.Bound(x => x.EmployeeId)
+                        .ClientTemplate(@Html.ActionLink("#=EmployeeId#", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString())
+                        .Width(90)
+                        .HtmlAttributes(new { id = "candidate-id" });
+
+                    columns.Bound(x => x.EmployeeLastName)
+                        .HtmlAttributes(new { style = "white-space: normal" })
+                        .ClientTemplate("#if (CandidateWorkTimeStatusId != 13 && NetWorkTimeInHours<=1){# <span class='worktime-warning'>#=EmployeeLastName#</span> #}else{# #=EmployeeLastName# #}#")
+                        .Width(80);
+                    columns.Bound(x => x.EmployeeFirstName)
+                        .HtmlAttributes(new { style = "white-space: normal" })
+                        .ClientTemplate("#if (CandidateWorkTimeStatusId != 13 && NetWorkTimeInHours<=1){# <span class='worktime-warning'>#=EmployeeFirstName#</span> #}else{# #=EmployeeFirstName# #}#")
+                        .Width(80);
+
+                    columns.Bound(x => x.JobOrderId).Hidden(true)
+                        .ClientTemplate(@Html.ActionLink("#=JobOrderId#", "Details", "JobOrder", new { guid = "#=JobOrderGuid#" }, new { target = "_blank" }).ToHtmlString())
+                        .Width(60);
+
+                    columns.Bound(x => x.JobTitle).HtmlAttributes(new { style = "white-space: normal" }).Width(100);
+
+                    columns.Bound(x => x.JobStartDateTime).Title(T("Common.StartDate").Text).Format("{0:yyyy-MM-dd HH:mm}").Width(80)
+                        .HtmlAttributes(new { id = "joborder-startdate", style = "white-space: normal" });
+                    columns.Bound(x => x.ClockIn).Format("{0:yyyy-MM-dd HH:mm}").Width(80).HtmlAttributes(new { style = "white-space: normal" })
+                        .ClientTemplate("#if (ClockIn != null) {# #=kendo.toString(ClockIn,'yyyy-MM-dd HH:mm')# #}else{# #}#");
+
+                    columns.Bound(x => x.JobEndDateTime).Title(T("Common.EndDate").Text).Format("{0:yyyy-MM-dd HH:mm}").Width(80).HtmlAttributes(new {id = "joborder-enddate", style = "white-space: normal" });
+                    columns.Bound(x => x.ClockOut).Format("{0:yyyy-MM-dd HH:mm}").HtmlAttributes(new { style = "white-space: normal" }).Width(80)
+                        .ClientTemplate("#if (ClockOut != null) {# #=kendo.toString(ClockOut,'yyyy-MM-dd HH:mm')# #}else{# #}#");
+
+                    columns.Bound(x => x.NetWorkTimeInHours)
+                        .HtmlAttributes(new { @class = "boldColumn", align = "right" })
+                        .ClientTemplate("#if (CandidateWorkTimeStatusId == 13) {# #} else if (NetWorkTimeInHours<=1){# <span class='worktime-warning'>#= kendo.format('{0:n2}',NetWorkTimeInHours) #</span> #}else{# <span class='boldColumn'>#= kendo.format('{0:n2}',NetWorkTimeInHours) #</span> #}#")
+                        .ClientGroupFooterTemplate("<span style='float: right'>#= kendo.format('{0:n2}',sum) #</span>")
+                        .Width(60);
+
+                    columns.ForeignKey(x => x.CandidateWorkTimeStatusId, availableWorkTimeStatus, "Value", "Text")
+                        .Width(80);
+
+                    columns.Bound(x => x.Note).Hidden(true);
+
+                    columns.Bound(x => x.ApprovedByName).Hidden(true);
+                    columns.Bound(x => x.ApprovedOnUtc)
+                        .ClientTemplate("#=kendo.toString(ApprovedOnUtc,'yyyy-MM-dd HH:mm')#")
+                        .Width(120).Hidden(true);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                        .DataSource(ds => ds
+                            .Ajax()
+                            .ServerOperation(true)
+                            .PageSize(30)
+                            .Read(read => read.Action("RelatedWorkTime", "ClockTime").Data("gridParameter"))
+                        )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+    <tr>
+        <td style="font-weight:bold">
+            If Status is Approved, then there is no change required!
+        </td>
+    </tr>
+    <tr>
+        <td style="font-weight:bold">
+            If Status is Pending Approval and Net Hours is 0, then there is a pending issue that needs to be fixed!
+        </td>
+    </tr>
+    <tr>
+        <td style="font-weight:bold">
+            If Status is Pending Approval and Net Hours is greater than zero, the problem is resolved!
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,419 @@
+﻿@model CompanyBillingRateModel
+@using Wfm.Services.Common
+@{
+    var featureService = EngineContext.Current.Resolve<Wfm.Services.Features.IFeatureService>();
+    var invoicingEnabled = featureService.IsFeatureEnabled("Admin", "Invoicing");
+
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.CreatedOnUtc)
+@Html.HiddenFor(model => model.UpdatedOnUtc)
+@Html.HiddenFor(model => model.CompanyGuid)
+
+<table class="adminContent">
+    @{
+        if (!Model.FranchiseIsFiltered && commonSettings.DisplayVendor)
+        {
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.FranchiseId)
+                </td>
+                <td class="adminData required">
+                    @(Html.Kendo().DropDownList()
+                        .Name("FranchiseId")
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                        .DataSource(source =>
+                        {
+                            source.Read(read =>
+                                {
+                                    read.Action("GetAllVendors", "Vendor").Data("filterVendors");
+                                });
+                        })
+                    )
+                    @Html.WfmValidationMessageFor(model => model.FranchiseId)
+                    <script> function filterVendors() { return { companyId: @(Model.CompanyId) }; }</script>
+                </td>
+            </tr>
+        }
+        else
+        {
+            @Html.HiddenFor(model => model.FranchiseId)
+        }
+    }
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList()
+                .Name("CompanyId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                        {
+                            read.Action("GetCascadeCompanies", "Common");
+                        });
+                })
+                .Value(Model.CompanyId.ToString())
+            )
+            @Html.WfmValidationMessageFor(model => model.CompanyId)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CompanyLocationId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList()
+                .Name("CompanyLocationId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                        {
+                            read.Action("GetCascadeLocations", "Common").Data("filterLocations");
+                        })
+                        .ServerFiltering(true);
+                })
+                .Enable(false)
+                .AutoBind(false)
+                .CascadeFrom("CompanyId")
+            )
+            <script>function filterLocations() { return { companyid: $("#CompanyId").val() }; }</script>
+            @Html.WfmValidationMessageFor(model => model.CompanyLocationId)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.WSIBCode)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList()
+                .Name("WSIBCode")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                        {
+                            read.Action("GetCascadeWSIBCode", "Common").Data("filterWSIBCode");
+                        })
+                        .ServerFiltering(true);
+                })
+                .Enable(false)
+                .AutoBind(false)
+                .CascadeFrom("CompanyLocationId")
+            )
+            <script>function filterWSIBCode() { return { companyLocationId: $("#CompanyLocationId").val() }; }</script>
+            @Html.WfmValidationMessageFor(model => model.WSIBCode)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.PositionId)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownList()
+                .Name("PositionId")
+                .OptionLabel("--Select--")
+                .DataTextField("Text")
+                .DataValueField("Value")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                        {
+                            read.Action("GetCascadePositions", "Common").Data("filterLocations");
+                        })
+                        .ServerFiltering(true);
+                })
+                .Enable(false)
+                .AutoBind(false)
+                .CascadeFrom("CompanyId")
+            )
+            <script>function filterLocations() { return { companyid: $("#CompanyId").val() }; }</script>
+            @Html.WfmValidationMessageFor(model => model.PositionId)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.ShiftCode)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DropDownListFor(model => model.ShiftCode)
+                .OptionLabel("--Select--")
+                .DataTextField("Text").DataValueField("Text")
+                .DataSource(source => source.Read(read => read.Action("GetCascadeShift", "JobOrder").Data("filterShifts")).ServerFiltering(true))
+                .Enable(false).AutoBind(false)
+                .CascadeFrom("CompanyId")
+            )
+            <script>function filterShifts() { return { companyid: $("#CompanyId").val(), withRate: false }; }</script>
+            @Html.WfmValidationMessageFor(model => model.ShiftCode)
+        </td>
+    </tr>
+    @if (invoicingEnabled)
+    {
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.RegularBillingRate)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().NumericTextBox<decimal>()
+                    .Name("RegularBillingRate")
+                    .Format("c")
+                    .Min(0)
+                )
+                @Html.WfmValidationMessageFor(model => model.RegularBillingRate)
+            </td>
+        </tr>
+    }
+    else
+    {
+        @Html.HiddenFor(model => model.RegularBillingRate)
+    }
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.RegularPayRate)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().NumericTextBox<decimal>()
+                .Name("RegularPayRate")
+                .Format("c")
+                .Min(0)
+            )
+            @Html.WfmValidationMessageFor(model => model.RegularPayRate)
+        </td>
+    </tr>
+    @if (invoicingEnabled)
+    {
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.OvertimeBillingRate)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().NumericTextBox<decimal>()
+                    .Name("OvertimeBillingRate")
+                    .Format("c")
+                    .Min(0)
+                )
+                @Html.WfmValidationMessageFor(model => model.OvertimeBillingRate)
+            </td>
+        </tr>
+    }
+    else
+    {
+        @Html.HiddenFor(model => model.OvertimeBillingRate)
+    }
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.OvertimePayRate)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().NumericTextBox<decimal>()
+                .Name("OvertimePayRate")
+                .Format("c")
+                .Min(0)
+            )
+            @Html.WfmValidationMessageFor(model => model.OvertimePayRate)
+        </td>
+    </tr>
+    @if (invoicingEnabled)
+    {
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.BillingTaxRate)
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().NumericTextBox<decimal>()
+                    .Name("BillingTaxRate")
+                    .Format("p3")
+                    .Decimals(5)
+                    .Min(0)
+                    .Step(0.00001m)
+                )
+                @Html.WfmValidationMessageFor(model => model.BillingTaxRate)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.MaxRate)
+            </td>
+            <td class="adminData">
+                @(Html.Kendo().NumericTextBox<decimal>()
+                    .Name("MaxRate")
+                    .Format("c")
+                    .Min(0)
+                )
+            </td>
+        </tr>
+    }
+    else
+    {
+        @Html.HiddenFor(model => model.BillingTaxRate)
+        @Html.HiddenFor(model => model.MaxRate)
+    }
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.WeeklyWorkHours)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().NumericTextBox<decimal>()
+                .Name("WeeklyWorkHours")
+                .Min(0)
+                .Step(0.01m)
+            )
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.EffectiveDate)
+        </td>
+        <td class="adminData required">
+            @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                .Name("EffectiveDate")
+                .Format("dddd, MMMM d, yyyy")
+                .Min(DateTime.Now.AddYears(-1))
+            )
+            @Html.WfmValidationMessageFor(model => model.EffectiveDate)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            Quotation
+        </td>
+        <td class="adminData">
+            <span id="quotation-list">
+                @Html.Partial("_Quotations", Model.Quotations, new ViewDataDictionary { { "quotationDeletable", true } })
+            </span>
+            @Html.Kendo().Upload().Name("moreQuotations").Multiple(true).Events(e => e.Select("onSelect").Remove("onRemove"))
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.IsActive)
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(model => model.IsActive)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.Note)
+        </td>
+        <td class="adminData">
+            @{Html.Kendo().Editor()
+                .Name("Note")
+                .Encode(true)
+                .Value(@<text></text>)
+                .Render();
+            }
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.DeactivatedDate)
+        </td>
+        <td class="adminData">
+            @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+                .Name("DeactivatedDate")
+                .Format("dddd, MMMM d, yyyy")
+                .Min(DateTime.Now.AddYears(-1))
+            )
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.CreatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.CreatedOn)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            @Html.LabelFor(model => model.UpdatedOn)
+        </td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.UpdatedOn)
+        </td>
+    </tr>
+    <tr>
+        @Html.HiddenFor(model => model.EnteredBy)
+    </tr>
+</table>
+
+
+<script>
+
+    var existing = parseInt('@(Model.Quotations.Count)');
+    var selected = 0;
+
+    $('form').submit(function (e) {
+        var quotationNum = existing + selected;
+        var deactivatedDate = $('#DeactivatedDate').data('kendoDatePicker').value();
+        if (!deactivatedDate & quotationNum <= 0) {
+            e.preventDefault();
+            alert('Quotation is required');
+            return false;
+        }
+    });
+
+    function startDateChange() {
+        var startDate = this.value(),
+            endPicker = $("#DeactivatedDate").data("kendoDatePicker");
+
+        if (startDate) {
+            startDate = new Date(startDate);
+
+            if (startDate) {
+                startDate = new Date(startDate);
+                startDate.setDate(startDate.getDate() + 1);
+                endPicker.min(startDate);
+                endPicker.value(startDate);
+            }
+        }
+    }
+
+    function endDateChange() {
+        var startDate = this.value(),
+            endPicker = $("#EffectiveDate").data("kendoDatePicker");
+
+        if (startDate) {
+            startDate = new Date(startDate);
+
+            if (startDate) {
+                startDate = new Date(startDate);
+                startDate.setDate(startDate.getDate() - 1);
+                endPicker.max(startDate);
+                endPicker.value(startDate);
+            }
+        }
+    }
+
+    function onSelect(e) { selected += e.files.length; }
+
+    function onRemove(e) { selected -= e.files.length; }
+
+    function refreshQuotationList(quotationDeletable) {
+        quotationDeletable = quotationDeletable || false;
+        $.ajax({
+            url: '@Url.Action("_Quotations", "Company")',
+            type: 'post',
+            data: { billingRateId: @Model.Id, quotationDeletable: quotationDeletable },
+            dataType: 'html',
+            success: function (result) {
+                if (result)
+                    $('#quotation-list').html(result);
+            }
+        });
+    }
+
+</script>

@@ -1,0 +1,56 @@
+﻿@using Wfm.Services.Media
+@using Wfm.Web.Models.Candidate
+@{
+    var documentTypeService = Wfm.Core.Infrastructure.EngineContext.Current.Resolve<IDocumentTypeService>();
+    var documentTypesList = documentTypeService.GetAllDocumentTypes().Where(x => x.IsPublic);
+}
+@(Html.Kendo().Grid<CandidateAttachmentModel>()
+    .Name("Attachment")
+    .Events(e => e.DataBound("onBound"))
+    .Columns(columns =>
+    {
+        columns.Bound(x => x.OriginalFileName).Width("50%")
+            .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Candidate/DownloadCandidateAttachment?guid=") + "#=CandidateAttachmentGuid#\">#=OriginalFileName#</a>")
+            .HtmlAttributes(new { @class = "ellipsis" });
+
+        columns.ForeignKey(x => x.DocumentTypeId, documentTypesList, "Id", "TypeName");
+
+        columns.Bound(x => x.ExpiryDate).Format("{0:yyyy-MM-dd}");
+        columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#");
+    })
+    .EnableCustomBinding(false)
+    .Reorderable(reorder => reorder.Columns(true))
+    .Resizable(resize => resize.Columns(true))
+    .Filterable()
+    .Sortable()
+    .Pageable(x => x.PageSizes(new[] { 5, 10, 20 }))
+    .DataSource(ds => ds
+        .Ajax()
+        .ServerOperation(false)
+        .PageSize(10)
+        .Read(read => read.Action("_CandidateAttachmentList", "Candidate", new { candidateId = ViewBag.CandidateId }))
+        .Sort(s => s.Add("UpdatedOnUtc").Descending())
+    )
+    .Filterable(filterable => filterable
+        .Extra(false)
+        .Operators(operators => operators
+            .ForString(str => str.Clear()
+                .Contains("Contains")
+                .IsEqualTo("Is equal to")
+                .IsNotEqualTo("Is not equal to")
+            )
+        )
+    )
+)
+
+<script type="text/javascript">
+
+    $(function () {
+    });
+
+    function onBound(e) {
+        setGridColumnClass(e.sender, ["DocumentTypeId", "UpdatedOnUtc"], "d-none d-sm-table-cell");
+        setGridColumnClass(e.sender, ["ExpiryDate"], "d-none d-md-table-cell");
+    }
+
+</script>

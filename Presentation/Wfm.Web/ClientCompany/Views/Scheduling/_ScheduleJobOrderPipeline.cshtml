@@ -1,0 +1,45 @@
+﻿@using Wfm.Shared.Models.Common
+@(Html.Kendo().Grid<CandidatePipelineSimpleModel>()
+        .Name("pipeline-grid")
+        .Columns(columns =>
+        {
+            columns.Bound(x => x.CandidateId).Width(70)
+            .HeaderTemplate("Employee Id")
+                .ClientTemplate(@Html.ActionLink("#=kendo.toString(CandidateId,'00000000')#", "Details", "Employee", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString());
+            columns.Bound(x => x.LastName).Width(90).ClientTemplate("# if (ToggleButtonText == 'Activate') { #<span style='color:darkgrey;'>#= LastName#</span># } else { #<span>#= LastName#</span># } #");
+            columns.Bound(x => x.FirstName).Width(90).ClientTemplate("# if (ToggleButtonText == 'Activate') { #<span style='color:darkgrey;'>#= FirstName#</span># } else { #<span>#= FirstName#</span># } #");
+            columns.Bound(x => x.HomePhone).ClientTemplate("#= prettyPhone(HomePhone) #").Width(70);
+            columns.Bound(x => x.MobilePhone).ClientTemplate("#= prettyPhone(MobilePhone) #").Width(70);
+            columns.Bound(x => x.Email).Width(90);
+            columns.Bound(x => x.StatusDisplayText)
+                .HeaderTemplate("Status")
+                .ClientGroupHeaderTemplate("Status: #=value#")
+                .Width(90);
+            columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(90).Hidden(true);
+            columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+        })
+        .EnableCustomBinding(false)
+        .Reorderable(reorder => reorder.Columns(true))
+        .Resizable(resize => resize.Columns(true))
+        .ColumnMenu(d => d.Sortable(false))
+        .Filterable()
+        .Sortable()
+        .Selectable(configurator => configurator.Mode(GridSelectionMode.Multiple))
+        .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(20)
+            .ServerOperation(false)
+            .Read(read => read.Action("_JobOrderPipeline", "Scheduling").Data("pipelineGridParameters"))
+        )
+        .Filterable(filterable => filterable
+            .Extra(false)
+            .Operators(operators => operators
+                .ForString(str => str.Clear()
+                    .Contains("Contains")
+                    .IsEqualTo("Is equal to")
+                    .IsNotEqualTo("Is not equal to")
+                )
+            )
+        )
+)

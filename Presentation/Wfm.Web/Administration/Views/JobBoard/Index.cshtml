@@ -1,0 +1,81 @@
+﻿@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.JobBoards").Text;
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration.JobBoards") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<JobBoardModel>()
+              .Name("jobboard-grid")
+              .Columns(columns =>
+                {
+                    columns.Bound(x => x.JobBoardName).Width(280);
+                    columns.Bound(x => x.JobBoardUrl).Width(200);
+                    columns.Bound(x => x.PublishUrl);
+                    columns.Bound(x => x.UserName).Width(200);
+                    columns.Bound(x => x.Password).Width(200);
+                    columns.Bound(x => x.BoardId).Width(80);
+                    
+                    columns.Bound(x => x.IsActive)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Content/images/") + "active-#= IsActive #.png)'></div>")
+                        .Width(100);
+                    columns.Command(c => c.Destroy().Text(" ")).Width(80);
+                })
+            .ToolBar(tool => { tool.Create(); tool.Save(); })
+            .Editable(edit => edit.Mode(GridEditMode.InCell))
+            .EnableCustomBinding(true)
+            .Reorderable(reorder => reorder.Columns(true))
+            .Resizable(resize => resize.Columns(true))
+            .Filterable()
+            .Sortable()
+            .ColumnMenu()
+            .Selectable()
+            .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+            .DataSource(ds => ds
+                .Ajax()
+                .Batch(true)
+                .ServerOperation(true)
+                .PageSize(20)
+                .Events(events => events.Error("error_handler"))
+                .Read(read => read.Action("Index", "JobBoard"))
+                .Create(create => create.Action("Create", "JobBoard"))
+                .Update(update => update.Action("Edit", "JobBoard"))
+                .Destroy(des=>des.Action("Delete","JobBoard"))
+                                    .Events(events => events.Sync(@"function(e){setTimeout(function(){refreshGrid('#jobboard-grid')})}"))
+                .Model(model =>
+                {
+                    model.Id(x => x.Id);
+                    model.Field(x => x.Id).Editable(false).DefaultValue(0);
+                    model.Field(x => x.JobBoardUrl).Editable(true);
+                    model.Field(x => x.UserName).Editable(true);
+                    model.Field(x => x.BoardId).Editable(true).DefaultValue(0);
+                    model.Field(x => x.JobBoardName).Editable(true);
+                    model.Field(x => x.PublishUrl).Editable(true);
+                    model.Field(x => x.IsActive).Editable(true).DefaultValue(true);
+                    model.Field(x => x.IsDeleted).Editable(false).DefaultValue(false);
+                })
+            )
+            .Filterable(filterable => filterable
+                .Extra(false)
+                .Operators(operators => operators
+                    .ForString(str => str.Clear()
+                        .Contains("Contains")
+                        .IsEqualTo("Is equal to")
+                        .IsNotEqualTo("Is not equal to")
+                    )
+                )
+            )
+            )
+        </td>
+    </tr>
+</table>
+
+

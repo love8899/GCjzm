@@ -1,0 +1,64 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Skilled Trades";
+    //var description = siteTitle + " provides tradespeople with all the skills and abilities needed to fulfill the specific requirements of your job.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Skilled Trades</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            When it comes to skilled trades, quality is absolutely critical. The last thing
+            you need is someone doing a sub-par job, damaging your reputation or even creating
+            an unsafe worksite. You can't afford to wait for the perfect candidate to appear.
+            You need a staffing partner who can consistently deliver high-caliber workers with
+            a proven ability to get the job done.
+        </p>
+        <p>
+            @siteTitle provides tradespeople with all the skills and abilities needed
+            to fulfill the specific requirements of your job. By screening out unqualified individuals
+            well in advance and matching candidate skills to your specific job needs, our candidate-centric
+            approach helps ensure that you get a quality candidate who is a perfect match for
+            you.
+        </p>
+        <p>
+            Our skilled trades service can connect you with experienced talent, including the
+            following tradespeople:
+        </p>
+        <ul>
+            <li>Millwrights</li>
+            <li>PLC/Robotics Technicians</li>
+            <li>Electricians</li>
+            <li>Control Technicians</li>
+            <li>Painters</li>
+            <li>Welders</li>
+            <li>CNC Programmer/Setup/Operator</li>
+            <li>Construction workers</li>
+            <li>Construction site supervisors</li>
+            <li>Foremen</li>
+            <li>Joiners</li>
+            <li>Masons</li>
+            <li>Plasterers</li>
+            <li>Plumbers</li>
+        </ul>
+    </div>
+</div>

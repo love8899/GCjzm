@@ -1,0 +1,81 @@
+﻿@using Wfm.Core;
+@using Wfm.Services.Franchises;
+@{
+    var startDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(-1);
+    var endDate = startDate.AddMonths(1).AddDays(-1);
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+   
+}
+
+
+@(Html.Kendo().PanelBar().Name("search-bar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text(String.Format(T("Common.ReportParameters").Text, T("Report.JobOrderPlacementByRecruiterReport").Text))
+            .Expanded(true)
+            .Content(@<div class="panel">
+                            <br />
+@if (workContext.CurrentAccount.IsLimitedToFranchises == false)
+{
+            @Html.Label("Vendor: ")
+            @(Html.Kendo().DropDownList()
+                    .Name("FranchiseId").HtmlAttributes(new { style = "width: 400px" })
+                        .OptionLabel("--Select--")
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                    .BindTo(ViewBag.Franchises))
+    <br />
+    <br />
+}
+else
+{
+    @Html.Hidden("FranchiseId", workContext.CurrentFranchise.Id);
+}
+
+                            @Html.Label("FromDate", "From: ")
+                            @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("fromDate").Value(startDate.ToString("yyyy-MM-dd")).Events(e => e.Change("startDateChange"))
+                            @Html.Label("ToDate", "To: ")
+                            @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("toDate").Value(endDate.ToString("yyyy-MM-dd"))
+                          <div style="text-align: center">
+                              <br />@(Html.Kendo().Button().Name("loadReport").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text))<br /><br />
+                          </div>
+                        </div>);
+    })
+)
+
+<div id="report" />
+<script type="text/javascript">
+
+    $("#loadReport").bind("click", function () {
+        loadReport();
+    });
+
+    function startDateChange() {
+        var startDate = this.value(),
+            endPicker = $("#toDate").data("kendoDatePicker"), endDate = endPicker.value();
+
+        if (startDate) {
+            startDate = new Date(startDate);
+            endPicker.min(startDate);
+
+            var suggestedDt = new Date(startDate);
+            suggestedDt.setDate(suggestedDt.getDate() + 30);
+            endPicker.value(suggestedDt);
+        }
+    }
+    function loadReport() {
+        franchiseId = $("#FranchiseId").val();
+        if (!franchiseId) {
+            alert("Please select a vendor");
+            return false;
+        } 
+        $("#report").load("_JobOrderPlacementSummaryByRecruiter", {
+                startDate: $("#fromDate").val(),
+                endDate: $("#toDate").val(),
+                franchiseId: franchiseId
+            });
+       
+    }
+
+</script>

@@ -1,0 +1,25 @@
+﻿@using Wfm.Core.Domain.Candidates
+@model CandidateOnboardingModel
+@using (Html.BeginForm("", "", FormMethod.Post, new { id = "cancel-onboarding-form" }))
+{
+    @Html.HiddenFor(model => model.Id)
+    <br />
+    <h3 style="text-align:center">Cancel onboarding of candidate [@Model.Id]?</h3>
+    <br />
+    <table>
+        <tr id="banned-reason">
+            <td class="adminTitle" width="20%">
+                Reason
+            </td>
+            <td></td>
+            <td class="adminData required" width="80%">
+                @Html.TextArea("reason", new { placeholder="Give reason here...", style = "width:240px;height:60px" })
+            </td>
+        </tr>
+    </table>
+    <br />
+    <div class="options" align="center">
+        <input type="button" id="btn-yes" class="k-button" value="@T("Admin.Common.Yes")" />
+        <input type="button" id="btn-no" class="k-button" value="@T("Admin.Common.No")" />
+    </div>
+}

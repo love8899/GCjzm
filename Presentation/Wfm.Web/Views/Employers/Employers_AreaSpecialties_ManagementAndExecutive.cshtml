@@ -1,0 +1,48 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Management and Executive";
+    //var description = "By working with " + siteTitle + ", you profit from the expertise of consultants who make a living out of researching, identifying, targeting and persuading top talent.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Management and Executive</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            Whether you’re looking for general managers, department heads, senior managers or
+            C-level executives, you’ll need a comprehensive headhunting strategy, implemented
+            by reliable executive search and selection consultants who will uncover the hidden
+            gems in the market.
+        </p>
+        <p>
+            By working with @siteTitle, you profit from the expertise of consultants
+            who make a living out of researching, identifying, targeting and persuading top
+            talent. We have proven methods to access talent that enables us to deliver exceptional
+            candidates.
+        </p>
+        <p>
+            Armed with a comprehensive brief, our consultants get to work right away to compile
+            a qualified shortlist, screening the top candidates from our extensive database
+            and in-house capability to create and target on and offline advertising campaigns.
+            We’ll introduce you to the best candidates in the market.
+        </p>
+    </div>
+</div>

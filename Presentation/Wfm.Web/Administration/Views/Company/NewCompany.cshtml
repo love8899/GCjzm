@@ -1,0 +1,372 @@
+﻿@model CompanyBasicInformation
+
+<div class="section-header">
+    <div class="title">
+        @ViewBag.CreateOrEdit @Html.ActionLink("(" + T("Admin.Companies.Company.BackToList") + ")", "Index")
+    </div>
+    <div class="options">
+    </div>
+</div>
+<br /><br />
+
+<div id="company-wizard">
+    <h4>@T("Common.BasicInformation")</h4>
+    <div>
+        @using (Html.BeginForm("", "", FormMethod.Post, new { id = "basic-information-form" }))
+        {
+            @*@Html.EditorFor(x => x.BasicInformation, "CreateCompanyBasicInformation")*@
+            @Html.Partial("_CreateOrUpdate", Model)
+        }
+    </div>
+
+    <h4>@T("Admin.Companies.Company.Locations")</h4>
+    <div data-mode="async" data-url="@Url.Action("_CreateOrUpdateCompanyLocation", "Company")">
+    </div>
+
+    <h4>@T("Admin.Companies.Company.Departments")</h4>
+    <div data-mode="async" data-url="@Url.Action("_CreateOrUpdateCompanyDepartment", "Company")">
+    </div>
+
+    <h4>@T("Admin.CompanyContacts")</h4>
+    <div data-mode="async" data-url="@Url.Action("_CreateOrUpdateCompanyContact", "Company")">
+    </div>
+
+
+    <h4>@T("Admin.Vendors")</h4>
+    <div data-mode="async" data-url="@Url.Action("_CreateOrUpdateCompanyVendor", "Company")">
+    </div>
+
+    <h4>@T("Admin.Companies.Company.Recruiters")</h4>
+    <div data-mode="async" data-url="@Url.Action("_CreateOrUpdateCompanyRecruiter", "Company")">
+    </div>
+
+    @*<h4>@T("Admin.Company.CompanyFeature")</h4>
+        <div data-mode="async" data-url="@Url.Action("_CreateOrUpdateCompanyFeature", "Company")">
+        </div>*@
+
+    <h4>@T("Common.OvertimeRule")</h4>
+    <div data-mode="async" data-url="@Url.Action("_CreateOrUpdateCompanyOvertimeRules", "Company")">
+    </div>
+
+
+    <h4>@T("Admin.Configuration.Positions")</h4>
+    <div data-mode="async" data-url="@Url.Action("_CreateOrUpdateCompanyPosition", "Company")">
+    </div>
+
+</div>
+
+
+<script>
+    var saveFromGrid = true;
+    var newPage = @Html.Raw(Json.Encode(ViewBag.NewPage));
+    var form = $("#company-wizard").show();
+    form.steps({
+        headerTag: "h4",
+        bodyTag: "div",
+        enableAllSteps: !newPage,
+        autoFocus: true,
+        showFinishButtonAlways: !newPage,
+        transitionEffect: "slideLeft",
+        stepsOrientation: "vertical",
+
+        onStepChanging: function (event, currentIndex, newIndex) {
+            $(".notification-wrapper").html('');
+            // Allways allow previous action even if the current form is not valid!
+            if (currentIndex > newIndex) {
+
+                return true;
+            }
+            // Needed in some cases if the user went back (clean up)
+            if (currentIndex == newIndex-1) {
+                // To remove error styles
+                form.find(".body:eq(" + newIndex + ") label.error").remove();
+                form.find(".body:eq(" + newIndex + ") .error").removeClass("error");
+
+                // optional step
+                if (currentIndex == 0) {
+                    var basicInforForm = $("#basic-information-form");
+                    basicInforForm.validate().settings.ignore = ":disabled";
+                    if(!basicInforForm.valid())
+                        return false;
+                    else
+                    {
+                        $.ajax({
+                            url: '@Url.Action("CreateOrUpdateBasicInformation", "Company")',
+                            type: 'POST',
+                            data: basicInforForm.serialize(),
+                            success:function(result){
+                                $("#CompanyGuid").val(result.guid);
+                                $("#CompanyId").val(result.companyId);
+
+                            }
+                        });
+                        return true;
+                    }
+                }
+                saveFromGrid = false;
+                //when creating locations
+                if($("#CompanyId").val()!="0"&&currentIndex==1)
+                    return StepCheck("#companylocation-grid",true);
+                if(currentIndex==2)
+                    return StepCheck("#companydepartment-grid",false);
+                //when creating contacts
+                if(currentIndex==3)
+                    return StepCheck("#companycontact-grid",true);
+                //when creating company vendors
+                if(currentIndex==4)
+                    return StepCheck("#companyvendor-grid",true);
+                if(currentIndex==5)
+                    return StepCheck("#company-recruiter-grid",true);
+                if(currentIndex==6)
+                    return StepCheck("#company-overtime-rule-gid",false);
+                if(currentIndex==7)
+                    return StepCheck("#company-position-grid",true);
+            }
+            else
+            {
+                $(".notification-wrapper").html('<div class="messageBox messageBoxWarning"></div><div class="clear"></div>');
+                $(".messageBox").text("Please go to Step "+(currentIndex+2)+" first!");
+                return false;
+            }
+
+        },
+
+        onStepChanged: function (event, currentIndex, priorIndex) {
+            saveFromGrid = true;
+            $("#company-wizard-p-"+currentIndex).css("display","block");
+        },
+
+        onFinishing: function (event, currentIndex) {
+            saveFromGrid = false;
+            if (currentIndex == 7) {
+                return StepCheck("#company-position-grid", true);
+            }
+            $(".notification-wrapper").html('<div class="messageBox messageBoxWarning"></div><div class="clear"></div>');
+            $(".messageBox").text("Please complete all steps!");
+            return false;
+
+        },
+
+        onFinished: function (event, currentIndex) {
+            alert('The company is created successfully. Now you need to add billing rates for the company.');
+            window.onbeforeunload = null;
+            window.onunload = null;
+            window.location.replace('@Url.Action("CreateNewBillingRate", "Company")' + "?companyGuid=" + $("#CompanyGuid").val());
+        }
+    });
+
+    // add class to recover style
+    if (!newPage) {
+        $('.steps ul li').not(':eq(0)').each(function () {
+            $(this).addClass('done');
+        });
+    }
+
+    function onChange(e) {
+        if (e.action == "itemchange") {
+            if (e.field == "CountryId") {
+                var model = e.items[0];
+                model.set("StateProvinceId", 0);
+            }
+
+            if (e.field == "StateProvinceId") {
+                var model = e.items[0];
+                model.set("CityId", 0);
+            }
+        }
+    }
+    function getCurrentEditedModel(gridName) {
+        var grid = $(gridName).data("kendoGrid");
+        var editRow = grid.tbody.find("tr:has(.k-edit-cell)");
+        return grid.dataItem(editRow);
+    }
+
+    function filterStateProvince() {
+        var model = getCurrentEditedModel("#companylocation-grid");
+        return {
+            countryId: model.CountryId
+        };
+    }
+    function filterCities() {
+        var model = getCurrentEditedModel("#companylocation-grid");
+        return {
+            stateProvinceId: model.StateProvinceId
+        };
+    }
+    function filterRecruiters()
+    {
+        var model = getCurrentEditedModel("#company-recruiter-grid");
+        return { vendorGuid: model.FranchiseGuid};
+    }
+
+    function onEdit(e)
+    {
+        //check if record is new
+        if (e.model.isNew()) {
+            //set the required field value
+            e.model.set("CompanyId", $("#CompanyId").val());
+            e.model.set("CompanyGuid", $("#CompanyGuid").val());
+        }
+    }
+    function onEditFeature(e)
+    {
+        if (e.model.isNew()) {
+            //set the required field value
+            e.model.set("UserId", $("#CompanyId").val());
+        }
+    }
+    function filterLocations() {
+        return {companyId:$("#CompanyId").val()};
+    }
+    function filterDepartments(){
+        var model = getCurrentEditedModel("#companycontact-grid");
+        return {
+            locationId: model.CompanyLocationId
+        };
+    }
+    function filterWSIBCode()
+    {
+        var model = getCurrentEditedModel("#companybillingrate-grid");
+        return {
+            companyLocationId: model.CompanyLocationId
+        };
+    }
+    function getGuid()
+    {
+        return {companyGuid:$("#CompanyGuid").val()};
+    }
+
+    $(document).ready(function(){
+        $("#CompanyName").rules("add", {
+            required: true
+        });
+        $("#CompanyStatusId").rules("add",{required:true});
+
+    });
+    function ResetPassword(e) {
+        e.preventDefault();
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        if (dataItem.Id != 0) {
+            $("#reset-password").kendoWindow({
+                title: "Reset Password",
+                modal: true,
+                resizable: false,
+                width: 500,
+                height: 180,
+                content: '@Url.Action("ResetPassword", "Company")' + '?guid=' + dataItem.AccountGuid,
+                close: function () {
+                },
+                refresh: function (e) {
+                    var win = this;
+                    $("#cancel-reset-password").click(function () {
+                        win.close();
+                    });
+                    $('#submit-reset-password').click(function () {
+                        var form = $("#resetPasswordForm");
+                        if (form.valid()) {
+                            $.ajax({
+                                type: "POST",
+                                url: '@Url.Action("_ResetPassword", "Company")',
+                                data: form.serialize(),
+                                dataType: "Json",
+                                success: function (response) {
+                                    if (!response.Error) {
+                                        $(".notification-wrapper").html('<div class="messageBox messageBoxSuccess"></div><div class="clear"></div>');
+                                        $(".messageBox").text("Password has been reset sucessfully!");
+                                        win.close();
+                                        setTimeout(5000);
+                                    }
+                                    else {
+                                        alert(response.Message);
+                                    }
+
+                                }
+                            });
+                        }
+                    });
+
+                }
+            }).data('kendoWindow').open().center();
+        }
+        return false;
+    }
+
+    function StepCheck(gridName,atLeastOne)
+    {
+        var grid = $(gridName).data("kendoGrid");
+            grid.dataSource.sync();
+            var rows = grid.dataSource.total();
+            if(rows>0)
+            {
+                return true;
+            }
+            else if(atLeastOne)
+            {
+                $(".notification-wrapper").html('<div class="messageBox messageBoxWarning"></div><div class="clear"></div>');
+                $(".messageBox").text("There must be at least one record!");
+                return false;
+            }
+            else
+                return true;
+    }
+    
+    function error_handler1(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+
+            if(!saveFromGrid)
+            {
+                window.stop();
+                
+                if($("#company-wizard").steps("getCurrentIndex")!=8)
+                {
+                    $("#company-wizard").steps("previous");
+                }
+                else
+                {
+                    saveFromGrid = true;
+                    window.onbeforeunload = onbeforeunload_handler;
+                    window.onunload = onunload_handler;
+                    var grid = $("#companybillingrate-grid").data("kendoGrid");
+                    grid.dataSource.page(1);
+                    grid.dataSource.read();
+                }
+            }
+        }
+    }
+   
+</script>
+<script type="text/javascript">
+    window.onbeforeunload = onbeforeunload_handler;
+    window.onunload = onunload_handler;
+    function onbeforeunload_handler() {
+        var warning = "Are you sure to exit?";
+        return warning;
+    }
+
+    function onunload_handler() {
+        var warning = "Thank you!";
+        //Cancel all changes 
+        $.ajax({
+            url: '@Url.Action("CancelAllChanges", "Company")'+"?guid="+$("#CompanyGuid").val(),
+            type: 'POST',
+            dataType:'Json',
+            async:false,
+            success:function(result){
+                if(result.Error)
+                {
+                    $(".notification-wrapper").html('<div class="messageBox messageBoxWarning"></div><div class="clear"></div>');
+                    $(".messageBox").text(result.Message);
+                }
+            }
+        });
+    }
+</script>

@@ -1,0 +1,127 @@
+﻿@using Wfm.Core.Domain.Candidates
+@{
+    var today = DateTime.Today;
+    var delta = DayOfWeek.Sunday - today.DayOfWeek;
+    var startDate = today.AddDays(delta);
+    var endDate = startDate.AddDays(6);
+    //var availablePayPeriodBillingChartStatus = PayPeriodBillingChartStatus.PendingApproval.ToSelectList(false).ToList();
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#weekCalendar-2").keypress(function (evt) {
+            var keycode = evt.charCode || evt.keyCode;
+            if (keycode == 9) { //allow Tab through
+                return true;
+            } else {
+                // Allow the datepicker to open instead
+                var datePicker = $("#weekCalendar-2").data("kendoDatePicker");
+                datePicker.open();
+                return false;
+            }
+        });
+    });
+    function onRead() {
+        return {
+            candidateGuid: '@ViewBag.CandidateGuid',
+            startDate: $("#weekCalendar-2").data("kendoDatePicker").value(),
+        };
+    }
+    var isCalendarInitialized = false;
+    function highlightDates() {
+        $(".disabled").parent().removeClass("k-link") //removing this class makes the day unselectable
+        $(".disabled").parent().removeAttr("href") //this removes the hyperlink styling
+    }
+    function Checkthis() {
+        if (!isCalendarInitialized) {
+            $("[data-role=calendar]").data("kendoCalendar").bind("navigate", highlightDates);
+            isCalendarInitialized = true;
+        }
+        $(".disabled").parent().removeClass("k-link") //removing this class makes the day unselectable
+        $(".disabled").parent().removeAttr("href") //this removes the hyperlink styling
+    }
+    function reloadGrid()
+    {
+        var grid = $("#candidateJobOrderPlacement-grid").data("kendoGrid");
+        grid.dataSource.read();
+        grid.dataSource.page(1);
+    }
+    function onChangeDatePicker()
+    {
+        reloadGrid();
+    }
+</script>
+<div class="section-header">
+    <div class="title">
+        Placement
+    </div>
+    <div class="options">
+        <div class="options" style="padding-right:30px">
+            <label for="inquiry-date">Week Start Date&nbsp;&nbsp;</label>
+            @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("weekCalendar-2").Events(e =>
+              {
+                  e.Change("onChangeDatePicker");
+                  e.Open("Checkthis");
+                  e.Close("Checkthis");
+              }).Value(startDate).MonthTemplate(" #if (data.date.getDay() == " + ViewBag.WeekStartDay + " ) {##= data.value ## } else { #<div class='disabled'>#= data.value #</div># } #").Format("MM/dd/yyyy")
+        </div>
+
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateJobOrderPlacement>()
+                .Name("candidateJobOrderPlacement-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.JobOrderId).Width(90);
+                    columns.Bound(x=>x.JobTitle)
+                        .Template(x => Html.ActionLink(x.JobTitle, "Details", "JobOrder", new { guid = x.JobOrderGuid }))
+                        .ClientTemplate(@Html.ActionLink("#=JobTitle#", "Details", "JobOrder", new { guid = "#=JobOrderGuid#" }, new { target = "_blank" }).ToHtmlString());
+                    
+                    columns.Bound(x => x.CompanyId).Hidden();
+                    columns.Bound(x=>x.CompanyName)
+                        .Title(T("Common.Company").Text)
+                        .Template(x => Html.ActionLink(x.CompanyName, "Details", "Company", new { guid=x.CompanyGuid }))
+                        .ClientTemplate(@Html.ActionLink("#=CompanyName#", "Details", "Company", new { guid = "#=CompanyGuid#" }, new { target = "_blank" }).ToHtmlString());
+                    columns.Bound(x => x.StartDate).ClientTemplate("#=kendo.toString(StartDate,'yyyy-MM-dd HH:mm')#");
+                    columns.Bound(x => x.EndDate).ClientTemplate("#if (EndDate != null){##= kendo.toString(EndDate,'yyyy-MM-dd HH:mm')##}else{##}#");
+
+                    columns.Bound(x => x.Sunday);
+                    columns.Bound(x => x.Monday);
+                    columns.Bound(x => x.Tuesday);
+                    columns.Bound(x => x.Wednesday);
+                    columns.Bound(x => x.Thursday);
+                    columns.Bound(x => x.Friday);
+                    columns.Bound(x => x.Saturday);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(false))
+                .Filterable()
+                .Filterable(ftb => ftb.Mode(GridFilterMode.Menu))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(false)
+                        .PageSize(20)
+                                .Read(read => read.Action("_GetCandidateJobOrderPlacement", "Candidate").Data("onRead"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+

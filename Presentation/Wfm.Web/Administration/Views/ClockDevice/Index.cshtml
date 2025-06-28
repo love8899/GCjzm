@@ -1,0 +1,183 @@
+﻿@using Wfm.Core.Domain.Accounts
+
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.TimeClocks.CompanyClockDevices").Text;
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.TimeClocks.CompanyClockDevices") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+    <div class="options">
+        @Html.ActionLink(T("Common.Add").Text, "Create", null, new { @class = "k-button" })
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CompanyClockDeviceModel>()
+                .Name("clockdevice-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(60);
+                    columns.Bound(x => x.ClockDeviceUid).Width(100);
+
+                    if (!workContext.CurrentAccount.IsClientAdministrator())
+                    {
+                        columns.Bound(x => x.CompanyLocationModel.CompanyModel.CompanyName).Title("Company");
+                    }
+                    columns.Bound(x => x.CompanyLocationModel.LocationName);
+
+                    columns.Bound(x => x.ReasonForDeactivation).Hidden();
+
+                    columns.Bound(x => x.Note).Hidden();
+
+                    columns.Bound(x => x.IPAddress).Width(150);
+
+                    columns.Bound(x => x.IDLength).Width(80);
+
+                    columns.Bound(x => x.ManualID)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.ManualID.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#=ManualID#.png' />")
+                        .Width(100);
+
+                    columns.Bound(x => x.AddOnEnroll)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.AddOnEnroll.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#=AddOnEnroll#.png' />")
+                        .Width(120);
+
+                    columns.Bound(x => x.AltIdReader).Title("Alt.Id Reader")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.AddOnEnroll.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#=AltIdReader#.png' />")
+                        .Width(120);
+
+                    columns.Bound(x => x.IsActive)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsActive #.png' />")
+                        .Width(80);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false).Title(T("Admin.Common.Edit").Text).Width(60)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .ClientTemplate("<a href=\"" + @Url.Content("~/Admin/ClockDevice/Edit/") + "#= Id #\">" + "<span class='k-icon k-i-pencil' title='Edit'></span>" + "</a>");
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false).Title(T("Common.Action").Text).Width(100)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .ClientTemplate("#if (IPAddress) {#<span class='fa fa-download' onclick='backup(#=Id#)' title='Backup' style='margin-left:10px'></span>#}#" +
+                                        "#if (IPAddress) {#<span class='fa fa-upload' onclick='restore(#=Id#)' title='Restore' style='margin-left:10px'></span>#}#" +
+                                        "#if (IPAddress) {#<span class='fa fa-eraser' onclick='erase(#=Id#)' title='Remove all candidates' style='margin-left:10px'></span>#}#");
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(10)
+                    .Read(read => read.Action("Index", "ClockDevice"))
+                    .Sort(s => s.Add("UpdatedOnUtc").Descending())
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+
+@using (Html.BeginForm("Backup", "ClockDevice", FormMethod.Post, new { id = "backup-form" }))
+{
+    <input type="hidden" id="clockDeviceId" name="clockDeviceId" value="" />
+}
+
+
+<div id="restore-window" style="display:none;">
+    @using (Html.BeginForm("Restore", "ClockDevice", FormMethod.Post, new { id = "restore-form", enctype = "multipart/form-data" }))
+    {
+        <input type="hidden" id="clockDeviceId" name="clockDeviceId" value="" />
+        <table style="text-align:left;">
+            <tr>
+                <td>Backup file:</td>
+                <td><input type="file" id="restorefile" name="restorefile" /></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><input type="submit" class="k-button" value="Restore" /></td>
+            </tr>
+        </table>
+    }
+</div>
+
+
+<script type="text/javascript">
+
+    function backup(id) {
+        //var dataItem = $('#clockdevice-grid').data('kendoGrid').dataItem($(element).closest('tr'));
+        $('#backup-form #clockDeviceId').val(id);
+        $('#backup-form').submit();
+    }
+
+    function restore(id) {
+        var window = $("#restore-window");
+        if (!window.data("kendoWindow")) {
+            window.kendoWindow({
+                modal: true,
+                width: "500px",
+                title: "Restore from backup",
+                actions: ["Close"]
+            });
+        }
+        window.data('kendoWindow').center().open();
+        $('#restore-form #clockDeviceId').val(id);
+    }
+
+    $('#restore-form').submit(function (e) {
+        e.preventDefault();
+        if ($('#restorefile').val())
+            this.submit();
+        else {
+            alert('Backup file is not selected.');
+            return false;
+        }
+    });
+
+    function erase(id) {
+        if (confirm('Are you sure to remove all candidates from the clock?')) {
+            $.ajax({
+                cache: false,
+                async: false,
+                url: '@Html.Raw(Url.Action("_RemoveAllCandidates", "HandTemplate"))',
+                data: { clockDeviceId: id },
+                dataType: 'Json',
+                type: 'post',
+                success: function (response) {
+                    alert(response.Result);
+                }
+            });
+        }
+    }
+
+</script>

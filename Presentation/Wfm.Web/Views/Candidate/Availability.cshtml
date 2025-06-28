@@ -1,0 +1,24 @@
+﻿@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    ViewBag.Title = T("Common.Availability").Text;
+}
+
+<div class="page candidate-page">
+    <div class="page-body">
+        @*<div class="section-header">
+            <div class="title">
+                @T("Common.Availability")
+            </div>
+            <div class="options">
+            </div>
+        </div>*@
+        <div>
+            <p>@T("Web.Availability.Reminder")</p>
+        </div>
+        <div class="adminContent">
+            @Html.Action("_AvailabilityScheduler")
+        </div>
+    </div>
+</div>

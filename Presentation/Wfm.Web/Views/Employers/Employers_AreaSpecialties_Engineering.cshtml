@@ -1,0 +1,60 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Engineering";
+    //var description = siteTitle + " has the experience and capabilities to find and place engineers, designers, project managers, and other technical and professional services personnel to a broad spectrum of industries.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Engineering</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            Hiring the right engineering talent is not an easy task. You have projects to finish,
+            goals to reach, and positions to fill. @siteTitle has the experience and
+            capabilities to find and place engineers, designers, project managers, and other
+            technical and professional services personnel to a broad spectrum of industries.
+        </p>
+        <p>
+            By working with @siteTitle, you profit from the expertise of consultants
+            who make a living out of researching, identifying, targeting and persuading top
+            technical talent. We have proven methods to access talent that enables us to deliver
+            the superior candidates you deserve.
+        </p>
+        <p>
+            Contact us today to connect with the best candidates available in the following
+            fields:
+        </p>
+        <ul>
+            <li>CAD engineering /design</li>
+            <li>Chemical engineering</li>
+            <li>Continuous improvement manager</li>
+            <li>Electrical engineering</li>
+            <li>Electro-chemical engineering</li>
+            <li>Electro-mechanical engineering</li>
+            <li>Lean operational excellence engineer</li>
+            <li>Mechanical engineering</li>
+            <li>Product engineering</li>
+            <li>Process engineering</li>
+            <li>Project management</li>
+            <li>Program manager</li>
+        </ul>
+    </div>
+</div>

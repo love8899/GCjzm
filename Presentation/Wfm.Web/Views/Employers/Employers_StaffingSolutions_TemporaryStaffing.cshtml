@@ -1,0 +1,72 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Temporary Staffing";
+    //var description = "We are well placed to source the best candidates in the market and our expertise ensures that we match their skills and experience with your temporary requirements effectively.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Temporary Staffing</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            <b>We provide the flexible, temporary help you need</b>
+        </p>
+        <p>
+            We have the capabilities to fill your contingent or temporary staff positions with
+            highly skilled and articulate candidates, on time and at competitive margins. We
+            are well placed to source the best candidates in the market and our expertise ensures
+            that we match their skills and experience with your temporary requirements effectively.
+        </p>
+        <p>
+            @siteTitle provides 24/7 service and responds to client concerns within ten
+            minutes at any time (including weekends and holidays). Our primary recruiter and
+            Health & Safety coordinator can be reached any time by their mobile phones and by
+            email even on weekends and holidays.
+        </p>
+        <p>
+            Whether you are looking for administrative personnel for one day, holiday cover,
+            or support staff, our team will fill your requirement in the fastest possible time
+            with the best possible candidate.
+        </p>
+        <p>
+            Through @siteTitle, you can significantly reduce your labour expenses and
+            save time. Our flexible and scalable staffing solutions help ensure that your labour
+            expenses are tied to results. Here's How:
+        </p>
+        <ul>
+            <li>Turn your fixed cost into variable cost to manage your seasonal workforce fluctuation</li>
+            <li>
+                Transfer ALL labour costs to @siteTitle. We will cover:
+                <ul>
+                    <li>WSIB premiums and claims</li>
+                    <li>All payroll duties: CPP, EI, Vacation pay</li>
+                    <li>Bookkeeping costs to cover payroll</li>
+                    <li>Advertising costs</li>
+                </ul>
+            </li>
+            <li>
+                Reduce overtime costs, lost time due to employee illness and avoid employee turnover
+                issues;
+            </li>
+            <li>Save time by allowing our hiring experts to screen, interview and assess candidates.</li>
+        </ul>
+    </div>
+</div>

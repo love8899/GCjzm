@@ -1,0 +1,314 @@
+﻿@using Wfm.Core.Domain.ClockTime
+@using Wfm.Services.Companies
+@using Wfm.Services.Franchises;
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts;
+@model IEnumerable<CandidateClockTimeModel>
+
+@{
+    ViewBag.Title = T("Admin.ClockTime").Text;
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    
+    var franchises = franchiseService.GetAllFranchises();
+
+    var today = DateTime.Today;
+    DateTime startDate = ViewBag.RefDate != null ? ViewBag.RefDate : today.AddDays(-14);
+    DateTime endDate = ViewBag.RefDate != null ? ViewBag.RefDate : today;
+    var availableClockTimeStatus = CandidateClockTimeStatus.NoStatus.ToSelectList(false).ToList();
+
+    var companyDivisionService = EngineContext.Current.Resolve<ICompanyDivisionService>();
+    var companyLocations = companyDivisionService.GetAllCompanyLocations();
+
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+    var candidateSelectable = permissionService.Authorize("SelectClockTimeCandidate");
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.ClockTime")
+    </div>
+    <div class="options">
+        @Html.Label("start", T("Admin.Common.From").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("start").Max(today).Value(startDate).Events(e => e.Change("refreshGird"))
+        @Html.Label("end", T("Admin.Common.To").Text)
+        @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("end").Max(today).Value(endDate).Events(e => e.Change("refreshGird"))
+        @Html.Kendo().MultiSelect().Name("Status").BindTo(availableClockTimeStatus).DataTextField("Text").DataValueField("Value").Value(availableClockTimeStatus.Where(x => x.Value != "30")).HtmlAttributes(new { style = "width:350px" }).MaxSelectedItems(3).Events(e => e.Change("refreshGird"))
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateClockTimeModel>()
+                .Name("clocktime-grid")
+                .Events(events => events.DataBound("onDataBound"))
+                .Columns(columns =>
+                {
+
+                    columns.Bound(x => x.CandidateId).Width(80)
+                        .ClientTemplate(@Html.ActionLink("#=CandidateId#", "Details", "Candidate", new { guid = "#=CandidateGuid#" }, new { target = "_blank" }).ToHtmlString());
+
+                    if (!workContext.CurrentAccount.IsVendor() && commonSettings.DisplayVendor)
+                    {
+                        columns.ForeignKey(x => x.FranchiseId, franchises, "Id", "FranchiseName").Title(T("Common.Vendor").Text).Width(180);
+                    }
+
+                    columns.Bound(x => x.CandidateLastName).Title(T("Common.LastName").Text).Width(100).ClientTemplate("#=lastNameTemplate(data)#");
+                    columns.Bound(x => x.CandidateFirstName).Title(T("Common.FirstName").Text).Width(100).ClientTemplate("#=firstNameTemplate(data)#");
+
+                    columns.Bound(x => x.SmartCardUid).Title(T("Common.SmartCard").Text).Width(100);
+
+                    columns.Bound(x => x.ClockDeviceUid).Title(T("Admin.ClockDevice").Text).Width(100);
+
+                    //columns.Bound(x => x.CompanyId).Width(60).Hidden();
+                    columns.Bound(x => x.CompanyName).Title(T("Common.Company").Text);
+                    columns.ForeignKey(x => x.CompanyLocationId, companyLocations, "Id", "LocationName").Title("Location");
+
+                    columns.Bound(x => x.RecordNumber).Width(50).Hidden(true);
+
+                    columns.Bound(x => x.ClockInOut).Title(T("Common.PunchInOut").Text).Format("{0:yyyy-MM-dd HH:mm}").Width(120);
+
+                    columns.Bound(x => x.Source).Title("Source").Width(90);
+                    columns.Bound(x => x.Note).Hidden(true);
+                    columns.Bound(x => x.PunchClockFileName).Width(210).Hidden(true);
+
+                    columns.ForeignKey(x => x.CandidateClockTimeStatusId, availableClockTimeStatus, "Value", "Text").Width(110).ClientTemplate("#=statusTemplate(data)#");
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false).Hidden(true)
+                        .Template(x => Html.ActionLink(T("Admin.Common.Refresh").Text, "Refresh", new { x.Id }))
+                        .ClientTemplate("<a href=\"javascript:void(0)\" onclick=\"onRefresh(#= Id #)\">" + T("Admin.Common.Refresh").Text + "</a>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80)
+                        .Title(T("Admin.Common.Refresh").Text);
+
+                    columns.Command(x => x.Custom("Fix").Click("fixWizard")).Width(70).HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" }).Title("Fix");
+                    
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("Index", "ClockTime").Data("onRead"))
+                    .Sort(sorts => sorts.Add(x => x.ClockInOut).Descending())
+                    .Group(groups => groups.Add(x => x.CandidateId))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+
+<script>
+    function onDataBound(e) {
+        applyCommandIcons(e);
+        showOrHideButton(e);
+    }
+    function applyCommandIcons(e) {
+        $(".k-grid-Fix").attr('title', 'Fix').html('<span class="fa fa-wrench"></span>');
+    }
+
+    function showOrHideButton(e) {
+        var grid = $("#clocktime-grid").data("kendoGrid");
+        var data = grid.dataSource.data();
+        var groupNumber = data.length;
+        currentRow = 0;
+        for (var i = 0; i < groupNumber; i++) {
+            var candidateNumber = data[i].items.length;
+            for (var j = 0; j < candidateNumber; j++) {
+                var currentData = data[i].items[j];
+                var theRow = grid.tbody.find(">tr:not(.k-grouping-row)").eq(currentRow);
+                // too early (shift not end yet), or too late (paid)
+                if (currentData.CandidateClockTimeStatusId == @((int)(CandidateClockTimeStatus.Processed))||!currentData.CandidateId)
+                    theRow.find(".k-grid-Fix").remove();
+                currentRow++;
+            }
+        }
+    }
+    function fixWizard(e)
+    {
+        var h = window.innerHeight;
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        var candidateClockTimeId = dataItem.Id;
+        $(document.body).append('<div id="fix-wizard"></div>');
+        $("#fix-wizard").kendoWindow({
+            title: "Daily Issues Process",
+            modal: true,
+            resizable: true,
+            width: 1200,
+            height: 600,
+            content: '@Url.Action("DailyIssuesProcess", "ClockTime")' + '?candidateClockTimeId=' + candidateClockTimeId,
+            close: function () {
+                setTimeout(function () {
+                    $('#fix-wizard').kendoWindow('destroy');
+                    refreshGird();
+                }, 200);
+            }
+        }).data('kendoWindow').center().open();
+        $('#fix-wizard').closest(".k-window").css({
+            top: h/2 - $('#fix-wizard').parent()[0].scrollHeight/2
+        });
+    }
+    $(document).ready(function () {
+        index = GetColumnIndexFromName("CandidateClockTimeStatusId")
+    });
+
+    var collection;
+    var index;
+    //get's the text by value
+    function getTextByValue(data) {
+        var grid = $("#clocktime-grid").data("kendoGrid");
+        valuesCollection = grid.options.columns[index].values;
+
+        //if the collection is empty - get it from the grid
+        if (!collection) {
+            collection = {};
+            //Set the correct FKColumn index
+            for (var value in valuesCollection) {
+                collection[valuesCollection[value].value] = valuesCollection[value].text;
+            }
+        }
+        return collection[data.CandidateClockTimeStatusId];
+
+    }
+
+    function GetColumnIndexFromName(strName) {
+        var index = -1;
+        var grid = $("#clocktime-grid").data("kendoGrid");
+        var columns = grid.options.columns;
+        if (columns.length > 0) {
+            for (var i = 0; i < columns.length; i++) {
+                if (columns[i].field == strName) { // columns[i].title -- You can also use title property here but for this you have to assign title for all columns
+                    index = i;
+                }
+            }
+        }
+        return index;
+    }
+
+    function refreshGird() { $("#clocktime-grid").data("kendoGrid").dataSource.read(); }
+
+    function onRead(e) {
+        var start = $("#start").val();
+        var end = $("#end").val();
+        var status = $("#Status").val();
+        var statusList = status == null ? "" : status.join();
+        return {
+            startDate: start,
+            endDate: end,
+            status: statusList,
+            candidateId: '@(ViewBag.CandidateId)',
+            refDate: '@(ViewBag.RefDate != null ? ViewBag.RefDate.ToShortDateString() : null)'
+        };
+    }
+
+    function lastNameTemplate(data)
+    {
+        var template = kendo.template($('#lastName').html());
+        return template(data);
+    }
+
+    function firstNameTemplate(data) {
+        var template = kendo.template($('#firstName').html());
+        return template(data);
+    }
+
+    function statusTemplate(data) {
+        var template = kendo.template($('#status').html());
+        return template(data);
+    }
+
+    function onRefresh(id) {
+        var link = '@Url.Action("Refresh", "ClockTime")' ;
+        $.ajax({
+            type: "POST",
+            url: link,
+            data: {id:id},
+            success: function (response) {
+                if (response.success == false)
+                    alert(response.message);
+
+                refreshGird();
+            }
+        });
+    }
+
+    function markAsProcessed(id)
+    {
+        var link = '@Url.Action("MarkAsProcessed", "ClockTime")';
+        $.ajax({
+            type: "POST",
+            url: link,
+            data: { id: id },
+            success: function (response) {
+                if (response.success == false)
+                    alert(response.message);
+
+                refreshGird();
+            }
+        });
+    }
+</script>
+
+<script id="lastName" type="text/x-kendo-template">
+
+    #if (CandidateClockTimeStatusId == 0) {#
+        <span class='clocktime-warning'>#= CandidateLastName #</span>
+    #} else if (CandidateClockTimeStatusId == 99) {#
+    <span class='clocktime-error'>#= CandidateLastName #</span>
+    #} else {#
+        #= CandidateLastName #
+    #}#
+
+</script>
+
+<script id="firstName" type="text/x-kendo-template">
+
+    #if (CandidateClockTimeStatusId == 0) {#
+        <span class='clocktime-warning'>#= CandidateFirstName #</span>
+    #} else if (CandidateClockTimeStatusId == 99) {#
+        <span class='clocktime-error'>#= CandidateFirstName #</span>
+    #} else {#
+        #= CandidateFirstName #
+    #}#
+
+</script>
+
+<script id="status" type="text/x-kendo-template">
+
+    # var candidateSelectable = @Html.Raw(Json.Encode(candidateSelectable)); #
+    #if (CandidateId === null && candidateSelectable) {#
+        <a href="@Url.Content("~/Admin/SmartCard/CandidateMatch")?companyLocationId=#=CompanyLocationId#&smartCardUid=#=SmartCardUid#&clockInOut=#=kendo.toString(ClockInOut,'yyyy-MM-dd HH:mm')#" target='_blank'>
+            <span class='clocktime-warning'>#=getTextByValue(data)#</span>
+        </a>
+    #} else if (CandidateId != null && CandidateClockTimeStatusId == 0) {#
+        <a href="@Url.Content("~/Admin/TimeSheet/CandidateWorkTimeMatch")?guid=#=CandidateGuid#&clockInOut=#=kendo.toString(ClockInOut,'yyyy-MM-dd HH:mm')#" target='_blank'>
+            <span class='clocktime-warning'>#=getTextByValue(data)#</span>
+        </a>
+    #} else if (CandidateClockTimeStatusId == 99) {#
+        <span class='clocktime-error'>#=getTextByValue(data)#</span>
+    #} else {#
+        #= getTextByValue(data) #
+    #}#
+
+</script>

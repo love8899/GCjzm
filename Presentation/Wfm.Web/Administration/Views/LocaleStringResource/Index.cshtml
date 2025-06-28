@@ -1,0 +1,85 @@
+﻿@model IEnumerable<LocaleStringResourceModel>
+@using Wfm.Services.Localization
+@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.Languages.Resources").Text;
+    var languageService = EngineContext.Current.Resolve<ILanguageService>();
+    var languages = languageService.GetAllLanguages().Select(x => new SelectListItem() { Text = x.LanguageCulture, Value = x.Id.ToString() });
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration.Languages.Resources") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+    <div class="options">
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<LocaleStringResourceModel>()
+              .Name("localestringresource-grid")
+              .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(80);
+                    columns.ForeignKey(x => x.LanguageId,languages,"Value","Text").Width(100);
+                    columns.Bound(x => x.ResourceName);
+                    columns.Bound(x => x.ResourceValue);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    columns.Command(x => x.Destroy().Text(" ")).Width(80);
+                    //columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                    //    .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                    //    .Template(x => Html.ActionLink("Edit", "Edit", new { x.Id }))
+                    //    .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/LocaleStringResource/Edit/") + "#= Id #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                    //    .Width(80)
+                    //    .Title(T("Admin.Common.Edit").Text);
+                })
+                .ToolBar(x => { x.Create(); x.Save(); })
+                .Editable(e => e.Mode(GridEditMode.InCell))
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .Batch(true)
+                    .ServerOperation(true)
+                    .PageSize(20)
+                    .Read(read => read.Action("Index", "LocaleStringResource"))
+                    .Create(c => c.Action("Create", "LocaleStringResource"))
+                    .Update(u => u.Action("Update", "LocaleStringResource"))
+                    .Destroy(d => d.Action("Delete", "LocaleStringResource"))
+                    .Model(m => {
+                        m.Id(x => x.Id);
+                        m.Field(x => x.Id).Editable(false);
+                        m.Field(x => x.LanguageId).Editable(true).DefaultValue(1);
+                        m.Field(x => x.ResourceName).Editable(true).DefaultValue(String.Empty);
+                        m.Field(x => x.ResourceValue).Editable(true).DefaultValue(String.Empty);
+                        m.Field(x => x.UpdatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        m.Field(x => x.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                        m.Field(x => x.CreatedOn).Editable(false).DefaultValue(DateTime.Now);
+                        m.Field(x => x.CreatedOnUtc).Editable(false).DefaultValue(DateTime.UtcNow);
+                    })
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

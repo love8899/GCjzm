@@ -1,0 +1,21 @@
+﻿@model BankModel
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.Bank.AddNew").Text;
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "country-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Common.Add") @Html.ActionLink("(" + T("Admin.Configuration.Bank.BackToList") + ")", "Index")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />
+        </div>
+    </div>
+
+    @Html.Partial("_CreateOrUpdate", Model)
+}

@@ -1,0 +1,69 @@
+﻿@model IEnumerable<TestCategoryModel>
+@using Wfm.Web.Models.Test
+
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    ViewBag.Title = T("Web.Tests.TestCategories");
+
+    var candidateId = (int)ViewBag.CandidateId;
+}
+
+<div class="page candidate-page">
+    <div class="page-body">
+        <div class="section-header">
+            <div class="title">
+                @T("Web.Tests.TestCategories")
+            </div>
+            <div class="options">
+            </div>
+        </div>
+        @(Html.Kendo().Grid<TestCategoryModel>().Name("TestCategory-grid")
+            .BindTo(Model).Events(e => e.DataBound("onCategoriesBound"))
+            .HtmlAttributes(new { @class = "table"})
+            .Columns(columns =>
+            {
+                columns.Bound(x => x.TestCategoryName).HtmlAttributes(new { @class = "col-8 col-sm-8 col-md-6 col-lg-4" });
+                columns.Bound(x => x.Description).HtmlAttributes(new { @class = "col-lg-4" });
+                columns.Bound(x => x.TotalScore).HtmlAttributes(new { style = "text-align: right",  @class = "col-md-2 col-lg-1" });
+                columns.Bound(x => x.PassScore).Title("Pass score").HtmlAttributes(new { style = "text-align: right", @class = "col-md-2 col-lg-1" });
+
+                columns.Bound(x => x.Id).Filterable(false).Sortable(false).Title(T("Common.Action").Text)
+                    .ClientTemplate("<a href=\"" + @Url.Content("~/Candidate/BeginTest?categoryId=") + "#= Id #\">" + T("Web.Tests.TestCategory.BeginTest") + "</a>")
+                    .HeaderHtmlAttributes(new { style = "text-align:center" })
+                    .HtmlAttributes(new { @class = "col-4 col-sm-4 col-md-2 col-lg-2", style = "text-align:center" });
+            })
+            .EnableCustomBinding(false)
+            .Reorderable(reorder => reorder.Columns(true))
+            .Resizable(resize => resize.Columns(true))
+            //.Filterable()
+            .Sortable()
+            //.ColumnMenu()
+            //.Selectable()
+            //.Pageable(x => x.PageSizes(new[] { 5, 10, 20 }))
+            .DataSource(ds => ds
+                .Ajax()
+                .ServerOperation(false)
+                .PageSize(15)
+                .Sort(sort => sort.Add(x => x.DisplayOrder).Descending())
+            )
+        )
+        <br />
+        <div class="section-header">
+            <div class="title">
+                @T("Web.Tests.TestResults")
+            </div>
+            <div class="options">
+            </div>
+        </div>
+        @Html.Action("_CandidateTestResult", new { CandidateId = candidateId })
+    </div>
+</div>
+
+<script type="text/javascript">
+    function onCategoriesBound(e) {
+        setGridColumnClass(e.sender, ["TotalScore", "PassScore"], 'd-none d-md-table-cell');
+        setGridColumnClass(e.sender, ["Description"], 'd-none d-lg-table-cell');
+    }
+</script>

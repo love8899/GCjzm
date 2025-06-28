@@ -1,0 +1,53 @@
+﻿@model IEnumerable<MediaFileModel>
+@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@using Wfm.Web.Models.Candidate
+
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsOne.Candidate.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    ViewBag.Title = "Test Material";
+}
+
+<script type="text/javascript" src="/Content/jwplayer/jwplayer.js"></script>
+<script type="text/javascript">jwplayer.key = "6U8u12Lsj2XtjuZXbfH99EeJ2OEnvehgjOicJESsJPNx19DNzTRMbIjWcKm9b77e";</script>
+
+
+<div class="page candidate-page">
+    <div class="page-body">
+        @*<div class="section-header">
+            <div class="title">
+                Education Videos
+            </div>
+            <div class="options">
+            </div>
+        </div>*@
+        <div class="video-wrapper">
+            @foreach (var item in Model)
+            {
+                <br />
+                <div class="video">
+                    <h4>No.@item.FileNo - @item.Title</h4>
+                    <div id="@("container" + item.FileNo)">Loading the player...</div>
+                    <script type="text/javascript">
+                        jwplayer("@("container" + item.FileNo)").setup({
+                            file: "@Url.Content(item.MediaFilePath)",
+                            image: "@Url.Content(item.ImageFilePath)",
+                            abouttext: '@siteTitle',
+                            aboutlink: "../about-us",
+                            analytics: {
+                                enabled: false,
+                                cookies: false
+                            },
+                            width: "100%",
+                            aspectratio: "16:9"
+                        });
+                    </script>
+                </div>
+            }
+        </div>
+    </div>
+</div>

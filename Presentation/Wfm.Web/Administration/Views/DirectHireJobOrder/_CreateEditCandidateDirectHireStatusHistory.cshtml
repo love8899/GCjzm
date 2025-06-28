@@ -1,0 +1,128 @@
+﻿@using Wfm.Core;
+
+@using  Wfm.Core.Domain.Candidates;
+@model CandidateDirectHireStatusHistoryModel
+@{
+    ViewBag.Title = T("Admin.JobOrder.JobOrder.EditJobOrderDetails").Text;
+
+    var candidateJobOrderService = EngineContext.Current.Resolve<Wfm.Services.Candidates.ICandidateJobOrderStatusService>();
+    var candidateJobOrderStatus = candidateJobOrderService.GetAllCandidateJobOrderStatus().Where(s => s.ForDirectHire);
+    var candidateJobOrderStatusDropDownList = new List<SelectListItem>();
+    foreach (var c in candidateJobOrderStatus)
+    {
+        var item = new SelectListItem()
+        {
+            Text = c.StatusName,
+            Value = c.Id.ToString()
+        };
+        candidateJobOrderStatusDropDownList.Add(item);
+    }
+}
+
+@using (Html.BeginForm("_CreateEditCandidateDirectHireStatusHistory", "DirectHireJobOrder"))
+{
+    <div class="section-header">
+        <div class="options">
+            <input type="button" name="add" onclick="GetDetailForm(0)" class="k-button" value="@T("Admin.Common.Add")" />
+            <input type="button" name="save" onclick="submitDetailForm(this)" class="k-button" value="@T("Admin.Common.Save")" />
+        </div>
+    </div>
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.CandidateId)
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.StatusFrom)
+    @Html.HiddenFor(model => model.EnteredBy)
+    @Html.HiddenFor(model => model.JobOrderId)
+    @Html.HiddenFor(model => model.InvoiceDate)
+    @Html.HiddenFor(model => model.CreatedOnUtc)
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @T("Common.Status")
+            </td>
+            <td class="adminData required">
+                @(Html.Kendo().DropDownList()
+                          .Name("StatusTo")
+                        .OptionLabel("--Select--")
+                        .DataTextField("Text")
+                        .DataValueField("Value")
+                      .BindTo(candidateJobOrderStatusDropDownList)
+                )
+                @Html.WfmValidationMessageFor(model => model.StatusTo)
+            </td>
+            <td class="adminTitle clsInterview" >@Html.LabelFor(model => model.InterviewDate)</td>
+            <td class="adminData clsInterview required">
+                @Html.Kendo().DateTimePicker().Name("InterviewDate")
+                @Html.WfmValidationMessageFor(model => model.InterviewDate)
+            </td>
+    </tr>
+
+    <tr class="clsHired" >
+        <td class="adminTitle">@Html.LabelFor(model => model.HiredDate)</td>
+        <td class="adminData required">
+            @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("HiredDate")
+            @Html.WfmValidationMessageFor(model => model.HiredDate)
+        </td>
+        <td class="adminTitle">@Html.LabelFor(model => model.Salary)</td>
+        <td class="adminData required ">
+            @Html.Kendo().NumericTextBox().Name("Salary")
+            @Html.WfmValidationMessageFor(model => model.Salary)
+        </td>
+    </tr>
+    
+    <tr class="clsHired">
+        <td class="adminTitle">@Html.LabelFor(model => model.IssueInvoice)</td>
+        <td class="adminData">             
+            @Html.CheckBoxFor(m => m.IssueInvoice)
+        </td>
+        <td class="adminTitle">@Html.LabelFor(model => model.InvoiceDate)</td>
+        <td class="adminData">
+            @Html.DisplayFor(model => model.InvoiceDate)
+        </td>
+    </tr>
+
+<tr>
+    <td class="adminTitle">@Html.LabelFor(model => model.Notes)</td>
+    <td class="adminData" colspan="3" >
+        @Html.TextArea("Notes", new { @class = "k-textbox", style = "width: 80%;" })
+    </td>
+</tr>
+</table>
+    <script>
+        $("#StatusTo").change(function () {         
+        $('.clsHired').hide();
+        $('.clsInterview').hide();
+        var status = $("#StatusTo").val();
+        if (status == '@((int)(CandidateJobOrderStatusEnum.Hired))') {
+            $('.clsHired').show();
+            if(@Model.StatusTo!='@((int)(CandidateJobOrderStatusEnum.Hired))')
+            {
+                $('#IssueInvoice').attr('checked','checked');
+            }          
+            $("#InterviewDate").data("kendoDateTimePicker").value('');
+        }
+        else if (status == '@((int)(CandidateJobOrderStatusEnum.InterviewScheduled))') {
+            $('.clsInterview').show();
+            $("#HiredDate").data("kendoDatePicker").value('');
+        }
+        else{
+            $("#InterviewDate").data("kendoDateTimePicker").value('');
+            $("#HiredDate").data("kendoDatePicker").value('');
+           
+        }
+
+    });
+    $(document).ready(function () {
+        $('.clsHired').hide();
+        $('.clsInterview').hide();
+        var status = $("#StatusTo").val();
+        if (status == '@((int)(CandidateJobOrderStatusEnum.Hired))') {
+            $('.clsHired').show();
+        }
+        else if (status == '@((int)(CandidateJobOrderStatusEnum.InterviewScheduled))') {
+            $('.clsInterview').show();
+        }
+    });
+    </script>
+}
+

@@ -1,0 +1,40 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Employment Guidelines";
+    //var description = "As a " + siteTitle + " associate it is your responsibility to familiarize yourself with the information contained within our pre-employment guidelines handbook.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle;
+}
+
+@section left {
+    @Html.Partial("Layout/_AssociateSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Employment Guidelines</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            We would like to take this opportunity to welcome you aboard and thank you for becoming
+            a @siteTitle associate. We wish you every success and trust you will find
+            your assignments both rewarding and enjoyable.
+        </p>
+        <p>
+            As a @siteTitle associate it is your responsibility to familiarize yourself
+            with the information contained within our pre-employment guidelines handbook. You
+            can find <a href="@Url.Action("ApplicationAgreement", "Home")"><b>here</b></a>.
+        </p>
+    </div>
+</div>

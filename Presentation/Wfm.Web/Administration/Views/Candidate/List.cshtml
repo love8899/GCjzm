@@ -1,0 +1,206 @@
+﻿@using Wfm.Services.Common;
+@using Wfm.Services.DirectoryLocation;
+@using Wfm.Services.Franchises;
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts;
+@model IEnumerable<CandidateWithAddressModel>
+
+@{
+    ViewBag.Title = T("Common.Candidates").Text;
+    
+    var genderService = EngineContext.Current.Resolve<IGenderService>();
+    var transportationService = EngineContext.Current.Resolve<ITransportationService>();
+    var shiftService = EngineContext.Current.Resolve<IShiftService>();
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var cityService = EngineContext.Current.Resolve<ICityService>();
+    var stateProvinceService = EngineContext.Current.Resolve<IStateProvinceService>();
+    var permissionService = EngineContext.Current.Resolve<Wfm.Services.Security.IPermissionService>();
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+
+    var genders = genderService.GetAllGenders();
+    var transportation = transportationService.GetAllTransportations();
+    var shifts = shiftService.GetAllShifts();
+    var franchises = franchiseService.GetAllFranchises();
+    var cities = cityService.GetAllCities();
+    var stateProvinces = stateProvinceService.GetAllStateProvinces();
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+    //set the Global viewbag Variable
+    ViewBag.SearchArea = "Candidate";
+}
+<div class="section-header">
+    <div class="title">
+        @T("Common.Candidates")
+    </div>
+    <div class="options">
+       @if (permissionService.Authorize("AllowAddCandidates"))
+        { 
+        @Html.ActionLink(T("Common.Add").Text, "Create", null, new { @class = "k-button" })    
+        }      
+        @if (permissionService.Authorize("ManageCandidateBlacklist"))
+        {
+            @Html.ActionLink(T("Admin.Candidate.Blacklist").Text, "Dnrlist", null, new { @class = "k-button" })
+        }
+    </div>
+</div>
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<CandidateWithAddressModel>()
+                .Name("candidate-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x).Width(35).Sortable(false).Filterable(false)
+                        .ClientTemplate("#if (IsHot == true) {# <img alt='' src='" + Url.Content("~/Administration/Content/images/hot-true.png") + "' /> #} else if (IsBanned == true) {# <img alt='' src='" + Url.Content("~/Administration/Content/images/ico-stop1.png") + "' /> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Title("");
+                    columns.Bound(x => x.Id).Title(@T("Common.Id").Text).Filterable(ftb => ftb.Cell(cell => cell.Operator("eq"))).Width(75);
+
+                    columns.Bound(x => x.EmployeeId)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Width(100);
+                    
+                    if (!workContext.CurrentAccount.IsVendor()&&commonSettings.DisplayVendor)
+                    {
+                        columns.ForeignKey(x => x.FranchiseId, franchises, "Id", "FranchiseName").Title("Vendor").Width(180);
+                    }
+
+                    columns.Bound(x => x.FirstName)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Template(x => Html.ActionLink(x.FirstName, "Details", new { x.Guid }, new { }))
+                        .ClientTemplate("<span class=\"banned-#= IsBanned #\">" + @Html.ActionLink("#=FirstName #", "Details", new { guid = "#=Guid#" }).ToHtmlString() + "</span>");
+
+                    columns.Bound(x => x.MiddleName)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+
+                    columns.Bound(x => x.LastName)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Template(x => Html.ActionLink(x.LastName, "Details", new { x.Guid }, new { }))
+                        .ClientTemplate("<span class=\"banned-#= IsBanned #\">" + @Html.ActionLink("#=LastName #", "Details", new { guid = "#=Guid#" }).ToHtmlString() + "</span>");
+
+                    columns.ForeignKey(x => x.GenderId, genders, "Id", "GenderName").Width(75);
+                    columns.Bound(x => x.Age).Hidden(true);
+                   
+                    columns.Bound(x => x.Email)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+                    columns.Bound(x => x.Email2)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+
+                    //columns.Bound(x => x.SearchKeys).Sortable(false).ClientTemplate("Quick search ...").Width(100);
+                    columns.Bound(x => x.SearchKeys).Sortable(false)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+
+                    columns.Bound(x => x.Note).Encoded(false)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")));
+
+                    columns.Bound(x => x.HomePhone)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate("#= prettyPhone(HomePhone) #")
+                        .Width(110);
+                    columns.Bound(x => x.MobilePhone)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate("#= prettyPhone(MobilePhone) #")
+                        .Width(110);
+                    columns.Bound(x => x.EmergencyPhone)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate("#= prettyPhone(EmergencyPhone) #")
+                        .Width(110)
+                        .Hidden(true);
+                    columns.Bound(x => x.SocialInsuranceNumber)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .ClientTemplate("#= prettySocialInsuranceNumber(SocialInsuranceNumber) #")
+                        .Width(100)
+                        .Hidden(true);
+
+                    columns.ForeignKey(x => x.CityId, cities, "Id", "CityName").Sortable(false).Width(120);
+                    columns.ForeignKey(x => x.StateProvinceId, stateProvinces, "Id", "StateProvinceName").Sortable(false).Filterable(false).Hidden(true);
+
+                    columns.Bound(x => x.MajorIntersection1)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+                    columns.Bound(x => x.MajorIntersection2)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+
+                    columns.Bound(x => x.PreferredWorkLocation)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains")))
+                        .Hidden(true);
+
+                    columns.ForeignKey(x => x.ShiftId, shifts, "Id", "ShiftName").Sortable(false).Hidden(true);
+
+                    columns.ForeignKey(x => x.TransportationId, transportation, "Id", "TransportationName").Sortable(false).Hidden(true);
+                    columns.Bound(x => x.LicencePlate)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("contains"))).Hidden(true);
+
+                    columns.Bound(x => x.UpdatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        .ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120);
+                    columns.Bound(x => x.CreatedOnUtc)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        .ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#")
+                        .Width(120)
+                        .Hidden(true);
+
+                    columns.Bound(x => x.IsActive)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        //.Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)                       
+                        .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80);
+                    columns.Bound(x => x.OnBoarded)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        //.Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.OnBoarded.ToString().ToLowerInvariant() + ".png")" />)                      
+                        .ClientTemplate("#if (OnBoarded == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80);
+                    columns.Bound(x => x.IsBanned)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        //.Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsBanned.ToString().ToLowerInvariant() + ".png")" />)                     
+                        .ClientTemplate("#if (IsBanned == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(70).Hidden(true);
+                    columns.Bound(x => x.IsHot)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))                     
+                        .ClientTemplate("#if (IsHot == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(70).Hidden(true);
+                    columns.Bound(x => x.Id).Width(70).Sortable(false).Filterable(false).IncludeInMenu(false)
+                        .Filterable(ftb => ftb.Cell(cell => cell.ShowOperators(false)))
+                        //.Template(x => Html.ActionLink("Edit", "Edit", new { guid= x.Guid }))
+                        .ClientTemplate("<a class='k-button' title='" + T("Common.Edit").Text + "' href=\"" + @Url.Content("~/Admin/Candidate/Edit?guid=") + "#= Guid #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Title("");
+
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .ColumnMenu(d => d.Sortable(true))
+                //.Filterable(ftb => ftb.Mode(GridFilterMode.Row))
+                .Sortable()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(true)
+                        .PageSize(20)
+                        .Read(read => read.Action("List", "Candidate"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>

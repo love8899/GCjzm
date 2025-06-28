@@ -1,0 +1,358 @@
+﻿@using Wfm.Core;
+@using Wfm.Core.Domain.TimeSheet;
+@using Wfm.Core.Domain.JobOrders
+@using Wfm.Services.Franchises;
+@using Wfm.Core;
+@using Wfm.Core.Domain.Accounts;
+@{
+    ViewBag.Title = T("Admin.Attendance.CandidateAttendance").Text;
+    var franchiseService = EngineContext.Current.Resolve<IFranchiseService>();
+    var workContext = EngineContext.Current.Resolve<IWorkContext>();
+    var franchises = franchiseService.GetAllFranchises();
+    var startOfThisWeek = System.DateTime.Now.StartOfWeek(DayOfWeek.Sunday);
+    var firstDayOfThisWeek = startOfThisWeek.ToString("yyyy-MM-dd");
+    var firstDayOfLastWeek = startOfThisWeek.AddDays(-7).ToString("yyyy-MM-dd");
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+    var selectedDate = startOfThisWeek;
+    if (ViewBag.firstDateOfWeek != null)
+    {
+        selectedDate = ViewBag.firstDateOfWeek;
+    }
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Attendance.CandidateAttendance")
+    </div>
+    <div class="options">
+        @T("Admin.Common.LoadForWeekOf")
+        @(Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" })
+            .Name("selected-date")
+            .Format("yyyy-MM-dd")
+            .Value(selectedDate)
+        )
+        @(Html.Kendo().DropDownList()
+            .Name("company-id")
+            .HtmlAttributes(new { style = "width: 250px" })
+            .DataTextField("Text")
+            .DataValueField("Value")
+            .DataSource(source => {
+                source.Read(read => { read.Action("GetCompanies", "TimeSheet"); })
+                .ServerFiltering(true);
+            })
+            //.SelectedIndex(0)
+            .OptionLabel("All companies")
+            .Value(ViewBag.companyId.ToString())
+        )
+        @(Html.Kendo().Button().Name("refresh-grid").Tag("em").SpriteCssClass("k-icon k-i-refresh").Content("<span class='k-sprite'>Refresh</span>"))
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<AttendancePreview>()
+                .Name("candidate-attendance-grid")
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.JobOrderId).Width(75);
+
+                    columns.Bound(x => x.JobTitle)
+                        .Template(x => Html.ActionLink(x.JobTitle, "Details", "JobOrder", new { guid=x.JobOrderGuid }))
+                        .ClientTemplate(@Html.ActionLink("#=JobTitle#", "Details", "JobOrder", new { guid = "#=JobOrderGuid#" }, new { target = "_blank" }).ToHtmlString())
+                        .ClientGroupFooterTemplate("Total: #=count#");
+
+                    if (!workContext.CurrentAccount.IsVendor()&&commonSettings.DisplayVendor)
+                    {
+                        columns.ForeignKey(x => x.FranchiseId, franchises, "Id", "FranchiseName").Title(T("Common.Vendor").Text).Width(180);
+                    }
+                    
+                    columns.Bound(x => x.JobStartDate).Title(T("Common.StartDate").Text).Format("{0:yyyy-MM-dd}").Width(90);
+                    columns.Bound(x => x.JobEndDate).Title(T("Common.EndDate").Text).Format("{0:yyyy-MM-dd}").Width(90);
+
+                    columns.Bound(x => x.CompanyName)
+                        .ClientGroupHeaderTemplate(T("Common.Company").Text+": #=value#")
+                        .Title(T("Common.Company").Text)
+                        .Hidden();
+
+                    columns.Bound(x => x.LocationName).Hidden(true).Title(T("Common.Location").Text);
+
+                    columns.Bound(x => x.DepartmentName).Title(T("Common.Department").Text);
+                    
+                    columns.Bound(x => x.ContactName).Hidden(true);
+
+                    columns.Bound(x => x.WeekStartDate).Width(55).Title("View")
+                        .ClientTemplate(@Html.ActionLink("<span class='k-icon k-i-search'></span>", "JobOrderWorkTime", "TimeSheet",
+                                            new { guid = "#=JobOrderGuid#", firstDateOfWeek = "#=kendo.toString(WeekStartDate, 'yyyy-MM-dd')#" }, new { target = "_self" }).ToHtmlString());
+
+                    columns.Group(group => group
+                        .Title("Sunday")
+                        .Columns(day => {
+                            day.Bound(x => x.SundayValid).Width(35).HtmlAttributes(new { id = "sunday-valid" })
+                                .HeaderTemplate("<span class='k-icon k-i-tick' title='Who have valid time sheets'></span>")
+                                .ClientTemplate("# if (SundayValid == 0) {# #} else if (SundaySwitch && SundayValid < SundayPlaced) {# <span class='worktime-warning'>#=SundayValid#</span> #} else {# #=SundayValid# #}#")
+                                .ClientGroupFooterTemplate("#if (sum ==0) {# #} else {# #=sum# #}#");
+                            day.Bound(x => x.SundayMissing).Width(35).HtmlAttributes(new { id = "sunday-missing" })
+                                .HeaderTemplate("<span class='k-icon k-i-note' title='Whose time sheets are still missing'></span>")
+                                .ClientTemplate("#if (!SundaySwitch) {# - #} else if (SundayMissing > 0) {# <span class='worktime-warning'>#=SundayMissing#</span> #} else {# #}#")
+                                .ClientGroupFooterTemplate("#if (sum ==0) {# #} else {# #=sum# #}#");
+                        }).HeaderHtmlAttributes(new { id = "even-day" }));
+
+                    columns.Group(group => group
+                        .Title("Monday")
+                        .Columns(day =>
+                        {
+                            day.Bound(x => x.MondayValid).Width(35).HtmlAttributes(new { id = "monday-valid" })
+                                .HeaderTemplate("<span class='k-icon k-i-tick' title='Who have valid time sheets'></span>")
+                                .ClientTemplate("# if (MondayValid == 0) {# #} else if (MondaySwitch && MondayValid < MondayPlaced) {# <span class='worktime-warning'>#=MondayValid#</span> #} else {# #=MondayValid# #}#")
+                                .ClientGroupFooterTemplate("#if (sum ==0) {# #} else {# #=sum# #}#");
+                            day.Bound(x => x.MondayMissing).Width(35).HtmlAttributes(new { id = "monday-missing" })
+                                .HeaderTemplate("<span class='k-icon k-i-note' title='Whose time sheets are still missing'></span>")
+                                .ClientTemplate("#if (!MondaySwitch) {# - #} else if (MondayMissing > 0) {# <span class='worktime-warning'>#=MondayMissing#</span> #} else {# #}#")
+                                .ClientGroupFooterTemplate("#if (sum ==0) {# #} else {# #=sum# #}#");
+                        }).HeaderHtmlAttributes(new { id = "even-day" }));
+
+                    columns.Group(group => group
+                        .Title("Tuesday")
+                        .Columns(day =>
+                        {
+                            day.Bound(x => x.TuesdayValid).Width(35).HtmlAttributes(new { id = "tuesday-valid" })
+                                .HeaderTemplate("<span class='k-icon k-i-tick' title='Who have valid time sheets'></span>")
+                                .ClientTemplate("# if (TuesdayValid == 0) {# #} else if (TuesdaySwitch && TuesdayValid < TuesdayPlaced) {# <span class='worktime-warning'>#=TuesdayValid#</span> #} else {# #=TuesdayValid# #}#")
+                                .ClientGroupFooterTemplate("#if (sum ==0) {# #} else {# #=sum# #}#");
+                            day.Bound(x => x.TuesdayMissing).Width(35).HtmlAttributes(new { id = "tuesday-missing" })
+                                .HeaderTemplate("<span class='k-icon k-i-note' title='Whose time sheets are still missing'></span>")
+                                .ClientTemplate("#if (!TuesdaySwitch) {# - #} else if (TuesdayMissing > 0) {# <span class='worktime-warning'>#=TuesdayMissing#</span> #} else {# #}#")
+                                .ClientGroupFooterTemplate("#if (sum ==0) {# #} else {# #=sum# #}#");
+                        }));
+
+                    columns.Group(group => group
+                        .Title("Wednesday")
+                        .Columns(day =>
+                        {
+                            day.Bound(x => x.WednesdayValid).Width(35).HtmlAttributes(new { id = "wednesday-valid" })
+                                .HeaderTemplate("<span class='k-icon k-i-tick' title='Who have valid time sheets'></span>")
+                                .ClientTemplate("# if (WednesdayValid == 0) {# #} else if (WednesdaySwitch && WednesdayValid < WednesdayPlaced) {# <span class='worktime-warning'>#=WednesdayValid#</span> #} else {# #=WednesdayValid# #}#")
+                                .ClientGroupFooterTemplate("#if (sum ==0) {# #} else {# #=sum# #}#");
+                            day.Bound(x => x.WednesdayMissing).Width(35).HtmlAttributes(new { id = "wednesday-missing" })
+                                .HeaderTemplate("<span class='k-icon k-i-note' title='Whose time sheets are still missing'></span>")
+                                .ClientTemplate("#if (!WednesdaySwitch) {# - #} else if (WednesdayMissing > 0) {# <span class='worktime-warning'>#=WednesdayMissing#</span> #} else {# #}#")
+                                .ClientGroupFooterTemplate("#if (sum ==0) {# #} else {# #=sum# #}#");
+                        }));
+
+                    columns.Group(group => group
+                        .Title("Thursday")
+                        .Columns(day =>
+                        {
+                            day.Bound(x => x.ThursdayValid).Width(35).HtmlAttributes(new { id = "thursday-valid" })
+                                .HeaderTemplate("<span class='k-icon k-i-tick' title='Who have valid time sheets'></span>")
+                                .ClientTemplate("# if (ThursdayValid == 0) {# #} else if (ThursdaySwitch && ThursdayValid < ThursdayPlaced) {# <span class='worktime-warning'>#=ThursdayValid#</span> #} else {# #=ThursdayValid# #}#")
+                                .ClientGroupFooterTemplate("#if (sum ==0) {# #} else {# #=sum# #}#");
+                            day.Bound(x => x.ThursdayMissing).Width(35).HtmlAttributes(new { id = "thursday-missing" })
+                                .HeaderTemplate("<span class='k-icon k-i-note' title='Whose time sheets are still missing'></span>")
+                                .ClientTemplate("#if (!ThursdaySwitch) {# - #} else if (ThursdayMissing > 0) {# <span class='worktime-warning'>#=ThursdayMissing#</span> #} else {# #}#")
+                                .ClientGroupFooterTemplate("#if (sum ==0) {# #} else {# #=sum# #}#");
+                        }));
+
+                    columns.Group(group => group
+                        .Title("Friday")
+                        .Columns(day =>
+                        {
+                            day.Bound(x => x.FridayValid).Width(35).HtmlAttributes(new { id = "friday-valid" })
+                                .HeaderTemplate("<span class='k-icon k-i-tick' title='Who have valid time sheets'></span>")
+                                .ClientTemplate("# if (FridayValid == 0) {# #} else if (FridaySwitch && FridayValid < FridayPlaced) {# <span class='worktime-warning'>#=FridayValid#</span> #} else {# #=FridayValid# #}#")
+                                .ClientGroupFooterTemplate("#if (sum ==0) {# #} else {# #=sum# #}#");
+                            day.Bound(x => x.FridayMissing).Width(35).HtmlAttributes(new { id = "friday-missing" })
+                                .HeaderTemplate("<span class='k-icon k-i-note' title='Whose time sheets are still missing'></span>")
+                                .ClientTemplate("#if (!FridaySwitch) {# - #} else if (FridayMissing > 0) {# <span class='worktime-warning'>#=FridayMissing#</span> #} else {# #}#")
+                                .ClientGroupFooterTemplate("#if (sum ==0) {# #} else {# #=sum# #}#");
+                        }));
+
+                    columns.Group(group => group
+                        .Title("Saturday")
+                        .Columns(day =>
+                        {
+                            day.Bound(x => x.SaturdayValid).Width(35).HtmlAttributes(new { id = "saturday-valid" })
+                                .HeaderTemplate("<span class='k-icon k-i-tick' title='Who have valid time sheets'></span>")
+                                .ClientTemplate("# if (SaturdayValid == 0) {# #} else if (SaturdaySwitch && SaturdayValid < SaturdayPlaced) {# <span class='worktime-warning'>#=SaturdayValid#</span> #} else {# #=SaturdayValid# #}#")
+                                .ClientGroupFooterTemplate("#if (sum ==0) {# #} else {# #=sum# #}#");
+                            day.Bound(x => x.SaturdayMissing).Width(35).HtmlAttributes(new { id = "saturday-missing" })
+                                .HeaderTemplate("<span class='k-icon k-i-note' title='Whose time sheets are still missing'></span>")
+                                .ClientTemplate("#if (!SaturdaySwitch) {# - #} else if (SaturdayMissing > 0) {# <span class='worktime-warning'>#=SaturdayMissing#</span> #} else {# #}#")
+                                .ClientGroupFooterTemplate("#if (sum ==0) {# #} else {# #=sum# #}#");
+                        }));
+
+                })
+                .EnableCustomBinding(true)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                //.Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(30)
+                    .Aggregates(aggregates => {
+                        aggregates.Add(a => a.JobTitle).Count();
+                        aggregates.Add(a => a.SundayValid).Sum();
+                        aggregates.Add(a => a.SundayMissing).Sum();
+                        aggregates.Add(a => a.MondayValid).Sum();
+                        aggregates.Add(a => a.MondayMissing).Sum();
+                        aggregates.Add(a => a.TuesdayValid).Sum();
+                        aggregates.Add(a => a.TuesdayMissing).Sum();
+                        aggregates.Add(a => a.WednesdayValid).Sum();
+                        aggregates.Add(a => a.WednesdayMissing).Sum();
+                        aggregates.Add(a => a.ThursdayValid).Sum();
+                        aggregates.Add(a => a.ThursdayMissing).Sum();
+                        aggregates.Add(a => a.FridayValid).Sum();
+                        aggregates.Add(a => a.FridayMissing).Sum();
+                        aggregates.Add(a => a.SaturdayValid).Sum();
+                        aggregates.Add(a => a.SaturdayMissing).Sum();
+                    })
+                    .Group(groups => groups.Add(x => x.CompanyName))
+                    .Read(read => read.Action("CandidateAttendance", "TimeSheet").Data("onRead"))
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+                .Events(events => events.DataBound("CustomizeDayColumns"))
+            )
+        </td>
+    </tr>
+</table>
+
+
+<script type="text/javascript">
+
+    $("#refresh-grid").bind("click", reloadGrid);
+
+    var selectedJobOrderId;
+    var selectedIds = [];
+
+    $(document).ready(function () {
+
+        //"Print Pdf selected" button
+        $('#printtopdf-selected').click(function (e) {
+            e.preventDefault();
+            //redirect to required URL
+            setLocation('@Html.Raw(Url.Action("PrintWorkTimeChartsToPdf", "TimeSheet"))?selectedIds=' + selectedIds.join(","));
+            return false;
+        });
+
+        //"Export Excel selected" button
+        $('#exportexcel-selected').click(function (e) {
+            e.preventDefault();
+            //redirect to required URL
+            setLocation('@Html.Raw(Url.Action("ExportWorkTimeChartsToXlsx", "TimeSheet"))?selectedIds=' + selectedIds.join(","));
+            return false
+        });
+
+        $('#mastercheckbox').click(function () {
+            $('.checkboxGroups').attr('checked', $(this).is(':checked')).change();
+        });
+
+        //wire up checkboxes.
+        $('#candidate-attendance-grid').on('change', 'input[type=checkbox][id!=mastercheckbox]', function (e) {
+            var $check = $(this);
+            if ($check.is(":checked") == true) {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked == -1) {
+                    //add id to selectedIds.
+                    selectedIds.push($check.val());
+                }
+            }
+            else {
+                var checked = jQuery.inArray($check.val(), selectedIds);
+                if (checked > -1) {
+                    //remove id from selectedIds.
+                    selectedIds = $.grep(selectedIds, function (item, index) {
+                        return item != $check.val();
+                    });
+                }
+            }
+            updateMasterCheckbox();
+        });
+
+    });
+
+    function onDataBound(e) {
+
+        $('#candidate-attendance-grid input[type=checkbox][id!=mastercheckbox]').each(function () {
+            var currentId = $(this).val();
+            var checked = jQuery.inArray(currentId, selectedIds);
+            //set checked based on if current checkbox's value is in selectedIds.
+            $(this).attr('checked', checked > -1);
+        });
+
+        updateMasterCheckbox();
+    }
+
+    function updateMasterCheckbox() {
+        var numChkBoxes = $('#candidate-attendance-grid input[type=checkbox][id!=mastercheckbox]').length;
+        var numChkBoxesChecked = $('#candidate-attendance-grid input[type=checkbox][checked][id!=mastercheckbox]').length;
+        $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
+    }
+
+    function onRead(e) {
+        return {
+            firstDateOfWeek: utc2local(firstWorkDay(new Date($("#selected-date").val()))),
+            companyId: $("#company-id").val()
+        };
+    }
+
+    function CustomizeDayColumns() {
+        var grid = $("#candidate-attendance-grid").data("kendoGrid");
+        var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];       
+        var counters = ["Punched", "Valid", "Missing"];
+        var firstDate = utc2local(firstWorkDay(new Date($("#selected-date").val())));
+        for (i = 0; i < days.length; i++) {
+            // add dates
+            $("#candidate-attendance-grid th[data-role=droptarget] .k-link").eq(i).html(days[i] + "</br>" + date2string(firstDate));
+            // remove column menu
+            for (j = 0; j < counters.length; j++) {
+                header = "[data-field$=" + counters[j] + "]>.k-header-column-menu";
+                grid.thead.find(header).remove();
+            }
+            firstDate.setDate(firstDate.getDate() + 1);
+        }
+    }
+
+    function reloadGrid() {
+        var grid = $("#candidate-attendance-grid").data("kendoGrid");
+        grid.dataSource.page(1);
+        grid.dataSource.read();
+    }
+
+    function firstWorkDay(d) {
+        var dayOffset = d.getUTCDay() * 86400000;
+        d.setTime(d.getTime() - dayOffset);
+        return d;
+    }
+
+    function utc2local(d) {
+        var tzOffset = d.getTimezoneOffset() * 60000;
+        d.setTime(d.getTime() + tzOffset);
+        return d;
+    }
+
+    function date2string(d) {
+        var yy = d.getFullYear();
+        var mm = d.getMonth() + 1;
+        if (mm < 10) mm = '0' + mm;
+        var dd = d.getDate();
+        if (dd < 10) dd = '0' + dd;
+        //return yy + '-' + mm + '-' + dd;
+        return mm + '-' + dd;
+    }
+
+</script>

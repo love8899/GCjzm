@@ -1,0 +1,54 @@
+﻿@{
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    var franchiseService = EngineContext.Current.Resolve<Wfm.Services.Franchises.IFranchiseService>();
+    var franchises = franchiseService.GetAllFranchisesAsSelectList(workContext.CurrentAccount);
+}
+@(Html.Kendo().PanelBar().Name("search-bar")
+    .ExpandMode(PanelBarExpandMode.Multiple)
+    .Items(panelbar =>
+    {
+        panelbar.Add().Text(String.Format(T("Common.ReportParameters").Text, T("Report.ClientTemporaryStaffAssignment").Text))
+            .Expanded(true)
+            .Content(@<div class="panel">
+                <br />
+                @Html.Label(T("Common.Vendor").Text + ": ")
+                @(Html.Kendo().DropDownList()
+                    .Name("FranchiseId").HtmlAttributes(new { style = "width: 300px" })
+                    .OptionLabel("--Select--").DataTextField("Text").DataValueField("Value")
+                    .BindTo(franchises).Value(workContext.CurrentFranchise.Id.ToString()))
+                @Html.Label(T("Common.Company").Text + ": ")
+                @(Html.Kendo().ComboBox().Name("Company").HtmlAttributes(new { style = "width: 300px" })
+                    .Placeholder("Select a company...").DataTextField("Text").DataValueField("Value")
+                    .DataSource(ds => ds.Read("GetCascadeCompanies", "Common"))
+                )
+                <br />
+                <br />
+                @Html.Label("RefDate", "As of: ")
+                @Html.Kendo().DatePicker().HtmlAttributes(new { type = "text" }).Name("RefDate").Value(DateTime.Today.ToString("yyyy-MM-dd"))
+                <div style="text-align: center">
+                    <br />@(Html.Kendo().Button().Name("loadReport").HtmlAttributes(new { type = "submit", @class = "k-button" }).Content(@T("Admin.Common.Load").Text))<br /><br />
+                </div>
+            </div>);
+    })
+)
+<div id="report" />
+<script type="text/javascript">
+    $("#loadReport").bind("click", function () {      
+        var franchiseId = $("#FranchiseId").val();
+        var companyId = $("#Company").val();
+        var refDate = $("#RefDate").val();
+        if (!franchiseId)
+            alert("Please select a vendor");
+        else if (!companyId)
+            alert("Please select a company");
+        else if (!refDate == null)
+            alert("Please select a refrenece date!");
+        else {
+            $("#report").load("_ClientTemporaryStaffAssignment", {
+                refDate: refDate,
+                franchiseId: franchiseId,
+                companyId: companyId
+            });
+        }
+    }); 
+</script>

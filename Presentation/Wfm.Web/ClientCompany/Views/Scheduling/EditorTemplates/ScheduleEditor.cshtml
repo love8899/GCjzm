@@ -1,0 +1,109 @@
+﻿@using Wfm.Core
+@using Wfm.Services.Companies
+@using Wfm.Services.Scheduling
+@using Wfm.Shared.Models.Scheduling
+
+@model DailyShiftScheduleModel
+
+@{
+    //required in order to render validation attributes
+    ViewContext.FormContext = new FormContext();
+    var context = EngineContext.Current.Resolve<IWorkContext>();
+    var companyService = EngineContext.Current.Resolve<ICompanyService>();
+    var jobRoleList = companyService.GetAllJobRoles(context.CurrentAccount.CompanyId).Select(e => new SelectListItem
+    {
+        Text = e.Name,
+        Value = e.Id.ToString(),
+    });
+}
+
+<script type="text/javascript">
+    function getSchedulePeriodId()
+    {
+        return { schedulePeriodId: $("\#schedulePeriodId").val() };
+    }
+</script>
+
+@Html.HiddenFor(x=>x.SchedulePeriodId)
+
+<div class="k-edit-label">
+    @T("Common.Shift")
+</div>
+<div class="k-edit-field">
+    @(Html.Kendo().ComboBoxFor(model => model.CompanyShiftId)
+        .HtmlAttributes(new { data_bind = "value:CompanyShiftId", style = "width: 250px",data_val_number="Shift is required!" })
+        .Enable(false)
+        .DataTextField("Text")
+        .DataValueField("Value")
+        .Placeholder("Select a shift...")
+        .DataSource(source =>
+                    source.Read(read => read.Action("GetAllCompanyShifts", "Company").Data("getSchedulePeriodId")).ServerFiltering(true)
+        )
+        
+    )
+</div>
+
+
+<div class="k-edit-label">
+    @(Html.LabelFor(model => model.Start))
+</div>
+<div data-container-for="start" class="k-edit-field">
+    @(Html.Kendo().TimePickerFor(model => model.Start.TimeOfDay).Name("start").Format("HH:mm").HtmlAttributes(new { type = "text" }))
+</div>
+
+
+<div class="k-edit-label">
+    @(Html.LabelFor(model => model.End))
+</div>
+<div data-container-for="end" class="k-edit-field">
+    @(Html.Kendo().TimePickerFor(model => model.End.TimeOfDay).Name("end").Format("HH:mm")
+                .HtmlAttributes(new { data_dateCompare_msg = "End date should be greater than or equal to the start date", type = "text" }))
+    @*@(Html.Kendo().DatePickerFor(model => model.End)
+        .HtmlAttributes(generateDatePickerAttributes(
+            "endDate",
+            "end",
+            "value:end,visible:isAllDay",
+            false,
+            new Dictionary<string, object>() { { "data-dateCompare-msg", "End date should be greater than or equal to the start date" } })))*@
+</div>
+<table>
+    <thead>
+        <tr>
+            <th width="40%">Role</th>
+            <th width="30%">Mandatory</th>
+            <th width="30%">Contingency</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var role in jobRoleList)
+{
+    if (!Model.OpeningDictionary.ContainsKey(role.Value))
+    {
+        Model.OpeningDictionary.Add(role.Value, new DailyCount { MandantoryRequiredCount = 0, ContingencyRequiredCount = 0});
+    }
+    <tr id="JobRole_@role.Value" style="display:none">
+        <td>
+            <div class="k-edit-label" style="width: 85%;">
+                @Html.Raw(role.Text)
+            </div>
+        </td>
+        <td>
+            @(Html.Kendo().NumericTextBoxFor(model => model.OpeningDictionary[role.Value].MandantoryRequiredCount)
+                .Format("n0")
+                .HtmlAttributes(new { @class = "daily-opening-editing" }))
+        </td>
+        <td>
+            @(Html.Kendo().NumericTextBoxFor(model => model.OpeningDictionary[role.Value].ContingencyRequiredCount)
+                .Format("n0")
+                .HtmlAttributes(new { @class = "daily-opening-editing" }))
+        </td>
+    </tr>
+}
+    </tbody>
+</table>
+
+@{
+    //required in order to render validation attributes
+    ViewContext.FormContext = null;
+}
+

@@ -1,0 +1,52 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Information Technology";
+    //var description = siteTitle + " will help you find the position best suited for you and your technical skillset.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower() + " jobs";
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Information Technology</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            Having trouble finding a suitable IT position? @siteTitle will help you find
+            the position best suited for you and your technical skillset. Our expertise in IT
+            staffing and the leading employers we work with will become your advantage.
+        </p>
+        <p>
+            Whether you are a web developer or a network administrator, our professional recruiters
+            have your best interests in mind. @siteTitle can help you secure permanent,
+            contract and temporary appointments across a wide variety of technical roles, including:
+        </p>
+        <ul>
+            <li>IT manager</li>
+            <li>Business analyst</li>
+            <li>Network administrator</li>
+            <li>Network engineer</li>
+            <li>Network technician</li>
+            <li>Programmer</li>
+            <li>SAP development leader</li>
+            <li>Systems analyst</li>
+            <li>Technical analyst</li>
+            <li>Web developer</li>
+        </ul>
+    </div>
+</div>

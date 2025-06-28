@@ -1,0 +1,43 @@
+﻿@model IncidentReportModel
+@using Wfm.Shared.Models.Incident
+@using Wfm.Services.Features
+@{
+    var formName = (string)ViewData["FormName"] ?? string.Empty;
+
+    var popup = (bool?)ViewData["Popup"] ?? false;
+    var wrapperClass = popup ? "inputs" : "form-group";
+    var addRequireHint = (bool?)ViewData["AddRequireHint"] ?? false;
+
+    var userFeatureService = EngineContext.Current.Resolve<IUserFeatureService>();
+    bool jobOrderFeatureEnabled = userFeatureService.CheckFeatureByCode("JO");
+}
+
+@Html.InputLineFor(m => m.IncidentDateTimeUtc, "Date / Time", rowCls: wrapperClass,
+    viewData: new { Min = DateTime.Now.AddYears(-3), Max = DateTime.Now })
+
+@Html.InputLineFor(m => m.CandidateId, T("Common.EmployeeName").Text, rowCls: wrapperClass, tmplt: "DropDownList",
+    viewData: new { Items = Model.CandidateList, OptionLabel = "--Select--" })
+
+@Html.InputLineFor(m => m.IncidentCategoryId, "Category Code", rowCls: wrapperClass, tmplt: "DropDownList",
+    viewData: new { Items = Model.IncidentCategoryList, OptionLabel = "--Select--" })
+
+@Html.InputLineFor(m => m.LocationId, T("Common.Location").Text, rowCls: wrapperClass, tmplt: "DropDownList",
+    viewData: new { Items = Model.LocationList, OptionLabel = "--Select--" })
+
+@if (jobOrderFeatureEnabled)
+{
+    <script>function filterJobOrders() { return { locationId: $('#LocationId').val(), dateString: $('#IncidentDateTimeUtc').val() }; }</script>
+    @Html.InputLineFor(m => m.JobOrderId, T("Common.JobOrder").Text, rowCls: wrapperClass, tmplt: "DropDownListRemote",
+        viewData: new { Controller = "JobOrder", Action = "GetCascadeJobOrders", OnData = "filterJobOrders", From = "sf_LocationId", Option = T("Admin.Common.None").Text })
+}
+
+@Html.InputLineFor(m => m.Note, rowCls: wrapperClass, tmplt: "Text",
+    viewData: new { PlaceHolder = "Please input remarks if any" })
+
+<script>
+    $(function () {
+        $('#IncidentDateTimeUtc').attr('readonly', 'readonly');
+        if ('@addRequireHint' === 'True')
+            addRequireHint('@formName');
+    });
+</script>

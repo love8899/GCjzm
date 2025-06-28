@@ -1,0 +1,51 @@
+﻿@model Wfm.Shared.Models.Search.SearchAttendanceModel
+@{
+    Layout = "_SearchLayout.cshtml";
+    ViewBag.FromDate = Model.sf_From.ToShortDateString();
+    ViewBag.ToDate = Model.sf_To.ToShortDateString();
+    ViewBag.DateRangeStyle = "display:none";
+    ViewBag.SearchTitleClass = string.Empty;
+
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+
+@section DateRange {
+    @Html.EditorFor(x => x.sf_From, "Date", new { Min = Model.MinDate(), Max = Model.MaxDate(), OnChange = "onFromChange" })
+    <i class="fa fa-angle-right"></i>
+    @Html.EditorFor(x => x.sf_To, "Date", new { Min = Model.MinDate(), Max = Model.MaxDate(), OnChange = "onToChange", HtmlAttr = new { @readonly = "readonly" } })
+    <script type="text/javascript">
+        function onFromChange(e) {
+            var toPicker = $("#sf_To").data("kendoDatePicker");
+            toPicker.value(this.value()); toPicker.trigger('change');   // refresh grid anyway
+        }
+        function onToChange(e) { $('#btn-search').click(); }
+    </script>
+}
+
+<div class="col-md-6">
+    @Html.InputFor(x => x.sf_ShiftStartTime, "Time")
+    @Html.InputFor(x => x.sf_CandidateId, "String")
+    @Html.InputFor(x => x.sf_EmployeeId)
+    @Html.InputFor(x => x.sf_EmployeeFirstName)
+    @Html.InputFor(x => x.sf_EmployeeLastName)
+</div>
+<div class="col-md-6">
+    @*@if (commonSettings.DisplayVendor)
+        {
+            @Html.InputFor(x => x.sf_FranchiseId, "DropDownList", new { Items = Model.AvaliableVendors })
+        }*@
+
+    @Html.InputFor(x => x.sf_CompanyLocationId, "DropDownList", new { Items = Model.AvailableLocations })
+
+    @Html.InputFor(x => x.sf_CompanyDepartmentId, "CascadeDropDownList",
+        new { Controller = "Company", Action = "GetCascadeDepartments", OnData = "filterDepartments", From = "sf_CompanyLocationId" })
+    <script>function filterDepartments() { return { locationId: $("#sf_CompanyLocationId").val(), addNone: false }; }</script>
+
+    @Html.InputFor(x => x.sf_CompanyContactId, "DropDownList", new { Items = Model.AvailableContacts })
+
+    @Html.InputFor(x => x.sf_JobTitle)
+
+    @Html.InputFor(x => x.sf_Status, "DropDownList4Obj", new { Items = Model.AvailableStatus })
+</div>
+
+@section scripts {}

@@ -1,0 +1,217 @@
+﻿@using Wfm.Admin.Models.Incident
+@model IEnumerable<IncidentCategoryModel>
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.IncidentCategory").Text;
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration.IncidentCategory") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+    <div class="options">
+        <a class = "k-button" id = "add-incident-category" onclick="return addIncidentCategory()">@(T("Common.Add").Text)</a>
+    </div>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<IncidentCategoryModel>()
+                .Name("incident-category-grid")
+                .BindTo(Model)
+                .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Hidden();
+                    columns.Bound(x => x.Code).Width(150);
+                    
+                    if (commonSettings.DisplayVendor)
+                    {
+                        columns.Bound(x => x.Vendor);
+                    }
+                    
+                    columns.Bound(x => x.Description);
+
+                    columns.Bound(x => x.IsActive)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<div class='gridcell-img' style='background-image:url(" + Url.Content("~/Content/images/") + "active-#= IsActive #.png)'></div>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(100);
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#");
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Hidden(true);
+
+                    columns.Bound(x => x.Id).Filterable(false).Sortable(false)
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Template(x => Html.ActionLink(T("Admin.Common.Edit").Text, "Edit", new { x.Id }))
+                        .ClientTemplate("<a class='k-button'  title='" + T("Admin.Common.Edit").Text + "'  onclick=\"return editIncidentCategory(#= Id #)\"><span class='k-icon k-i-pencil'></span></a>" +
+                        "<a class='k-button' title='" + T("Common.Upload").Text + "' onclick=\"return editIncidentTemplate(#= Id #)\"> <span class='fa fa-upload'></span></a>")                        
+                        .Title("")
+                        .Width(130);
+                })
+                .EnableCustomBinding(false)
+                .Reorderable(reorder => reorder.Columns(true))
+                .Resizable(resize => resize.Columns(true))
+                .Filterable()
+                .Sortable()
+                .ColumnMenu()
+                .Selectable()
+                .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+                .DataSource(ds => ds
+                    .Ajax()
+                    .ServerOperation(false)
+                    .PageSize(20)
+                )
+                .Filterable(filterable => filterable
+                    .Extra(false)
+                    .Operators(operators => operators
+                        .ForString(str => str.Clear()
+                            .Contains("Contains")
+                            .IsEqualTo("Is equal to")
+                            .IsNotEqualTo("Is not equal to")
+                        )
+                    )
+                )
+            )
+        </td>
+    </tr>
+</table>
+<div id="create-edit-incident-category-dialog"></div>
+<div id="upload-template-dialog"></div>
+<script>
+    function editIncidentCategory(id) {
+        var dialog = $("#create-edit-incident-category-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#create-edit-incident-category-dialog").kendoWindow({
+                title: "Edit Incident Category",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 300,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    var win = this;
+                    $('#close-incident-category').click(function () {
+                        $("#create-edit-incident-category-dialog").data("kendoWindow").close();
+                    });
+                    $('#save-incident-category').click(function () {
+                        $.ajax({
+                            url: '@Url.Action("_EditIncidentCategory")',
+                            type: 'POST',
+                            data: $('#incident-category-form').serialize(),
+                            dataType: 'html',
+                            success: function (result) {
+                                if (result == 'done') {
+                                    $("#create-edit-incident-category-dialog").data("kendoWindow").close();
+                                    location.reload();
+                                }
+                            }
+                        });
+                    })
+                }
+            });
+            dialog = $("#create-edit-incident-category-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_EditIncidentCategory", "IncidentCategory")',
+            data: { incidentCategoryId: id }
+        });
+        dialog.center();
+        return false;
+    }
+
+    function addIncidentCategory() {
+        var dialog = $("#create-edit-incident-category-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#create-edit-incident-category-dialog").kendoWindow({
+                title: "New Incident Category",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 300,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    var win = this;
+                    $('#close-incident-category').click(function () {
+                        $("#create-edit-incident-category-dialog").data("kendoWindow").close();
+                    });
+                    $('#save-incident-category').click(function () {
+                        $.ajax({
+                            url: '@Url.Action("_EditIncidentCategory")',
+                            type: 'POST',
+                            data: $('#incident-category-form').serialize(),
+                            dataType: 'html',
+                            success: function (result) {
+                                if (result == 'done') {
+                                    $("#create-edit-incident-category-dialog").data("kendoWindow").close();
+                                    location.reload();
+                                }
+                            }
+                        });
+                    })
+                }
+            });
+            dialog = $("#create-edit-incident-category-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_NewIncidentCategory", "IncidentCategory")'
+        });
+        dialog.center();
+        return false;
+    }
+    function editIncidentTemplate(id) {
+        var dialog = $("#upload-template-dialog").data("kendoWindow");
+        if (!dialog) {
+            $("#upload-template-dialog").kendoWindow({
+                title: "Edit Incident Template",
+                modal: true,
+                resizable: false,
+                width: 800,
+                height: 350,
+                close: function () {
+                },
+                refresh: function (e) {
+                    dialog.open();
+                    var win = this;                  
+                    $('#save-incident-template').click(function () {
+                        $.ajax({
+                            url: '@Url.Action("_EditIncidentTemplate")',
+                            type: 'POST',
+                            data: $('#incident-template-form').serialize(),
+                            dataType: 'html',
+                            success: function (result) {
+                                if (result == 'done') {
+                                    $("#upload-template-dialog").data("kendoWindow").close();
+                                    location.reload();
+                                }
+                            }
+                        });
+                    })
+                }
+            });
+            dialog = $("#upload-template-dialog").data("kendoWindow");
+        }
+        else {
+            dialog.open();
+        }
+        dialog.refresh({
+            url: '@Url.Action("_EditIncidentTemplate", "IncidentCategory")',
+            data: { incidentCategoryId: id }
+        });
+        dialog.center();
+        return false;
+    }
+   
+</script>

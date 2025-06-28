@@ -1,0 +1,92 @@
+﻿@using Wfm.Admin.Models.Announcements
+@model IEnumerable<AnnouncementModel>
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.Announcements").Text;
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.Configuration.Announcements") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>
+    <div class="options">
+        @Html.ActionLink(T("Common.Add").Text, "Create", null, new { @class = "k-button" })
+    </div>
+</div>
+
+<table class="adminContent" >
+    <tr>        
+       <td>
+             @(Html.Kendo().Grid<AnnouncementModel>()
+                      .Name("announcement-grid")
+              .BindTo(Model)
+              .Columns(columns =>
+                {
+
+                    columns.Bound(x => x.Subject);
+                    columns.Bound(x => x.AnnouncementText);
+
+                    columns.Bound(x => x.StartDate).ClientTemplate("#=kendo.toString(StartDate,'yyyy-MM-dd')#").Width(120);
+                    columns.Bound(x => x.EndDate).ClientTemplate("#=kendo.toString(EndDate,'yyyy-MM-dd')#").Width(120);
+                    
+                    columns.Bound(x => x.ForCandidate)
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.ForCandidate.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= ForCandidate #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(90);
+
+                    columns.Bound(x => x.ForFranchise)
+                    .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.ForFranchise.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= ForFranchise #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80);
+                    columns.Bound(x => x.ForClient)
+                    .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.ForClient.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= ForClient #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80);
+                    columns.Bound(x => x.IsDeleted)
+                    .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsDeleted.ToString().ToLowerInvariant() + ".png")" />)
+                        .ClientTemplate("<img alt='' src='" + Url.Content("~/Content/images/") + "active-#= IsDeleted #.png' />")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80);                 
+
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+                    columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(120).Hidden(true);
+
+                    columns.Bound(x => x.Id).Filterable(false)
+                        .Template(x => Html.ActionLink("Edit", "Edit", new { x.AnnouncementGuid }))
+                        .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Admin/Announcement/Edit?guid=") + "#= AnnouncementGuid #\">" + "<span class='k-icon k-i-pencil'></span>" + "</a>")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(80)
+                        .Title(T("Admin.Common.Edit").Text).Sortable(false);
+                })
+           .EnableCustomBinding(false)
+           .Reorderable(reorder => reorder.Columns(true))
+           .Resizable(resize => resize.Columns(true))
+           .Filterable()
+           .Sortable()
+           .ColumnMenu()
+           .Selectable()
+           .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+           .DataSource(ds => ds
+               .Ajax()
+               .ServerOperation(false)
+               .PageSize(20)
+               .Read(read => read.Action("Index", "Announcement"))
+           )
+           .Filterable(filterable => filterable
+               .Extra(false)
+               .Operators(operators => operators
+                   .ForString(str => str.Clear()
+                       .Contains("Contains")
+                       .IsEqualTo("Is equal to")
+                       .IsNotEqualTo("Is not equal to")
+                   )
+               )
+           )
+)
+        </td>
+    </tr>
+</table>

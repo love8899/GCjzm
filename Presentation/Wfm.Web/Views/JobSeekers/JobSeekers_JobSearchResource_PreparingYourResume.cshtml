@@ -1,0 +1,141 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Preparing Your Resume";
+    //var description = "It is a good source of relevant information and sells you to the reader; it will get you an interview.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_JobSeekerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Preparing Your Résumé</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            Your résumé, or curriculum vitae, is a vital asset for any employment search. It
+            must clearly explain to the reader what it is that you can do for them. It alone
+            won’t get you a job but if your résumé is a well presented, it is a good source
+            of relevant information and sells you to the reader; it will get you an interview.
+        </p>
+        <p>
+            Your résumé should showcase your strengths, experiences, and achievements, demonstrating
+            to employers why they should hire you.
+        </p>
+        <p>
+            Before preparing your résumé, stop and think about your accomplishments and skills.
+            Treat this as a brainstorming exercise used to help discover your strengths, your
+            likes, and your dislikes. By identifying your accomplishments and skills you should
+            be able to create a strong outline for your résumé, which will help enable your
+            employer to have a better understanding of who you are and what you have to offer.
+            Your brainstorming exercise should also include employment history, experience,
+            knowledge level, and successes.
+        </p>
+        <p>
+            Once you have reviewed your skills and accomplishments, you can then take a closer
+            look at the different parts of the résumé.
+        </p>
+        <p>
+            <b>Parts of a résumé: </b>
+        </p>
+        <p>
+            A résumé is more than a piece of paper. It can be what gets you that first interview.
+            The goal should be to impress your employer with your résumé. If written correctly,
+            it should make your employer want to take a serious look at you. Below is a traditional
+            formatted résumé that provides a brief explanation of each element within.
+        </p>
+        <p>
+            <b>Contact Information</b> Your name, phone number(s), and e-mail address should
+            be prominently positioned at the top of the page. Aim for the right-hand corner,
+            so it is easily found when paging through a stack of paper and it is not hidden
+            if there is paper clipped or stapled to other sheets.
+        </p>
+        <p>
+            <b>Objective</b> Your objective is your job search mission statement. This should
+            be easily identified to the prospective employer, and it should relate to the exact
+            position you seek. It should define the job title and mention some of your character
+            traits and skills you have that could be utilized for the position. You should tailor
+            your objective to each employer you contact.
+        </p>
+        <p>
+            <b>Experience/Employment History</b> Discussing your experience and work history
+            is traditionally done in reverse chronological order with your history listing of
+            job titles and descriptions. It should include proven results, such as numbers and
+            percentages to demonstrate the positive impact you had on an organization.
+        </p>
+        <p>
+            Skills Here the focus should be on skills you have that can help towards the job
+            you are applying for. Some of the most basic questions should be answered though
+            your résumé. Ex: What computer programs do you know? Are you bilingual? What type
+            of equipment have you used? This is where you can list any special, job-related
+            skills you may have. You can tailor this list to fit the needs of the position for
+            which you are applying.
+        </p>
+        <p>
+            <b>Education/Training/Certifications/Licenses</b> In this section, list the schools
+            you attended, the degrees you have earned, your graduation date, and your GPA if
+            it is 3.0 or higher. Also include memberships in related honor societies and related
+            certifications or professional licenses.
+        </p>
+        <p>
+            <b>Awards</b> This is an area of the résumé where you get to draw attention to your
+            key accomplishments and accolades to help differentiate yourself from other job
+            seekers. The accomplishments you list can say a lot about you and your work ethic.
+            Awards can be both personal and professional, and should be listed in reverse chronological
+            order.
+        </p>
+        <p>
+            <b>Affiliations</b> Being a member of a professional association demonstrates a
+            huge interest in your field. It will show the employer your interests outside of
+            the work place. It is also a wonderful conversation starter. The same goes for affiliations
+            with non-profit organizations. Showing the employer that you give back to the community
+            speaks a great deal about your character.
+        </p>
+        <p>
+            Technical Significance:
+        </p>
+        <p>
+            <b>The Look: </b>
+        </p>
+        <ul>
+            <li>Has a professional format that is easy to read.</li>
+            <li>Is on 8.5" x 11" paper, or is in electronic form.</li>
+            <li>Has one-inch top, bottom, left and right margins.</li>
+        </ul>
+        <p>
+            <b>The Content: </b>
+        </p>
+        <ul>
+            <li>Has your name at the top of each page after the first, with a page number.</li>
+            <li>Has a summary that highlights your experiences and qualifications.</li>
+            <li>Contains your telephone number and email address, if available.</li>
+            <li>Is free of grammatical and typographical errors.</li>
+            <li>Is concise and targeted.</li>
+            <li>Indicates the kind of work you seek in the Objective, if used.</li>
+            <li>Showcases critical factors tied directly to your work objectives.</li>
+            <li>
+                Documents your work history in reverse chronological order, with places of employment,
+                locations, dates and duties.
+            </li>
+            <li>Demonstrates a logical career progression with positions of increasing responsibility.</li>
+            <li>
+                Documents pertinent career accomplishments; problems or challenges faced; actions
+                taken and business results achieved.
+            </li>
+        </ul>
+    </div>
+</div>

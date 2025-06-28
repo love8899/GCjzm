@@ -1,0 +1,66 @@
+﻿@using Wfm.Core.Domain.Messages
+@{
+    //page title
+    ViewBag.Title = T("Admin.MessageCategories").Text;
+}
+
+<div class="section-header">
+    <div class="title">
+        @T("Admin.MessageCategories") @Html.ActionLink("(" + T("Admin.Common.BackToConfiguration") + ")", "Index", "Configuration")
+    </div>   
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            @(Html.Kendo().Grid<MessageCategoryModel>()
+                      .Name("MessageCategory-grid")
+              .Columns(columns =>
+                {
+                    columns.Bound(x => x.Id).Width(80);
+                    columns.Bound(x => x.CategoryName);
+                    columns.Bound(x => x.Description);
+                    columns.Bound(x => x.IsActive)
+                        .Filterable(ftb => ftb.Cell(cell => cell.Operator("eq")))
+                        .Template(@<img alt="" src="@Url.Content("~/Content/images/active-" + item.IsActive.ToString().ToLowerInvariant() + ".png")" />)
+                         .ClientTemplate("#if (IsActive == true) {# <span class='k-icon k-i-tick'/> #}else{# <span class='k-icon k-i-close'/> #}#")
+                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                        .Width(70);
+                    columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOnUtc,'yyyy-MM-dd HH:mm')#").Width(120);
+                        
+                })
+   .EnableCustomBinding(false)
+    .Reorderable(reorder => reorder.Columns(true))
+    .Resizable(resize => resize.Columns(true))
+    .ColumnMenu(d => d.Sortable(false))
+    .Filterable()
+    .Sortable()
+    .Selectable()
+    .ToolBar(toolBar => { toolBar.Create(); toolBar.Save(); })
+    .Editable(editable => editable.Mode(GridEditMode.InCell))
+    .Pageable(x => x.PageSizes(new[] { 10, 20, 30, 50, 100 }).Refresh(true))
+    .DataSource(ds => ds
+        .Ajax()
+        .Batch(true)
+        .ServerOperation(false)
+        .Model(model =>
+                    {
+                        model.Id(p => p.Id);
+                        model.Field(p => p.IsActive);
+                        model.Field(p => p.Id).Editable(false);
+                        model.Field(p => p.IsActive).DefaultValue(true);
+                        model.Field(p => p.UpdatedOnUtc).Editable(false).DefaultValue(DateTime.Now);
+                        model.Field(p => p.CreatedOnUtc).Editable(false);
+                    })
+                        .Events(events => events.Error("error_handler"))
+
+        .PageSize(20)
+        .Read(read => read.Action("Index", "MessageCategory"))
+        .Update(update => update.Action("EditMessageCategory", "MessageCategory"))
+        .Create(create => create.Action("CreateMessageCategory", "MessageCategory"))
+       
+        )
+)
+        </td>
+    </tr>
+</table>

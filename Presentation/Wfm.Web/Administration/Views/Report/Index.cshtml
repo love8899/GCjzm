@@ -1,0 +1,11 @@
+﻿@model Wfm.Admin.Models.Report.ReportInfo
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p> Body3</p>
+@Html.Action(Model.ReportInfoActionName, Model.ReportInfoControllerName, Model.ReportInfoRouterValues)
+<p> Body4</p>

@@ -1,0 +1,32 @@
+﻿@model IEnumerable<ClientTimeSheetDocumentModel>
+@if (Model != null && Model.Count() > 0)
+{
+<h4>
+    Proof of Client Documents
+</h4>
+<div>
+    @foreach (var doc in Model)
+    {
+        <a class='k-button' href='@(Url.Content("~/Admin/JobOrder/DownloadClientDocument/") + doc.Id.ToString())'>
+            <img alt="document" src="@Url.Content("~/Administration/Content/images/ico-letter.png")" class="k-image">
+            @doc.FileName
+            <img alt="delete" src="@Url.Content("~/Administration/Content/images/ico-cross-small.png")" class="k-image" id="delete-document" onclick="return deleteDocument(@doc.Id);">
+        </a>
+    }
+</div>
+}
+<script type="text/javascript">
+    function deleteDocument(id) {
+        $.ajax({
+            url: '@Url.Action("DeleteClientDocument", "JobOrder")',
+            type: 'post',
+            data: { id: id },
+            dataType: 'text',
+            success: function (result) {
+                if (result) alert(result);
+                refreshList();
+            }
+        });
+        return false;
+    }
+</script>

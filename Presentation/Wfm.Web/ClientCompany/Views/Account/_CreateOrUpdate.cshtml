@@ -1,0 +1,49 @@
+﻿@model AccountModel
+@using Wfm.Services.Companies
+@using Wfm.Shared.Models.Accounts
+@using Wfm.Web.Framework.Localization
+@{
+    Layout = "_TabStrip";
+    ViewBag.TabStripName = "account-edit";
+    ViewBag.Update = Model.Id > 0;
+
+    ViewBag.Tabs = new Tuple<string, LocalizedString, HelperResult, bool>[]
+    {
+        Tuple.Create<string, LocalizedString, HelperResult, bool>("tab-login", T("Admin.Accounts.Account.LoginInformation"), TabLogin(), true),
+        Tuple.Create<string, LocalizedString, HelperResult, bool>("tab-basic", T("Common.BasicInformation"), TabBasic(), false),
+        Tuple.Create<string, LocalizedString, HelperResult, bool>("tab-contact", T("Admin.Accounts.Account.ContactInformation"), TabContact(), false)
+    };
+}
+
+@Html.ValidationSummary(true)
+@Html.AntiForgeryToken()
+@Html.HiddenFor(model => model.Id)
+@Html.HiddenFor(model => model.AccountGuid)
+@Html.HiddenFor(model => model.AccountRoleSystemName)
+@Html.HiddenFor(model => model.FranchiseId)
+@Html.HiddenFor(model => model.CompanyId)
+@Html.HiddenFor(model => model.Username)
+@Html.HiddenFor(model => model.CompanyId)
+@Html.HiddenFor(model => model.Email)
+
+@helper TabLogin()
+{
+    var currentCompany = EngineContext.Current.Resolve<ICompanyService>().GetCompanyById(Model.CompanyId).CompanyName;
+    @Html.InputFor(m => m.Email)
+    @Html.InputFor(m => m.CompanyName, "StringDisplay", new { Value = currentCompany })
+}
+
+@helper TabBasic()
+{
+    @Html.InputFor(m => m.FirstName)
+    @Html.InputFor(m => m.LastName)
+    @Html.InputFor(m => m.ShiftId, "DropDownListRemote", new { Controller = "Common", Action = "GetCascadeShift", Option = "--Select--" })
+}
+
+@helper TabContact()
+{
+    @Html.InputFor(m => m.WorkPhone, "Masked")
+    @Html.InputFor(m => m.MobilePhone, "Masked")
+    @Html.InputFor(m => m.HomePhone, "Masked")
+    @*@Html.InputFor(m => m.HomePhone, "Masked", new { HtmlAttr = new { data_val_required = true } })*@
+}

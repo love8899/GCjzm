@@ -1,0 +1,224 @@
+﻿@using Wfm.Client.Models.Candidate
+@using Wfm.Services.Media
+@using Wfm.Services.Test
+@model CandidateBasicInfoModel
+@{
+    Layout = null;
+    var documentTypeService = EngineContext.Current.Resolve<IDocumentTypeService>();
+    var documentTypes = documentTypeService.GetAllDocumentTypes();
+    var commonSettings = EngineContext.Current.Resolve<Wfm.Core.Domain.Common.CommonSettings>();
+    var workContext = EngineContext.Current.Resolve<Wfm.Core.IWorkContext>();
+    var testService = Wfm.Core.Infrastructure.EngineContext.Current.Resolve<ITestService>();
+    var testCategories = testService.GetAllCategories();
+}
+
+<div class="content">
+    <div class="notification-wrapper">
+        @Html.Partial("Notifications")
+    </div>
+    <div class="clearer"></div>
+</div>
+@if (Model != null)
+{
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.EmployeeId, T("Common.EmployeeId").Text)
+            </td>
+            <td class="adminData">
+                @Model.EmployeeId
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.FirstName, T("Common.FirstName").Text)
+            </td>
+            <td class="adminData">
+                @Model.FirstName
+            </td>
+            <td class="adminTitle" rowspan="4"></td>
+            <td class="adminData picture-td" rowspan="4">
+                <img alt="@Model.Id" src="@Model.PictureThumbnailUrl" />
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.LastName, T("Common.LastName").Text)
+            </td>
+            <td class="adminData">
+                @Model.LastName
+            </td>
+        </tr>
+
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Gender, T("Common.Gender").Text)
+            </td>
+            <td class="adminData">
+                @Model.Gender
+            </td>
+        </tr>
+
+
+
+
+
+
+        @if (commonSettings.DisplayVendor)
+        {
+            <tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.FranchiseName, T("Common.Vendor").Text)
+                </td>
+                <td class="adminData">
+                    @Model.FranchiseName
+                </td>
+            </tr>
+        }
+        <tr>
+            <td class="adminTitle">
+                @Html.LabelFor(model => model.Education, T("Admin.Candidate.Candidate.Fields.Education").Text)
+            </td>
+            <td class="adminData">
+                @Model.Education
+            </td>
+
+        </tr>
+        @*<tr>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.UpdatedOn)
+                </td>
+                <td class="adminData">
+                    @Html.DisplayFor(model => model.UpdatedOn)
+                </td>
+                <td class="adminTitle">
+                    @Html.LabelFor(model => model.CreatedOn)
+                </td>
+                <td class="adminData">
+                    @Html.DisplayFor(model => model.CreatedOn)
+                </td>
+            </tr>*@
+    </table>
+
+
+    <h2>@T("Admin.Candidate.CandidateKeySkills").Text</h2>
+    <table class="adminContent">
+        <tr>
+            <td>
+                @(Html.Kendo().Grid<CandidateKeySkillModel>()
+                    .Name("candidate-key-skills-grid")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(x => x.Id).Hidden();
+                        columns.Bound(x => x.KeySkill);
+                        columns.Bound(x => x.YearsOfExperience);
+                        columns.Bound(x => x.LastUsedDate).Width(120);
+                        columns.Bound(x => x.Note).Width(120);
+                    })
+                    .EnableCustomBinding(false)
+                    .Filterable()
+                    .Sortable()
+                    .ColumnMenu()
+                    .Selectable()
+                    .Pageable(x => x.PageSizes(new[] { 5, 10 }).Refresh(true))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .PageSize(5)
+                        .ServerOperation(true)
+                        .Read(read => read.Action("GetCandidatekeySkills", "Common", new { guid = Model.CandidateGuid }))
+                    )
+                )
+            </td>
+        </tr>
+    </table>
+
+
+    <h2>@T("Admin.Candidate.TestResults").Text</h2>
+    <table class="adminContent">
+        <tr>
+            <td>
+                @(Html.Kendo().Grid<CandidateTestResultModel>()
+                    .Name("test-result-grid")
+                    .Columns(columns =>
+                    {
+                        //columns.Bound(x => x.Id).Width(70).Hidden();
+
+                        columns.ForeignKey(x => x.TestCategoryId, testCategories, "Id", "TestCategoryName");
+
+                        columns.Bound(x => x.TotalScore);
+                        columns.Bound(x => x.PassScore);
+                        columns.Bound(x => x.TestScore);
+
+                        columns.Bound(x => x.IsPassed)
+                                .Template(@<img alt="check" src="@Url.Content("~/Content/images/active-" + item.IsPassed.ToString().ToLowerInvariant() + ".png")" />)
+                                        .ClientTemplate("<img alt='check' src='" + Url.Content("~/Content/images/") + "active-#= IsPassed #.png' />")
+                                        .HeaderHtmlAttributes(new { style = "text-align:center" }).HtmlAttributes(new { style = "text-align:center" })
+                                        .Width(100);
+
+                        //columns.Bound(x => x.UpdatedOnUtc).ClientTemplate("#=kendo.toString(UpdatedOn,'yyyy-MM-dd HH:mm')#").Width(130).Hidden(true);
+                        //columns.Bound(x => x.CreatedOnUtc).ClientTemplate("#=kendo.toString(CreatedOn,'yyyy-MM-dd HH:mm')#").Width(130);
+
+                        columns.Bound(x => x.Id).Sortable(false).Filterable(false).IncludeInMenu(false)
+                            .ClientTemplate("<a class='-k-button' href=\"" + @Url.Content("~/Client/Common/DownloadCandidateTestResult/") + "#=Id#" + "\"><span class='fa fa-download'></span></a>")
+                            .Title(T("Common.Download").Text)
+                            .HtmlAttributes(new { style = "text-align:center", title = T("Common.Download").Text })
+                            .Width(100);
+                    })
+                    .EnableCustomBinding(false)
+                    .Filterable()
+                    .Sortable()
+                    .ColumnMenu()
+                    .Selectable()
+                    .Pageable(x => x.PageSizes(new[] { 5, 10 }).Refresh(true))
+                    .DataSource(dataSource => dataSource
+                            .Ajax()
+                            .ServerOperation(false)
+                            .PageSize(10)
+                            .Read(read => read.Action("GetCandidateTestResults", "Common", new { guid = Model.CandidateGuid, companyId = workContext.CurrentAccount.CompanyId }))
+                            .Sort(sort =>
+                            {
+                                sort.Add(x => x.TestCategoryId);
+                                sort.Add(x => x.UpdatedOnUtc).Descending();
+                            })
+                    )
+                )
+            </td>
+        </tr>
+    </table>
+
+
+    <h2>@T("Admin.Candidate.CandidateAttachment").Text</h2>
+    <table class="adminContent">
+
+        <tr>
+            <td>
+                @(Html.Kendo().Grid<CandidateAttachmentModel>()
+                    .Name("candidate-attachments-grid")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(x => x.OriginalFileName);
+                        columns.ForeignKey(x => x.DocumentTypeId, documentTypes, "Id", "TypeName");
+                        columns.Bound(x => x.ContentType).Width(120);
+                        columns.Bound(x => x.ContentText).Width(120);
+                        columns.Bound(x => x.Id)
+                                .ClientTemplate("<a class='k-button' href=\"" + @Url.Content("~/Client/Common/DownloadAttachment?attachmentId=") + "#= Id #\"><span class='fa fa-download' title='Download'></span></a>")
+                                .Title(T("Common.Download").Text)
+                                .Width(90);
+                    })
+                    .EnableCustomBinding(false)
+                    .Filterable()
+                    .Sortable()
+                    .ColumnMenu()
+                    .Selectable()
+                    .Pageable(x => x.PageSizes(new[] { 5, 10 }).Refresh(true))
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .PageSize(5)
+                        .ServerOperation(true)
+                        .Read(read => read.Action("GetCandidateAttachments", "Common", new { guid = Model.CandidateGuid }))
+                    )
+                )
+            </td>
+        </tr>
+    </table>
+}

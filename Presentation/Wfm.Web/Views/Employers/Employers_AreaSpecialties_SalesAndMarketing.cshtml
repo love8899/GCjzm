@@ -1,0 +1,53 @@
+﻿@using Wfm.Core.Domain.Common
+@using Wfm.Core.Infrastructure
+@{
+    Layout = "~/Views/Shared/Layout/_ColumnsTwo.cshtml";
+    ViewBag.PageClass = "html-topic-page";
+
+    var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
+    var siteTitle = commonSettings.SiteTitle;
+    var shortName = "GC Employment Staffing Agency";
+    var pageTitle = "Sales and Marketing";
+    //var description = "We are well acquainted with the changing demands of the sales and marketing function and have amassed an extensive network of high calibre sales and marketing candidates.";
+
+    ViewBag.Title = pageTitle + " | " + shortName;
+    //ViewBag.Description = description;
+    ViewBag.Keywords = null;
+    ViewBag.PageTitle = ViewBag.Title;
+    //ViewBag.PageDescription = ViewBag.Description;
+    ViewBag.PageName = shortName + " | " + pageTitle.ToLower();
+}
+
+@section left {
+    @Html.Partial("Layout/_EmployerSideBar")
+}
+<div class="page topic-page" id="ph-topic">
+    <div class="page-title" id="ph-title">
+        <h1>Sales and Marketing</h1>
+    </div>
+    <div class="page-body">
+        <p>
+            In today’s fast-changing business environment, companies need sales and marketing
+            professionals who are equipped to deal with the growing challenges of increased
+            competition, maturing markets, pricing pressures, fragmented audiences and demanding
+            consumers.
+        </p>
+        <p>
+            We are well acquainted with the changing demands of the sales and marketing function
+            and have amassed an extensive network of high calibre sales and marketing candidates.
+            In addition to conducting searches for senior marketing managers, our consultants
+            also handle assignments across the full spectrum of marketing functional work in
+            the following areas:
+        </p>
+        <ul>
+            <li>Account management</li>
+            <li>Advertising</li>
+            <li>Business development</li>
+            <li>Channel management</li>
+            <li>Consumer research</li>
+            <li>Corporate communications</li>
+            <li>Direct marketing</li>
+            <li>Retail</li>
+        </ul>
+    </div>
+</div>

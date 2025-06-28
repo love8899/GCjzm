@@ -1,0 +1,109 @@
+﻿@model ClientNotificationMappingModel
+@{
+    Layout = "";
+    var companyId = ViewBag.CompanyId;
+}
+
+<script type="text/javascript">
+    function onDataBound(e) {
+        tagCells(e);
+    }
+</script>
+
+@using (Html.BeginForm("_SaveNotificationMapping", "Company", new { companyId = companyId}, FormMethod.Post))
+{
+    <div class="section-header">
+        <div class="title">
+            @T("Common.Notification")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+        </div>
+    </div>
+
+    @Html.Hidden("notificationNames")
+    
+    <table class="adminContent">
+        <tr>
+            <td>
+            @if (Model.AvailableNotifications.Count == 0)
+            {
+                <text>No notifications defined</text>
+            }
+            else if (Model.AvailableAccountRoles.Count == 0)
+            {
+                <text>No customer roles available</text>
+            }
+            else
+            {
+                @(Html.Kendo().Grid<dynamic>()
+                    .Name("notification-grid")
+                    .Events(events => { events.DataBound("onDataBound"); })
+                    .Columns(columns =>
+                    {
+                        columns.Bound("NotificationName").Width(360);
+                        foreach (var column in Model.AvailableAccountRoles)
+                        {
+                            var roleTag = "allow_" + column.Item1.ToString();
+                            var c = columns.Bound(column.Item3).Title(column.Item2);
+                            c.HeaderHtmlAttributes(new { style = "text-align:center" });
+                            c.HtmlAttributes(new { style = "text-align:center", @class = roleTag });
+                        }
+                    })
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .ServerOperation(false)
+                        .PageSize(10)
+                        .Model(model =>
+                            {
+                                model.Id("NotificationName");
+                                foreach (var column in Model.AvailableAccountRoles)
+                                {
+                                    var field = model.Field(column.Item3, typeof(bool));
+                                }
+                            })
+                        .Read(read => read.Action("_GetNotificationRoleMaps", "Company", new { companyId = companyId }))
+                    )
+                    .Pageable(x => x.PageSizes(new[] { 5, 10, 20 }).Refresh(true))
+                    .Sortable()
+                    //.Groupable()
+                    .ColumnMenu()
+                    .Filterable(filterable => filterable
+                        .Extra(false)
+                        .Operators(operators => operators
+                            .ForString(str => str.Clear()
+                                .Contains("Contains")
+                                .IsEqualTo("Is equal to")
+                                .IsNotEqualTo("Is not equal to")
+                            )
+                        )
+                    )
+                )
+            }
+            </td>
+        </tr>
+    </table>
+}
+
+
+<script type="text/javascript">
+
+    function tagCells(e) {
+        var rowNames = ''
+        var gridRows = e.sender.tbody.find("tr");
+        gridRows.each(function (e) {
+            var rowTag = $(this).children('td:first').text();
+            rowNames += rowTag + ',';
+            var value = '\x22' + rowTag + '\x22';
+            $(this).find('td[class^=allow_]').each(function () {
+                var columnTag = $(this).attr('class');
+                var inputHtml = '<input type="checkbox" class=' + columnTag + ' name=' + columnTag + ' value=' + value;
+                if ($(this).text() == "true")
+                    inputHtml += ' checked="checked"';
+                $(this).html(inputHtml + ' />');
+            });
+        });
+        $('#notificationNames').val(rowNames);
+    }
+
+</script>

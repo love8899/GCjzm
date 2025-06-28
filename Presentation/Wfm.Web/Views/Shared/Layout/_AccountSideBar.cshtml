@@ -1,0 +1,13 @@
+﻿@using Wfm.Web.Framework.HtmlHelpers
+<div class="block block-category-navigation">
+    <div class="title">
+        <strong>My Account</strong>
+    </div>
+    <div class="listbox">
+        <ul class="list">
+            <li class="@Html.SideBarMenuLink("SignIn", "SignIn", "Candidate")">@Html.ActionLink("My Account", "SignIn", "Candidate")</li>
+            <li class="@Html.SideBarMenuLink("Create New Account", "NewRegister", "Candidate")">@Html.ActionLink("Create New Account", "NewRegister", "Candidate")</li>
+            <li class="@Html.SideBarMenuLink("Can't access your account", "CandidateRecovery", "Candidate")">@Html.ActionLink("Forgot password?", "CandidateRecovery", "Candidate")</li>
+        </ul>
+    </div>
+</div>

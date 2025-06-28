@@ -1,0 +1,66 @@
+﻿@using Wfm.Shared.Models.Scheduling
+
+@model IEnumerable<ShiftScheduleModel>
+<script type="text/javascript">
+    function addSchedulePeriodId() {
+        return { schedulePeriodId : @(ViewBag.SchedulePeriodId) };
+    }
+    function timeEditor(container, options) {
+        $('<input data-text-field="' + options.field + '" data-value-field="' + options.field + '" data-bind="value:' + options.field + '" data-format="' + options.format + '"/>')
+                .appendTo(container)
+                .kendoTimePicker({});
+    }
+</script>
+<div class="section-header">
+    <div class="title">
+    </div>
+    <div class="options">
+        <input type="button" name="close" id="close-schedule-shift-report" class="k-button" value="@T("Common.Close")" />
+    </div>
+</div>
+@(Html.Kendo().Grid<ShiftScheduleModel>().Name("shift-schedule-grid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.Id).Hidden();
+        columns.Bound(p => p.SchedulePeriodId).Hidden();
+        columns.Bound(p => p.CompanyShift).ClientTemplate("#=CompanyShift.Name#").Width(120);
+        columns.Bound(p => p.SundaySwitch).ClientTemplate("<img alt='' src='" + Url.Content("~/ClientCompany/Content/images/") + "ico-#= SundaySwitch ? 'success' : 'no' #.png' />").Width(80);
+        columns.Bound(p => p.MondaySwitch).ClientTemplate("<img alt='' src='" + Url.Content("~/ClientCompany/Content/images/") + "ico-#= MondaySwitch ? 'success' : 'no' #.png' />").Width(80);
+        columns.Bound(p => p.TuesdaySwitch).ClientTemplate("<img alt='' src='" + Url.Content("~/ClientCompany/Content/images/") + "ico-#= TuesdaySwitch ? 'success' : 'no' #.png' />").Width(80);
+        columns.Bound(p => p.WednesdaySwitch).ClientTemplate("<img alt='' src='" + Url.Content("~/ClientCompany/Content/images/") + "ico-#= WednesdaySwitch ? 'success' : 'no' #.png' />").Width(80);
+        columns.Bound(p => p.ThursdaySwitch).ClientTemplate("<img alt='' src='" + Url.Content("~/ClientCompany/Content/images/") + "ico-#= ThursdaySwitch ? 'success' : 'no' #.png' />").Width(80);
+        columns.Bound(p => p.FridaySwitch).ClientTemplate("<img alt='' src='" + Url.Content("~/ClientCompany/Content/images/") + "ico-#= FridaySwitch ? 'success' : 'no' #.png' />").Width(80);
+        columns.Bound(p => p.SaturdaySwitch).ClientTemplate("<img alt='' src='" + Url.Content("~/ClientCompany/Content/images/") + "ico-#= SaturdaySwitch ? 'success' : 'no' #.png' />").Width(80);
+        columns.Bound(p => p.StartTimeOfDay).Format("{0:HH:mm}").Width(80).EditorTemplateName("Time");
+        columns.Bound(p => p.LengthInHours).Width(80);
+    })
+    .ToolBar(toolbar =>
+    {
+        toolbar.Save();
+    })
+    .Editable(editable => editable.Mode(GridEditMode.InCell))
+    .Sortable()
+    .Scrollable()
+    .HtmlAttributes(new { style = "height:350px;" })
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .ServerOperation(false)
+        .Events(events => events.Error("error_handler"))
+        .Model(model =>
+        {
+            model.Id(p => p.Id);
+            model.Field(p => p.Id).Editable(false);
+            model.Field(p => p.CompanyShift).Editable(false); // DefaultValue(ViewBag.DefaultShift as CompanyShiftDropdownModel);
+        })
+        .Read(read => read.Action("_EditingScheduleShifts", "Scheduling").Data("addSchedulePeriodId"))
+        .Update(update => update.Action("_EditingScheduleShiftsUpdate", "Scheduling").Data("addSchedulePeriodId"))
+        .Create(update => update.Action("_EditingScheduleShiftsUpdate", "Scheduling").Data("addSchedulePeriodId"))
+    )
+)
+<script>
+    $(function(){
+        $('.k-grid-save-changes').html('Save');
+        $('.k-grid-cancel-changes').html('Cancel');
+    })
+</script>
